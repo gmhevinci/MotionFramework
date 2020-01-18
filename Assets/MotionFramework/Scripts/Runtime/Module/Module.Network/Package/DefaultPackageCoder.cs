@@ -7,7 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace MotionFramework.Network.Coder
+namespace MotionFramework.Network
 {
 	/// <summary>
 	/// 默认的网络包编码解码器
