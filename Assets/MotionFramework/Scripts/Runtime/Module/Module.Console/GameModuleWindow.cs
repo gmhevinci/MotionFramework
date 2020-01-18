@@ -15,9 +15,6 @@ namespace MotionFramework.Console
 		// GUI相关
 		private Vector2 _scrollPos = Vector2.zero;
 		
-		void IConsoleWindow.OnStart()
-		{
-		}
 		void IConsoleWindow.OnGUI()
 		{
 			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 0);

@@ -40,7 +40,7 @@ namespace MotionFramework.Console
 		private bool _showError = true;
 		private Vector2 _scrollPos = Vector2.zero;
 		
-		void IConsoleWindow.OnStart()
+		public GameLogWindow()
 		{
 			// 注册UnityEngine日志系统
 			Application.logMessageReceived += HandleUnityEngineLog;

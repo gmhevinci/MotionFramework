@@ -17,9 +17,6 @@ namespace MotionFramework.Console
 		// GUI相关
 		private Vector2 _scrollPos = Vector2.zero;
 
-		void IConsoleWindow.OnStart()
-		{
-		}
 		void IConsoleWindow.OnGUI()
 		{
 			var pools = GameObjectPoolManager.Instance.GetAllCollectors;

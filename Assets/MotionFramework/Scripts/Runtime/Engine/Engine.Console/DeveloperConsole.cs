@@ -37,7 +37,6 @@ namespace MotionFramework.Console
 		/// 控制台节点列表
 		/// </summary>
 		private readonly static List<WindowWrapper> _wrappers = new List<WindowWrapper>();
-		private static bool _isStart = false;
 
 		// GUI相关
 		private static bool _visibleToggle = false;
@@ -96,16 +95,6 @@ namespace MotionFramework.Console
 		{
 			// 注意：GUI接口只能在OnGUI内部使用
 			ConsoleGUI.InitGlobalStyle();
-
-			if (_isStart == false)
-			{
-				_isStart = true;
-				for (int i = 0; i < _wrappers.Count; i++)
-				{
-					WindowWrapper wrapper = _wrappers[i];
-					wrapper.Instance.OnStart();
-				}
-			}
 
 			GUILayout.BeginHorizontal();
 			{

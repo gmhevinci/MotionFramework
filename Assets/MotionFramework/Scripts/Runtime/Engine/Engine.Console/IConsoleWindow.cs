@@ -8,7 +8,6 @@ namespace MotionFramework.Console
 {
 	public interface IConsoleWindow
 	{
-		void OnStart();
 		void OnGUI();
 	}
 }
