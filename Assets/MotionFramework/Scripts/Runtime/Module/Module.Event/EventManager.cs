@@ -34,7 +34,15 @@ namespace MotionFramework.Event
 		/// </summary>
 		public void AddListener<TEvent>(System.Action<IEventMessage> listener) where TEvent : IEventMessage
 		{
-			int eventId = typeof(TEvent).GetHashCode();
+			AddListener(typeof(TEvent), listener);
+		}
+
+		/// <summary>
+		/// 添加监听
+		/// </summary>
+		public void AddListener(System.Type eventType, System.Action<IEventMessage> listener)
+		{
+			int eventId = eventType.GetHashCode();
 			if (_listeners.ContainsKey(eventId) == false)
 				_listeners.Add(eventId, new List<Action<IEventMessage>>());
 			if (_listeners[eventId].Contains(listener) == false)
@@ -46,7 +54,15 @@ namespace MotionFramework.Event
 		/// </summary>
 		public void RemoveListener<TEvent>(System.Action<IEventMessage> listener) where TEvent : IEventMessage
 		{
-			int eventId = typeof(TEvent).GetHashCode();
+			RemoveListener(typeof(TEvent), listener);
+		}
+
+		/// <summary>
+		/// 移除监听
+		/// </summary>
+		public void RemoveListener(System.Type eventType, System.Action<IEventMessage> listener)
+		{
+			int eventId = eventType.GetHashCode();
 			if (_listeners.ContainsKey(eventId))
 			{
 				if (_listeners[eventId].Contains(listener))
