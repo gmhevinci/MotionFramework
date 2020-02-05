@@ -24,11 +24,10 @@ namespace MotionFramework.Config
 	/// <summary>
 	/// 配表资源类
 	/// </summary>
-	public abstract class AssetConfig
+	public abstract class AssetConfig : IEnumerator
 	{
 		private AssetReference _assetRef;
 		private AssetOperationHandle _handle;
-		private System.Action<AssetConfig> _userCallback;
 
 		/// <summary>
 		/// 配表数据集合
@@ -36,15 +35,9 @@ namespace MotionFramework.Config
 		protected readonly Dictionary<int, ConfigTable> _tables = new Dictionary<int, ConfigTable>();
 
 		/// <summary>
-		/// 是否完成
+		/// 准备完毕
 		/// </summary>
-		public bool IsDone
-		{
-			get
-			{
-				return _handle.IsDone;
-			}
-		}
+		public bool IsPrepare { private set; get; }
 
 		/// <summary>
 		/// 资源地址
@@ -52,20 +45,18 @@ namespace MotionFramework.Config
 		public string Location { private set; get; }
 
 
-		public void Init(string location)
+		/// <summary>
+		/// 加载表格
+		/// </summary>
+		/// <param name="location"></param>
+		/// <param name="callback"></param>
+		public void Load(string location)
 		{
 			if (_assetRef != null)
 				return;
 
 			Location = location;
 			_assetRef = new AssetReference(location);
-		}
-		public void Load(System.Action<AssetConfig> callback)
-		{
-			if (_userCallback != null)
-				return;
-
-			_userCallback = callback;
 			_handle = _assetRef.LoadAssetAsync<TextAsset>();
 			_handle.Completed += Handle_Completed;
 		}
@@ -92,6 +83,7 @@ namespace MotionFramework.Config
 				_assetRef = null;
 			}
 
+			IsPrepare = true;
 			_userCallback?.Invoke(this);
 		}
 
@@ -204,5 +196,39 @@ namespace MotionFramework.Config
 			}
 			return keys;
 		}
+
+		#region 异步相关
+		private System.Action<AssetConfig> _userCallback;
+
+		/// <summary>
+		/// 完成委托
+		/// </summary>
+		public event System.Action<AssetConfig> Completed
+		{
+			add
+			{
+				if (IsPrepare)
+					value.Invoke(this);
+				else
+					_userCallback += value;
+			}
+			remove
+			{
+				_userCallback -= value;
+			}
+		}
+
+		bool IEnumerator.MoveNext()
+		{
+			return !IsPrepare;
+		}
+		void IEnumerator.Reset()
+		{
+		}
+		object IEnumerator.Current
+		{
+			get { return null; }
+		}
+		#endregion
 	}
 }

@@ -49,27 +49,27 @@ namespace MotionFramework.Config
 		/// 加载配表
 		/// </summary>
 		/// <param name="configName">配表文件名称</param>
-		public void LoadConfig(string configName, System.Action<AssetConfig> callback)
+		public AssetConfig LoadConfig(string configName)
 		{
 			// 防止重复加载
 			if (_configs.ContainsKey(configName))
 			{
 				MotionLog.Log(ELogLevel.Error, $"Config {configName} is already existed.");
-				return;
+				return null;
 			}
 
 			AssetConfig config = ConfigCreater.CreateInstance(configName);
 			if (config != null)
 			{
 				string location = $"{_baseDirectory}/{configName}";
+				config.Load(location);
 				_configs.Add(configName, config);
-				config.Init(location);
-				config.Load(callback);
 			}
 			else
 			{
 				MotionLog.Log(ELogLevel.Error, $"Config type {configName} is invalid.");
 			}
+			return config;
 		}
 
 		/// <summary>
@@ -93,7 +93,7 @@ namespace MotionFramework.Config
 		public T GetConfig<T>() where T : AssetConfig
 		{
 			System.Type type = typeof(T);
-			foreach(var pair in _configs)
+			foreach (var pair in _configs)
 			{
 				if (pair.Value.GetType() == type)
 					return pair.Value as T;
