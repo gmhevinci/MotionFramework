@@ -4,6 +4,8 @@
 
 创建配表管理器
 ```C#
+using MotionFramework.Config;
+
 public void Start()
 {
 	// 设置参数
@@ -17,22 +19,35 @@ public void Start()
 
 加载表格
 ```C#
-using MotionFramework.Config;
-
 public class Test
 {
 	public void Start()
 	{
 		// 加载多语言表
-		ConfigManager.Instance.LoadConfig("AutoGenerateLanguage", null);	
+		var languageConfig = ConfigManager.Instance.LoadConfig("AutoGenerateLanguage");
+		languageConfig.Completed += OnConfigLoad;
+	}
+	partial void OnConfigLoad(AssetConfig config)
+	{
+	}
+}
+```
+
+加载表格
+```C#
+public class Test
+{
+	public IEnumerator Start()
+	{
+		// 加载多语言表
+		var languageConfig = ConfigManager.Instance.LoadConfig("AutoGenerateLanguage");
+		yield return languageConfig;
 	}
 }
 ```
 
 扩展方法方便直接获取数据
 ```C#
-using MotionFramework.Config;
-
 // 这里扩展了获取数据的方法
 public partial class CfgAutoGenerateLanguage
 {
