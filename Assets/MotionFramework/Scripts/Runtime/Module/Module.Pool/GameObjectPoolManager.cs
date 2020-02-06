@@ -36,7 +36,7 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 创建指定资源的游戏对象池
 		/// </summary>
-		public void CreatePool(string location, int capacity)
+		public void CreatePool(string location, int capacity = 1)
 		{
 			if (_collectors.ContainsKey(location))
 			{
@@ -80,17 +80,17 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 异步方式获取一个游戏对象
 		/// </summary>
-		public void Spawn(string location, Action<GameObject> callbcak)
+		public void Spawn(string location, Action<GameObject> callback)
 		{
 			if (_collectors.ContainsKey(location))
 			{
-				_collectors[location].Spawn(callbcak);
+				_collectors[location].Spawn(callback);
 			}
 			else
 			{
 				// 如果不存在创建游戏对象池
 				GameObjectCollector pool = CreatePoolInternal(location, 0);
-				pool.Spawn(callbcak);
+				pool.Spawn(callback);
 			}
 		}
 
