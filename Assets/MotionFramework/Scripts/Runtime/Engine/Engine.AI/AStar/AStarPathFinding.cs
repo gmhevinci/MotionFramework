@@ -9,10 +9,10 @@ using System.Collections.Generic;
 
 namespace MotionFramework.AI
 {
-	public class AStar
+	public static class AStarPathFinding
 	{
-		private readonly List<AStarNode> _openList = new List<AStarNode>(1000);
-		private readonly HashSet<AStarNode> _closedList = new HashSet<AStarNode>();
+		private static readonly List<AStarNode> _openList = new List<AStarNode>(1000);
+		private static readonly HashSet<AStarNode> _closedList = new HashSet<AStarNode>();
 
 		/// <summary>
 		/// 获取一条路径
@@ -21,7 +21,7 @@ namespace MotionFramework.AI
 		/// <param name="from">起点</param>
 		/// <param name="to">终点</param>
 		/// <returns>如果没有找到路径返回NULL</returns>
-		public List<AStarNode> FindPath(IAStarGraph graph, AStarNode from, AStarNode to)
+		public static List<AStarNode> FindPath(IAStarGraph graph, AStarNode from, AStarNode to)
 		{
 			// 清空上次寻路数据
 			graph.ClearTemp();
@@ -75,7 +75,7 @@ namespace MotionFramework.AI
 		/// <summary>
 		/// 回溯路径
 		/// </summary>
-		private List<AStarNode> RetracePath(AStarNode from, AStarNode to)
+		private static List<AStarNode> RetracePath(AStarNode from, AStarNode to)
 		{
 			List<AStarNode> path = new List<AStarNode>();
 			AStarNode current = to;
