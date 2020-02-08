@@ -24,6 +24,6 @@ namespace MotionFramework.AI
 		/// <summary>
 		/// 清空所有节点的临时数据
 		/// </summary>
-		void ClearTemp();
+		void ClearTemper();
 	}
 }

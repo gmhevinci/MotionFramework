@@ -24,7 +24,7 @@ namespace MotionFramework.AI
 		public static List<AStarNode> FindPath(IAStarGraph graph, AStarNode from, AStarNode to)
 		{
 			// 清空上次寻路数据
-			graph.ClearTemp();
+			graph.ClearTemper();
 			_openList.Clear();
 			_closedList.Clear();
 

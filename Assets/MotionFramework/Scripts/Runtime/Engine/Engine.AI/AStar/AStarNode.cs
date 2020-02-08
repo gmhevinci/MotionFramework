@@ -45,7 +45,7 @@ namespace MotionFramework.AI
 		/// <summary>
 		/// 清空临时数据
 		/// </summary>
-		public void ClearTemp()
+		public void ClearTemper()
 		{
 			G = 0;
 			H = 0;
