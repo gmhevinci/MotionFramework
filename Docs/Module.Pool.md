@@ -9,55 +9,49 @@ public void Start()
 }
 ```
 
-对象池使用异步使用范例
+对象池使用范例
 ```C#
 using MotionFramework.Pool;
 
 public class Test
 {
-	private string _npcName = "Model/Npc001";
-	private GameObject _npc;
+	private SpawnGameObject _spawnObj;
 
-	public void Awake()
-	{
-		// 创建NPC的对象池
-		int capacity = 0;
-		GameObjectPoolManager.Instance.CreatePool(_npcName, capacity);
-	}
 	public void Start()
 	{
-		// 异步方法
-		GameObjectPoolManager.Instance.Spawn(_npcName, SpawnCallback);
+		// 获取对象
+		_spawnObj = GameObjectPoolManager.Instance.Spawn("Model/Npc001");
+		_spawnObj.Completed += OnAssetLoad;
 	}
-	private void SpawnCallback(GameObject go)
+	public void Destroy()
 	{
-		_npc = go;
+		// 回收对象
+		_spawnObj.Restore();
+	}
+	private void OnAssetLoad(GameObject go)
+	{
 	}
 }
 ```
 
-对象池使用同步使用范例
+批量创建对象池
 ```C#
 using MotionFramework.Pool;
 
 public class Test
 {
-	private string _npcName = "Model/Npc001";
-	private GameObject _npc;
-	private bool _isSpawn = false;
-
 	public void Awake()
 	{
-		// 创建NPC的对象池
-		int capacity = 0;
-		GameObjectPoolManager.Instance.CreatePool(_npcName, capacity);
+		GameObjectPoolManager.Instance.CreatePool("Model/Npc001");
+		GameObjectPoolManager.Instance.CreatePool("Model/Npc002");
+		GameObjectPoolManager.Instance.CreatePool("Model/Npc003");
 	}
 	public void Update()
 	{
-		if(_isSpawn == false && GameObjectPoolManager.Instance.IsAllPrepare())
+		// 等待所有对象池资源加载完毕
+		if(GameObjectPoolManager.Instance.IsAllPrepare())
 		{
-			_isSpawn = true;
-			_npc = GameObjectPoolManager.Instance.Spawn(_npcName);
+			// Do somthing
 		}
 	}
 }
