@@ -36,7 +36,7 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 创建指定资源的游戏对象池
 		/// </summary>
-		public void CreatePool(string location, int capacity = 1)
+		public void CreatePool(string location, int capacity = 0)
 		{
 			if (_collectors.ContainsKey(location))
 			{
@@ -78,26 +78,9 @@ namespace MotionFramework.Pool
 		}
 
 		/// <summary>
-		/// 异步方式获取一个游戏对象
+		/// 获取游戏对象
 		/// </summary>
-		public void Spawn(string location, Action<GameObject> callback)
-		{
-			if (_collectors.ContainsKey(location))
-			{
-				_collectors[location].Spawn(callback);
-			}
-			else
-			{
-				// 如果不存在创建游戏对象池
-				GameObjectCollector pool = CreatePoolInternal(location, 0);
-				pool.Spawn(callback);
-			}
-		}
-
-		/// <summary>
-		/// 同步方式获取一个游戏对象
-		/// </summary>
-		public GameObject Spawn(string location)
+		public SpawnGameObject Spawn(string location)
 		{
 			if (_collectors.ContainsKey(location))
 			{
@@ -108,24 +91,6 @@ namespace MotionFramework.Pool
 				// 如果不存在创建游戏对象池
 				GameObjectCollector pool = CreatePoolInternal(location, 0);
 				return pool.Spawn();
-			}
-		}
-
-		/// <summary>
-		/// 回收一个游戏对象
-		/// </summary>
-		public void Restore(string location, GameObject obj)
-		{
-			if (obj == null)
-				return;
-
-			if (_collectors.ContainsKey(location))
-			{
-				_collectors[location].Restore(obj);
-			}
-			else
-			{
-				MotionLog.Log(ELogLevel.Error, $"GameObjectPool does not exist : {location}");
 			}
 		}
 
