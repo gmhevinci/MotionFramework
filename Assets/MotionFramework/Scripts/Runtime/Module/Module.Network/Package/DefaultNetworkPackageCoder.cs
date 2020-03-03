@@ -12,7 +12,7 @@ namespace MotionFramework.Network
 	/// <summary>
 	/// 默认的网络包编码解码器
 	/// </summary>
-	public abstract class DefaultPackageCoder : NetworkPackageCoder
+	public abstract class DefaultNetworkPackageCoder : NetworkPackageCoder
 	{
 		/// <summary>
 		/// 包裹大小的字段类型
@@ -61,7 +61,7 @@ namespace MotionFramework.Network
 
 		public override void Encode(System.Object packageObj)
 		{
-			NetworkPackage package = (NetworkPackage)packageObj;
+			DefaultNetworkPackage package = (DefaultNetworkPackage)packageObj;
 			if (package == null)
 			{
 				Channel.HandleError(false, $"The package object is invalid : {packageObj.GetType()}");
@@ -164,7 +164,7 @@ namespace MotionFramework.Network
 					break; //需要退出读够数据再解包
 				}
 
-				NetworkPackage package = new NetworkPackage();
+				DefaultNetworkPackage package = new DefaultNetworkPackage();
 
 				// 读取包头
 				{
