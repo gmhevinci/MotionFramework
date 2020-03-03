@@ -7,7 +7,7 @@ public void Start()
 	// 创建模块
 	// 注意：ProtoPackageCoder是自定义的网络包编码解码器
 	var createParam = new NetworkManager.CreateParameters();
-	createParam.PackageCoderType = typeof(ProtoPackageCoder);
+	createParam.PackageCoderType = typeof(ProtoNetworkPackageCoder);
 	MotionEngine.CreateModule<NetworkManager>(createParam);
 }
 ```

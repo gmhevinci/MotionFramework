@@ -10,9 +10,9 @@ using MotionFramework.Network;
 /// <summary>
 /// Protobuf网络包编码解码器
 /// </summary>
-public class ProtoPackageCoder : DefaultPackageCoder
+public class ProtoNetworkPackageCoder : DefaultNetworkPackageCoder
 {
-	public ProtoPackageCoder()
+	public ProtoNetworkPackageCoder()
 	{
 		// 设置字段类型
 		PackageSizeFieldType = EPackageSizeFieldType.UShort;
@@ -34,4 +34,4 @@ public class ProtoPackageCoder : DefaultPackageCoder
 ```
 
 更详细的教程请参考示例代码
-1. [Module.Network/Package/DefaultPackageCoder.cs](https://github.com/gmhevinci/MotionFramework/blob/master/Assets/MotionFramework/Scripts/Runtime/Module/Module.Network/Package/DefaultPackageCoder.cs)
+1. [Module.Network/Package/DefaultNetworkPackageCoder.cs](https://github.com/gmhevinci/MotionFramework/blob/master/Assets/MotionFramework/Scripts/Runtime/Module/Module.Network/Package/DefaultNetworkPackageCoder.cs)
