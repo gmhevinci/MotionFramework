@@ -10,7 +10,7 @@ using MotionFramework.Utility;
 
 namespace MotionFramework.Config
 {
-	internal class ConfigCreater
+	public class ConfigCreater
 	{
 		private static Dictionary<string, Type> _cfgTypes = new Dictionary<string, Type>();
 
