@@ -166,6 +166,20 @@ namespace MotionFramework.Network
 				_channel.SendPackage(package);
 		}
 
+		/// <summary>
+		/// 本地模拟接收网络包
+		/// </summary>
+		public void Simulate(INetworkPackage package)
+		{
+			if (package != null)
+			{
+				if (package.IsHotfixPackage)
+					HotfixPackageCallback.Invoke(package);
+				else
+					MonoPackageCallback.Invoke(package);
+			}
+		}
+
 		private void CloseChannel()
 		{
 			if (_channel != null)
