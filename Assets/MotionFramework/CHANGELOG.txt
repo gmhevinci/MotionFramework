@@ -1,2 +1,14 @@
+v1.0.1 - 2020年3月4日
+改进
+1. [Module.Config] 配表加载支持协程等待
+2. [Module.Pool] 改进游戏对象池
+3. [Module.Eventr] 事件管理器增加EventGroup类
+4. [Module.Network] 增加本地模拟接收网络包接口
+
+变更
+1. NetworkPackage.cs 重命名为 DefaultNetworkPackage.cs
+2. DefaultPackageCoder.cs 重命名为 DefaultNetworkPackageCoder.cs
+3. AStar.cs 重命名为 AStarPathFinding.cs
+
 v1.0.0 - 2020年1月18日
 正式版发布
