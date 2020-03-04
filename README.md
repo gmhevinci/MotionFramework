@@ -4,7 +4,7 @@ MotionFramework是一套基于Unity3D引擎的游戏框架。框架整体遵循*
 ![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/framework.png)
 
 ## 支持版本
-Unity2017.4 && Unity2018.4
+Unity2017.4 && Unity2018.4 && Unity2019.3
 
 ## 开发环境
 C# && .Net4.x
