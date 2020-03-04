@@ -6,7 +6,7 @@
 
 namespace MotionFramework.Network
 {
-	internal class NetworkDefine
+	public class NetworkDefine
 	{
 		/// <summary>
 		/// 网络包体的最大长度
