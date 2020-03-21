@@ -189,7 +189,7 @@ namespace MotionFramework.Patch
 			return result;
 		}
 
-		string IBundleServices.ConvertLocationToManifestPath(string location)
+		string IBundleServices.ConvertLocationToManifestPath(string location, string variant)
 		{
 			if (_cachedLocationRoot == null)
 			{
@@ -198,14 +198,10 @@ namespace MotionFramework.Patch
 				_cachedLocationRoot = AssetSystem.LocationRoot.ToLower();
 			}
 
-			// 转换为小写形式
-			location = location.ToLower();
+			if (string.IsNullOrEmpty(variant))
+				throw new System.Exception($"Variant is null or empty: {location}");
 
-			// 如果是变体资源
-			if (Path.HasExtension(location))
-				return StringFormat.Format("{0}/{1}", _cachedLocationRoot, location);
-			else
-				return StringFormat.Format("{0}/{1}.{2}", _cachedLocationRoot, location, PatchDefine.AssetBundleDefaultVariant);
+			return StringFormat.Format("{0}/{1}.{2}", _cachedLocationRoot, location.ToLower(), variant);
 		}
 		string IBundleServices.GetAssetBundleLoadPath(string manifestPath)
 		{
