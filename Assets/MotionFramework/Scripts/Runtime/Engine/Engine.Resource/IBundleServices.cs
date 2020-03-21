@@ -11,7 +11,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 将资源定位地址转换为清单路径
 		/// </summary>
-		string ConvertLocationToManifestPath(string location);
+		string ConvertLocationToManifestPath(string location, string variant);
 
 		/// <summary>
 		/// 获取AssetBundle的加载路径

@@ -75,7 +75,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 创建资源文件加载器
 		/// </summary>
-		public static AssetLoaderBase CreateLoader(string location)
+		public static AssetLoaderBase CreateLoader(string location, string variant)
 		{
 			if (_isInitialize == false)
 				throw new Exception($"{nameof(AssetSystem)} is not initialize.");
@@ -94,7 +94,7 @@ namespace MotionFramework.Resource
 				if (BundleServices == null)
 					throw new Exception($"{nameof(AssetSystem.BundleServices)} is null. Use {nameof(AssetSystem.Initialize)}");
 
-				string manifestPath = BundleServices.ConvertLocationToManifestPath(location);
+				string manifestPath = BundleServices.ConvertLocationToManifestPath(location, variant);
 				string loadPath = BundleServices.GetAssetBundleLoadPath(manifestPath);
 				return CreateLoaderInternal(loadPath, manifestPath);
 			}

@@ -4,6 +4,7 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.IO;
+using MotionFramework.Patch;
 
 namespace MotionFramework.Resource
 {
@@ -16,6 +17,11 @@ namespace MotionFramework.Resource
 		public string Location { private set; get; }
 
 		/// <summary>
+		/// 变体类型
+		/// </summary>
+		public string Variant { private set; get; }
+
+		/// <summary>
 		/// 加载器
 		/// </summary>
 		private AssetLoaderBase _cacheLoader;
@@ -24,6 +30,12 @@ namespace MotionFramework.Resource
 		public AssetReference(string location)
 		{
 			Location = location;
+			Variant = PatchDefine.AssetBundleDefaultVariant;
+		}
+		public AssetReference(string location, string variant)
+		{
+			Location = location;
+			Variant = variant;
 		}
 
 		/// <summary>
@@ -44,7 +56,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public AssetOperationHandle LoadAssetAsync<TObject>()
 		{
-			string assetName = Path.GetFileNameWithoutExtension(Location);
+			string assetName = Path.GetFileName(Location);
 			return LoadInternal(assetName, typeof(TObject), null);
 		}
 
@@ -53,7 +65,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public AssetOperationHandle LoadAssetAsync<TObject>(IAssetParam param)
 		{
-			string assetName = Path.GetFileNameWithoutExtension(Location);
+			string assetName = Path.GetFileName(Location);
 			return LoadInternal(assetName, typeof(TObject), param);
 		}
 
@@ -78,7 +90,7 @@ namespace MotionFramework.Resource
 		private AssetOperationHandle LoadInternal(string assetName, System.Type assetType, IAssetParam param)
 		{
 			if (_cacheLoader == null)
-				_cacheLoader = AssetSystem.CreateLoader(Location);
+				_cacheLoader = AssetSystem.CreateLoader(Location, Variant);
 			return _cacheLoader.LoadAssetAsync(assetName, assetType, param);
 		}
 	}
