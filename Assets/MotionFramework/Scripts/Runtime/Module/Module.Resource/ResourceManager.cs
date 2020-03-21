@@ -117,7 +117,7 @@ namespace MotionFramework.Resource
 				if (result == null)
 					MotionLog.Log(ELogLevel.Error, $"Failed to load {loadPath}");
 #else
-				throw new Exception($"{nameof(AssetSystem.VirtualSimulation)} only support unity editor.");
+				throw new Exception($"AssetSystem.VirtualSimulation only support unity editor.");
 #endif
 			}
 			else
