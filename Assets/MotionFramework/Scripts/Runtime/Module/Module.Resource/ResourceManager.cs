@@ -61,7 +61,7 @@ namespace MotionFramework.Resource
 			AssetSystem.Initialize(createParam.LocationRoot, createParam.SimulationOnEditor, createParam.BundleServices, createParam.DecryptServices);
 
 			// 创建间隔计时器
-			if(createParam.AutoReleaseInterval > 0)
+			if (createParam.AutoReleaseInterval > 0)
 				_releaseTimer = new RepeatTimer(0, createParam.AutoReleaseInterval);
 		}
 		void IModule.OnUpdate()
@@ -70,10 +70,10 @@ namespace MotionFramework.Resource
 			AssetSystem.UpdatePoll();
 
 			// 自动释放零引用资源
-			if(_releaseTimer != null && _releaseTimer.Update(Time.unscaledDeltaTime))
+			if (_releaseTimer != null && _releaseTimer.Update(Time.unscaledDeltaTime))
 			{
 				AssetSystem.Release();
-			}			
+			}
 		}
 		void IModule.OnGUI()
 		{
@@ -105,7 +105,7 @@ namespace MotionFramework.Resource
 		/// 同步加载接口
 		/// 注意：仅支持无依赖关系的资源
 		/// </summary>
-		public T SyncLoad<T>(string location) where T : UnityEngine.Object
+		public T SyncLoad<T>(string location, string variant) where T : UnityEngine.Object
 		{
 			UnityEngine.Object result = null;
 
@@ -117,7 +117,7 @@ namespace MotionFramework.Resource
 				if (result == null)
 					MotionLog.Log(ELogLevel.Error, $"Failed to load {loadPath}");
 #else
-				throw new Exception($"AssetSystem.VirtualSimulation only support unity editor.");
+				throw new Exception($"AssetSystem virtual simulation only support unity editor.");
 #endif
 			}
 			else
@@ -125,15 +125,19 @@ namespace MotionFramework.Resource
 				if (AssetSystem.BundleServices == null)
 					throw new Exception($"{nameof(AssetSystem.BundleServices)} is null.");
 
-				string fileName = System.IO.Path.GetFileNameWithoutExtension(location);
-				string manifestPath = AssetSystem.BundleServices.ConvertLocationToManifestPath(location);
+				string manifestPath = AssetSystem.BundleServices.ConvertLocationToManifestPath(location, variant);
 				string loadPath = AssetSystem.BundleServices.GetAssetBundleLoadPath(manifestPath);
 				AssetBundle bundle = AssetBundle.LoadFromFile(loadPath);
-				if(bundle != null)
+				if (bundle != null)
+				{
+					string fileName = System.IO.Path.GetFileName(location);
 					result = bundle.LoadAsset<T>(fileName);
+				}
+
 				if (result == null)
 					MotionLog.Log(ELogLevel.Error, $"Failed to load {loadPath}");
-				if(bundle != null)
+
+				if (bundle != null)
 					bundle.Unload(false);
 			}
 
