@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using MotionFramework.Patch;
@@ -83,9 +84,6 @@ namespace MotionFramework.Editor
 			string packageFolderPath = GetPackageFolderPath();
 			if (Directory.Exists(packageFolderPath))
 				throw new Exception($"[BuildPatch] 补丁包已经存在：{packageFolderPath}");
-
-			// 检测打包标签是否有冲突
-			CheckAssetBundleLabelConflict();
 
 			// 如果是强制重建
 			if (IsForceRebuild)
@@ -186,55 +184,6 @@ namespace MotionFramework.Editor
 			return opt;
 		}
 
-		/// <summary>
-		/// 检测打包标签是否有冲突
-		/// 注意：因为AssetBundle文件后缀格式为统一格式。在同一目录下，相同名字的不同类型的文件会发生冲突。
-		/// </summary>
-		private void CheckAssetBundleLabelConflict()
-		{
-			int progressBarCount = 0;
-			Dictionary<string, string> allElements = new Dictionary<string, string>();
-
-			// 获取所有的打包路径
-			List<string> collectPathList = CollectionSettingData.GetAllCollectPath();
-			if (collectPathList.Count == 0)
-				return;
-
-			// 获取所有资源
-			string[] guids = AssetDatabase.FindAssets(string.Empty, collectPathList.ToArray());
-			foreach (string guid in guids)
-			{
-				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-				if (ValidateAsset(assetPath) == false)
-					continue;
-
-				string[] dependArray = AssetDatabase.GetDependencies(assetPath, true);
-				foreach (string dependPath in dependArray)
-				{
-					if (ValidateAsset(dependPath) == false)
-						continue;
-
-					string extension = Path.GetExtension(dependPath);
-					string labelName = dependPath.Remove(dependPath.LastIndexOf(".")); // 注意：去掉文件格式
-					if (allElements.ContainsKey(labelName))
-					{
-						if (allElements[labelName] != extension)
-							throw new Exception($"发现重复的标签在同一个目录下：{labelName} {allElements[labelName]} {extension}");
-					}
-					else
-					{
-						allElements.Add(labelName, extension);
-					}
-				}
-
-				// 进度条
-				progressBarCount++;
-				EditorUtility.DisplayProgressBar("进度", $"重名文件检测：{progressBarCount}/{guids.Length}", (float)progressBarCount / guids.Length);
-			}
-			EditorUtility.ClearProgressBar();
-			progressBarCount = 0;
-		}
-
 		private void Log(string log)
 		{
 			Debug.Log($"[BuildPatch] {log}");
@@ -257,7 +206,7 @@ namespace MotionFramework.Editor
 			int progressBarCount = 0;
 			Dictionary<string, AssetInfo> allAsset = new Dictionary<string, AssetInfo>();
 
-			// 获取所有的打包路径
+			// 获取所有的收集路径
 			List<string> collectPathList = CollectionSettingData.GetAllCollectPath();
 			if (collectPathList.Count == 0)
 				throw new Exception("[BuildPatch] 配置的打包路径列表为空");
@@ -266,13 +215,13 @@ namespace MotionFramework.Editor
 			string[] guids = AssetDatabase.FindAssets(string.Empty, collectPathList.ToArray());
 			foreach (string guid in guids)
 			{
-				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-				if (CollectionSettingData.IsIgnoreAsset(assetPath))
+				string mainAssetPath = AssetDatabase.GUIDToAssetPath(guid);
+				if (CollectionSettingData.IsIgnoreAsset(mainAssetPath))
 					continue;
-				if (ValidateAsset(assetPath) == false)
+				if (ValidateAsset(mainAssetPath) == false)
 					continue;
 
-				List<AssetInfo> depends = GetDependencies(assetPath);
+				List<AssetInfo> depends = GetDependencies(mainAssetPath);
 				for (int i = 0; i < depends.Count; i++)
 				{
 					AssetInfo assetInfo = depends[i];
@@ -320,18 +269,12 @@ namespace MotionFramework.Editor
 			EditorUtility.ClearProgressBar();
 			progressBarCount = 0;
 
-			// 构建资源列表
-			List<AssetInfo> result = new List<AssetInfo>();
-			foreach (KeyValuePair<string, AssetInfo> pair in allAsset)
-			{
-				result.Add(pair.Value);
-			}
-
-			return result;
+			// 返回结果
+			return allAsset.Values.ToList();
 		}
 
 		/// <summary>
-		/// 获取依赖列表
+		/// 获取指定资源依赖的资源列表
 		/// 注意：返回列表里已经包括主资源自己
 		/// </summary>
 		private List<AssetInfo> GetDependencies(string assetPath)
@@ -377,10 +320,10 @@ namespace MotionFramework.Editor
 
 			// 如果是变体资源
 			// 注意：仅支持文件夹级别
-			if(Path.HasExtension(label) && AssetDatabase.IsValidFolder(label))
+			if (Path.HasExtension(label) && AssetDatabase.IsValidFolder(label))
 			{
 				variant = Path.GetExtension(label).Substring(1);
-				label = label.Remove(label.LastIndexOf("."));		
+				label = label.Remove(label.LastIndexOf("."));
 			}
 
 			assetInfo.AssetBundleLabel = label;
