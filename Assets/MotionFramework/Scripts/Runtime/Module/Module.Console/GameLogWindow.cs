@@ -80,7 +80,12 @@ namespace MotionFramework.Console
 		{
 			LogWrapper wrapper = ReferencePool.Spawn<LogWrapper>();
 			wrapper.Type = type;
-			wrapper.Log = logString;
+			
+			if (type == LogType.Assert || type == LogType.Error || type == LogType.Exception)
+				wrapper.Log = logString + "\n" + stackTrace;
+			else
+				wrapper.Log = logString;
+
 			_logs.Add(wrapper);
 
 			if (_logs.Count > LOG_MAX_COUNT)
