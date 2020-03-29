@@ -52,7 +52,7 @@ namespace MotionFramework.AI
 				// 获取邻居节点并添加到开放列表
 				foreach (AStarNode neighbor in graph.Neighbors(current))
 				{
-					if (neighbor == null || neighbor.Block || _closedList.Contains(neighbor))
+					if (neighbor == null || neighbor.IsBlock() || _closedList.Contains(neighbor))
 						continue;
 
 					float newCostToNeighbor = current.G + graph.CalculateCost(current, neighbor);

@@ -11,7 +11,7 @@ namespace MotionFramework.AI
 		/// <summary>
 		/// 是否为阻挡节点
 		/// </summary>
-		public bool Block { set; get; }
+		public abstract bool IsBlock();
 
 
 		/// <summary>
