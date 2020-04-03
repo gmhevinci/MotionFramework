@@ -62,10 +62,15 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public static void CopyTextureImporter(TextureImporter targetImporter, TextureImporter templateImporter)
 		{
+			var recordBorder = targetImporter.spriteBorder;
+			var recordPivot = targetImporter.spritePivot;
+
 			// 通用属性
 			TextureImporterSettings temper = new TextureImporterSettings();
 			templateImporter.ReadTextureSettings(temper);
 			targetImporter.SetTextureSettings(temper);
+			targetImporter.spriteBorder = recordBorder;
+			targetImporter.spritePivot = recordPivot;
 
 			// 平台设置
 			TextureImporterPlatformSettings platformSettingPC = templateImporter.GetPlatformTextureSettings("Standalone");
