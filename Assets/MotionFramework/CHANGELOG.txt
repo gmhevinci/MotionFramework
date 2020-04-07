@@ -1,3 +1,20 @@
+v1.1.0 - 2020年4月7日
+新增
+1. [Module.AI] 新加简单的神经网络库
+
+改进
+1. [Editor.AssetBundleBuilder] 改进打包流程
+2. [Editor.AssetImporter] 默认导入器再导入精灵图片时忽略九宫格信息
+3. [Module.Console] 输出的错误日志加入堆栈信息
+
+修复
+1. [Module.Resource] 修复带后缀格式的资源路径加载报错的问题
+2. [Engine.Resource] 修复快速切换场景时卡住加载的问题
+
+变更
+1. 移除BuildAssetBundle.cs
+
+
 v1.0.1 - 2020年3月4日
 改进
 1. [Module.Config] 配表加载支持协程等待
@@ -9,6 +26,7 @@ v1.0.1 - 2020年3月4日
 1. NetworkPackage.cs 重命名为 DefaultNetworkPackage.cs
 2. DefaultPackageCoder.cs 重命名为 DefaultNetworkPackageCoder.cs
 3. AStar.cs 重命名为 AStarPathFinding.cs
+
 
 v1.0.0 - 2020年1月18日
 正式版发布
