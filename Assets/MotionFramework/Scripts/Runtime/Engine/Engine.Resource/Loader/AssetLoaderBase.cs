@@ -25,6 +25,11 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public ELoaderStates States { get; protected set; }
 
+		/// <summary>
+		/// 是否为场景加载器
+		/// </summary>
+		public bool IsSceneLoader = false;
+
 
 		public AssetLoaderBase(string loadPath)
 		{
@@ -92,6 +97,7 @@ namespace MotionFramework.Resource
 			{
 				if (assetType == typeof(SceneInstance))
 				{
+					IsSceneLoader = true;
 					SceneInstanceParam sceneParam = param as SceneInstanceParam;
 					provider = new AssetSceneProvider(this, assetName, assetType, sceneParam);
 				}
@@ -133,17 +139,13 @@ namespace MotionFramework.Resource
 		/// </summary>
 		protected bool CheckAllProviderIsDone()
 		{
-			bool isAllLoadDone = true;
 			for (int i = 0; i < _providers.Count; i++)
 			{
 				var provider = _providers[i];
 				if (provider.IsDone == false)
-				{
-					isAllLoadDone = false;
-					break;
-				}
+					return false;
 			}
-			return isAllLoadDone;
+			return true;
 		}
 
 		/// <summary>

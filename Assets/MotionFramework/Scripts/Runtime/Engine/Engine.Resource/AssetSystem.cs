@@ -70,6 +70,8 @@ namespace MotionFramework.Resource
 			{
 				_loaders[i].Update();
 			}
+
+			ReleaseScene();
 		}
 
 		/// <summary>
@@ -124,6 +126,23 @@ namespace MotionFramework.Resource
 			_loaders.Add(newLoader);
 			newLoader.Reference(); //引用计数
 			return newLoader;
+		}
+
+		/// <summary>
+		/// 场景回收
+		/// 注意：因为场景比较特殊，需要立刻回收
+		/// </summary>
+		private static void ReleaseScene()
+		{
+			for (int i = _loaders.Count - 1; i >= 0; i--)
+			{
+				AssetLoaderBase loader = _loaders[i];
+				if (loader.IsSceneLoader && loader.IsDone() && loader.RefCount <= 0)
+				{
+					loader.Destroy(true);
+					_loaders.RemoveAt(i);
+				}
+			}
 		}
 
 		/// <summary>
