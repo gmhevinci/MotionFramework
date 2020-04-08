@@ -252,7 +252,7 @@ namespace MotionFramework.Patch
 			// $"{GameVersion}&{AppInstallURL}"
 			string[] splits = data.Split('&');
 			string gameVersionContent = splits[0];
-			GameVersion = new Version(data);
+			GameVersion = new Version(gameVersionContent);
 			_forceInstallAppURL = splits[1];
 		}
 		public string GetForceInstallAppURL()
