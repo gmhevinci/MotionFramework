@@ -14,17 +14,23 @@ namespace MotionFramework.Network
 	/// </summary>
 	public abstract class NetworkPackageCoder
 	{
-		protected readonly ByteBuffer _sendBuffer = new ByteBuffer(NetworkDefine.ByteBufferSize);
-		protected readonly ByteBuffer _receiveBuffer = new ByteBuffer(NetworkDefine.ByteBufferSize);
+		protected ByteBuffer _sendBuffer;
+		protected ByteBuffer _receiveBuffer;
 		public TcpChannel Channel { private set; get; }
-
+		public int PackageMaxSize { private set; get; }
 
 		/// <summary>
-		/// 初始化频道
+		/// 初始化解码器
 		/// </summary>
-		public void InitChannel(TcpChannel channel)
+		public void InitCoder(TcpChannel channel, int packageMaxSize)
 		{
 			Channel = channel;
+			PackageMaxSize = packageMaxSize;
+
+			// 注意：字节缓冲区长度，推荐4倍最大包体长度
+			int byteBufferSize = packageMaxSize * 4;
+			_sendBuffer = new ByteBuffer(byteBufferSize);
+			_receiveBuffer = new ByteBuffer(byteBufferSize);
 		}
 
 		/// <summary>
@@ -32,8 +38,11 @@ namespace MotionFramework.Network
 		/// </summary>
 		public virtual void Dispose()
 		{
-			_sendBuffer.Clear();
-			_receiveBuffer.Clear();
+			if (_sendBuffer != null)
+				_sendBuffer.Clear();
+
+			if (_receiveBuffer != null)
+				_receiveBuffer.Clear();
 		}
 
 		/// <summary>

@@ -21,7 +21,8 @@ namespace MotionFramework.Network
 		private readonly Queue<System.Object> _receiveQueue = new Queue<System.Object>(10000);
 		private readonly List<System.Object> _decodeTempList = new List<object>(100);
 
-		private NetworkPackageCoder _packageCoder = null;
+		private NetworkPackageCoder _packageCoder;
+		private int _packageMaxSize;
 
 		private bool _isSending = false;
 		private bool _isReceiving = false;
@@ -43,14 +44,20 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 初始化频道
 		/// </summary>
-		public void InitChannel(Socket socket, Type packageCoderType)
+		public void InitChannel(Socket socket, Type packageCoderType, int packageMaxSize)
 		{
+			if(packageCoderType == null)
+				throw new System.ArgumentException($"packageCoderType is null.");
+			if (packageMaxSize <= 0)
+				throw new System.ArgumentException($"packageMaxSize is invalid : {packageMaxSize}");
+
 			IOSocket = socket;
 			IOSocket.NoDelay = true;
+			_packageMaxSize = packageMaxSize;
 
 			// 创建编码解码器
 			_packageCoder = (NetworkPackageCoder)Activator.CreateInstance(packageCoderType);
-			_packageCoder.InitChannel(this);
+			_packageCoder.InitCoder(this, packageMaxSize);
 
 			_receiveArgs.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
 			_receiveArgs.SetBuffer(_packageCoder.GetReceiveBuffer(), 0, _packageCoder.GetReceiveBufferCapacity());
@@ -148,7 +155,7 @@ namespace MotionFramework.Network
 
 					// 如果已经超过一个最大包体尺寸
 					// 注意：发送的数据理论最大值为俩个最大包体大小
-					if (_packageCoder.GetSendBufferWriterIndex() >= NetworkDefine.PackageBodyMaxSize)
+					if (_packageCoder.GetSendBufferWriterIndex() >= _packageMaxSize)
 						break;
 				}
 

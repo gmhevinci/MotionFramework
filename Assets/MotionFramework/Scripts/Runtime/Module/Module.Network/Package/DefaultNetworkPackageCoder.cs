@@ -94,7 +94,7 @@ namespace MotionFramework.Network
 				bodyData = EncodeInternal(package.MsgObj);
 
 			// 检测包体长度
-			if (bodyData.Length > NetworkDefine.PackageBodyMaxSize)
+			if (bodyData.Length > PackageMaxSize)
 			{
 				Channel.HandleError(false, $"The package {package.MsgID} body size is larger than NetworkDefine.PackageBodyMaxSize");
 				return;
@@ -177,7 +177,7 @@ namespace MotionFramework.Network
 
 				// 检测包体长度
 				int bodySize = packageSize - (int)MessageIDFieldType;
-				if (bodySize > NetworkDefine.PackageBodyMaxSize)
+				if (bodySize > PackageMaxSize)
 				{
 					Channel.HandleError(true, $"The package {package.MsgID} size is larger than NetworkDefine.PackageBodyMaxSize");
 					break;

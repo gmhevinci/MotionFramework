@@ -28,7 +28,7 @@ namespace MotionFramework.Network
 			DownloadHandlerBuffer handler = new DownloadHandlerBuffer();
 			CacheRequest.downloadHandler = handler;
 			CacheRequest.disposeDownloadHandlerOnDispose = true;
-			CacheRequest.timeout = NetworkDefine.WebRequestTimeout;
+			CacheRequest.timeout = Timeout;
 			yield return CacheRequest.SendWebRequest();
 
 			// Check error

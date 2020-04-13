@@ -26,12 +26,14 @@ namespace MotionFramework.Network
 			/// 网络包编码解码器
 			/// </summary>
 			public System.Type PackageCoderType;
+
+			/// <summary>
+			/// 网络包最大长度
+			/// </summary>
+			public int PackageMaxSize = ushort.MaxValue;
 		}
 
-
-		private TcpServer _server;
-		private TcpChannel _channel;
-		private System.Type _packageCoderType;
+		private TcpClient _client;
 
 		// GUI显示数据
 		private string _host;
@@ -60,37 +62,36 @@ namespace MotionFramework.Network
 			if (createParam == null)
 				throw new Exception($"{nameof(NetworkManager)} create param is invalid.");
 
-			_packageCoderType = createParam.PackageCoderType;
-			_server = new TcpServer();
-			_server.Start(false, null);
+			_client = new TcpClient(createParam.PackageCoderType, createParam.PackageMaxSize);
 		}
 		void IModule.OnUpdate()
 		{
-			_server.Update();
+			if (_client == null)
+				return;
 
-			if (_channel != null)
+			// 更新网络客户端
+			_client.Update();
+
+			// 拉取网络包
+			// 注意：如果服务器意外断开，未拉取的网络包将会丢失
+			INetworkPackage package = (INetworkPackage)_client.PickPackage();
+			if (package != null)
 			{
-				// 拉取网络包
-				// 注意：如果服务器意外断开，未拉取的网络包将会丢失
-				INetworkPackage package = (INetworkPackage)_channel.PickPackage();
-				if (package != null)
-				{
-					if (package.IsHotfixPackage)
-						HotfixPackageCallback.Invoke(package);
-					else
-						MonoPackageCallback.Invoke(package);
-				}
+				if (package.IsHotfixPackage)
+					HotfixPackageCallback.Invoke(package);
+				else
+					MonoPackageCallback.Invoke(package);
+			}
 
-				// 侦测服务器主动断开连接
-				if (States == ENetworkStates.Connected)
+			// 侦测服务器主动断开连接
+			if (States == ENetworkStates.Connected)
+			{
+				if (_client.IsConnected() == false)
 				{
-					if (_channel.IsConnected() == false)
-					{
-						States = ENetworkStates.Disconnect;
-						NetworkEventDispatcher.SendDisconnectMsg();
-						CloseChannel();
-						MotionLog.Log(ELogLevel.Warning, "Server disconnect.");
-					}
+					States = ENetworkStates.Disconnect;
+					NetworkEventDispatcher.SendDisconnectMsg();
+					CloseClient();
+					MotionLog.Log(ELogLevel.Warning, "Server disconnect.");
 				}
 			}
 		}
@@ -114,7 +115,7 @@ namespace MotionFramework.Network
 				States = ENetworkStates.Connecting;
 				NetworkEventDispatcher.SendBeginConnectMsg();
 				IPEndPoint remote = new IPEndPoint(IPAddress.Parse(host), port);
-				_server.ConnectAsync(remote, OnConnectServer, _packageCoderType);
+				_client.ConnectAsync(remote, OnConnectServer);
 
 				// 记录数据
 				_host = host;
@@ -122,12 +123,11 @@ namespace MotionFramework.Network
 				_family = remote.AddressFamily;
 			}
 		}
-		private void OnConnectServer(TcpChannel channel, SocketError error)
+		private void OnConnectServer(SocketError error)
 		{
 			MotionLog.Log(ELogLevel.Log, $"Server connect result : {error}");
 			if (error == SocketError.Success)
 			{
-				_channel = channel;
 				States = ENetworkStates.Connected;
 				NetworkEventDispatcher.SendConnectSuccessMsg();
 			}
@@ -147,7 +147,7 @@ namespace MotionFramework.Network
 			{
 				States = ENetworkStates.Disconnect;
 				NetworkEventDispatcher.SendDisconnectMsg();
-				CloseChannel();
+				CloseClient();
 			}
 		}
 
@@ -162,8 +162,8 @@ namespace MotionFramework.Network
 				return;
 			}
 
-			if (_channel != null)
-				_channel.SendPackage(package);
+			if (_client != null)
+				_client.SendPackage(package);
 		}
 
 		/// <summary>
@@ -180,12 +180,11 @@ namespace MotionFramework.Network
 			}
 		}
 
-		private void CloseChannel()
+		private void CloseClient()
 		{
-			if (_channel != null)
+			if (_client != null)
 			{
-				_server.CloseChannel(_channel);
-				_channel = null;
+				_client.Dispose();
 			}
 		}
 	}

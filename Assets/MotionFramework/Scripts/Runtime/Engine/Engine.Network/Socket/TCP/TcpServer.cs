@@ -17,16 +17,9 @@ namespace MotionFramework.Network
 	/// </summary>
 	public class TcpServer : IDisposable
 	{
-		#region Fields
-		/// <summary>
-		/// 监听频道使用的网络包编码解码器类型
-		/// </summary>
-		private Type _listenerPackageCoderType;
-
-		/// <summary>
-		/// 监听Socket，用于接受客户端的连接请求
-		/// </summary>
 		private Socket _listenSocket;
+		private Type _packageCoderType;
+		private int _packageMaxSize;
 
 		/// <summary>
 		/// 信号量
@@ -38,9 +31,8 @@ namespace MotionFramework.Network
 		/// 通信频道列表
 		/// </summary>
 		private readonly List<TcpChannel> _allChannels = new List<TcpChannel>(9999);
-		#endregion
 
-		#region Properties
+
 		/// <summary>
 		/// 服务器程序允许的最大客户端连接数
 		/// </summary>
@@ -60,77 +52,68 @@ namespace MotionFramework.Network
 		/// 监听的端口
 		/// </summary>
 		public int Port { get; private set; }
-		#endregion
 
-		#region Ctors
+
 		/// <summary>
-		/// 异步Socket TCP服务器
+		/// 构造函数
 		/// </summary>
 		/// <param name="listenPort">监听的端口</param>
 		/// <param name="maxClient">最大的客户端数量</param>
-		public TcpServer(int listenPort, int maxClient)
-				: this(IPAddress.Any, listenPort, maxClient)
+		/// <param name="packageCoderType">监听频道使用的网络包编码解码器类型</param>
+		/// <param name="packageMaxSize">网络包体的最大长度</param> 
+		public TcpServer(int listenPort, int maxClient, Type packageCoderType, int packageMaxSize)
+				: this(IPAddress.Any, listenPort, maxClient, packageCoderType, packageMaxSize)
 		{
 		}
 
 		/// <summary>
-		/// 异步Socket TCP服务器
+		/// 构造函数
 		/// </summary>
 		/// <param name="localEP">监听的终结点</param>
 		/// <param name="maxClient">最大客户端数量</param>
-		public TcpServer(IPEndPoint localEP, int maxClient)
-			: this(localEP.Address, localEP.Port, maxClient)
+		/// <param name="packageCoderType">监听频道使用的网络包编码解码器类型</param>
+		/// <param name="packageMaxSize">网络包体的最大长度</param>
+		public TcpServer(IPEndPoint localEP, int maxClient, Type packageCoderType, int packageMaxSize)
+			: this(localEP.Address, localEP.Port, maxClient, packageCoderType, packageMaxSize)
 		{
 		}
 
 		/// <summary>
-		/// 客户端 TCP服务器
+		/// 构造函数
 		/// </summary>
-		public TcpServer()
-				: this(IPAddress.Any, 0, 0)
-		{
-		}
-
-		private TcpServer(IPAddress address, int port, int maxClient)
+		private TcpServer(IPAddress address, int port, int maxClient, Type packageCoderType, int packageMaxSize)
 		{
 			Address = address;
 			Port = port;
 			MaxClient = maxClient;
+			_packageCoderType = packageCoderType;
+			_packageMaxSize = packageMaxSize;
 		}
-		#endregion
+
 
 		/// <summary>
 		/// 开始网络服务
 		/// </summary>
-		/// <param name="openListen">是否开启监听</param>
-		/// <param name="listenerPackageCoderType">监听频道使用的网络包编码解码器类型</param>
-		public void Start(bool openListen, Type listenerPackageCoderType)
+		public void Start()
 		{
 			if (IsRunning)
 				return;
 
 			IsRunning = true;
 
-			// 解析器类型
-			_listenerPackageCoderType = listenerPackageCoderType;
+			// 最大连接数信号
+			_maxAcceptedSemaphore = new Semaphore(MaxClient, MaxClient);
 
-			// 如果需要开启监听
-			if(openListen)
-			{
-				// 最大连接数信号
-				_maxAcceptedSemaphore = new Semaphore(MaxClient, MaxClient);
+			// 创建监听socket
+			IPEndPoint localEndPoint = new IPEndPoint(Address, Port);
+			_listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			_listenSocket.Bind(localEndPoint);
 
-				// 创建监听socket
-				IPEndPoint localEndPoint = new IPEndPoint(Address, Port);
-				_listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-				_listenSocket.Bind(localEndPoint);
+			// 开始监听
+			_listenSocket.Listen(1000);
 
-				// 开始监听
-				_listenSocket.Listen(1000);
-
-				// 在监听Socket上投递一个接受请求
-				StartAccept(null);
-			}
+			// 在监听Socket上投递一个接受请求
+			StartAccept(null);
 		}
 
 		/// <summary>
@@ -143,40 +126,6 @@ namespace MotionFramework.Network
 				IsRunning = false;
 				Dispose();
 			}
-		}
-
-		/// <summary>
-		/// 更新
-		/// </summary>
-		public void Update()
-		{
-			MainThreadSyncContext.Instance.Update();
-
-			for (int i = 0; i < _allChannels.Count; i++)
-			{
-				_allChannels[i].Update();
-			}
-		}
-
-		/// <summary>
-		/// 关闭频道并从列表里移除
-		/// </summary>
-		public void CloseChannel(TcpChannel channel)
-		{
-			if (channel == null)
-				return;
-
-			channel.Dispose();
-
-			// 从频道列表里删除
-			lock (_allChannels)
-			{
-				_allChannels.Remove(channel);
-			}
-
-			// 信号减弱
-			if (_maxAcceptedSemaphore != null)
-				_maxAcceptedSemaphore.Release();
 		}
 
 		/// <summary>
@@ -203,7 +152,41 @@ namespace MotionFramework.Network
 			_allChannels.Clear();
 		}
 
-		#region 监听连接
+		/// <summary>
+		/// 更新
+		/// </summary>
+		public void Update()
+		{
+			MainThreadSyncContext.Instance.Update();
+
+			for (int i = 0; i < _allChannels.Count; i++)
+			{
+				_allChannels[i].Update();
+			}
+		}
+
+
+		/// <summary>
+		/// 关闭频道并从列表里移除
+		/// </summary>
+		private void RemoveChannel(TcpChannel channel)
+		{
+			if (channel == null)
+				return;
+
+			channel.Dispose();
+
+			// 从频道列表里删除
+			lock (_allChannels)
+			{
+				_allChannels.Remove(channel);
+			}
+
+			// 信号减弱
+			if (_maxAcceptedSemaphore != null)
+				_maxAcceptedSemaphore.Release();
+		}
+		
 		/// <summary>
 		/// 从客户端开始接受一个连接操作
 		/// Begins an operation to accept a connection request from the client 
@@ -244,7 +227,7 @@ namespace MotionFramework.Network
 			{
 				// 创建频道
 				TcpChannel channel = new TcpChannel();
-				channel.InitChannel(e.AcceptSocket, _listenerPackageCoderType);
+				channel.InitChannel(e.AcceptSocket, _packageCoderType, _packageMaxSize);
 
 				// 加入到频道列表
 				lock (_allChannels)
@@ -260,78 +243,6 @@ namespace MotionFramework.Network
 			// 投递下一个接收请求
 			StartAccept(e);
 		}
-		#endregion
-
-		#region 主动连接
-		private class UserToken
-		{
-			public System.Action<TcpChannel, SocketError> Callback;
-			public System.Type PackageCoderType;
-		}
-
-		/// <summary>
-		/// 异步连接
-		/// </summary>
-		/// <param name="remote">IP终端</param>
-		/// <param name="callback">连接回调</param>
-		/// <param name="packageCoderType">网络包编码解码器类型</param>
-		public void ConnectAsync(IPEndPoint remote, System.Action<TcpChannel, SocketError> callback, System.Type packageCoderType)
-		{
-			if(IsRunning == false)
-			{
-				MotionLog.Log(ELogLevel.Warning, "Server is not start.");
-				return;
-			}
-
-			UserToken token = new UserToken()
-			{
-				Callback = callback,
-				PackageCoderType = packageCoderType,
-			};
-
-			SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-			args.RemoteEndPoint = remote;
-			args.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
-			args.UserToken = token;
-
-			Socket clientSock = new Socket(remote.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-			bool willRaiseEvent = clientSock.ConnectAsync(args);
-			if (!willRaiseEvent)
-			{
-				ProcessConnected(args);
-			}
-		}
-
-		/// <summary>
-		/// 处理连接请求
-		/// </summary>
-		private void ProcessConnected(object obj)
-		{
-			TcpChannel channel = null;
-			SocketAsyncEventArgs e = obj as SocketAsyncEventArgs;
-			UserToken token = (UserToken)e.UserToken;
-			if (e.SocketError == SocketError.Success)
-			{
-				// 创建频道
-				channel = new TcpChannel();
-				channel.InitChannel(e.ConnectSocket, token.PackageCoderType);
-
-				// 加入到频道列表
-				lock (_allChannels)
-				{
-					_allChannels.Add(channel);
-				}
-			}
-			else
-			{
-				MotionLog.Log(ELogLevel.Error, $"ProcessConnected error : {e.SocketError}");
-			}
-
-			// 回调函数		
-			if (token.Callback != null)
-				token.Callback.Invoke(channel, e.SocketError);
-		}
-		#endregion
 
 		private void AcceptEventArg_Completed(object sender, SocketAsyncEventArgs e)
 		{
@@ -340,11 +251,8 @@ namespace MotionFramework.Network
 				case SocketAsyncOperation.Accept:
 					MainThreadSyncContext.Instance.Post(ProcessAccept, e);
 					break;
-				case SocketAsyncOperation.Connect:
-					MainThreadSyncContext.Instance.Post(ProcessConnected, e);
-					break;
 				default:
-					throw new ArgumentException("The last operation completed on the socket was not a accept or connect");
+					throw new ArgumentException("The last operation completed on the socket was not a accept");
 			}
 		}
 	}

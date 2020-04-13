@@ -35,7 +35,7 @@ namespace MotionFramework.Network
 			handler.removeFileOnAbort = true;
 			CacheRequest.downloadHandler = handler;
 			CacheRequest.disposeDownloadHandlerOnDispose = true;
-			CacheRequest.timeout = NetworkDefine.WebRequestTimeout;
+			CacheRequest.timeout = Timeout;
 			yield return CacheRequest.SendWebRequest();
 
 			// Check error

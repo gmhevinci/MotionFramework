@@ -21,6 +21,12 @@ namespace MotionFramework.Network
 		public string URL { private set; get; }
 
 		/// <summary>
+		/// 下载超时（单位：秒）
+		/// 默认30秒
+		/// </summary>
+		public int Timeout { set; get; } = 30;
+
+		/// <summary>
 		/// 下载进度（0-100f）
 		/// </summary>
 		public float DownloadProgress
