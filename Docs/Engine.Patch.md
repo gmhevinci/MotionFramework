@@ -83,4 +83,13 @@ Web服务器根据[渠道ID][最近登录的服务器ID]来判断是否需要灰
 注意：当我们中途构建了强更包的时候，就可以把之前的补丁包都删除了。
 ````
 
+**GameVersion.php**
+````PHP
+<?php
+  $gameVersion = "1.0.0.123";
+  $appStoreURL = "";
+  echo ($gameVersion."&".$appStoreURL);
+?>
+````
+
 更详细的教程，请参考[Demo1](https://github.com/gmhevinci/Demo1/blob/master/Assets/Works/_Script_/Runtime/Patch/PatchWindow.cs)
