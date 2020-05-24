@@ -23,22 +23,6 @@ namespace MotionFramework.Patch
 		public class CreateParameters
 		{
 			/// <summary>
-			/// 变体规则
-			/// </summary>
-			public class VariantRule
-			{
-				/// <summary>
-				/// 变体组
-				/// </summary>
-				public List<string> VariantGroup;
-
-				/// <summary>
-				/// 目标变体
-				/// </summary>
-				public string TargetVariant;
-			}
-
-			/// <summary>
 			/// 最近登录的服务器ID
 			/// </summary>
 			public int ServerID;
