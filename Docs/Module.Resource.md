@@ -23,8 +23,8 @@ public void Start()
 //不需要热更资源（单机游戏为主）
 public void Start()
 {
-	// 为单机游戏准备的资源服务接口
-	LocalBundleServices bundleServices = new LocalBundleServices();
+	// 直接使用本地资源服务接口
+	IBundleServices bundleServices = new LocalBundleServices();
 
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
