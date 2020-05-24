@@ -2,10 +2,29 @@
 
 创建资源管理器
 ```C#
+//需要热更资源（网络游戏为主）
 public void Start()
 {
-	// 如果你不打算写自定义的补丁更新流程，那么AssetBundle服务接口可以直接使用补丁管理器
+	// 直接使用通用的补丁管理器
 	IBundleServices bundleServices = MotionEngine.GetMoudle<PatchManager>();
+
+	// 设置参数
+	var createParam = new ResourceManager.CreateParameters();
+	createParam.AssetRootPath = "Assets/Works/Resource";
+	createParam.SimulationOnEditor = true;
+	createParam.BundleServices = bundleServices;
+	createParam.DecryptServices = null;
+	createParam.AutoReleaseInterval = 10;
+
+	// 创建模块
+	MotionEngine.CreateModule<ResourceManager>(createParam);
+}
+
+//不需要热更资源（单机游戏为主）
+public void Start()
+{
+	// 为单机游戏准备的资源服务接口
+	LocalBundleServices bundleServices = new LocalBundleServices();
 
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
