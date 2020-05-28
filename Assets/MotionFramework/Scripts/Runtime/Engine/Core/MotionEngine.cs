@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using MotionFramework.Console;
 
 namespace MotionFramework
 {
@@ -25,19 +26,31 @@ namespace MotionFramework
 		}
 
 		private static readonly List<ModuleWrapper> _coms = new List<ModuleWrapper>(100);
-		private static MonoBehaviour _behaviour;
+		private static MonoBehaviour _behaviour;	
+		private static bool _showConsole = false;
 		private static bool _isDirty = false;
-
 
 		/// <summary>
 		/// 初始化框架
 		/// </summary>
-		public static void Initialize(MonoBehaviour behaviour)
+		public static void Initialize(MonoBehaviour behaviour, bool showConsole, System.Action<ELogLevel, string> logCallback)
 		{
+			if (behaviour == null)
+				throw new Exception("MotionFramework behaviour is null.");
 			if (_behaviour != null)
 				throw new Exception($"{nameof(MotionEngine)} is already initialized.");
 
+			UnityEngine.Object.DontDestroyOnLoad(behaviour.gameObject);
 			_behaviour = behaviour;
+
+			// 初始化控制台
+			_showConsole = showConsole;
+			if (showConsole)
+				DeveloperConsole.Initialize();
+
+			// 注册日志回调
+			if (logCallback != null)
+				MotionLog.RegisterCallback(logCallback);
 		}
 
 		/// <summary>
@@ -68,9 +81,18 @@ namespace MotionFramework
 		}
 
 		/// <summary>
-		/// GUI绘制
+		/// 绘制控制台
 		/// </summary>
-		public static void DrawGUI()
+		public static void DrawConsole()
+		{
+			if(_showConsole)
+				DeveloperConsole.DrawGUI();
+		}
+
+		/// <summary>
+		/// 绘制模块内容
+		/// </summary>
+		internal static void DrawModuleContent()
 		{
 			for (int i = 0; i < _coms.Count; i++)
 			{

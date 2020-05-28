@@ -14,7 +14,7 @@ namespace MotionFramework.Console
 	/// <summary>
 	/// 控制台
 	/// </summary>
-	public static class DeveloperConsole
+	internal static class DeveloperConsole
 	{
 		private class WindowWrapper : IComparer<WindowWrapper>, IComparable<WindowWrapper>
 		{
