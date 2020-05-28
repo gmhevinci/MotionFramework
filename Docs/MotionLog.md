@@ -6,10 +6,10 @@ using MotionFramework;
 
 public void Start()
 {
-	MotionLog.RegisterCallback(LogCallback);
+	MotionEngine.Initialize(this, true, HandleMotionFrameworkLog);
 }
 
-private void LogCallback(ELogLevel logLevel, string log)
+private void HandleMotionFrameworkLog(ELogLevel logLevel, string log)
 {
 	if (logLevel == ELogLevel.Log)
 	{
