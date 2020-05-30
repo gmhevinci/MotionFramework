@@ -2,7 +2,7 @@ v1.1.1 - 2020年5月31日
 改进
 1. [c619ea4] [Network] 将客户端网络逻辑从TcpServer.cs内迁移到TcpClient.cs
 2. [b1ee720] [Patch] 新增用于单机游戏的Bundle文件服务类 : LocalBundleServices.cs
-3. [671430a] [Core] 简化MotionLog初始化并接管日志和控制台初始化
+3. [671430a] [Core] 简化MotionEngine初始化并接管日志和控制台初始化
 4. [44ff2cd] [Patch] 开发者现在可以选择文件校验方式：文件大小或文件MD5
 
 修复
@@ -10,7 +10,7 @@ v1.1.1 - 2020年5月31日
 
 变更
 1. [c619ea4] [Network] 移除NetworkDefine.cs
-2. [44ff2cd] [Patch] PatchManifest文件内文件大小单位由KB改为Byte
+2. [44ff2cd] [Patch] PatchManifest.cs内文件大小单位由KB改为Byte
 
 
 v1.1.0 - 2020年4月7日
