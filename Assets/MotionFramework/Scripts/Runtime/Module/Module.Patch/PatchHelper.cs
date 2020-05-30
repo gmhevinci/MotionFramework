@@ -45,6 +45,11 @@ namespace MotionFramework.Patch
 			if (Directory.Exists(destDirectory) == false)
 				Directory.CreateDirectory(destDirectory);
 		}
+		public static long GetFileSize(string filePath)
+		{
+			FileInfo fileInfo = new FileInfo(filePath);
+			return fileInfo.Length;
+		}
 
 		/// <summary>
 		/// 输出日志

@@ -26,7 +26,7 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 文件大小
 		/// </summary>
-		public long SizeKB { private set; get; }
+		public long SizeBytes { private set; get; }
 
 		/// <summary>
 		/// 下载文件的保存路径
@@ -34,12 +34,12 @@ namespace MotionFramework.Patch
 		public string SavePath;
 
 
-		public PatchElement(string name, string md5, int version, long sizeKB)
+		public PatchElement(string name, string md5, int version, long sizeBytes)
 		{
 			Name = name;
 			MD5 = md5;
 			Version = version;
-			SizeKB = sizeKB;
+			SizeBytes = sizeBytes;
 		}
 	}
 }

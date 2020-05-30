@@ -56,12 +56,12 @@ namespace MotionFramework.Patch
 				string[] splits = line.Split('=');
 				string fileName = splits[0];
 				string fileMD5 = splits[1];
-				long fileSizeKB = long.Parse(splits[2]);
+				long fileSizeBytes = long.Parse(splits[2]);
 				int fileVersion = int.Parse(splits[3]);
 
 				if (Elements.ContainsKey(fileName))
 					throw new Exception($"Fatal error : has same pack file : {fileName}");
-				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileVersion, fileSizeKB));
+				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileVersion, fileSizeBytes));
 			}
 		}
 
@@ -90,12 +90,12 @@ namespace MotionFramework.Patch
 				string[] splits = content.Split('=');
 				string fileName = splits[0];
 				string fileMD5 = splits[1];
-				long fileSizeKB = long.Parse(splits[2]);
+				long fileSizeBytes = long.Parse(splits[2]);
 				int fileVersion = int.Parse(splits[3]);
 
 				if (Elements.ContainsKey(fileName))
 					throw new Exception($"Fatal error : has same pack file : {fileName}");
-				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileVersion, fileSizeKB));
+				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileVersion, fileSizeBytes));
 			}
 		}
 	}

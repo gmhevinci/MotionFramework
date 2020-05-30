@@ -43,7 +43,7 @@ namespace MotionFramework.Patch
 		public class FoundUpdateFiles : IEventMessage
 		{
 			public int TotalCount;
-			public long TotalSizeKB;
+			public long TotalSizeBytes;
 		}
 
 		/// <summary>
@@ -53,8 +53,8 @@ namespace MotionFramework.Patch
 		{
 			public int TotalDownloadCount;
 			public int CurrentDownloadCount;	
-			public long TotalDownloadSizeKB;
-			public long CurrentDownloadSizeKB;
+			public long TotalDownloadSizeBytes;
+			public long CurrentDownloadSizeBytes;
 		}
 
 		/// <summary>
@@ -81,9 +81,9 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 文件MD5验证失败
+		/// 文件验证失败
 		/// </summary>
-		public class WebFileMD5VerifyFailed : IEventMessage
+		public class WebFileCheckFailed : IEventMessage
 		{
 			public string Name;
 		}

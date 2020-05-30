@@ -22,20 +22,20 @@ namespace MotionFramework.Patch
 			msg.InstallURL = installURL;
 			EventManager.Instance.SendMessage(msg);
 		}
-		public static void SendFoundUpdateFilesMsg(int totalCount, long totalSizeKB)
+		public static void SendFoundUpdateFilesMsg(int totalCount, long totalSizeBytes)
 		{
 			PatchEventMessageDefine.FoundUpdateFiles msg = new PatchEventMessageDefine.FoundUpdateFiles();
 			msg.TotalCount = totalCount;
-			msg.TotalSizeKB = totalSizeKB;
+			msg.TotalSizeBytes = totalSizeBytes;
 			EventManager.Instance.SendMessage(msg);
 		}
-		public static void SendDownloadFilesProgressMsg(int totalDownloadCount, int currentDownloadCount, long totalDownloadSizeKB, long currentDownloadSizeKB)
+		public static void SendDownloadFilesProgressMsg(int totalDownloadCount, int currentDownloadCount, long totalDownloadSizeBytes, long currentDownloadSizeBytes)
 		{
 			PatchEventMessageDefine.DownloadFilesProgress msg = new PatchEventMessageDefine.DownloadFilesProgress();
 			msg.TotalDownloadCount = totalDownloadCount;
 			msg.CurrentDownloadCount = currentDownloadCount;
-			msg.TotalDownloadSizeKB = totalDownloadSizeKB;
-			msg.CurrentDownloadSizeKB = currentDownloadSizeKB;
+			msg.TotalDownloadSizeBytes = totalDownloadSizeBytes;
+			msg.CurrentDownloadSizeBytes = currentDownloadSizeBytes;
 			EventManager.Instance.SendMessage(msg);
 		}
 		public static void SendGameVersionRequestFailedMsg()
@@ -55,9 +55,9 @@ namespace MotionFramework.Patch
 			msg.Name = name;
 			EventManager.Instance.SendMessage(msg);
 		}
-		public static void SendWebFileMD5VerifyFailedMsg(string name)
+		public static void SendWebFileCheckFailedMsg(string name)
 		{
-			PatchEventMessageDefine.WebFileMD5VerifyFailed msg = new PatchEventMessageDefine.WebFileMD5VerifyFailed();
+			PatchEventMessageDefine.WebFileCheckFailed msg = new PatchEventMessageDefine.WebFileCheckFailed();
 			msg.Name = name;
 			EventManager.Instance.SendMessage(msg);
 		}

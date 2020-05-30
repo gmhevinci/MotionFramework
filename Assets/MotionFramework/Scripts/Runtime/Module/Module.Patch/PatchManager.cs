@@ -43,6 +43,11 @@ namespace MotionFramework.Patch
 			public int TestFlag;
 
 			/// <summary>
+			/// 补丁文件校验等级
+			/// </summary>
+			public ECheckLevel CheckLevel = ECheckLevel.CheckSize;
+
+			/// <summary>
 			/// WEB服务器地址
 			/// </summary>
 			public Dictionary<RuntimePlatform, string> WebServers;

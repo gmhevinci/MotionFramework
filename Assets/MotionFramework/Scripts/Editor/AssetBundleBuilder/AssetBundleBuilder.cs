@@ -454,10 +454,10 @@ namespace MotionFramework.Editor
 					string assetName = PatchDefine.UnityManifestFileName;
 					string path = $"{OutputPath}/{assetName}";
 					string md5 = HashUtility.FileMD5(path);
-					long sizeKB = EditorTools.GetFileSize(path) / 1024;
+					long sizeBytes = EditorTools.GetFileSize(path);
 					int version = BuildVersion;
 
-					sw.Write($"{assetName}={md5}={sizeKB}={version}");
+					sw.Write($"{assetName}={md5}={sizeBytes}={version}");
 					sw.Write("\n");
 					sw.Flush();
 				}
@@ -467,7 +467,7 @@ namespace MotionFramework.Editor
 				{
 					string path = $"{OutputPath}/{assetName}";
 					string md5 = HashUtility.FileMD5(path);
-					long sizeKB = EditorTools.GetFileSize(path) / 1024;
+					long sizeBytes = EditorTools.GetFileSize(path);
 					int version = BuildVersion;
 
 					// 注意：如果文件没有变化使用旧版本号
@@ -478,7 +478,7 @@ namespace MotionFramework.Editor
 							version = element.Version;
 					}
 
-					sw.Write($"{assetName}={md5}={sizeKB}={version}");
+					sw.Write($"{assetName}={md5}={sizeBytes}={version}");
 					sw.Write("\n");
 					sw.Flush();
 				}

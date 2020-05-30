@@ -43,15 +43,15 @@ namespace MotionFramework.Patch
 
 			// 计算下载文件的总大小
 			int totalDownloadCount = _patcher.DownloadList.Count;
-			long totalDownloadSizeKB = 0;
+			long totalDownloadSizeBytes = 0;
 			foreach (var element in _patcher.DownloadList)
 			{
-				totalDownloadSizeKB += element.SizeKB;
+				totalDownloadSizeBytes += element.SizeBytes;
 			}
 
 			// 开始下载列表里的所有资源
 			PatchHelper.Log(ELogLevel.Log, $"Begine download web files : {_patcher.DownloadList.Count}");
-			long currentDownloadSizeKB = 0;
+			long currentDownloadSizeBytes = 0;
 			int currentDownloadCount = 0;
 			foreach (var element in _patcher.DownloadList)
 			{
@@ -76,19 +76,37 @@ namespace MotionFramework.Patch
 				// 立即释放加载器
 				download.Dispose();
 				currentDownloadCount++;
-				currentDownloadSizeKB += element.SizeKB;
-				PatchEventDispatcher.SendDownloadFilesProgressMsg(totalDownloadCount, currentDownloadCount, totalDownloadSizeKB, currentDownloadSizeKB);
+				currentDownloadSizeBytes += element.SizeBytes;
+				PatchEventDispatcher.SendDownloadFilesProgressMsg(totalDownloadCount, currentDownloadCount, totalDownloadSizeBytes, currentDownloadSizeBytes);
+			}
+
+			// 验证下载文件的大小
+			if(_patcher.CheckLevel == ECheckLevel.CheckSize)
+			{
+				foreach (var element in _patcher.DownloadList)
+				{
+					long fileSize = PatchHelper.GetFileSize(element.SavePath);
+					if (fileSize != element.SizeBytes)
+					{
+						PatchHelper.Log(ELogLevel.Error, $"Web file size check failed : {element.Name}");
+						PatchEventDispatcher.SendWebFileCheckFailedMsg(element.Name);
+						yield break;
+					}
+				}
 			}
 
 			// 验证下载文件的MD5
-			foreach (var element in _patcher.DownloadList)
+			if(_patcher.CheckLevel == ECheckLevel.CheckMD5)
 			{
-				string md5 = HashUtility.FileMD5(element.SavePath);
-				if (md5 != element.MD5)
+				foreach (var element in _patcher.DownloadList)
 				{
-					PatchHelper.Log(ELogLevel.Error, $"Web file md5 verification error : {element.Name}");
-					PatchEventDispatcher.SendWebFileMD5VerifyFailedMsg(element.Name);
-					yield break;
+					string md5 = HashUtility.FileMD5(element.SavePath);
+					if (md5 != element.MD5)
+					{
+						PatchHelper.Log(ELogLevel.Error, $"Web file md5 check failed : {element.Name}");
+						PatchEventDispatcher.SendWebFileCheckFailedMsg(element.Name);
+						yield break;
+					}
 				}
 			}
 

@@ -72,14 +72,30 @@ namespace MotionFramework.Patch
 			// 检测已经存在的文件
 			// 注意：如果玩家在加载过程中强制退出，下次再进入的时候跳过已经加载的文件
 			List<string> removeList = new List<string>();
-			foreach (var element in downloadList)
+			if(_patcher.CheckLevel == ECheckLevel.CheckSize)
 			{
-				string filePath = AssetPathHelper.MakePersistentLoadPath(element.Name);
-				if (System.IO.File.Exists(filePath))
+				foreach (var element in downloadList)
 				{
-					string md5 = HashUtility.FileMD5(filePath);
-					if (md5 == element.MD5)
-						removeList.Add(element.Name);
+					string filePath = AssetPathHelper.MakePersistentLoadPath(element.Name);
+					if (System.IO.File.Exists(filePath))
+					{
+						long fileSize = PatchHelper.GetFileSize(filePath);
+						if (fileSize == element.SizeBytes)
+							removeList.Add(element.Name);
+					}
+				}
+			}
+			if(_patcher.CheckLevel == ECheckLevel.CheckMD5)
+			{
+				foreach (var element in downloadList)
+				{
+					string filePath = AssetPathHelper.MakePersistentLoadPath(element.Name);
+					if (System.IO.File.Exists(filePath))
+					{
+						string md5 = HashUtility.FileMD5(filePath);
+						if (md5 == element.MD5)
+							removeList.Add(element.Name);
+					}
 				}
 			}
 			foreach (var name in removeList)
@@ -107,12 +123,12 @@ namespace MotionFramework.Patch
 
 				// 发现新更新文件后，挂起流程系统
 				int totalDownloadCount = _patcher.DownloadList.Count;
-				long totalDownloadSizeKB = 0;
+				long totalDownloadSizeBytes = 0;
 				foreach (var element in _patcher.DownloadList)
 				{
-					totalDownloadSizeKB += element.SizeKB;
+					totalDownloadSizeBytes += element.SizeBytes;
 				}
-				PatchEventDispatcher.SendFoundUpdateFilesMsg(totalDownloadCount, totalDownloadSizeKB);
+				PatchEventDispatcher.SendFoundUpdateFilesMsg(totalDownloadCount, totalDownloadSizeBytes);
 			}
 		}
 	}

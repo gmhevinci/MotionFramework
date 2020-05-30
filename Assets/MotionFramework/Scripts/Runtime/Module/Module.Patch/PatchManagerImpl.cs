@@ -29,6 +29,9 @@ namespace MotionFramework.Patch
 		// 强更地址
 		private string _forceInstallAppURL;
 
+		// 校验等级
+		public ECheckLevel CheckLevel { private set; get; }
+
 		// 版本号
 		public Version AppVersion { private set; get; }
 		public Version GameVersion { private set; get; }
@@ -73,11 +76,12 @@ namespace MotionFramework.Patch
 			_webServers = createParam.WebServers;
 			_cdnServers = createParam.CDNServers;
 			_defaultWebServer = createParam.DefaultWebServerIP;
-			_defaultCDNServer = createParam.DefaultCDNServerIP;
+			_defaultCDNServer = createParam.DefaultCDNServerIP;		
 			_serverID = createParam.ServerID;
 			_channelID = createParam.ChannelID;
 			_deviceID = createParam.DeviceID;
-			_testFlag = createParam.TestFlag;
+			_testFlag = createParam.TestFlag;	
+			CheckLevel = createParam.CheckLevel;
 			AppVersion = new Version(Application.version);
 		}
 		public void Run()
