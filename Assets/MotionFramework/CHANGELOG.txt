@@ -1,15 +1,30 @@
-v1.1.0 - 2020年4月7日
-新增
-1. [Module.AI] 新加简单的神经网络库
-
+v1.1.1 - 2020年5月31日
 改进
-1. [Editor.AssetBundleBuilder] 改进打包流程
-2. [Editor.AssetImporter] 默认导入器再导入精灵图片时忽略九宫格信息
-3. [Module.Console] 输出的错误日志加入堆栈信息
+1. [c619ea4] [Network] 将客户端网络逻辑从TcpServer.cs内迁移到TcpClient.cs
+2. [b1ee720] [Patch] 新增用于单机游戏的Bundle文件服务类 : LocalBundleServices.cs
+3. [671430a] [Core] 简化MotionLog初始化并接管日志和控制台初始化
+4. [44ff2cd] [Patch] 开发者现在可以选择文件校验方式：文件大小或文件MD5
 
 修复
-1. [Module.Resource] 修复带后缀格式的资源路径加载报错的问题
-2. [Engine.Resource] 修复快速切换场景时卡住加载的问题
+1. [873bb7d] [Patch] 修复游戏版本解析错误
+
+变更
+1. [c619ea4] [Network] 移除NetworkDefine.cs
+2. [44ff2cd] [Patch] PatchManifest文件内文件大小单位由KB改为Byte
+
+
+v1.1.0 - 2020年4月7日
+新增
+1. [AI] 新加简单的神经网络库
+
+改进
+1. [AssetBundleBuilder] 改进打包流程
+2. [AssetImporter] 默认导入器再导入精灵图片时忽略九宫格信息
+3. [Console] 输出的错误日志加入堆栈信息
+
+修复
+1. [Resource] 修复带后缀格式的资源路径加载报错的问题
+2. [Resource] 修复快速切换场景时卡住加载的问题
 
 变更
 1. 移除BuildAssetBundle.cs
@@ -17,15 +32,15 @@ v1.1.0 - 2020年4月7日
 
 v1.0.1 - 2020年3月4日
 改进
-1. [Module.Config] 配表加载支持协程等待
-2. [Module.Pool] 改进游戏对象池
-3. [Module.Eventr] 事件管理器增加EventGroup类
-4. [Module.Network] 增加本地模拟接收网络包接口
+1. [Config] 配表加载支持协程等待
+2. [Pool] 改进游戏对象池
+3. [Eventr] 事件管理器增加EventGroup类
+4. [Network] 增加本地模拟接收网络包接口
 
 变更
-1. NetworkPackage.cs 重命名为 DefaultNetworkPackage.cs
-2. DefaultPackageCoder.cs 重命名为 DefaultNetworkPackageCoder.cs
-3. AStar.cs 重命名为 AStarPathFinding.cs
+1. [Network] NetworkPackage.cs 重命名为 DefaultNetworkPackage.cs
+2. [Network] DefaultPackageCoder.cs 重命名为 DefaultNetworkPackageCoder.cs
+3. [AI] AStar.cs 重命名为 AStarPathFinding.cs
 
 
 v1.0.0 - 2020年1月18日
