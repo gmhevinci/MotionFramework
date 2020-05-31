@@ -61,6 +61,9 @@ C# && .Net4.x
 
 5. [特效性能查看工具](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Editor.ParticleProfiler.md) **(ParticleProfiler)**
 
+## 新手教程
+1. [游戏启动器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/GameLauncher.md) **(GameLauncher)**
+
 ## DEMO
 1. [Demo1](https://github.com/gmhevinci/Demo1) 使用ILRuntime热更新方案的演示例子。
 
