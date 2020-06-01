@@ -40,26 +40,26 @@ PatchEventMessageDefine.WebFileCheckFailed：文件验证失败
 
 **WEB服务器约定**  
 Post数据为Json文本
-````
-private class WebPost
+```C#
+class WebPost
 {
-	public string AppVersion; //应用程序内置版本
-	public int ServerID; //最近登录的服务器ID
+  	public string AppVersion; //应用程序内置版本
+  	public int ServerID; //最近登录的服务器ID
 	public int ChannelID; //渠道ID
 	public long DeviceID; //设备唯一ID
 	public int TestFlag; //测试包标记
 }
-````
+```
 
 Response数据为Json文本
-````
-private class WebResponse
+```C#
+class WebResponse
 {
 	public string GameVersion; //当前游戏版本号
 	public bool ForceInstall; //是否需要强制安装
 	public string AppURL; //App安装的地址
 }
-````
+```
 
 审核版本
 ````
