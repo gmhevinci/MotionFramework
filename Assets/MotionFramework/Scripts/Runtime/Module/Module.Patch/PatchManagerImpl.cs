@@ -268,10 +268,10 @@ namespace MotionFramework.Patch
 
 		private class WebPost
 		{
-			public string AppVersion; //App版本号
+			public string AppVersion; //应用程序内置版本
 			public int ServerID; //最近登录的服务器ID
 			public int ChannelID; //渠道ID
-			public long DeviceID; //设备ID
+			public long DeviceID; //设备唯一ID
 			public int TestFlag; //测试标记
 		}
 		private class WebResponse
