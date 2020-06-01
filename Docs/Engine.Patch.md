@@ -6,7 +6,7 @@
 **补丁流程 - 初始化阶段**  
 初始化开始(InitiationBegin) -> 检测沙盒是否变脏(CheckSandboxDirty) -> 分析APP内的补丁清单(ParseAppPatchManifest) -> 分析沙盒内的补丁清单(ParseSandboxPatchManifest) -> 初始化结束(InitiationOver)
 
-注意：当初始化结束之后，流程系统会被挂起。发送OperationEvent(EPatchOperation.BeginingRequestGameVersion)事件可以恢复流程系统，然后进入下载阶段。如果是单机游戏不需要和服务器通信，那么可以略过下载阶段。
+注意：当初始化结束之后，流程系统会被挂起。发送OperationEvent(EPatchOperation.BeginingRequestGameVersion)事件可以恢复流程系统，然后进入下载阶段。
 
 **补丁流程 - 下载阶段**  
 请求最新的游戏版本(RequestGameVersion) -> 分析网络上的补丁清单(ParseWebPatchManifest) -> 获取下载列表(GetDonwloadList) -> 下载网络文件到沙盒(DownloadWebFiles) -> 下载网络补丁清单到沙盒(DownloadWebPatchManifest) -> 下载结束(DownloadOver)
@@ -35,19 +35,30 @@ PatchEventMessageDefine.DownloadFilesProgress：下载文件列表进度
 PatchEventMessageDefine.GameVersionRequestFailed：游戏版本号请求失败
 PatchEventMessageDefine.WebPatchManifestDownloadFailed：网络上补丁清单下载失败
 PatchEventMessageDefine.WebFileDownloadFailed：网络文件下载失败
-PatchEventMessageDefine.WebFileMD5VerifyFailed：文件MD5验证失败
+PatchEventMessageDefine.WebFileCheckFailed：文件验证失败
 ````
 
 **WEB服务器约定**  
-Post数据约定
+Post数据为Json文本
 ````
-$"{应用程序内置版本}&{最近登录的服务器ID}&{渠道ID}&{设备唯一ID}&{测试包标记}"
+private class WebPost
+{
+	public string AppVersion; //应用程序内置版本
+	public int ServerID; //最近登录的服务器ID
+	public int ChannelID; //渠道ID
+	public long DeviceID; //设备唯一ID
+	public int TestFlag; //测试包标记
+}
 ````
 
-Response数据约定
+Response数据为Json文本
 ````
-注意：如果不需要强更，安装地址返回空
-$"{游戏版本}&{强更包安装地址}"
+private class WebResponse
+{
+	public string GameVersion; //当前游戏版本号
+	public bool ForceInstall; //是否需要强制安装
+	public string AppURL; //App安装的地址
+}
 ````
 
 审核版本
@@ -57,9 +68,9 @@ Web服务器可以根据[应用程序内置版本]来判定是否是审核版本
 
 测试版本
 ````
-Web服务器可以根据[测试包标记]来判定是否是测试版本。
+Web服务器可以根据[测试标记]来判定是否是测试版本。
 
-客户端可以通过聊天窗口输入GM命令来设置[测试包标记]，或者通过隐秘窗口来设置[测试包标记]。
+客户端可以通过聊天窗口输入GM命令来设置[测试标记]，或者通过隐秘窗口来设置[测试标记]。
 ````
 
 线上版本
@@ -83,12 +94,19 @@ Web服务器根据[渠道ID][最近登录的服务器ID]来判断是否需要灰
 注意：当我们中途构建了强更包的时候，就可以把之前的补丁包都删除了。
 ````
 
-**GameVersion.php**
+**GameVersion.php**  
+Web服务器的PHP范例
 ````PHP
 <?php
-  $gameVersion = "1.0.0.123";
-  $appStoreURL = "";
-  echo ($gameVersion."&".$appStoreURL);
+	header('Content-Type:application/json; charset=utf-8');
+
+	$data=array(
+		'GameVersion'=>'1.0.0.0',
+		'ForceInstall'=>false,
+		'AppURL'=>'www.baidu.com',
+	);
+
+	echo json_encode($data);
 ?>
 ````
 
