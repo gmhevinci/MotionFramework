@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using MotionFramework.AI;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Patch
 {
@@ -31,13 +32,13 @@ namespace MotionFramework.Patch
 			if (PatchHelper.CheckSandboxStaticFileExist() == false)
 			{
 				PatchHelper.Log(ELogLevel.Log, $"Create sandbox static file : {filePath}");
-				PatchHelper.CreateFile(filePath, appVersion);
+				FileUtility.CreateFile(filePath, appVersion);
 				_patcher.SwitchNext();
 				return;
 			}
 
 			// 每次启动时比对APP版本号是否一致		
-			string recordVersion = PatchHelper.ReadFile(filePath);
+			string recordVersion = FileUtility.ReadFile(filePath);
 
 			// 如果记录的版本号不一致		
 			if (recordVersion != appVersion)

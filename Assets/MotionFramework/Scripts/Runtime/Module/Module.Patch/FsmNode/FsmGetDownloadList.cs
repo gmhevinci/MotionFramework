@@ -79,7 +79,7 @@ namespace MotionFramework.Patch
 					string filePath = AssetPathHelper.MakePersistentLoadPath(element.Name);
 					if (System.IO.File.Exists(filePath))
 					{
-						long fileSize = PatchHelper.GetFileSize(filePath);
+						long fileSize = FileUtility.GetFileSize(filePath);
 						if (fileSize == element.SizeBytes)
 							removeList.Add(element.Name);
 					}

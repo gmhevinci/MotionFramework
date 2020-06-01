@@ -59,7 +59,7 @@ namespace MotionFramework.Patch
 				string url = _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
 				string savePath = AssetPathHelper.MakePersistentLoadPath(element.Name);
 				element.SavePath = savePath;
-				PatchHelper.CreateFileDirectory(savePath);
+				FileUtility.CreateFileDirectory(savePath);
 
 				// 创建下载器
 				WebFileRequest download = new WebFileRequest(url, savePath);
@@ -85,7 +85,7 @@ namespace MotionFramework.Patch
 			{
 				foreach (var element in _patcher.DownloadList)
 				{
-					long fileSize = PatchHelper.GetFileSize(element.SavePath);
+					long fileSize = FileUtility.GetFileSize(element.SavePath);
 					if (fileSize != element.SizeBytes)
 					{
 						PatchHelper.Log(ELogLevel.Error, $"Web file size check failed : {element.Name}");

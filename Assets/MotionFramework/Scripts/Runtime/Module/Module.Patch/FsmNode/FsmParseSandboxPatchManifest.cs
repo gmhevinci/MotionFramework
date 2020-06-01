@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using MotionFramework.AI;
 using MotionFramework.Resource;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Patch
 {
@@ -28,7 +29,7 @@ namespace MotionFramework.Patch
 			if (PatchHelper.CheckSandboxPatchManifestFileExist())
 			{
 				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
-				string fileContent = PatchHelper.ReadFile(filePath);
+				string fileContent = FileUtility.ReadFile(filePath);
 
 				PatchHelper.Log(ELogLevel.Log, $"Parse sandbox patch file.");
 				_patcher.ParseSandboxPatchManifest(fileContent);
