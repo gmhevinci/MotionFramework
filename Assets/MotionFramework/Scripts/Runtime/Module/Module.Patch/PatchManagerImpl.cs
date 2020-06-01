@@ -26,8 +26,9 @@ namespace MotionFramework.Patch
 		private long _deviceID;
 		private int _testFlag;
 
-		// 强更地址
-		private string _forceInstallAppURL;
+		// 强更标记和地址
+		public bool ForceInstall { private set; get; } = false;
+		public string AppURL { private set; get; }
 
 		// 校验等级
 		public ECheckLevel CheckLevel { private set; get; }
@@ -76,11 +77,11 @@ namespace MotionFramework.Patch
 			_webServers = createParam.WebServers;
 			_cdnServers = createParam.CDNServers;
 			_defaultWebServer = createParam.DefaultWebServerIP;
-			_defaultCDNServer = createParam.DefaultCDNServerIP;		
+			_defaultCDNServer = createParam.DefaultCDNServerIP;
 			_serverID = createParam.ServerID;
 			_channelID = createParam.ChannelID;
 			_deviceID = createParam.DeviceID;
-			_testFlag = createParam.TestFlag;	
+			_testFlag = createParam.TestFlag;
 			CheckLevel = createParam.CheckLevel;
 			AppVersion = new Version(Application.version);
 		}
@@ -244,25 +245,40 @@ namespace MotionFramework.Patch
 		}
 		public string GetWebPostData()
 		{
-			return $"{AppVersion}&{_serverID}&{_channelID}&{_deviceID}&{_testFlag}";
+			WebPost post = new WebPost
+			{
+				AppVersion = AppVersion.ToString(),
+				ServerID = _serverID,
+				ChannelID = _channelID,
+				DeviceID = _deviceID,
+				TestFlag = _testFlag
+			};
+			return JsonUtility.ToJson(post);
 		}
 		public void ParseResponseData(string data)
 		{
 			if (string.IsNullOrEmpty(data))
 				throw new Exception("Web server response data is null or empty.");
-			if (GameVersion != null)
-				throw new Exception("Should never get here.");
 
-			// $"{GameVersion}&{AppInstallURL}"
-			string[] splits = data.Split('&');
-			string gameVersionContent = splits[0];
-			GameVersion = new Version(gameVersionContent);
-			_forceInstallAppURL = splits[1];
+			WebResponse response = JsonUtility.FromJson<WebResponse>(data);
+			GameVersion = new Version(response.GameVersion);
+			ForceInstall = response.ForceInstall;
+			AppURL = response.AppURL;
 		}
-		public string GetForceInstallAppURL()
+
+		private class WebPost
 		{
-			// 注意：如果不需要强更安装包，返回的路径会为空
-			return _forceInstallAppURL;
+			public string AppVersion; //App版本号
+			public int ServerID; //最近登录的服务器ID
+			public int ChannelID; //渠道ID
+			public long DeviceID; //设备ID
+			public int TestFlag; //测试标记
+		}
+		private class WebResponse
+		{
+			public string GameVersion; //当前游戏版本号
+			public bool ForceInstall; //是否需要强制安装
+			public string AppURL; //App安装的地址
 		}
 	}
 }

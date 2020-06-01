@@ -53,8 +53,8 @@ namespace MotionFramework.Patch
 					yield break;
 				}
 
-				string responseData = download.GetResponse();
-				_patcher.ParseResponseData(responseData);
+				string response = download.GetResponse();
+				_patcher.ParseResponseData(response);
 				download.Dispose();
 			}
 
@@ -62,11 +62,10 @@ namespace MotionFramework.Patch
 			int oldResourceVersion = _patcher.SandboxPatchManifest.Version;
 
 			// 检测强更安装包
-			string appInstallURL = _patcher.GetForceInstallAppURL();
-			if(string.IsNullOrEmpty(appInstallURL) == false)
+			if(_patcher.ForceInstall)
 			{
 				PatchHelper.Log(ELogLevel.Log, $"Found new APP can be install : {_patcher.GameVersion.ToString()}");
-				PatchEventDispatcher.SendFoundForceInstallAPPMsg(_patcher.GameVersion.ToString(), appInstallURL);
+				PatchEventDispatcher.SendFoundForceInstallAPPMsg(_patcher.GameVersion.ToString(), _patcher.AppURL);
 				yield break;
 			}
 
