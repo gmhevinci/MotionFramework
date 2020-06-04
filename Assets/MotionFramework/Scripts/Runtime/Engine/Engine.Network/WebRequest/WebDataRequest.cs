@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace MotionFramework.Network
 {
-	public class WebDataRequest : WebRequestBase
+	public sealed class WebDataRequest : WebRequestBase
 	{
 		public WebDataRequest(string url) : base(url)
 		{
