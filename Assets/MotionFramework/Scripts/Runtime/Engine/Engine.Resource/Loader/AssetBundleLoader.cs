@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace MotionFramework.Resource
 {
-	internal class AssetBundleLoader : AssetLoaderBase
+	internal sealed class AssetBundleLoader : AssetLoaderBase
 	{
 		private readonly List<AssetLoaderBase> _depends = new List<AssetLoaderBase>(10);
 		private string _manifestPath = string.Empty;

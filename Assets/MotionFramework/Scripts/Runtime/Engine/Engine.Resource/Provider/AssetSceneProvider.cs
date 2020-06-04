@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace MotionFramework.Resource
 {
-	internal class AssetSceneProvider : AssetProviderBase
+	internal sealed class AssetSceneProvider : AssetProviderBase
 	{
 		private SceneInstanceParam _param;
 		private AsyncOperation _asyncOp;	

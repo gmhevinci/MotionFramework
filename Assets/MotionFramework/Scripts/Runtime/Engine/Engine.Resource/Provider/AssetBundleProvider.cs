@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MotionFramework.Resource
 {
-	internal class AssetBundleProvider : AssetProviderBase
+	internal sealed class AssetBundleProvider : AssetProviderBase
 	{
 		private AssetBundleLoader _loader;
 		private AssetBundleRequest _cacheRequest;

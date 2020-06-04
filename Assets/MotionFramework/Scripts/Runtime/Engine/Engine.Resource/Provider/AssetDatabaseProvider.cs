@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MotionFramework.Resource
 {
-	internal class AssetDatabaseProvider : AssetProviderBase
+	internal sealed class AssetDatabaseProvider : AssetProviderBase
 	{
 		public override float Progress
 		{
