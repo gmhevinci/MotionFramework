@@ -69,5 +69,8 @@ C# && .Net4.x
 
 2. [Demo2](https://github.com/gmhevinci/Demo2) 使用XLua热更新方案的演示例子。
 
+## 贡献者
+[何冠峰](https://github.com/gmhevinci) [任志勇](https://github.com/renruoyu1989)
+
 ## 声明
-作者本人将会一直维护该框架，提交的Issue会在48小时内解决，欢迎加入社区QQ群：654986302
+我们将会一直维护该框架，提交的Issue会在一天内回复并开始解决，欢迎加入社区QQ群：654986302
