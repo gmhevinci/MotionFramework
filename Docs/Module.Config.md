@@ -8,39 +8,34 @@ using MotionFramework.Config;
 
 public void Start()
 {
-	// 设置参数
-	var ceateParam = new ConfigManager.CreateParameters();
-	createParam.BaseFolderPath = "Config";
-
 	// 创建模块
-	MotionEngine.CreateModule<ConfigManager>(ceateParam);
+	MotionEngine.CreateModule<ConfigManager>();
 }
 ```
 
-加载表格
-```C#
-public class Test
-{
-	public void Start()
-	{
-		// 加载多语言表
-		var languageConfig = ConfigManager.Instance.LoadConfig("AutoGenerateLanguage");
-		languageConfig.Completed += OnConfigLoad;
-	}
-	partial void OnConfigLoad(AssetConfig config)
-	{
-	}
-}
-```
-
-加载表格
+加载多个表格的方法
 ```C#
 public class Test
 {
 	public IEnumerator Start()
 	{
-		// 加载多语言表
-		var languageConfig = ConfigManager.Instance.LoadConfig("AutoGenerateLanguage");
+		List<string> locations = new List<string>();
+		locations.Add("Config/AutoGenerateLanguage");
+		locations.Add("Config/ConfigName1");
+		locations.Add("Config/ConfigName2");
+		locations.Add("Config/ConfigName3");
+		yield return ConfigManager.Instance.LoadConfigs(locations);
+	}
+}
+```
+
+加载单个表格的方法
+```C#
+public class Test
+{
+	public IEnumerator Start()
+	{
+		var languageConfig = ConfigManager.Instance.LoadConfig("Config/AutoGenerateLanguage");
 		yield return languageConfig;
 	}
 }
