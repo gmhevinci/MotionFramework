@@ -65,9 +65,9 @@ C# && .Net4.x
 1. [游戏启动器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/GameLauncher.md) **(GameLauncher)**
 
 ## DEMO
-1. [Demo1](https://github.com/gmhevinci/Demo1) 使用ILRuntime热更新方案的演示例子。
+1. [Demo](https://github.com/gmhevinci/Demo) 使用MotionFramework制作的一款RPG单机游戏。
 
-2. [Demo2](https://github.com/gmhevinci/Demo2) 使用XLua热更新方案的演示例子。
+2. [Projects](https://github.com/gmhevinci/Project) 基于XLua和ILRuntime热更新技术的工程例子。
 
 ## 贡献者
 [何冠峰](https://github.com/gmhevinci) [任志勇](https://github.com/renruoyu1989)
