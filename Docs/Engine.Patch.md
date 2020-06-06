@@ -109,5 +109,3 @@ Web服务器的PHP范例
 	echo json_encode($data);
 ?>
 ````
-
-更详细的教程，请参考[Demo1](https://github.com/gmhevinci/Demo1/blob/master/Assets/Works/_Script_/Runtime/Patch/PatchWindow.cs)
