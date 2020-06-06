@@ -67,7 +67,7 @@ C# && .Net4.x
 ## DEMO
 1. [Demo](https://github.com/gmhevinci/Demo) 使用MotionFramework制作的一款RPG单机游戏。
 
-2. [Projects](https://github.com/gmhevinci/Project) 基于XLua和ILRuntime热更新技术的工程例子。
+2. [Projects](https://github.com/gmhevinci/Projects) 基于XLua和ILRuntime热更新技术的工程例子。
 
 ## 贡献者
 [何冠峰](https://github.com/gmhevinci) [任志勇](https://github.com/renruoyu1989)
