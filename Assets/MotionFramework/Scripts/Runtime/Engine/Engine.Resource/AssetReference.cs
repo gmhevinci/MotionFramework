@@ -59,6 +59,11 @@ namespace MotionFramework.Resource
 			string assetName = Path.GetFileName(Location);
 			return LoadInternal(assetName, typeof(TObject), null);
 		}
+		public AssetOperationHandle LoadAssetAsync(System.Type type)
+		{
+			string assetName = Path.GetFileName(Location);
+			return LoadInternal(assetName, type, null);
+		}
 
 		/// <summary>
 		/// 异步加载主资源对象
@@ -67,6 +72,11 @@ namespace MotionFramework.Resource
 		{
 			string assetName = Path.GetFileName(Location);
 			return LoadInternal(assetName, typeof(TObject), param);
+		}
+		public AssetOperationHandle LoadAssetAsync(System.Type type, IAssetParam param)
+		{
+			string assetName = Path.GetFileName(Location);
+			return LoadInternal(assetName, type, param);
 		}
 
 		/// <summary>
@@ -77,6 +87,10 @@ namespace MotionFramework.Resource
 		{
 			return LoadInternal(assetName, typeof(TObject), null);
 		}
+		public AssetOperationHandle LoadAssetAsync(System.Type type, string assetName)
+		{
+			return LoadInternal(assetName, type, null);
+		}
 
 		/// <summary>
 		/// 异步加载资源对象
@@ -85,6 +99,10 @@ namespace MotionFramework.Resource
 		public AssetOperationHandle LoadAssetAsync<TObject>(string assetName, IAssetParam param)
 		{
 			return LoadInternal(assetName, typeof(TObject), param);
+		}
+		public AssetOperationHandle LoadAssetAsync(System.Type type, string assetName, IAssetParam param)
+		{
+			return LoadInternal(assetName, type, param);
 		}
 
 		private AssetOperationHandle LoadInternal(string assetName, System.Type assetType, IAssetParam param)
