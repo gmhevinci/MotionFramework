@@ -1,3 +1,15 @@
+v1.1.2 - 2020年6月7日
+改进
+1. [e30374c] [Patch] 现在和WEB服务器通信的数据格式改为更加灵活的JSON格式
+2. [ae16c86] [Network] 针对IL2CPP做了代码优化
+3. [72380ea] [Resource] 针对IL2CPP做了代码优化
+4. [7c4a204] [Config] 增加批量加载表格的协程接口
+5. [be28685] [Resource] 增加了非泛型加载接口
+
+变更
+1. [7c4a204] [Config] ConfigManager加载配表现在需要传入Location地址
+
+
 v1.1.1 - 2020年5月31日
 改进
 1. [c619ea4] [Network] 将客户端网络逻辑从TcpServer.cs内迁移到TcpClient.cs
@@ -34,7 +46,7 @@ v1.0.1 - 2020年3月4日
 改进
 1. [Config] 配表加载支持协程等待
 2. [Pool] 改进游戏对象池
-3. [Eventr] 事件管理器增加EventGroup类
+3. [Event] 事件管理器增加EventGroup类
 4. [Network] 增加本地模拟接收网络包接口
 
 变更
