@@ -124,5 +124,3 @@ public class GameManager : ModuleSingleton<GameManager>, IModule
 	}
 }
 ```
-
-MotionFramework框架不仅适合用于开发休闲游戏，也可以用于开发商业化游戏，进阶教程可以参考：[Demo1](https://github.com/gmhevinci/Demo1)
