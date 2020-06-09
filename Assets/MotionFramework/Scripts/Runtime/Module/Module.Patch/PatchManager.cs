@@ -190,7 +190,7 @@ namespace MotionFramework.Patch
 			if (string.IsNullOrEmpty(variant))
 				throw new System.Exception($"Variant is null or empty: {location}");
 
-			return StringFormat.Format("{0}/{1}.{2}", _cachedLocationRoot, location.ToLower(), variant);
+			return StringFormat.Format("{0}/{1}.{2}", _cachedLocationRoot, location.ToLower(), variant.ToLower());
 		}
 		string IBundleServices.GetAssetBundleLoadPath(string manifestPath)
 		{
