@@ -276,9 +276,11 @@ namespace MotionFramework.Patch
 		}
 		private class WebResponse
 		{
+#pragma warning disable 0649
 			public string GameVersion; //当前游戏版本号
 			public bool ForceInstall; //是否需要强制安装
 			public string AppURL; //App安装的地址
+#pragma warning restore 0649
 		}
 	}
 }
