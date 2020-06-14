@@ -87,10 +87,10 @@ namespace MotionFramework.Patch
 			_patcher = new PatchManagerImpl();
 			_patcher.Initialize(createParam);
 
-			_variantCollector = new VariantCollector();
 			if (createParam.VariantRules != null)
 			{
-				foreach(var variantRule in createParam.VariantRules)
+				_variantCollector = new VariantCollector();
+				foreach (var variantRule in createParam.VariantRules)
 				{
 					_variantCollector.RegisterVariantRule(variantRule.VariantGroup, variantRule.TargetVariant);
 				}
@@ -167,7 +167,7 @@ namespace MotionFramework.Patch
 		private AssetBundleManifest _unityManifest;
 		private AssetBundleManifest LoadUnityManifest()
 		{
-			IBundleServices bundleServices = this as IBundleServices;
+			IBundleServices bundleServices = this;
 			string loadPath = bundleServices.GetAssetBundleLoadPath(PatchDefine.UnityManifestFileName);
 			AssetBundle bundle = AssetBundle.LoadFromFile(loadPath);
 			if (bundle == null)
@@ -200,16 +200,18 @@ namespace MotionFramework.Patch
 			else
 				patchManifest = _patcher.SandboxPatchManifest;
 
-			// 尝试获取变体资源清单路径
-			manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath);
-
-			// 注意：可能从APP内加载，也可能从沙盒内加载
-			PatchElement element;
-			if (patchManifest.Elements.TryGetValue(manifestPath, out element))
+			if (patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
+				// 如果是变体资源
+				if (_variantCollector != null)
+				{
+					string variant = element.GetFirstVariant();
+					if (string.IsNullOrEmpty(variant) == false)
+						manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
+				}
+
 				// 先查询APP内的资源
-				PatchElement appElement;
-				if (_patcher.AppPatchManifest.Elements.TryGetValue(manifestPath, out appElement))
+				if (_patcher.AppPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement appElement))
 				{
 					if (appElement.MD5 == element.MD5)
 						return AssetPathHelper.MakeStreamingLoadPath(manifestPath);

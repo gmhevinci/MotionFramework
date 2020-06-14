@@ -14,6 +14,8 @@ namespace MotionFramework.Patch
 	/// </summary>
 	public class VariantRule
 	{
+		public const string DefaultTag = "default";
+
 		/// <summary>
 		/// 变体组
 		/// </summary>

@@ -19,27 +19,54 @@ namespace MotionFramework.Patch
 		public string MD5 { private set; get; }
 
 		/// <summary>
+		/// 文件大小
+		/// </summary>
+		public long SizeBytes { private set; get; }
+
+		/// <summary>
 		/// 文件版本
 		/// </summary>
 		public int Version { private set; get; }
 
 		/// <summary>
-		/// 文件大小
+		/// 变体类型列表
 		/// </summary>
-		public long SizeBytes { private set; get; }
+		public string[] Variants { private set; get; }
 
 		/// <summary>
 		/// 下载文件的保存路径
 		/// </summary>
 		public string SavePath;
 
-
-		public PatchElement(string name, string md5, int version, long sizeBytes)
+		public PatchElement(string name, string md5, long sizeBytes, int version, string[] variants)
 		{
 			Name = name;
 			MD5 = md5;
-			Version = version;
 			SizeBytes = sizeBytes;
+			Version = version;
+			Variants = variants;
+		}
+
+
+		/// <summary>
+		/// 是否包含变体资源
+		/// </summary>
+		public bool HasVariant()
+		{
+			if (Variants == null || Variants.Length == 0)
+				return false;
+			else
+				return true;
+		}
+
+		/// <summary>
+		/// 获取首个变体类型，如果不存在返回一个空字符串
+		/// </summary>
+		public string GetFirstVariant()
+		{
+			if (HasVariant() == false)
+				return string.Empty;
+			return Variants[0];
 		}
 	}
 }

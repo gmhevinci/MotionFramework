@@ -6,16 +6,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
-using MotionFramework.Resource;
 using MotionFramework.IO;
+using MotionFramework.Resource;
+using MotionFramework.Network;
 
 namespace MotionFramework.Patch
 {
 	public sealed class LocalBundleServices : IBundleServices
 	{
-		private VariantCollector _variantCollector = new VariantCollector();
+		private VariantCollector _variantCollector;
+		private PatchManifest _patchManifest;
 
 		/// <summary>
 		/// 适合单机游戏的资源文件服务接口类
@@ -30,6 +31,7 @@ namespace MotionFramework.Patch
 		/// <param name="variantRules">变体规则</param>
 		public LocalBundleServices(List<VariantRule> variantRules)
 		{
+			_variantCollector = new VariantCollector();
 			if (variantRules != null)
 			{
 				foreach (var variantRule in variantRules)
@@ -39,12 +41,36 @@ namespace MotionFramework.Patch
 			}
 		}
 
+
+		/// <summary>
+		/// 初始化
+		/// </summary>
+		public IEnumerator InitializeAsync()
+		{
+			// 解析APP里的补丁清单
+			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
+			string url = AssetPathHelper.ConvertToWWWPath(filePath);
+			WebDataRequest downloader = new WebDataRequest(url);
+			yield return downloader.DownLoad();
+
+			if (downloader.States == EWebRequestStates.Success)
+			{
+				_patchManifest = new PatchManifest();
+				_patchManifest.Parse(downloader.GetText());
+				downloader.Dispose();
+			}
+			else
+			{
+				throw new System.Exception($"Fatal error : Failed download file : {url}");
+			}
+		}
+
 		#region IBundleServices接口
 		private string _cachedLocationRoot;
 		private AssetBundleManifest _unityManifest;
 		private AssetBundleManifest LoadUnityManifest()
 		{
-			IBundleServices bundleServices = this as IBundleServices;
+			IBundleServices bundleServices = this;
 			string loadPath = bundleServices.GetAssetBundleLoadPath(PatchDefine.UnityManifestFileName);
 			AssetBundle bundle = AssetBundle.LoadFromFile(loadPath);
 			if (bundle == null)
@@ -71,11 +97,24 @@ namespace MotionFramework.Patch
 		}
 		string IBundleServices.GetAssetBundleLoadPath(string manifestPath)
 		{
-			// 尝试获取变体资源清单路径
-			manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath);
+			if (_patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			{
+				// 如果是变体资源
+				if (_variantCollector != null)
+				{
+					string variant = element.GetFirstVariant();
+					if (string.IsNullOrEmpty(variant) == false)
+						manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
+				}
 
-			// 从流文件夹内加载所有文件
-			return AssetPathHelper.MakeStreamingLoadPath(manifestPath);		
+				// 直接从沙盒里加载
+				return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+			}
+			else
+			{
+				PatchHelper.Log(ELogLevel.Warning, $"Not found element in patch manifest : {manifestPath}");
+				return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+			}
 		}
 		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
 		{

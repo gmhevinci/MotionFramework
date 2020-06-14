@@ -23,10 +23,9 @@ namespace MotionFramework.Patch
 		public int Version { private set; get; }
 
 		/// <summary>
-		/// 所有打包文件列表
+		/// 所有资源集合
 		/// </summary>
 		public readonly Dictionary<string, PatchElement> Elements = new Dictionary<string, PatchElement>();
-
 
 		/// <summary>
 		/// 解析数据
@@ -59,9 +58,13 @@ namespace MotionFramework.Patch
 				long fileSizeBytes = long.Parse(splits[2]);
 				int fileVersion = int.Parse(splits[3]);
 
+				string[] variants = null;
+				if (string.IsNullOrEmpty(splits[4]) == false)
+					variants = splits[4].Split('|');
+
 				if (Elements.ContainsKey(fileName))
 					throw new Exception($"Fatal error : has same pack file : {fileName}");
-				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileVersion, fileSizeBytes));
+				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileSizeBytes, fileVersion, variants));
 			}
 		}
 
@@ -93,9 +96,13 @@ namespace MotionFramework.Patch
 				long fileSizeBytes = long.Parse(splits[2]);
 				int fileVersion = int.Parse(splits[3]);
 
+				string[] variants = null;
+				if (string.IsNullOrEmpty(splits[4]) == false)
+					variants = splits[4].Split('|');
+
 				if (Elements.ContainsKey(fileName))
 					throw new Exception($"Fatal error : has same pack file : {fileName}");
-				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileVersion, fileSizeBytes));
+				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileSizeBytes, fileVersion, variants));
 			}
 		}
 	}
