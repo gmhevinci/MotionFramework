@@ -11,7 +11,6 @@ namespace MotionFramework.Patch
 	/// </summary>
 	public enum EPatchOperation
 	{
-		BeginingRequestGameVersion,
 		BeginingDownloadWebFiles,
 		TryRequestGameVersion,
 		TryDownloadWebPatchManifest,

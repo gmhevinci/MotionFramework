@@ -71,8 +71,8 @@ namespace MotionFramework.Patch
 			}
 		}
 
-
-		public void Initialize(PatchManager.CreateParameters createParam)
+		
+		public void Create(PatchManager.CreateParameters createParam)
 		{
 			_webServers = createParam.WebServers;
 			_cdnServers = createParam.CDNServers;
@@ -85,14 +85,9 @@ namespace MotionFramework.Patch
 			CheckLevel = createParam.CheckLevel;
 			AppVersion = new Version(Application.version);
 		}
-		public void Run()
+		public void Download()
 		{
 			// 注意：按照先后顺序添加流程节点
-			_procedure.AddNode(new FsmInitiationBegin(this));
-			_procedure.AddNode(new FsmCheckSandboxDirty(this));
-			_procedure.AddNode(new FsmParseAppPatchManifest(this));
-			_procedure.AddNode(new FsmParseSandboxPatchManifest(this));
-			_procedure.AddNode(new FsmInitiationOver(this));
 			_procedure.AddNode(new FsmRequestGameVersion(this));
 			_procedure.AddNode(new FsmParseWebPatchManifest(this));
 			_procedure.AddNode(new FsmGetDonwloadList(this));
@@ -130,15 +125,7 @@ namespace MotionFramework.Patch
 			if (msg is PatchEventMessageDefine.OperationEvent)
 			{
 				var message = msg as PatchEventMessageDefine.OperationEvent;
-				if (message.operation == EPatchOperation.BeginingRequestGameVersion)
-				{
-					// 从挂起的地方继续
-					if (_procedure.Current == EPatchStates.InitiationOver.ToString())
-						_procedure.SwitchNext();
-					else
-						MotionLog.Log(ELogLevel.Error, $"Patch system is not prepare : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.BeginingDownloadWebFiles)
+				if (message.operation == EPatchOperation.BeginingDownloadWebFiles)
 				{
 					// 从挂起的地方继续
 					if (_procedure.Current == EPatchStates.GetDonwloadList.ToString())

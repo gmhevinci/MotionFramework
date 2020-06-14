@@ -73,6 +73,7 @@ namespace MotionFramework.Patch
 			public List<VariantRule> VariantRules;
 		}
 
+		private readonly PatchInitializer _initializer = new PatchInitializer();
 		private PatchManagerImpl _patcher;
 		private VariantCollector _variantCollector;
 		private bool _isRun = false;
@@ -84,9 +85,7 @@ namespace MotionFramework.Patch
 			if (createParam == null)
 				throw new Exception($"{nameof(PatchManager)} create param is invalid.");
 
-			_patcher = new PatchManagerImpl();
-			_patcher.Initialize(createParam);
-
+			// 注册变体规则
 			if (createParam.VariantRules != null)
 			{
 				_variantCollector = new VariantCollector();
@@ -95,6 +94,10 @@ namespace MotionFramework.Patch
 					_variantCollector.RegisterVariantRule(variantRule.VariantGroup, variantRule.TargetVariant);
 				}
 			}
+
+			// 创建补丁管理器实现类
+			_patcher = new PatchManagerImpl();
+			_patcher.Create(createParam);
 		}
 		void IModule.OnUpdate()
 		{
@@ -106,14 +109,22 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
+		/// 异步初始化
+		/// </summary>
+		public IEnumerator InitializeAync()
+		{
+			yield return _initializer.InitializeAync(_patcher);
+		}
+
+		/// <summary>
 		/// 开启补丁更新流程
 		/// </summary>
-		public void Run()
+		public void Download()
 		{
 			if (_isRun == false)
 			{
 				_isRun = true;
-				_patcher.Run();
+				_patcher.Download();
 			}
 		}
 
@@ -200,16 +211,9 @@ namespace MotionFramework.Patch
 			else
 				patchManifest = _patcher.SandboxPatchManifest;
 
+			manifestPath = GetVariantManifestPath(patchManifest, manifestPath);
 			if (patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
-				// 如果是变体资源
-				if (_variantCollector != null)
-				{
-					string variant = element.GetFirstVariant();
-					if (string.IsNullOrEmpty(variant) == false)
-						manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
-				}
-
 				// 先查询APP内的资源
 				if (_patcher.AppPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement appElement))
 				{
@@ -237,6 +241,26 @@ namespace MotionFramework.Patch
 			if (_unityManifest == null)
 				_unityManifest = LoadUnityManifest();
 			return _unityManifest.GetAllDependencies(assetBundleName);
+		}
+
+		private string GetVariantManifestPath(PatchManifest patchManifest, string manifestPath)
+		{
+			if (_variantCollector == null)
+				return manifestPath;
+
+			if (patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			{
+				// 如果是变体资源
+				string variant = element.GetFirstVariant();
+				if (string.IsNullOrEmpty(variant) == false)
+					manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
+				return manifestPath;
+			}
+			else
+			{
+				PatchHelper.Log(ELogLevel.Warning, $"Not found element in patch manifest : {manifestPath}");
+				return manifestPath;
+			}
 		}
 		#endregion
 	}

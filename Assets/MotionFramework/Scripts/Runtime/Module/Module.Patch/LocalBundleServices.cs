@@ -43,7 +43,7 @@ namespace MotionFramework.Patch
 
 
 		/// <summary>
-		/// 初始化
+		/// 异步初始化
 		/// </summary>
 		public IEnumerator InitializeAsync()
 		{
