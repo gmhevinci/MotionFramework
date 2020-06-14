@@ -315,19 +315,20 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void SetAssetBundleLabelAndVariant(AssetInfo assetInfo)
 		{
-			string label = CollectionSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
-			string variant = PatchDefine.AssetBundleDefaultVariant;
-
-			// 如果是变体资源
-			// 注意：仅支持文件夹级别
-			if (Path.HasExtension(label) && AssetDatabase.IsValidFolder(label))
+			// 如果资源所在文件夹的名称包含后缀符号，则为变体资源
+			string folderName = Path.GetDirectoryName(assetInfo.AssetPath); // "Assets/Texture.HD/background.jpg" --> "Assets/Texture.HD"
+			if (Path.HasExtension(folderName))
 			{
-				variant = Path.GetExtension(label).Substring(1);
-				label = label.Remove(label.LastIndexOf("."));
+				string extension = Path.GetExtension(folderName); 
+				string label = CollectionSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
+				assetInfo.AssetBundleLabel = label.Replace(extension, string.Empty);
+				assetInfo.AssetBundleVariant = extension.Substring(1);
 			}
-
-			assetInfo.AssetBundleLabel = label;
-			assetInfo.AssetBundleVariant = variant;
+			else
+			{
+				assetInfo.AssetBundleLabel = CollectionSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
+				assetInfo.AssetBundleVariant = PatchDefine.AssetBundleDefaultVariant;
+			}
 		}
 		#endregion
 
@@ -423,8 +424,6 @@ namespace MotionFramework.Editor
 		#endregion
 
 		#region 文件相关
-		private readonly List<string> _updateFiles = new List<string>();
-
 		/// <summary>
 		/// 1. 创建补丁清单文件到输出目录
 		/// </summary>
@@ -437,6 +436,9 @@ namespace MotionFramework.Editor
 			string filePath = OutputPath + $"/{PatchDefine.PatchManifestFileName}";
 			if (File.Exists(filePath))
 				File.Delete(filePath);
+
+			// 获取变体信息
+			Dictionary<string, List<string>> variantInfos = GetVariantInfos(allAssetBundles);
 
 			// 创建新文件
 			Log($"创建补丁清单文件：{filePath}");
@@ -456,8 +458,9 @@ namespace MotionFramework.Editor
 					string md5 = HashUtility.FileMD5(path);
 					long sizeBytes = EditorTools.GetFileSize(path);
 					int version = BuildVersion;
+					string variants = string.Empty;
 
-					sw.Write($"{assetName}={md5}={sizeBytes}={version}");
+					sw.Write($"{assetName}={md5}={sizeBytes}={version}={variants}");
 					sw.Write("\n");
 					sw.Flush();
 				}
@@ -469,16 +472,16 @@ namespace MotionFramework.Editor
 					string md5 = HashUtility.FileMD5(path);
 					long sizeBytes = EditorTools.GetFileSize(path);
 					int version = BuildVersion;
+					string variants = GetVariants(variantInfos, assetName);
 
 					// 注意：如果文件没有变化使用旧版本号
-					PatchElement element;
-					if (patchManifest.Elements.TryGetValue(assetName, out element))
+					if (patchManifest.Elements.TryGetValue(assetName, out PatchElement element))
 					{
 						if (element.MD5 == md5)
 							version = element.Version;
 					}
 
-					sw.Write($"{assetName}={md5}={sizeBytes}={version}");
+					sw.Write($"{assetName}={md5}={sizeBytes}={version}={variants}");
 					sw.Write("\n");
 					sw.Flush();
 				}
@@ -487,6 +490,42 @@ namespace MotionFramework.Editor
 				sw.Close();
 				fs.Close();
 			}
+		}
+		private Dictionary<string, List<string>> GetVariantInfos(string[] allAssetBundles)
+		{
+			Dictionary<string, List<string>> dic = new Dictionary<string, List<string>>();
+			foreach (var assetName in allAssetBundles)
+			{
+				string key = assetName.Remove(assetName.LastIndexOf(".")); // "Assets/Config/test.unity3d" --> "Assets/Config/test"
+				string extension = Path.GetExtension(assetName).Substring(1);
+				if (dic.ContainsKey(key))
+					dic[key].Add(extension);
+				else
+					dic.Add(key, new List<string>() { extension });
+			}
+			return dic;
+		}
+		private string GetVariants(Dictionary<string, List<string>> variantInfos, string assetName)
+		{
+			string key = assetName.Remove(assetName.LastIndexOf(".")); // "Assets/Config/test.unity3d" --> "Assets/Config/test"
+			List<string> variants = variantInfos[key];
+
+			// 如果不是变体资源
+			if (variants.Count == 1)
+				return string.Empty;
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < variants.Count; i++)
+			{
+				string value = variants[i];
+				if (value != PatchDefine.AssetBundleDefaultVariant)
+				{
+					sb.Append(value);
+					sb.Append('|');
+				}
+			}
+			sb.Remove(sb.Length - 1, 1); //移除最后一个分隔符
+			return sb.ToString();
 		}
 
 		/// <summary>

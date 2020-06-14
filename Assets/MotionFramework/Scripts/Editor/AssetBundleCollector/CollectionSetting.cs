@@ -39,24 +39,15 @@ namespace MotionFramework.Editor
 			None,
 
 			/// <summary>
-			/// 以文件路径命名
+			/// 以文件路径作为标签名
 			/// </summary>
 			LabelByFilePath,
 
 			/// <summary>
-			/// 以文件名称命名
-			/// </summary>
-			LabelByFileName,
-
-			/// <summary>
-			/// 以文件夹路径命名（该文件夹下所有资源被打到一个AssetBundle文件里）
+			/// 以文件夹路径作为标签名
+			/// 注意：该文件夹下所有资源被打到一个AssetBundle文件里
 			/// </summary>
 			LabelByFolderPath,
-
-			/// <summary>
-			/// 以文件夹名称命名（该文件夹下所有资源被打到一个AssetBundle文件里）
-			/// </summary>
-			LabelByFolderName,
 		}
 
 		[Serializable]

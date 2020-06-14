@@ -130,6 +130,7 @@ namespace MotionFramework.Editor
 				if (wrapper.PackRule == CollectionSetting.EFolderPackRule.Collect)
 					result.Add(wrapper.FolderPath);
 			}
+
 			return result;
 		}
 
@@ -197,10 +198,10 @@ namespace MotionFramework.Editor
 					findWrapper = wrapper;
 			}
 
-			// 如果没有找到命名规则
+			// 如果没有找到命名规则，文件路径作为默认的标签名
 			if (findWrapper == null)
 			{
-				return assetPath.Remove(assetPath.LastIndexOf("."));
+				return assetPath.Remove(assetPath.LastIndexOf(".")); // "Assets/Config/test.txt" --> "Assets/Config/test"
 			}
 
 			// 根据规则设置获取标签名称
@@ -209,22 +210,13 @@ namespace MotionFramework.Editor
 				// 注意：如果依赖资源来自于忽略文件夹，那么会触发这个异常
 				throw new Exception($"CollectionSetting has depend asset in ignore folder : {findWrapper.FolderPath}");
 			}
-			else if (findWrapper.LabelRule == CollectionSetting.EBundleLabelRule.LabelByFileName)
-			{
-				return Path.GetFileNameWithoutExtension(assetPath); // "C:\Demo\Assets\Config\test.txt" --> "test"
-			}
 			else if (findWrapper.LabelRule == CollectionSetting.EBundleLabelRule.LabelByFilePath)
 			{
-				return assetPath.Remove(assetPath.LastIndexOf(".")); // "C:\Demo\Assets\Config\test.txt" --> "C:\Demo\Assets\Config\test"
-			}
-			else if (findWrapper.LabelRule == CollectionSetting.EBundleLabelRule.LabelByFolderName)
-			{
-				string temp = Path.GetDirectoryName(assetPath); // "C:\Demo\Assets\Config\test.txt" --> "C:\Demo\Assets\Config"
-				return Path.GetFileName(temp); // "C:\Demo\Assets\Config" --> "Config"
-			}
+				return assetPath.Remove(assetPath.LastIndexOf(".")); // "Assets/Config/test.txt" --> "Assets/Config/test"
+			}		
 			else if (findWrapper.LabelRule == CollectionSetting.EBundleLabelRule.LabelByFolderPath)
 			{
-				return Path.GetDirectoryName(assetPath); // "C:\Demo\Assets\Config\test.txt" --> "C:\Demo\Assets\Config"
+				return Path.GetDirectoryName(assetPath); // "Assets/Config/test.txt" --> "Assets/Config"
 			}
 			else
 			{
