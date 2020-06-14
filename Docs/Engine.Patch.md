@@ -1,14 +1,6 @@
 ### 补丁系统 (Engine.Patch)
 
 **补丁流程**  
-补丁流程分为俩个阶段：初始化阶段和下载阶段  
-
-**补丁流程 - 初始化阶段**  
-初始化开始(InitiationBegin) -> 检测沙盒是否变脏(CheckSandboxDirty) -> 分析APP内的补丁清单(ParseAppPatchManifest) -> 分析沙盒内的补丁清单(ParseSandboxPatchManifest) -> 初始化结束(InitiationOver)
-
-注意：当初始化结束之后，流程系统会被挂起。发送OperationEvent(EPatchOperation.BeginingRequestGameVersion)事件可以恢复流程系统，然后进入下载阶段。
-
-**补丁流程 - 下载阶段**  
 请求最新的游戏版本(RequestGameVersion) -> 分析网络上的补丁清单(ParseWebPatchManifest) -> 获取下载列表(GetDonwloadList) -> 下载网络文件到沙盒(DownloadWebFiles) -> 下载网络补丁清单到沙盒(DownloadWebPatchManifest) -> 下载结束(DownloadOver)
 
 注意：当发现更新文件的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.BeginingDownloadWebFiles)事件可以恢复流程系统。

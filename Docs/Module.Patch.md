@@ -2,7 +2,7 @@
 
 创建补丁管理器  
 ```C#
-public void Start()
+public IEnumerator Start()
 {
 	// 设置参数
 	var createParam = new PatchManager.CreateParameters();
@@ -23,19 +23,14 @@ public void Start()
 	createParam.DefaultWebServerIP = "127.0.0.1/WEB/PC/GameVersion.php";
 	createParam.DefaultCDNServerIP = "127.0.0.1/CDN/PC";
 
-	// 注册变体规则
-	var variantRule = new PatchManager.CreateParameters.VariantRule();
-	variantRule.VariantGroup = new List<string>() { "CN", "EN", "KR" };
-	variantRule.TargetVariant = "EN";
-	createParam.VariantRules = new List<PatchManager.CreateParameters.VariantRule>() { variantRule };
-
 	// 创建模块
 	MotionEngine.CreateModule<PatchManager>(createParam);
-
+	yield return patchManager.InitializeAync();
+	
 	...
 
 	// 开启补丁更新流程
-	PatchManager.Instance.Run();
+	PatchManager.Instance.Download();
 }
 ```
 

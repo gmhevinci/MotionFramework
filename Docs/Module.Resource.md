@@ -3,14 +3,14 @@
 创建资源管理器
 ```C#
 //需要热更资源（网络游戏为主）
-public void Start()
+public IEnumerator Start()
 {
 	// 直接使用通用的补丁管理器
 	IBundleServices bundleServices = MotionEngine.GetMoudle<PatchManager>();
 
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
-	createParam.AssetRootPath = "Assets/Works/Resource";
+	createParam.AssetRootPath = "Assets/GameRes";
 	createParam.SimulationOnEditor = true;
 	createParam.BundleServices = bundleServices;
 	createParam.DecryptServices = null;
@@ -21,16 +21,17 @@ public void Start()
 }
 
 //不需要热更资源（单机游戏为主）
-public void Start()
+public IEnumerator Start()
 {
 	// 直接使用本地资源服务接口
-	IBundleServices bundleServices = new LocalBundleServices();
+	LocalBundleServices localBundleServices = new LocalBundleServices();
+	yield return localBundleServices.InitializeAsync();
 
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
-	createParam.AssetRootPath = "Assets/Works/Resource";
+	createParam.AssetRootPath = "Assets/GameRes";
 	createParam.SimulationOnEditor = true;
-	createParam.BundleServices = bundleServices;
+	createParam.BundleServices = localBundleServices;
 	createParam.DecryptServices = null;
 	createParam.AutoReleaseInterval = 10;
 
