@@ -11,17 +11,21 @@ namespace System
 		/// <summary>
 		/// 移除首个字符
 		/// </summary>
-		public static string RemoveFirstChar(this System.String o)
+		public static string RemoveFirstChar(this System.String str)
 		{
-			return o.Substring(1);
+			if (string.IsNullOrEmpty(str))
+				return str;
+			return str.Substring(1);
 		}
 
 		/// <summary>
 		/// 移除末尾字符
 		/// </summary>
-		public static string RemoveLastChar(this System.String o)
+		public static string RemoveLastChar(this System.String str)
 		{
-			return o.Substring(0, o.Length - 1);
+			if (string.IsNullOrEmpty(str))
+				return str;
+			return str.Substring(0, str.Length - 1);
 		}
 	}
 }
