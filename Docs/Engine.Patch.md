@@ -1,17 +1,19 @@
 ### 补丁系统 (Engine.Patch)
 
 **补丁流程**  
-请求最新的游戏版本(RequestGameVersion) -> 分析网络上的补丁清单(ParseWebPatchManifest) -> 获取下载列表(GetDonwloadList) -> 下载网络文件到沙盒(DownloadWebFiles) -> 下载网络补丁清单到沙盒(DownloadWebPatchManifest) -> 下载结束(DownloadOver)
+1. 请求最新的游戏版本 (RequestGameVersion) 
+2. 分析网络上的补丁清单 (ParseWebPatchManifest)
+3. 获取下载列表 (GetDonwloadList)
+4. 下载网络文件到沙盒 (DownloadWebFiles) 
+5. 下载网络补丁清单到沙盒 (DownloadWebPatchManifest)  
+6. 下载结束 (DownloadOver)  
 
-注意：当发现更新文件的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.BeginingDownloadWebFiles)事件可以恢复流程系统。
-
-注意：当请求游戏版本号失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryRequestGameVersion)事件可以恢复流程系统，然后再次尝试请求游戏版本号。
-
-注意：当下载网络补丁清单失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebPatchManifest)事件可以恢复流程系统，然后再次尝试下载。
-
-注意：当下载网络文件失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
-
-注意：当下载的网络文件MD5验证失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
+注意事项：
+1. 当发现更新文件的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.BeginingDownloadWebFiles)事件可以恢复流程系统。
+2. 当请求游戏版本号失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryRequestGameVersion)事件可以恢复流程系统，然后再次尝试请求游戏版本号。
+3. 当下载网络补丁清单失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebPatchManifest)事件可以恢复流程系统，然后再次尝试下载。
+4. 当下载网络文件失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
+5. 当下载的网络文件MD5验证失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
 
 **补丁事件**  
 整个流程抛出的事件
