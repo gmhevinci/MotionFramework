@@ -39,7 +39,7 @@ namespace MotionFramework.Patch
 		private IEnumerator DownLoad()
 		{
 			// 解析APP里的补丁清单
-			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
+			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestBytesFileName);
 			string url = AssetPathHelper.ConvertToWWWPath(filePath);
 			WebDataRequest downloader = new WebDataRequest(url);
 			yield return downloader.DownLoad();
@@ -47,7 +47,7 @@ namespace MotionFramework.Patch
 			if (downloader.States == EWebRequestStates.Success)
 			{
 				PatchHelper.Log(ELogLevel.Log, "Parse app patch manifest.");
-				_patcher.ParseAppPatchManifest(downloader.GetText());
+				_patcher.ParseAppPatchManifest(downloader.GetData());
 				downloader.Dispose();
 				_patcher.SwitchNext();
 			}

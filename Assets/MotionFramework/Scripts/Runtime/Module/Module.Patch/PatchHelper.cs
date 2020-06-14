@@ -52,7 +52,7 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public static bool CheckSandboxPatchManifestFileExist()
 		{
-			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestBytesFileName);
 			return File.Exists(filePath);
 		}
 

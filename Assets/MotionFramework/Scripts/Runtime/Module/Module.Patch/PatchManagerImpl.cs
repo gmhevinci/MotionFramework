@@ -192,19 +192,19 @@ namespace MotionFramework.Patch
 		}
 
 		// 解析补丁清单文件相关接口
-		public void ParseAppPatchManifest(string fileContent)
+		public void ParseAppPatchManifest(byte[] fileData)
 		{
 			if (AppPatchManifest != null)
 				throw new Exception("Should never get here.");
 			AppPatchManifest = new PatchManifest();
-			AppPatchManifest.Parse(fileContent);
+			AppPatchManifest.Parse(fileData);
 		}
-		public void ParseSandboxPatchManifest(string fileContent)
+		public void ParseSandboxPatchManifest(byte[] fileData)
 		{
 			if (SandboxPatchManifest != null)
 				throw new Exception("Should never get here.");
 			SandboxPatchManifest = new PatchManifest();
-			SandboxPatchManifest.Parse(fileContent);
+			SandboxPatchManifest.Parse(fileData);
 		}
 		public void ParseSandboxPatchManifest(PatchManifest patchFile)
 		{
@@ -212,12 +212,12 @@ namespace MotionFramework.Patch
 				throw new Exception("Should never get here.");
 			SandboxPatchManifest = patchFile;
 		}
-		public void ParseWebPatchManifest(string fileContent)
+		public void ParseWebPatchManifest(byte[] fileData)
 		{
 			if (WebPatchManifest != null)
 				throw new Exception("Should never get here.");
 			WebPatchManifest = new PatchManifest();
-			WebPatchManifest.Parse(fileContent);
+			WebPatchManifest.Parse(fileData);
 		}
 
 		// 服务器IP相关

@@ -40,8 +40,8 @@ namespace MotionFramework.Patch
 		{
 			// 注意：等所有文件下载完毕后，下载并替换补丁清单
 			int newResourceVersion = _patcher.RequestedResourceVersion;
-			string url = _patcher.GetWebDownloadURL(newResourceVersion.ToString(), PatchDefine.PatchManifestFileName);
-			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			string url = _patcher.GetWebDownloadURL(newResourceVersion.ToString(), PatchDefine.PatchManifestBytesFileName);
+			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestBytesFileName);
 			WebFileRequest download = new WebFileRequest(url, savePath);
 			yield return download.DownLoad();
 

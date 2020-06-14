@@ -3,6 +3,7 @@
 // Copyright©2018-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
+using System.Collections.Generic;
 
 namespace MotionFramework.Patch
 {
@@ -31,14 +32,15 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 变体类型列表
 		/// </summary>
-		public string[] Variants { private set; get; }
+		public List<string> Variants { private set; get; }
 
 		/// <summary>
 		/// 下载文件的保存路径
 		/// </summary>
 		public string SavePath;
 
-		public PatchElement(string name, string md5, long sizeBytes, int version, string[] variants)
+
+		public PatchElement(string name, string md5, long sizeBytes, int version, List<string> variants)
 		{
 			Name = name;
 			MD5 = md5;
@@ -47,13 +49,12 @@ namespace MotionFramework.Patch
 			Variants = variants;
 		}
 
-
 		/// <summary>
 		/// 是否包含变体资源
 		/// </summary>
 		public bool HasVariant()
 		{
-			if (Variants == null || Variants.Length == 0)
+			if (Variants == null || Variants.Count == 0)
 				return false;
 			else
 				return true;

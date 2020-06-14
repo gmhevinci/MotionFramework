@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using MotionFramework.IO;
 
 namespace MotionFramework.Patch
 {
@@ -15,6 +16,10 @@ namespace MotionFramework.Patch
 	/// </summary>
 	public class PatchManifest
 	{
+		public const int FileStreamMaxLen = 1024 * 1024 * 128; //最大128MB
+		public const int TableStreamMaxLen = 1024 * 256; //最大256K
+		public const short TableStreamHead = 0x2B2B; //文件标记
+		
 		private bool _isParse = false;
 
 		/// <summary>
@@ -30,79 +35,52 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 解析数据
 		/// </summary>
-		public void Parse(string text)
+		public void Parse(byte[] bytes)
 		{
-			if (string.IsNullOrEmpty(text))
-				throw new Exception("Fatal error : Param is null or empty");
-			if (_isParse)
-				throw new Exception("Fatal error : Package is already parse.");
-
-			_isParse = true;
-
-			// 按行分割字符串
-			string[] lineArray = text.Split('\n');
-
-			// 读取版本号
-			Version = int.Parse(lineArray[0]);
-
-			// 读取所有Bundle的数据
-			for (int i = 1; i < lineArray.Length; i++)
-			{
-				string line = lineArray[i];
-				if (string.IsNullOrEmpty(line))
-					continue;
-
-				string[] splits = line.Split('=');
-				string fileName = splits[0];
-				string fileMD5 = splits[1];
-				long fileSizeBytes = long.Parse(splits[2]);
-				int fileVersion = int.Parse(splits[3]);
-
-				string[] variants = null;
-				if (string.IsNullOrEmpty(splits[4]) == false)
-					variants = splits[4].Split('|');
-
-				if (Elements.ContainsKey(fileName))
-					throw new Exception($"Fatal error : has same pack file : {fileName}");
-				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileSizeBytes, fileVersion, variants));
-			}
-		}
-
-		/// <summary>
-		/// 解析数据
-		/// </summary>
-		public void Parse(StreamReader sr)
-		{
-			if (sr == null)
+			if (bytes == null)
 				throw new Exception("Fatal error : Param is null.");
 			if (_isParse)
 				throw new Exception("Fatal error : Package is already parse.");
 
 			_isParse = true;
 
+			// 字节缓冲区
+			ByteBuffer bb = new ByteBuffer(bytes);
+
 			// 读取版本号
-			Version = int.Parse(sr.ReadLine());
+			Version = bb.ReadInt();
 
-			// 读取所有Bundle的数据
-			while (true)
+			int tableLine = 1;
+			const int headMarkAndSize = 6; //注意：short字节数+int字节数
+			while (bb.IsReadable(headMarkAndSize))
 			{
-				string content = sr.ReadLine();
-				if (content == null)
-					break;
+				// 检测行标记
+				short tableHead = bb.ReadShort();
+				if (tableHead != TableStreamHead)
+				{
+					throw new Exception($"PatchManifest table stream head is invalid. Table line is {tableLine}");
+				}
 
-				string[] splits = content.Split('=');
-				string fileName = splits[0];
-				string fileMD5 = splits[1];
-				long fileSizeBytes = long.Parse(splits[2]);
-				int fileVersion = int.Parse(splits[3]);
+				// 检测行大小
+				int tableSize = bb.ReadInt();
+				if (!bb.IsReadable(tableSize) || tableSize > TableStreamMaxLen)
+				{
+					throw new Exception($"PatchManifest table stream size is invalid. Table size is {tableSize},Table line {tableLine}");
+				}
 
-				string[] variants = null;
-				if (string.IsNullOrEmpty(splits[4]) == false)
-					variants = splits[4].Split('|');
-
+				// 读取行内容
+				string fileName = bb.ReadUTF();
+				string fileMD5 = bb.ReadUTF();
+				long fileSizeBytes = bb.ReadLong();
+				int fileVersion = bb.ReadInt();
+				List<string> variantList = bb.ReadListUTF();
+				
+				// 添加到集合
 				if (Elements.ContainsKey(fileName))
-					throw new Exception($"Fatal error : has same pack file : {fileName}");
-				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileSizeBytes, fileVersion, variants));
+					throw new Exception($"Fatal error : PatchManifest has same element : {fileName}");
+				Elements.Add(fileName, new PatchElement(fileName, fileMD5, fileSizeBytes, fileVersion, variantList));
+
+				++tableLine;
 			}
 		}
 	}

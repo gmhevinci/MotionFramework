@@ -3,11 +3,11 @@
 // Copyright©2019-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using MotionFramework.AI;
 using MotionFramework.Resource;
-using MotionFramework.Utility;
 
 namespace MotionFramework.Patch
 {
@@ -28,11 +28,11 @@ namespace MotionFramework.Patch
 			// 读取并解析沙盒内的补丁清单
 			if (PatchHelper.CheckSandboxPatchManifestFileExist())
 			{
-				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
-				string fileContent = FileUtility.ReadFile(filePath);
+				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestBytesFileName);
+				byte[] fileData = File.ReadAllBytes(filePath);
 
 				PatchHelper.Log(ELogLevel.Log, $"Parse sandbox patch file.");
-				_patcher.ParseSandboxPatchManifest(fileContent);
+				_patcher.ParseSandboxPatchManifest(fileData);
 			}
 			else
 			{
