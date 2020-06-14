@@ -45,8 +45,11 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 异步初始化
 		/// </summary>
-		public IEnumerator InitializeAsync()
+		public IEnumerator InitializeAsync(bool simulationOnEditor)
 		{
+			if (simulationOnEditor)
+				yield break;
+
 			// 解析APP里的补丁清单
 			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestBytesFileName);
 			string url = AssetPathHelper.ConvertToWWWPath(filePath);
