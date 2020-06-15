@@ -20,6 +20,9 @@ using MotionFramework.Network;
 
 public class GameLauncher : MonoBehaviour
 {
+	[Tooltip("在编辑器下模拟运行")]
+	public bool SimulationOnEditor = true;
+
 	void Awake()
 	{
 		// 初始化框架
@@ -29,7 +32,7 @@ public class GameLauncher : MonoBehaviour
 	void Start()
 	{
 		// 创建游戏模块
-		CreateGameModules();
+		StartCoroutine(CreateGameModules());
 	}
 	void Update()
 	{
@@ -42,16 +45,20 @@ public class GameLauncher : MonoBehaviour
 		MotionEngine.DrawConsole();
 	}
 
-	private void CreateGameModules()
+	private IEnumerator CreateGameModules()
 	{
 		// 创建事件管理器
 		MotionEngine.CreateModule<EventManager>();
 
+		// 本地资源服务接口
+		LocalBundleServices bundleServices = new LocalBundleServices();
+		yield return bundleServices.InitializeAsync(SimulationOnEditor);
+
 		// 创建资源管理器
 		var resourceCreateParam = new ResourceManager.CreateParameters();
-		resourceCreateParam.LocationRoot = "Assets/ResourceRoot";
-		resourceCreateParam.SimulationOnEditor = true;
-		resourceCreateParam.BundleServices = new LocalBundleServices();
+		resourceCreateParam.LocationRoot = "Assets/GameRes";
+		resourceCreateParam.SimulationOnEditor = SimulationOnEditor;
+		resourceCreateParam.BundleServices = bundleServices;
 		resourceCreateParam.DecryptServices = null;
 		resourceCreateParam.AutoReleaseInterval = 10f;
 		MotionEngine.CreateModule<ResourceManager>(resourceCreateParam);
