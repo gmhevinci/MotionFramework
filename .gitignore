@@ -1,9 +1,9 @@
-bin/
-obj/
-.vs/
-Library/
-Temp/
-
 *.sln
 *.suo
 *.csproj
+.vs/
+
+Library/
+Temp/
+bin/
+obj/
