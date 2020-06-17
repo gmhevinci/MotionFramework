@@ -50,7 +50,7 @@ namespace MotionFramework.Patch
 			}
 
 			// 开始下载列表里的所有资源
-			PatchHelper.Log(ELogLevel.Log, $"Begine download web files : {_patcher.DownloadList.Count}");
+			MotionLog.Log($"Begine download web files : {_patcher.DownloadList.Count}");
 			long currentDownloadSizeBytes = 0;
 			int currentDownloadCount = 0;
 			foreach (var element in _patcher.DownloadList)
@@ -64,7 +64,7 @@ namespace MotionFramework.Patch
 				// 创建下载器
 				WebFileRequest download = new WebFileRequest(url, savePath);
 				yield return download.DownLoad(); //文件依次加载（在一个文件加载完毕后加载下一个）
-				PatchHelper.Log(ELogLevel.Log, $"Web file is download : {savePath}");
+				MotionLog.Log($"Web file is download : {savePath}");
 
 				// 检测是否下载失败
 				if (download.States != EWebRequestStates.Success)
@@ -88,7 +88,7 @@ namespace MotionFramework.Patch
 					long fileSize = FileUtility.GetFileSize(element.SavePath);
 					if (fileSize != element.SizeBytes)
 					{
-						PatchHelper.Log(ELogLevel.Error, $"Web file size check failed : {element.Name}");
+						MotionLog.Error($"Web file size check failed : {element.Name}");
 						PatchEventDispatcher.SendWebFileCheckFailedMsg(element.Name);
 						yield break;
 					}
@@ -103,7 +103,7 @@ namespace MotionFramework.Patch
 					string md5 = HashUtility.FileMD5(element.SavePath);
 					if (md5 != element.MD5)
 					{
-						PatchHelper.Log(ELogLevel.Error, $"Web file md5 check failed : {element.Name}");
+						MotionLog.Error($"Web file md5 check failed : {element.Name}");
 						PatchEventDispatcher.SendWebFileCheckFailedMsg(element.Name);
 						yield break;
 					}

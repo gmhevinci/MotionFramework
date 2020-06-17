@@ -91,7 +91,7 @@ namespace MotionFramework.Network
 					States = ENetworkStates.Disconnect;
 					NetworkEventDispatcher.SendDisconnectMsg();
 					CloseClient();
-					MotionLog.Log(ELogLevel.Warning, "Server disconnect.");
+					MotionLog.Warning("Server disconnect.");
 				}
 			}
 		}
@@ -125,7 +125,7 @@ namespace MotionFramework.Network
 		}
 		private void OnConnectServer(SocketError error)
 		{
-			MotionLog.Log(ELogLevel.Log, $"Server connect result : {error}");
+			MotionLog.Log($"Server connect result : {error}");
 			if (error == SocketError.Success)
 			{
 				States = ENetworkStates.Connected;
@@ -158,7 +158,7 @@ namespace MotionFramework.Network
 		{
 			if (States != ENetworkStates.Connected)
 			{
-				MotionLog.Log(ELogLevel.Warning, "Network is not connected.");
+				MotionLog.Warning("Network is not connected.");
 				return;
 			}
 

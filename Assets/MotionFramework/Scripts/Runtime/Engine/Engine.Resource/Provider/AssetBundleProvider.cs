@@ -62,7 +62,7 @@ namespace MotionFramework.Resource
 				AssetObject = _cacheRequest.asset;
 				States = AssetObject == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Log(ELogLevel.Warning, $"Failed to load asset object : {_loader.LoadPath} : {AssetName}");
+					MotionLog.Warning($"Failed to load asset object : {_loader.LoadPath} : {AssetName}");
 				InvokeCompletion();
 			}
 		}

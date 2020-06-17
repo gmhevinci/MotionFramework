@@ -29,7 +29,7 @@ namespace MotionFramework.Event
 			}
 			else
 			{
-				MotionLog.Log(ELogLevel.Warning, $"Event listener is exist : {eventType}");
+				MotionLog.Warning($"Event listener is exist : {eventType}");
 			}
 		}
 

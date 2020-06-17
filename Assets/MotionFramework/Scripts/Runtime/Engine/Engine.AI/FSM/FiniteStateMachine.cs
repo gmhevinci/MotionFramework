@@ -53,7 +53,7 @@ namespace MotionFramework.AI
 			if (_curNode != null)
 				_curNode.OnEnter();
 			else
-				MotionLog.Log(ELogLevel.Error, $"Not found entry node : {entryNode}");
+				MotionLog.Error($"Not found entry node : {entryNode}");
 		}
 
 		/// <summary>
@@ -79,7 +79,7 @@ namespace MotionFramework.AI
 			}
 			else
 			{
-				MotionLog.Log(ELogLevel.Warning, $"Node {node.Name} already existed");
+				MotionLog.Warning($"Node {node.Name} already existed");
 			}
 		}
 
@@ -94,7 +94,7 @@ namespace MotionFramework.AI
 			IFsmNode node = GetNode(nodeName);
 			if (node == null)
 			{
-				MotionLog.Log(ELogLevel.Error, $"Can not found node {nodeName}");
+				MotionLog.Error($"Can not found node {nodeName}");
 				return;
 			}
 
@@ -103,12 +103,12 @@ namespace MotionFramework.AI
 			{
 				if (Graph.CanTransition(_curNode.Name, node.Name) == false)
 				{
-					MotionLog.Log(ELogLevel.Error, $"Can not transition {_curNode} to {node}");
+					MotionLog.Error($"Can not transition {_curNode} to {node}");
 					return;
 				}
 			}
 
-			MotionLog.Log(ELogLevel.Log, $"Transition {_curNode} to {node}");
+			MotionLog.Log($"Transition {_curNode} to {node}");
 			_preNode = _curNode;
 			_curNode.OnExit();
 			_curNode = node;
@@ -122,7 +122,7 @@ namespace MotionFramework.AI
 		{
 			Transition(PreviousNodeName);
 		}
-		
+
 		/// <summary>
 		/// 接收消息
 		/// </summary>

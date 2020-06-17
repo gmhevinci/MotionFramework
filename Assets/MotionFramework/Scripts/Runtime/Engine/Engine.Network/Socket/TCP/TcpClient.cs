@@ -137,7 +137,7 @@ namespace MotionFramework.Network
 			}
 			else
 			{
-				MotionLog.Log(ELogLevel.Error, $"ProcessConnected error : {e.SocketError}");
+				MotionLog.Error($"ProcessConnected error : {e.SocketError}");
 			}
 
 			// 回调函数		

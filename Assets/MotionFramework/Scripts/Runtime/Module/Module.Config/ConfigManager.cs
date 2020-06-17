@@ -69,7 +69,7 @@ namespace MotionFramework.Config
 			// 防止重复加载
 			if (_configs.ContainsKey(configName))
 			{
-				MotionLog.Log(ELogLevel.Error, $"Config {configName} is already existed.");
+				MotionLog.Error($"Config {configName} is already existed.");
 				return null;
 			}
 
@@ -81,7 +81,7 @@ namespace MotionFramework.Config
 			}
 			else
 			{
-				MotionLog.Log(ELogLevel.Error, $"Config type {configName} is invalid.");
+				MotionLog.Error($"Config type {configName} is invalid.");
 			}
 			return config;
 		}
@@ -96,7 +96,7 @@ namespace MotionFramework.Config
 				return _configs[configName];
 			}
 
-			MotionLog.Log(ELogLevel.Error, $"Not found config {configName}");
+			MotionLog.Error($"Not found config {configName}");
 			return null;
 		}
 
@@ -112,7 +112,7 @@ namespace MotionFramework.Config
 					return pair.Value as T;
 			}
 
-			MotionLog.Log(ELogLevel.Error, $"Not found config {type}");
+			MotionLog.Error($"Not found config {type}");
 			return null;
 		}
 	}

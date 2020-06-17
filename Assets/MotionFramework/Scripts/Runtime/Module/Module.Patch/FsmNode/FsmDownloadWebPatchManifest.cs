@@ -53,7 +53,7 @@ namespace MotionFramework.Patch
 			}
 			else
 			{
-				PatchHelper.Log(ELogLevel.Log, "Web patch manifest is download.");
+				MotionLog.Log("Web patch manifest is download.");
 				download.Dispose();
 				_patcher.SwitchNext();
 			}

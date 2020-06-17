@@ -128,7 +128,7 @@ namespace MotionFramework
 				priority = --minPriority;
 			}
 
-			MotionLog.Log(ELogLevel.Log, $"Create game module : {typeof(T)}");
+			MotionLog.Log($"Create game module : {typeof(T)}");
 			T module = Activator.CreateInstance<T>();
 			ModuleWrapper wrapper = new ModuleWrapper(module, priority);
 			wrapper.Module.OnCreate(createParam);
@@ -150,7 +150,7 @@ namespace MotionFramework
 					return _coms[i].Module as T;
 			}
 
-			MotionLog.Log(ELogLevel.Warning, $"Not found game module {type}");
+			MotionLog.Warning($"Not found game module {type}");
 			return null;
 		}
 

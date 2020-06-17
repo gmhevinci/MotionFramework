@@ -226,7 +226,7 @@ namespace MotionFramework.Patch
 			}
 			else
 			{
-				PatchHelper.Log(ELogLevel.Warning, $"Not found element in patch manifest : {manifestPath}");
+				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
 				return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
 			}
 		}
@@ -258,7 +258,7 @@ namespace MotionFramework.Patch
 			}
 			else
 			{
-				PatchHelper.Log(ELogLevel.Warning, $"Not found element in patch manifest : {manifestPath}");
+				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
 				return manifestPath;
 			}
 		}

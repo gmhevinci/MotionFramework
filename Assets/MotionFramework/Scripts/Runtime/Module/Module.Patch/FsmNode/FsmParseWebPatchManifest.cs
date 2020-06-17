@@ -51,7 +51,7 @@ namespace MotionFramework.Patch
 				yield break;
 			}
 
-			PatchHelper.Log(ELogLevel.Log, $"Parse web patch manifest.");
+			MotionLog.Log($"Parse web patch manifest.");
 			_patcher.ParseWebPatchManifest(download.GetData());
 			download.Dispose();
 			_patcher.SwitchNext();

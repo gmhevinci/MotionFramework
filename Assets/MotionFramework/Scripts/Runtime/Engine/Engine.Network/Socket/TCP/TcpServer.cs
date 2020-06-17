@@ -237,7 +237,7 @@ namespace MotionFramework.Network
 			}
 			else
 			{
-				MotionLog.Log(ELogLevel.Error, $"ProcessAccept error : {e.SocketError}");
+				MotionLog.Error($"ProcessAccept error : {e.SocketError}");
 			}
 
 			// 投递下一个接收请求

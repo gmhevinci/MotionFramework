@@ -115,7 +115,7 @@ namespace MotionFramework.Resource
 				string loadPath = AssetPathHelper.FindDatabaseAssetPath(location);
 				result = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(loadPath);
 				if (result == null)
-					MotionLog.Log(ELogLevel.Error, $"Failed to load {loadPath}");
+					MotionLog.Error($"Failed to load {loadPath}");
 #else
 				throw new Exception($"AssetSystem virtual simulation only support unity editor.");
 #endif
@@ -135,7 +135,7 @@ namespace MotionFramework.Resource
 				}
 
 				if (result == null)
-					MotionLog.Log(ELogLevel.Error, $"Failed to load {loadPath}");
+					MotionLog.Error($"Failed to load {loadPath}");
 
 				if (bundle != null)
 					bundle.Unload(false);

@@ -41,7 +41,7 @@ namespace MotionFramework.Patch
 			{
 				string url = _patcher.GetWebServerIP();
 				string post = _patcher.GetWebPostData();
-				PatchHelper.Log(ELogLevel.Log, $"Request game version : {url} : {post}");
+				MotionLog.Log($"Request game version : {url} : {post}");
 				WebPostRequest download = new WebPostRequest(url, post);
 				yield return download.DownLoad();
 
@@ -64,7 +64,7 @@ namespace MotionFramework.Patch
 			// 检测强更安装包
 			if(_patcher.ForceInstall)
 			{
-				PatchHelper.Log(ELogLevel.Log, $"Found new APP can be install : {_patcher.GameVersion.ToString()}");
+				MotionLog.Log($"Found new APP can be install : {_patcher.GameVersion.ToString()}");
 				PatchEventDispatcher.SendFoundForceInstallAPPMsg(_patcher.GameVersion.ToString(), _patcher.AppURL);
 				yield break;
 			}
@@ -72,12 +72,12 @@ namespace MotionFramework.Patch
 			// 检测资源版本是否变化
 			if (newResourceVersion == oldResourceVersion)
 			{
-				PatchHelper.Log(ELogLevel.Log, $"Resource version is not change.");
+				MotionLog.Log($"Resource version is not change.");
 				_patcher.Switch(EPatchStates.DownloadOver.ToString());
 			}
 			else
 			{
-				PatchHelper.Log(ELogLevel.Log, $"Resource version is change : {oldResourceVersion} -> {newResourceVersion}");
+				MotionLog.Log($"Resource version is change : {oldResourceVersion} -> {newResourceVersion}");
 				_patcher.SwitchNext();
 			}
 		}

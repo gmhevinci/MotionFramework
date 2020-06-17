@@ -14,14 +14,6 @@ namespace MotionFramework.Patch
 		private const string StrStaticFileName = "static.bytes";
 
 		/// <summary>
-		/// 输出日志
-		/// </summary>
-		public static void Log(ELogLevel logType, string log)
-		{
-			MotionLog.Log(logType, log);
-		}
-
-		/// <summary>
 		/// 清空沙盒目录
 		/// </summary>
 		public static void ClearSandbox()

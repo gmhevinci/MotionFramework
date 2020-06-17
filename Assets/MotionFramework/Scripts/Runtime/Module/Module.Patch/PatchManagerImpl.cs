@@ -131,7 +131,7 @@ namespace MotionFramework.Patch
 					if (_procedure.Current == EPatchStates.GetDonwloadList.ToString())
 						_procedure.SwitchNext();
 					else
-						MotionLog.Log(ELogLevel.Error, $"Patch states is incorrect : {_procedure.Current}");
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
 				}
 				else if (message.operation == EPatchOperation.TryRequestGameVersion)
 				{
@@ -139,7 +139,7 @@ namespace MotionFramework.Patch
 					if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
 						_procedure.Switch(_procedure.Current);
 					else
-						MotionLog.Log(ELogLevel.Error, $"Patch states is incorrect : {_procedure.Current}");
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
 				}
 				else if (message.operation == EPatchOperation.TryDownloadWebPatchManifest)
 				{
@@ -147,7 +147,7 @@ namespace MotionFramework.Patch
 					if (_procedure.Current == EPatchStates.DownloadWebPatchManifest.ToString() || _procedure.Current == EPatchStates.ParseWebPatchManifest.ToString())
 						_procedure.Switch(_procedure.Current);
 					else
-						MotionLog.Log(ELogLevel.Error, $"Patch states is incorrect : {_procedure.Current}");
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
 				}
 				else if (message.operation == EPatchOperation.TryDownloadWebFiles)
 				{
@@ -155,7 +155,7 @@ namespace MotionFramework.Patch
 					if (_procedure.Current == EPatchStates.DownloadWebFiles.ToString())
 						_procedure.Switch(EPatchStates.GetDonwloadList.ToString());
 					else
-						MotionLog.Log(ELogLevel.Error, $"Patch states is incorrect : {_procedure.Current}");
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
 				}
 				else
 				{

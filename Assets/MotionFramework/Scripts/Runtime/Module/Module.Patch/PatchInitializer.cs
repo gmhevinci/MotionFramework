@@ -30,7 +30,7 @@ namespace MotionFramework.Patch
 				yield return downloader.DownLoad();
 				if (downloader.States == EWebRequestStates.Success)
 				{
-					PatchHelper.Log(ELogLevel.Log, "Parse app patch manifest.");
+					MotionLog.Log("Parse app patch manifest.");
 					patcher.ParseAppPatchManifest(downloader.GetData());
 					downloader.Dispose();
 				}
@@ -45,7 +45,7 @@ namespace MotionFramework.Patch
 			{
 				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestBytesFileName);
 				byte[] fileData = File.ReadAllBytes(filePath);
-				PatchHelper.Log(ELogLevel.Log, $"Parse sandbox patch file.");
+				MotionLog.Log($"Parse sandbox patch file.");
 				patcher.ParseSandboxPatchManifest(fileData);
 			}
 			else
@@ -66,7 +66,7 @@ namespace MotionFramework.Patch
 			// 如果是首次打开，记录APP版本信息
 			if (PatchHelper.CheckSandboxStaticFileExist() == false)
 			{
-				PatchHelper.Log(ELogLevel.Log, $"Create sandbox static file : {filePath}");
+				MotionLog.Log($"Create sandbox static file : {filePath}");
 				FileUtility.CreateFile(filePath, appVersion);
 				return;
 			}
@@ -77,12 +77,12 @@ namespace MotionFramework.Patch
 			// 如果记录的版本号不一致		
 			if (recordVersion != appVersion)
 			{
-				PatchHelper.Log(ELogLevel.Warning, $"Sandbox is dirty, Record version is {recordVersion}, APP version is {appVersion}");
-				PatchHelper.Log(ELogLevel.Warning, "Clear all sandbox files.");
+				MotionLog.Warning($"Sandbox is dirty, Record version is {recordVersion}, APP version is {appVersion}");
+				MotionLog.Warning("Clear all sandbox files.");
 				PatchHelper.ClearSandbox();
 
 				// 重新写入最新的APP版本信息
-				PatchHelper.Log(ELogLevel.Log, $"Recreate sandbox static file : {filePath}");
+				MotionLog.Log($"Recreate sandbox static file : {filePath}");
 				FileUtility.CreateFile(filePath, appVersion);
 			}
 		}

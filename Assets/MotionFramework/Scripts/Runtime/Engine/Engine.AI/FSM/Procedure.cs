@@ -56,7 +56,7 @@ namespace MotionFramework.AI
 			if (_nodeNames.Count > 0)
 				_fsm.Run(_nodeNames[0]);
 			else
-				MotionLog.Log(ELogLevel.Warning, "Procedure system dont has any node.");
+				MotionLog.Warning("Procedure system dont has any node.");
 		}
 
 		/// <summary>
@@ -83,7 +83,7 @@ namespace MotionFramework.AI
 			int index = _nodeNames.IndexOf(_fsm.CurrentNodeName);
 			if (index >= _nodeNames.Count - 1)
 			{
-				MotionLog.Log(ELogLevel.Warning, $"Current node {_fsm.CurrentNodeName} is end node.");
+				MotionLog.Warning($"Current node {_fsm.CurrentNodeName} is end node.");
 			}
 			else
 			{
@@ -99,7 +99,7 @@ namespace MotionFramework.AI
 			int index = _nodeNames.IndexOf(_fsm.CurrentNodeName);
 			if (index <= 0)
 			{
-				MotionLog.Log(ELogLevel.Warning, $"Current node {_fsm.CurrentNodeName} is begin node.");
+				MotionLog.Warning($"Current node {_fsm.CurrentNodeName} is begin node.");
 			}
 			else
 			{

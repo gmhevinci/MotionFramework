@@ -3,6 +3,7 @@
 // Copyright©2018-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
+using System.Diagnostics;
 
 namespace MotionFramework
 {
@@ -17,28 +18,38 @@ namespace MotionFramework
 		{
 			_callback += callback;
 		}
-
+		
 		/// <summary>
-		/// 输出日志
+		/// 日志
 		/// </summary>
-		public static void Log(ELogLevel logLevel, string log, params object[] args)
+		[Conditional("DEBUG")]
+		public static void Log(string info)
 		{
-			if (_callback != null)
-			{
-				string content = string.Format(log, args);
-				_callback.Invoke(logLevel, content);
-			}
+			_callback?.Invoke(ELogLevel.Log, info);
 		}
 
 		/// <summary>
-		/// 输出日志
+		/// 警告
 		/// </summary>
-		public static void Log(ELogLevel logLevel, string log)
+		public static void Warning(string info)
 		{
-			if (_callback != null)
-			{
-				_callback.Invoke(logLevel, log);
-			}
+			_callback?.Invoke(ELogLevel.Warning, info);
+		}
+
+		/// <summary>
+		/// 错误
+		/// </summary>
+		public static void Error(string info)
+		{
+			_callback?.Invoke(ELogLevel.Error, info);
+		}
+
+		/// <summary>
+		/// 异常
+		/// </summary>
+		public static void Exception(string info)
+		{
+			_callback?.Invoke(ELogLevel.Exception, info);
 		}
 	}
 }

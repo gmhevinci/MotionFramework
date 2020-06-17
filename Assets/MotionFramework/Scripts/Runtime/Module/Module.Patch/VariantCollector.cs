@@ -54,7 +54,7 @@ namespace MotionFramework.Patch
 				if (_variantRuleCollection.ContainsKey(variant) == false)
 					_variantRuleCollection.Add(variant, targetVariant);
 				else
-					MotionLog.Log(ELogLevel.Warning, $"Variant key {variant} is already existed.");
+					MotionLog.Warning($"Variant key {variant} is already existed.");
 			}
 		}
 

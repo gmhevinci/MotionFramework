@@ -40,7 +40,7 @@ namespace MotionFramework.Pool
 		{
 			if (_collectors.ContainsKey(location))
 			{
-				MotionLog.Log(ELogLevel.Warning, $"Asset is already existed : {location}");
+				MotionLog.Warning($"Asset is already existed : {location}");
 				return;
 			}
 			CreatePoolInternal(location, capacity);
