@@ -134,22 +134,25 @@ namespace MotionFramework.Editor
 			GUILayout.Space(50);
 			using (new EditorGUI.DisabledScope(false))
 			{
-				_showToolsFoldout = EditorGUILayout.Foldout(_showToolsFoldout, "工具");
+				_showToolsFoldout = EditorGUILayout.Foldout(_showToolsFoldout, "Tools");
 				if (_showToolsFoldout)
 				{
 					EditorGUILayout.Space();
 
-					if (GUILayout.Button("检测损坏预制件", GUILayout.MaxWidth(120), GUILayout.MaxHeight(40)))
+					// 检测所有损坏的无效的预制体
+					if (GUILayout.Button("Check Invalid Prefabs", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
 						EditorApplication.delayCall += CheckAllPrefabValid;
 					}
 
-					if (GUILayout.Button("清空并拷贝所有补丁包到StreamingAssets目录", GUILayout.MaxWidth(260), GUILayout.MaxHeight(40)))
+					// 清空并拷贝所有补丁包到StreamingAssets目录
+					if (GUILayout.Button("Copy Patch To StreamingAssets", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
 						EditorApplication.delayCall += RefreshStreammingFolder;
 					}
 
-					if (GUILayout.Button("清空并拷贝所有补丁包到UnityManifest目录", GUILayout.MaxWidth(260), GUILayout.MaxHeight(40)))
+					// 清空并拷贝所有补丁包到UnityManifest目录
+					if (GUILayout.Button("Copy Patch To UnityManifest", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
 						EditorApplication.delayCall += RefreshOutputMainFolder;
 					}
