@@ -48,7 +48,7 @@ namespace MotionFramework.Console
 		/// <summary>
 		/// 初始化控制台
 		/// </summary>
-		/// <param name="assemblyName">扩展的控制台窗口所在的图集</param>
+		/// <param name="assemblyName">扩展的控制台窗口所在的程序集</param>
 		public static void Initialize(string assemblyName = AssemblyUtility.UnityDefaultAssemblyName)
 		{
 			// 加载背景纹理
@@ -57,7 +57,7 @@ namespace MotionFramework.Console
 			if (_bgTexture == null)
 				UnityEngine.Debug.LogWarning($"Not found {textureName} texture in Resources folder.");
 
-			// 获取所有调试类
+			// 获取所有控制台窗口类
 			List<Type> types = AssemblyUtility.GetAssignableAttributeTypes(AssemblyUtility.MotionFrameworkAssemblyName, typeof(IConsoleWindow), typeof(ConsoleAttribute));
 			List<Type> temps = AssemblyUtility.GetAssignableAttributeTypes(assemblyName, typeof(IConsoleWindow), typeof(ConsoleAttribute));
 			types.AddRange(temps);
