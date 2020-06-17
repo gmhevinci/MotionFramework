@@ -12,7 +12,7 @@ using MotionFramework.Reference;
 
 namespace MotionFramework.Console
 {
-	[ConsoleAttribute("资源系统", 103)]
+	[ConsoleAttribute("资源系统", 104)]
 	internal class AssetSystemWindow : IConsoleWindow
 	{
 		private class InfoWrapper : IReference, IComparer<InfoWrapper>, IComparable<InfoWrapper>

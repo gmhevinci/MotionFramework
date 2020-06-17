@@ -10,7 +10,7 @@ using MotionFramework.Reference;
 
 namespace MotionFramework.Console
 {
-	[ConsoleAttribute("引用池", 104)]
+	[ConsoleAttribute("引用池", 103)]
 	internal class ReferencePoolWindow : IConsoleWindow
 	{
 		// GUI相关
