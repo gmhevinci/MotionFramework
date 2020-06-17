@@ -22,10 +22,32 @@ namespace MotionFramework.Config
 		public class CreateParameters
 		{
 			/// <summary>
-			/// 配表类所属的程序集名称
-			/// 默认的程序集名称为：Assembly-CSharp
+			/// 所有的配表类型
+			/// 注意：如果列表为空，那么将会使用反射的方式在指定的程序集里查找所有的配表类型
 			/// </summary>
-			public string ConfigAssemblyName = AssemblyUtility.UnityDefaultAssemblyName;
+			public List<System.Type> AllTypes;
+
+			/// <summary>
+			/// 配表类所属的程序集名称
+			/// 注意：在类型列表为空的时候，会在这个程序集里查找所有的配表类型
+			/// </summary>
+			public string ConfigAssemblyName;
+		}
+
+		/// <summary>
+		/// 默认的创建参数
+		/// 默认的程序集名称为：Assembly-CSharp
+		/// </summary>
+		public static CreateParameters DefaultParameters
+		{
+			get
+			{
+				var parameters = new CreateParameters
+				{
+					ConfigAssemblyName = AssemblyUtility.UnityDefaultAssemblyName
+				};
+				return parameters;
+			}
 		}
 
 		private readonly Dictionary<string, AssetConfig> _configs = new Dictionary<string, AssetConfig>();
@@ -37,7 +59,7 @@ namespace MotionFramework.Config
 			if (createParam == null)
 				throw new Exception($"{nameof(ConfigManager)} create param is invalid.");
 
-			_creater.Initialize(createParam.ConfigAssemblyName);
+			_creater.Initialize(createParam.AllTypes, createParam.ConfigAssemblyName);
 		}
 		void IModule.OnUpdate()
 		{

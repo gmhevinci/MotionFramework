@@ -18,17 +18,19 @@ namespace MotionFramework.Config
 		/// <summary>
 		/// 初始化
 		/// </summary>
-		/// <param name="assemblyName">配表类所在的程序集</param>
-		public void Initialize(string assemblyName)
+		public void Initialize(List<Type> allTypes, string assemblyName)
 		{
-			if (string.IsNullOrEmpty(assemblyName))
-				throw new ArgumentNullException();
-			_assemblyName = assemblyName;
-
-			List<Type> result = AssemblyUtility.GetAssignableAttributeTypes(assemblyName, typeof(AssetConfig), typeof(ConfigAttribute));
-			for (int i = 0; i < result.Count; i++)
+			if (allTypes == null || allTypes.Count == 0)
 			{
-				Type type = result[i];
+				if (string.IsNullOrEmpty(assemblyName))
+					throw new ArgumentNullException();
+				_assemblyName = assemblyName;
+				allTypes = AssemblyUtility.GetAssignableAttributeTypes(assemblyName, typeof(AssetConfig), typeof(ConfigAttribute));
+			}
+
+			for (int i = 0; i < allTypes.Count; i++)
+			{
+				Type type = allTypes[i];
 
 				// 判断是否重复
 				ConfigAttribute attribute = (ConfigAttribute)Attribute.GetCustomAttribute(type, typeof(ConfigAttribute));
@@ -44,7 +46,6 @@ namespace MotionFramework.Config
 		/// 创建类的实例
 		/// </summary>
 		/// <param name="cfgName">配表名称</param>
-		/// <returns>如果类型没有在程序集里定义会发生异常</returns>
 		public AssetConfig CreateInstance(string cfgName)
 		{
 			AssetConfig config = null;
@@ -53,7 +54,12 @@ namespace MotionFramework.Config
 				config = (AssetConfig)Activator.CreateInstance(type);
 
 			if (config == null)
-				throw new KeyNotFoundException($"{nameof(AssetConfig)} {cfgName} is not define in assembly {_assemblyName}");
+			{
+				if(string.IsNullOrEmpty(_assemblyName) == false)
+					throw new KeyNotFoundException($"{nameof(AssetConfig)} {cfgName} is not define in assembly {_assemblyName}");
+				else
+					throw new KeyNotFoundException($"{nameof(AssetConfig)} {cfgName} is create failed.");
+			}
 
 			return config;
 		}
