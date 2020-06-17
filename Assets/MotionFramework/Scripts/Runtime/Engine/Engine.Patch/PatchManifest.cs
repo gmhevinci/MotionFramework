@@ -19,7 +19,7 @@ namespace MotionFramework.Patch
 		public const int FileStreamMaxLen = 1024 * 1024 * 128; //最大128MB
 		public const int TableStreamMaxLen = 1024 * 256; //最大256K
 		public const short TableStreamHead = 0x2B2B; //文件标记
-		
+
 		private bool _isParse = false;
 
 		/// <summary>
@@ -30,7 +30,7 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 所有资源集合
 		/// </summary>
-		public readonly Dictionary<string, PatchElement> Elements = new Dictionary<string, PatchElement>();
+		public Dictionary<string, PatchElement> Elements { get; private set; } = new Dictionary<string, PatchElement>();
 
 		/// <summary>
 		/// 解析数据
@@ -49,6 +49,10 @@ namespace MotionFramework.Patch
 
 			// 读取版本号
 			Version = bb.ReadInt();
+
+			// 读取元素总数
+			int elementCount = bb.ReadInt();
+			Elements = new Dictionary<string, PatchElement>(elementCount);
 
 			int tableLine = 1;
 			const int headMarkAndSize = 6; //注意：short字节数+int字节数
@@ -74,7 +78,7 @@ namespace MotionFramework.Patch
 				long fileSizeBytes = bb.ReadLong();
 				int fileVersion = bb.ReadInt();
 				List<string> variantList = bb.ReadListUTF();
-				
+
 				// 添加到集合
 				if (Elements.ContainsKey(fileName))
 					throw new Exception($"Fatal error : PatchManifest has same element : {fileName}");

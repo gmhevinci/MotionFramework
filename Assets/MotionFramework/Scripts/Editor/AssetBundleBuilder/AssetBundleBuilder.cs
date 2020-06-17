@@ -455,6 +455,9 @@ namespace MotionFramework.Editor
 			// 写入版本信息
 			fileBuffer.WriteInt(BuildVersion);
 
+			// 写入元素总数
+			fileBuffer.WriteInt(allAssetBundles.Length + 1);
+
 			// 写入UnityManifest文件的信息
 			{
 				string assetName = PatchDefine.UnityManifestFileName;
