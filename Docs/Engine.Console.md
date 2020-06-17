@@ -10,14 +10,15 @@ public class GameLauncher : MonoBehaviour
 	void Awake()
 	{
 		// 初始化控制台
-		bool showConsole = Application.isEditor || Debug.isDebugBuild;
-		MotionEngine.Initialize(this, showConsole, null);
+		if (Application.isEditor || Debug.isDebugBuild)
+			DeveloperConsole.Initialize();
 	}
 
 	void OnGUI()
 	{
 		// 绘制控制台
-		MotionEngine.DrawConsole();
+		if (Application.isEditor || Debug.isDebugBuild)
+			DeveloperConsole.Draw();
 	}
 }
 ```

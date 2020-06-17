@@ -6,7 +6,7 @@ using MotionFramework;
 
 public void Start()
 {
-	MotionEngine.Initialize(this, true, HandleMotionFrameworkLog);
+	MotionEngine.Initialize(this, HandleMotionFrameworkLog);
 }
 
 private void HandleMotionFrameworkLog(ELogLevel logLevel, string log)

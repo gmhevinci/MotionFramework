@@ -17,6 +17,7 @@ using MotionFramework.Patch;
 using MotionFramework.Scene;
 using MotionFramework.Pool;
 using MotionFramework.Network;
+using MotionFramework.Utility;
 
 public class GameLauncher : MonoBehaviour
 {
@@ -25,9 +26,16 @@ public class GameLauncher : MonoBehaviour
 
 	void Awake()
 	{
+#if !UNITY_EDITOR
+		SimulationOnEditor = false;
+#endif
+
+		// 初始化控制台
+		if (Application.isEditor || Debug.isDebugBuild)
+			DeveloperConsole.Initialize();
+
 		// 初始化框架
-		bool showConsole = Application.isEditor || Debug.isDebugBuild;
-		MotionEngine.Initialize(this, showConsole, HandleMotionFrameworkLog);
+		MotionEngine.Initialize(this, HandleMotionFrameworkLog);
 	}
 	void Start()
 	{
@@ -42,7 +50,8 @@ public class GameLauncher : MonoBehaviour
 	void OnGUI()
 	{
 		// 绘制控制台
-		MotionEngine.DrawConsole();
+		if (Application.isEditor || Debug.isDebugBuild)
+			DeveloperConsole.Draw();
 	}
 
 	private IEnumerator CreateGameModules()

@@ -9,7 +9,7 @@ using MotionFramework.Config;
 public void Start()
 {
 	// 创建模块
-	MotionEngine.CreateModule<ConfigManager>();
+	MotionEngine.CreateModule<ConfigManager>(ConfigManager.DefaultParameters);
 }
 ```
 
