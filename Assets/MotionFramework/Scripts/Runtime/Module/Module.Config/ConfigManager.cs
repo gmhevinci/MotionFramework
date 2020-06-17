@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Config
 {
@@ -15,11 +16,28 @@ namespace MotionFramework.Config
 	/// </summary>
 	public sealed class ConfigManager : ModuleSingleton<ConfigManager>, IModule
 	{
-		private Dictionary<string, AssetConfig> _configs = new Dictionary<string, AssetConfig>();
+		/// <summary>
+		/// 游戏模块创建参数
+		/// </summary>
+		public class CreateParameters
+		{
+			/// <summary>
+			/// 配表类所属的程序集名称
+			/// 默认的程序集名称为：Assembly-CSharp
+			/// </summary>
+			public string ConfigAssemblyName = AssemblyUtility.UnityDefaultAssemblyName;
+		}
+
+		private readonly Dictionary<string, AssetConfig> _configs = new Dictionary<string, AssetConfig>();
 
 
 		void IModule.OnCreate(System.Object param)
 		{
+			CreateParameters createParam = param as CreateParameters;
+			if (createParam == null)
+				throw new Exception($"{nameof(ConfigManager)} create param is invalid.");
+
+			ConfigCreater.Initialize(createParam.ConfigAssemblyName);
 		}
 		void IModule.OnUpdate()
 		{
@@ -35,12 +53,12 @@ namespace MotionFramework.Config
 		{
 			for (int i = 0; i < locations.Count; i++)
 			{
-				string location = locations[i];			
+				string location = locations[i];
 				AssetConfig config = LoadConfig(location);
 				yield return config;
 			}
 		}
-		
+
 		/// <summary>
 		/// 加载配表
 		/// </summary>
