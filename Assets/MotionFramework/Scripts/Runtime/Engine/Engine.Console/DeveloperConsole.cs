@@ -6,15 +6,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MotionFramework.Utility;
 using UnityEngine;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Console
 {
 	/// <summary>
 	/// 控制台
 	/// </summary>
-	internal static class DeveloperConsole
+	public static class DeveloperConsole
 	{
 		private class WindowWrapper : IComparer<WindowWrapper>, IComparable<WindowWrapper>
 		{
@@ -44,10 +44,12 @@ namespace MotionFramework.Console
 		private static Texture _bgTexture;
 		private static string[] _toolbarTitles;
 
+
 		/// <summary>
 		/// 初始化控制台
 		/// </summary>
-		public static void Initialize()
+		/// <param name="assemblyName">扩展的控制台窗口所在的图集</param>
+		public static void Initialize(string assemblyName = AssemblyUtility.UnityDefaultAssemblyName)
 		{
 			// 加载背景纹理
 			string textureName = "console_background";
@@ -56,13 +58,15 @@ namespace MotionFramework.Console
 				UnityEngine.Debug.LogWarning($"Not found {textureName} texture in Resources folder.");
 
 			// 获取所有调试类
-			List<Type> allTypes = AssemblyUtility.GetAssignableAttributeTypes(typeof(IConsoleWindow), typeof(ConsoleAttribute));
-			for (int i = 0; i < allTypes.Count; i++)
+			List<Type> types = AssemblyUtility.GetAssignableAttributeTypes(AssemblyUtility.MotionFrameworkAssemblyName, typeof(IConsoleWindow), typeof(ConsoleAttribute));
+			List<Type> temps = AssemblyUtility.GetAssignableAttributeTypes(assemblyName, typeof(IConsoleWindow), typeof(ConsoleAttribute));
+			types.AddRange(temps);
+			for (int i = 0; i < types.Count; i++)
 			{
-				ConsoleAttribute attribute = (ConsoleAttribute)Attribute.GetCustomAttribute(allTypes[i], typeof(ConsoleAttribute));
+				ConsoleAttribute attribute = (ConsoleAttribute)Attribute.GetCustomAttribute(types[i], typeof(ConsoleAttribute));
 				WindowWrapper wrapper = new WindowWrapper()
 				{
-					ClassType = allTypes[i],
+					ClassType = types[i],
 					Title = attribute.Title,
 					Priority = attribute.Order,
 				};
@@ -87,11 +91,12 @@ namespace MotionFramework.Console
 			}
 			_toolbarTitles = titles.ToArray();
 		}
-
+		
 		/// <summary>
-		/// 绘制GUI
+		/// 绘制控制台
+		/// 注意：该接口必须在OnGUI函数内调用
 		/// </summary>
-		public static void DrawGUI()
+		public static void Draw()
 		{
 			// 注意：GUI接口只能在OnGUI内部使用
 			ConsoleGUI.InitGlobalStyle();
