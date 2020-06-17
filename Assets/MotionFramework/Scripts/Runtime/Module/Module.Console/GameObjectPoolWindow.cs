@@ -19,6 +19,15 @@ namespace MotionFramework.Console
 
 		void IConsoleWindow.OnGUI()
 		{
+			// 如果游戏模块没有创建
+			if (MotionEngine.Contains(typeof(GameObjectPoolManager)) == false)
+			{
+				_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 30);
+				ConsoleGUI.YellowLable($"{nameof(GameObjectPoolManager)} is not create.");
+				ConsoleGUI.EndScrollView();
+				return;
+			}
+
 			var pools = GameObjectPoolManager.Instance.GetAllCollectors;
 			ConsoleGUI.Lable($"池总数：{pools.Count}");
 
