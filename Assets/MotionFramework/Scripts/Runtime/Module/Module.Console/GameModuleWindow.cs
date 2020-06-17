@@ -18,7 +18,7 @@ namespace MotionFramework.Console
 		void IConsoleWindow.OnGUI()
 		{
 			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 0);
-			MotionEngine.DrawModuleContent();
+			MotionEngine.DrawModulesGUIContent();
 			ConsoleGUI.EndScrollView();
 		}
 	}
