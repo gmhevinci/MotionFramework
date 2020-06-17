@@ -54,10 +54,12 @@ namespace MotionFramework.Editor
 			CacheProcessor.Clear();
 
 			// 获取所有资源处理器类型
-			List<Type> result = AssemblyUtility.GetAssignableTypes(typeof(IAssetProcessor));
-			for (int i = 0; i < result.Count; i++)
+			List<Type> types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.MotionFrameworkAssemblyEditorName, typeof(IAssetProcessor));
+			List<Type> temps = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetProcessor));
+			types.AddRange(temps);
+			for (int i = 0; i < types.Count; i++)
 			{
-				Type type = result[i];
+				Type type = types[i];
 				if (CacheTypes.ContainsKey(type.Name) == false)
 					CacheTypes.Add(type.Name, type);
 			}
