@@ -12,14 +12,18 @@ namespace MotionFramework.Config
 {
 	internal class ConfigCreater
 	{
-		private static readonly Dictionary<string, Type> _cfgTypes = new Dictionary<string, Type>();
-		private static string _configAssemblyName;
+		private readonly Dictionary<string, Type> _types = new Dictionary<string, Type>();
+		private string _assemblyName;
 
-		public static void Initialize(string assemblyName)
+		/// <summary>
+		/// 初始化
+		/// </summary>
+		/// <param name="assemblyName">配表类所在的程序集</param>
+		public void Initialize(string assemblyName)
 		{
 			if (string.IsNullOrEmpty(assemblyName))
 				throw new ArgumentNullException();
-			_configAssemblyName = assemblyName;
+			_assemblyName = assemblyName;
 
 			List<Type> result = AssemblyUtility.GetAssignableAttributeTypes(assemblyName, typeof(AssetConfig), typeof(ConfigAttribute));
 			for (int i = 0; i < result.Count; i++)
@@ -28,22 +32,28 @@ namespace MotionFramework.Config
 
 				// 判断是否重复
 				ConfigAttribute attribute = (ConfigAttribute)Attribute.GetCustomAttribute(type, typeof(ConfigAttribute));
-				if (_cfgTypes.ContainsKey(attribute.CfgName))
+				if (_types.ContainsKey(attribute.CfgName))
 					throw new Exception($"Config {type} has same attribute value : {attribute.CfgName}");
 
 				// 添加到集合
-				_cfgTypes.Add(attribute.CfgName, type);
+				_types.Add(attribute.CfgName, type);
 			}
 		}
-		public static AssetConfig CreateInstance(string cfgName)
+
+		/// <summary>
+		/// 创建类的实例
+		/// </summary>
+		/// <param name="cfgName">配表名称</param>
+		/// <returns>如果类型没有在程序集里定义会发生异常</returns>
+		public AssetConfig CreateInstance(string cfgName)
 		{
 			AssetConfig config = null;
 
-			if (_cfgTypes.TryGetValue(cfgName, out Type type))
+			if (_types.TryGetValue(cfgName, out Type type))
 				config = (AssetConfig)Activator.CreateInstance(type);
 
 			if (config == null)
-				throw new KeyNotFoundException($"{nameof(AssetConfig)} {cfgName} is not define in assembly {_configAssemblyName}");
+				throw new KeyNotFoundException($"{nameof(AssetConfig)} {cfgName} is not define in assembly {_assemblyName}");
 
 			return config;
 		}

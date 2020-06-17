@@ -29,7 +29,7 @@ namespace MotionFramework.Config
 		}
 
 		private readonly Dictionary<string, AssetConfig> _configs = new Dictionary<string, AssetConfig>();
-
+		private readonly ConfigCreater _creater = new ConfigCreater();
 
 		void IModule.OnCreate(System.Object param)
 		{
@@ -37,7 +37,7 @@ namespace MotionFramework.Config
 			if (createParam == null)
 				throw new Exception($"{nameof(ConfigManager)} create param is invalid.");
 
-			ConfigCreater.Initialize(createParam.ConfigAssemblyName);
+			_creater.Initialize(createParam.ConfigAssemblyName);
 		}
 		void IModule.OnUpdate()
 		{
@@ -73,7 +73,7 @@ namespace MotionFramework.Config
 				return null;
 			}
 
-			AssetConfig config = ConfigCreater.CreateInstance(configName);
+			AssetConfig config = _creater.CreateInstance(configName);
 			if (config != null)
 			{
 				config.Load(location);
