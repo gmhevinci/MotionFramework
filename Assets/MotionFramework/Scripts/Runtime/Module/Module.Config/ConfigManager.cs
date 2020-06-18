@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using MotionFramework.Utility;
 
 namespace MotionFramework.Config
 {
@@ -16,50 +15,21 @@ namespace MotionFramework.Config
 	/// </summary>
 	public sealed class ConfigManager : ModuleSingleton<ConfigManager>, IModule
 	{
-		/// <summary>
-		/// 游戏模块创建参数
-		/// </summary>
-		public class CreateParameters
+		public class LoadPair
 		{
-			/// <summary>
-			/// 所有的配表类型
-			/// 注意：如果列表为空，那么将会使用反射的方式在指定的程序集里查找所有的配表类型
-			/// </summary>
-			public List<System.Type> AllTypes;
-
-			/// <summary>
-			/// 配表类所属的程序集名称
-			/// 注意：在类型列表为空的时候，会在这个程序集里查找所有的配表类型
-			/// </summary>
-			public string ConfigAssemblyName;
-		}
-
-		/// <summary>
-		/// 默认的创建参数
-		/// 默认的程序集名称为：Assembly-CSharp
-		/// </summary>
-		public static CreateParameters DefaultParameters
-		{
-			get
+			public Type ClassType;
+			public string Location;
+			public LoadPair(Type classType, string location)
 			{
-				var parameters = new CreateParameters
-				{
-					ConfigAssemblyName = AssemblyUtility.UnityDefaultAssemblyName
-				};
-				return parameters;
+				ClassType = classType;
+				Location = location;
 			}
 		}
 
 		private readonly Dictionary<string, AssetConfig> _configs = new Dictionary<string, AssetConfig>();
-		private readonly ConfigCreater _creater = new ConfigCreater();
 
 		void IModule.OnCreate(System.Object param)
 		{
-			CreateParameters createParam = param as CreateParameters;
-			if (createParam == null)
-				throw new Exception($"{nameof(ConfigManager)} create param is invalid.");
-
-			_creater.Initialize(createParam.AllTypes, createParam.ConfigAssemblyName);
 		}
 		void IModule.OnUpdate()
 		{
@@ -69,14 +39,15 @@ namespace MotionFramework.Config
 		}
 
 		/// <summary>
-		/// 按照表格顺序异步加载所有表格
+		/// 按照列表顺序批量加载配表
 		/// </summary>
-		public IEnumerator LoadConfigs(List<string> locations)
+		public IEnumerator LoadConfigs(List<LoadPair> loadPairs)
 		{
-			for (int i = 0; i < locations.Count; i++)
+			for(int i=0; i< loadPairs.Count; i++)
 			{
-				string location = locations[i];
-				AssetConfig config = LoadConfig(location);
+				Type type = loadPairs[i].ClassType;
+				string location = loadPairs[i].Location;
+				AssetConfig config = LoadConfig(type, location);
 				yield return config;
 			}
 		}
@@ -84,7 +55,11 @@ namespace MotionFramework.Config
 		/// <summary>
 		/// 加载配表
 		/// </summary>
-		public AssetConfig LoadConfig(string location)
+		public T LoadConfig<T>(string location) where T : AssetConfig
+		{
+			return LoadConfig(typeof(T), location) as T;
+		}
+		public AssetConfig LoadConfig(Type configType, string location)
 		{
 			string configName = Path.GetFileName(location);
 
@@ -95,7 +70,7 @@ namespace MotionFramework.Config
 				return null;
 			}
 
-			AssetConfig config = _creater.CreateInstance(configName);
+			AssetConfig config = Activator.CreateInstance(configType) as AssetConfig;
 			if (config != null)
 			{
 				config.Load(location);
@@ -103,9 +78,29 @@ namespace MotionFramework.Config
 			}
 			else
 			{
-				MotionLog.Error($"Config type {configName} is invalid.");
+				MotionLog.Error($"Config {configType.FullName} create instance  failed.");
 			}
+
 			return config;
+		}
+
+		/// <summary>
+		/// 获取配表
+		/// </summary>
+		public T GetConfig<T>() where T : AssetConfig
+		{
+			return GetConfig(typeof(T)) as T;
+		}
+		public AssetConfig GetConfig(Type configType)
+		{
+			foreach (var pair in _configs)
+			{
+				if (pair.Value.GetType() == configType)
+					return pair.Value;
+			}
+
+			MotionLog.Error($"Not found config {configType.Name}");
+			return null;
 		}
 
 		/// <summary>
@@ -119,22 +114,6 @@ namespace MotionFramework.Config
 			}
 
 			MotionLog.Error($"Not found config {configName}");
-			return null;
-		}
-
-		/// <summary>
-		/// 获取配表
-		/// </summary>
-		public T GetConfig<T>() where T : AssetConfig
-		{
-			System.Type type = typeof(T);
-			foreach (var pair in _configs)
-			{
-				if (pair.Value.GetType() == type)
-					return pair.Value as T;
-			}
-
-			MotionLog.Error($"Not found config {type}");
 			return null;
 		}
 	}
