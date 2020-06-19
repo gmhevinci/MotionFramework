@@ -9,7 +9,7 @@ using MotionFramework.Config;
 public void Start()
 {
 	// 创建模块
-	MotionEngine.CreateModule<ConfigManager>(ConfigManager.DefaultParameters);
+	MotionEngine.CreateModule<ConfigManager>();
 }
 ```
 
@@ -19,12 +19,20 @@ public class Test
 {
 	public IEnumerator Start()
 	{
-		List<string> locations = new List<string>();
-		locations.Add("Config/AutoGenerateLanguage");
-		locations.Add("Config/ConfigName1");
-		locations.Add("Config/ConfigName2");
-		locations.Add("Config/ConfigName3");
-		yield return ConfigManager.Instance.LoadConfigs(locations);
+		List<ConfigManager.LoadPair> loadPairs = GetAllConfigLoadPairs();
+		yield return ConfigManager.Instance.LoadConfigs(loadPairs);
+	}
+
+	private List<ConfigManager.LoadPair> GetAllConfigLoadPairs()
+	{
+		List<ConfigManager.LoadPair> loadPairs = new List<ConfigManager.LoadPair>()
+		{
+			new ConfigManager.LoadPair(typeof(CfgAutoGenerateLanguage), "Config/AutoGenerateLanguage"),
+			new ConfigManager.LoadPair(typeof(CfgConfig1), "Config/Config1"),
+			new ConfigManager.LoadPair(typeof(CfgConfig2), "Config/Config2"),
+			new ConfigManager.LoadPair(typeof(CfgConfig3), "Config/Config3"),
+		};
+		return loadPairs;
 	}
 }
 ```
@@ -35,7 +43,7 @@ public class Test
 {
 	public IEnumerator Start()
 	{
-		var languageConfig = ConfigManager.Instance.LoadConfig("Config/AutoGenerateLanguage");
+		var languageConfig = ConfigManager.Instance.LoadConfig<CfgAutoGenerateLanguage>("Config/AutoGenerateLanguage");
 		yield return languageConfig;
 	}
 }
