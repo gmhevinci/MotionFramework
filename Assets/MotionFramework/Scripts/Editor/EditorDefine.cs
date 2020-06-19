@@ -17,6 +17,11 @@ namespace MotionFramework.Editor
 		/// 资源包收集工具的配置文件存储路径
 		/// </summary>
 		public const string CollectorSettingFilePath = "Assets/MotionSetting/CollectionSetting.asset";
+
+		/// <summary>
+		/// UI面板的配置文件存储路径
+		/// </summary>
+		public const string UISettingFilePath = "Assets/MotionSetting/UISetting.asset";
 	}
 
 	/// <summary>
