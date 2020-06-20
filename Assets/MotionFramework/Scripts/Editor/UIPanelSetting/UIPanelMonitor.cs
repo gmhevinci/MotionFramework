@@ -5,7 +5,6 @@
 //--------------------------------------------------
 using UnityEngine;
 using UnityEditor;
-using MotionFramework.Window;
 
 namespace MotionFramework.Editor
 {
@@ -34,8 +33,8 @@ namespace MotionFramework.Editor
 			UnityEditor.Experimental.SceneManagement.PrefabStage stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
 			if (stage != null)
 			{
-				UIManifest manifest = go.GetComponent<UIManifest>();
-				if (manifest != null && manifest.GetType().Namespace.StartsWith(nameof(MotionFramework)))
+				UnityEngine.UI.UIManifest manifest = go.GetComponent<UnityEngine.UI.UIManifest>();
+				if (manifest != null)
 					UIPanelModifier.Refresh(manifest);
 			}
 		}

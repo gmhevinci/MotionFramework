@@ -10,8 +10,7 @@ using UnityEngine;
 
 namespace MotionFramework.Editor
 {
-	[CreateAssetMenu]
-	public class CollectionSetting : ScriptableObject
+	public class AssetBundleCollectorSetting : ScriptableObject
 	{
 		/// <summary>
 		/// 文件夹打包规则
@@ -61,7 +60,6 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 打包路径列表
 		/// </summary>
-		[SerializeField]
 		public List<Wrapper> Elements = new List<Wrapper>();
 	}
 }

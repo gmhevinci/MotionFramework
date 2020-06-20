@@ -35,7 +35,7 @@ namespace MotionFramework.Editor
 		public AssetInfo(string assetPath)
 		{
 			AssetPath = assetPath;
-			IsCollectAsset = CollectionSettingData.IsCollectAsset(assetPath);
+			IsCollectAsset = AssetBundleCollectorSettingData.IsCollectAsset(assetPath);
 			IsSceneAsset = AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(SceneAsset);
 			IsVideoAsset = AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(UnityEngine.Video.VideoClip);
 		}

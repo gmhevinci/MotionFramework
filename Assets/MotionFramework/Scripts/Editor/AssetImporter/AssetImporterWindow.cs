@@ -14,7 +14,7 @@ namespace MotionFramework.Editor
 	{
 		static AssetImporterWindow _thisInstance;
 
-		[MenuItem("MotionTools/Asset Importer", false, 102)]
+		[MenuItem("MotionTools/Asset Importer", false, 104)]
 		static void ShowWindow()
 		{
 			if (_thisInstance == null)
@@ -22,7 +22,6 @@ namespace MotionFramework.Editor
 				_thisInstance = EditorWindow.GetWindow(typeof(AssetImporterWindow), false, "资源导入工具", true) as AssetImporterWindow;
 				_thisInstance.minSize = new Vector2(800, 600);
 			}
-
 			_thisInstance.Show();
 		}
 
@@ -42,7 +41,7 @@ namespace MotionFramework.Editor
 		{
 			// 字典KEY转换为数组
 			List<string> keyList = new List<string>();
-			foreach (var pair in ImportSettingData.CacheTypes)
+			foreach (var pair in AssetImporterSettingData.CacheTypes)
 			{
 				keyList.Add(pair.Key);
 			}
@@ -77,10 +76,10 @@ namespace MotionFramework.Editor
 
 			// 列表显示
 			EditorGUILayout.Space();
-			for (int i = 0; i < ImportSettingData.Setting.Elements.Count; i++)
+			for (int i = 0; i < AssetImporterSettingData.Setting.Elements.Count; i++)
 			{
-				string folderPath = ImportSettingData.Setting.Elements[i].FolderPath;
-				string processorName = ImportSettingData.Setting.Elements[i].ProcessorName;
+				string folderPath = AssetImporterSettingData.Setting.Elements[i].FolderPath;
+				string processorName = AssetImporterSettingData.Setting.Elements[i].ProcessorName;
 
 				EditorGUILayout.BeginHorizontal();
 				{
@@ -91,12 +90,12 @@ namespace MotionFramework.Editor
 					if (newIndex != index)
 					{
 						string processClassName = IndexToName(newIndex);
-						ImportSettingData.ModifyElement(folderPath, processClassName);
+						AssetImporterSettingData.ModifyElement(folderPath, processClassName);
 					}
 
 					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
 					{
-						ImportSettingData.RemoveElement(folderPath);
+						AssetImporterSettingData.RemoveElement(folderPath);
 						break;
 					}
 				}
@@ -110,7 +109,7 @@ namespace MotionFramework.Editor
 				if (resultPath != null)
 				{
 					_lastOpenFolderPath = EditorTools.AbsolutePathToAssetPath(resultPath);
-					ImportSettingData.AddElement(_lastOpenFolderPath);
+					AssetImporterSettingData.AddElement(_lastOpenFolderPath);
 				}
 			}
 		}

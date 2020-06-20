@@ -15,7 +15,7 @@ namespace MotionFramework.Editor
 	{
 		static AssetBundleBuilderWindow _thisInstance;
 
-		[MenuItem("MotionTools/AssetBundle Builder", false, 104)]
+		[MenuItem("MotionTools/AssetBundle Builder", false, 102)]
 		static void ShowWindow()
 		{
 			if (_thisInstance == null)
@@ -175,7 +175,7 @@ namespace MotionFramework.Editor
 		private void CheckAllPrefabValid()
 		{
 			// 获取所有的打包路径
-			List<string> packPathList = CollectionSettingData.GetAllCollectPath();
+			List<string> packPathList = AssetBundleCollectorSettingData.GetAllCollectPath();
 			if (packPathList.Count == 0)
 				throw new Exception("[BuildPackage] 打包路径列表不能为空");
 

@@ -11,7 +11,7 @@ using UnityEngine;
 namespace MotionFramework.Editor
 {
 	[CreateAssetMenu]
-	public class ImportSetting : ScriptableObject
+	public class AssetImporterSetting : ScriptableObject
 	{
 		[Serializable]
 		public class Wrapper
@@ -23,13 +23,11 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 开关
 		/// </summary>
-		[SerializeField]
 		public bool Toggle = true;
 
 		/// <summary>
 		/// 路径列表
 		/// </summary>
-		[SerializeField]
 		public List<Wrapper> Elements = new List<Wrapper>();
 	}
 }

@@ -208,7 +208,7 @@ namespace MotionFramework.Editor
 			Dictionary<string, AssetInfo> allAsset = new Dictionary<string, AssetInfo>();
 
 			// 获取所有的收集路径
-			List<string> collectPathList = CollectionSettingData.GetAllCollectPath();
+			List<string> collectPathList = AssetBundleCollectorSettingData.GetAllCollectPath();
 			if (collectPathList.Count == 0)
 				throw new Exception("[BuildPatch] 配置的打包路径列表为空");
 
@@ -217,7 +217,7 @@ namespace MotionFramework.Editor
 			foreach (string guid in guids)
 			{
 				string mainAssetPath = AssetDatabase.GUIDToAssetPath(guid);
-				if (CollectionSettingData.IsIgnoreAsset(mainAssetPath))
+				if (AssetBundleCollectorSettingData.IsIgnoreAsset(mainAssetPath))
 					continue;
 				if (ValidateAsset(mainAssetPath) == false)
 					continue;
@@ -321,13 +321,13 @@ namespace MotionFramework.Editor
 			if (Path.HasExtension(folderName))
 			{
 				string extension = Path.GetExtension(folderName);
-				string label = CollectionSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
+				string label = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
 				assetInfo.AssetBundleLabel = label.Replace(extension, string.Empty);
 				assetInfo.AssetBundleVariant = extension.Substring(1);
 			}
 			else
 			{
-				assetInfo.AssetBundleLabel = CollectionSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
+				assetInfo.AssetBundleLabel = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
 				assetInfo.AssetBundleVariant = PatchDefine.AssetBundleDefaultVariant;
 			}
 		}
@@ -631,9 +631,9 @@ namespace MotionFramework.Editor
 
 			AppendData(content, "");
 			AppendData(content, $"--配置信息--");
-			for (int i = 0; i < CollectionSettingData.Setting.Elements.Count; i++)
+			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Elements.Count; i++)
 			{
-				CollectionSetting.Wrapper wrapper = CollectionSettingData.Setting.Elements[i];
+				AssetBundleCollectorSetting.Wrapper wrapper = AssetBundleCollectorSettingData.Setting.Elements[i];
 				AppendData(content, $"FolderPath : {wrapper.FolderPath} || PackRule : {wrapper.PackRule} || LabelRule : {wrapper.LabelRule}");
 			}
 

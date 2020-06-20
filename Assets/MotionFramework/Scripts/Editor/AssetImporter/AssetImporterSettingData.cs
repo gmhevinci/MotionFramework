@@ -13,7 +13,7 @@ using MotionFramework.Utility;
 
 namespace MotionFramework.Editor
 {
-	public static class ImportSettingData
+	public static class AssetImporterSettingData
 	{
 		/// <summary>
 		/// 导入器类型集合
@@ -28,19 +28,19 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 配置文件
 		/// </summary>
-		public static ImportSetting Setting;
+		public static AssetImporterSetting Setting;
 
 
-		static ImportSettingData()
+		static AssetImporterSettingData()
 		{
 			// 加载配置文件
-			Setting = AssetDatabase.LoadAssetAtPath<ImportSetting>(EditorDefine.ImporterSettingFilePath);
+			Setting = AssetDatabase.LoadAssetAtPath<AssetImporterSetting>(EditorDefine.AssetImporterSettingFilePath);
 			if (Setting == null)
 			{
-				Debug.LogWarning($"Create new ImportSetting.asset : {EditorDefine.ImporterSettingFilePath}");
-				Setting = ScriptableObject.CreateInstance<ImportSetting>();
-				EditorTools.CreateFileDirectory(EditorDefine.ImporterSettingFilePath);
-				AssetDatabase.CreateAsset(Setting, EditorDefine.ImporterSettingFilePath);
+				Debug.LogWarning($"Create new ImportSetting.asset : {EditorDefine.AssetImporterSettingFilePath}");
+				Setting = ScriptableObject.CreateInstance<AssetImporterSetting>();
+				EditorTools.CreateFileDirectory(EditorDefine.AssetImporterSettingFilePath);
+				AssetDatabase.CreateAsset(Setting, EditorDefine.AssetImporterSettingFilePath);
 				AssetDatabase.SaveAssets();
 				AssetDatabase.Refresh();
 			}
@@ -84,7 +84,7 @@ namespace MotionFramework.Editor
 		{
 			if (IsContainsElement(folderPath) == false)
 			{
-				ImportSetting.Wrapper element = new ImportSetting.Wrapper();
+				AssetImporterSetting.Wrapper element = new AssetImporterSetting.Wrapper();
 				element.FolderPath = folderPath;
 				element.ProcessorName = nameof(DefaultProcessor);
 				Setting.Elements.Add(element);

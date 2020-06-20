@@ -18,11 +18,11 @@ namespace MotionFramework.Editor
 		#region 模型处理
 		public void OnPreprocessModel()
 		{
-			if (ImportSettingData.Setting.Toggle == false)
+			if (AssetImporterSettingData.Setting.Toggle == false)
 				return;
 
 			string importAssetPath = this.assetPath;
-			IAssetProcessor processor = ImportSettingData.GetCustomProcessor(importAssetPath);
+			IAssetProcessor processor = AssetImporterSettingData.GetCustomProcessor(importAssetPath);
 			if (processor != null)
 				processor.OnPreprocessModel(importAssetPath, this.assetImporter);
 		}
@@ -34,11 +34,11 @@ namespace MotionFramework.Editor
 		#region 纹理处理
 		public void OnPreprocessTexture()
 		{
-			if (ImportSettingData.Setting.Toggle == false)
+			if (AssetImporterSettingData.Setting.Toggle == false)
 				return;
 
 			string importAssetPath = this.assetPath;
-			IAssetProcessor processor = ImportSettingData.GetCustomProcessor(importAssetPath);
+			IAssetProcessor processor = AssetImporterSettingData.GetCustomProcessor(importAssetPath);
 			if (processor != null)
 				processor.OnPreprocessTexture(importAssetPath, this.assetImporter);
 		}
@@ -53,11 +53,11 @@ namespace MotionFramework.Editor
 		#region 音频处理
 		public void OnPreprocessAudio()
 		{
-			if (ImportSettingData.Setting.Toggle == false)
+			if (AssetImporterSettingData.Setting.Toggle == false)
 				return;
 
 			string importAssetPath = this.assetPath;
-			IAssetProcessor processor = ImportSettingData.GetCustomProcessor(importAssetPath);
+			IAssetProcessor processor = AssetImporterSettingData.GetCustomProcessor(importAssetPath);
 			if (processor != null)
 				processor.OnPreprocessAudio(importAssetPath, this.assetImporter);
 		}
@@ -84,11 +84,11 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void OnPreprocessSpriteAtlas()
 		{
-			if (ImportSettingData.Setting.Toggle == false)
+			if (AssetImporterSettingData.Setting.Toggle == false)
 				return;
 
 			string importAssetPath = this.assetPath;
-			IAssetProcessor processor = ImportSettingData.GetCustomProcessor(importAssetPath);
+			IAssetProcessor processor = AssetImporterSettingData.GetCustomProcessor(importAssetPath);
 			if (processor != null)
 				processor.OnPreprocessSpriteAtlas(importAssetPath, this.assetImporter);
 		}

@@ -7,7 +7,6 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.U2D;
-using MotionFramework.Window;
 
 namespace MotionFramework.Editor
 {
@@ -18,8 +17,11 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public static void Refresh(UIManifest manifest)
 		{
-			CacheUIElement(manifest);
-			UpdateUIComponent(manifest);
+			if(UIPanelSettingData.CheckValid())
+			{
+				CacheUIElement(manifest);
+				UpdateUIComponent(manifest);
+			}
 		}
 
 		/// <summary>
@@ -122,7 +124,7 @@ namespace MotionFramework.Editor
 					continue;
 
 				// 如果是图集资源
-				string spriteDirectory = UISettingData.Setting.UISpriteFolderDirectory;
+				string spriteDirectory = UIPanelSettingData.Setting.UISpriteDirectory;
 				if (assetPath.Contains(spriteDirectory))
 				{
 					if (uiSprite == null)
@@ -150,8 +152,8 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private static string GetAtlasPath(string assetPath)
 		{
-			string spriteDirectory = UISettingData.Setting.UISpriteFolderDirectory;
-			string atlasDirectory = UISettingData.Setting.UIAtlasFolderDirectory;
+			string spriteDirectory = UIPanelSettingData.Setting.UISpriteDirectory;
+			string atlasDirectory = UIPanelSettingData.Setting.UIAtlasDirectory;
 
 			// 获取图片所在总文件下的子文件夹
 			string temp = assetPath.Replace(spriteDirectory, string.Empty);
