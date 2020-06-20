@@ -18,19 +18,25 @@ namespace MotionFramework.Window
 		private AssetOperationHandle _handle;
 
 		/// <summary>
-		/// GameObject对象
+		/// 实例化对象
 		/// </summary>
 		public GameObject Go { private set; get; }
 
 		/// <summary>
+		/// 是否准备完毕
+		/// </summary>
+		public bool IsPrepare { get { return Go != null; } }
+
+		/// <summary>
 		/// UI桌面
 		/// </summary>
-		public virtual GameObject UIDesktop { protected set; get; }
+		public abstract GameObject UIDesktop { protected set; get; }
 
 		/// <summary>
 		/// UI相机
 		/// </summary>
-		public virtual Camera UICamera { protected set; get; }
+		public abstract Camera UICamera { protected set; get; }
+
 
 		internal void InternalLoad(string location)
 		{
@@ -60,8 +66,11 @@ namespace MotionFramework.Window
 			if (_handle.AssetObject == null)
 				return;
 
+			// 实例化对象
 			Go = _handle.InstantiateObject;
 			GameObject.DontDestroyOnLoad(Go);
+
+			// 调用重载函数
 			OnAssetLoad(Go);
 		}
 		protected abstract void OnAssetLoad(GameObject go);

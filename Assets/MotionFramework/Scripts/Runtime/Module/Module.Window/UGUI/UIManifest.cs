@@ -1,9 +1,13 @@
-﻿using System;
+﻿//--------------------------------------------------
+// Motion Framework
+// Copyright©2018-2020 何冠峰
+// Licensed under the MIT license
+//--------------------------------------------------
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace MotionFramework.Window
+namespace UnityEngine.UI
 {
 	[DisallowMultipleComponent]
 	public class UIManifest : MonoBehaviour
@@ -53,7 +57,7 @@ namespace MotionFramework.Window
 
 			if (_runtimeDic.TryGetValue(path, out Transform result) == false)
 			{
-				MotionLog.Warning($"Not found ui element : {path}");
+				Debug.LogWarning($"Not found ui element : {path}");
 			}
 			return result;
 		}
@@ -69,7 +73,7 @@ namespace MotionFramework.Window
 
 			Component component = element.GetComponent(typeName);
 			if (component == null)
-				MotionLog.Warning($"Not found ui component : {path}, {typeName}");
+				Debug.LogWarning($"Not found ui component : {path}, {typeName}");
 			return component;
 		}
 
@@ -84,7 +88,7 @@ namespace MotionFramework.Window
 
 			Component component = element.GetComponent<T>();
 			if (component == null)
-				MotionLog.Warning($"Not found ui component : {path}, {typeof(T)}");
+				Debug.LogWarning($"Not found ui component : {path}, {typeof(T)}");
 			return component as T;
 		}
 	}

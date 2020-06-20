@@ -46,7 +46,7 @@ namespace MotionFramework.Window
 			for (int i = 0; i < _stack.Count; i++)
 			{
 				UIWindow window = _stack[i];
-				if (window.IsPrepare == false)
+				if (window.IsDone == false)
 					return true;
 			}
 			return false;
@@ -240,7 +240,7 @@ namespace MotionFramework.Window
 			if (attribute == null)
 				throw new Exception($"Window {type.FullName} not found {nameof(WindowAttribute)} attribute.");
 
-			window.Init(type.Name, attribute.WindowLayer);
+			window.Init(type.Name, attribute.WindowLayer, attribute.DontDestroy, attribute.FullScreen);
 			return window;
 		}
 		private UIWindow GetWindow(string name)

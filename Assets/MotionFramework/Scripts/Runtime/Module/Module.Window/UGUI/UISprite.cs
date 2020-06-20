@@ -1,6 +1,9 @@
-﻿using UnityEngine;
+﻿//--------------------------------------------------
+// Motion Framework
+// Copyright©2018-2020 何冠峰
+// Licensed under the MIT license
+//--------------------------------------------------
 using UnityEngine.U2D;
-using UnityEngine.UI;
 
 namespace UnityEngine.UI
 {
