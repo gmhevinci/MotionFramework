@@ -23,6 +23,11 @@ namespace MotionFramework.Window
 		public GameObject Go { private set; get; }
 
 		/// <summary>
+		/// 是否加载完毕
+		/// </summary>
+		public bool IsDone { get { return _handle.IsDone; } }
+
+		/// <summary>
 		/// 是否准备完毕
 		/// </summary>
 		public bool IsPrepare { get { return Go != null; } }
@@ -78,7 +83,7 @@ namespace MotionFramework.Window
 		#region 异步相关
 		bool IEnumerator.MoveNext()
 		{
-			return !_handle.IsDone;
+			return !IsDone;
 		}
 		void IEnumerator.Reset()
 		{
