@@ -1,3 +1,22 @@
+v1.2.0 - 2020年6月21日
+新增
+1. [Window] 新加窗口系统，默认支持UGUI
+
+改进
+1. [dadba8b] [Patch] 改进了补丁系统，优化了整个流程。
+2. [dadba8b] [Patch] 变种文件现在扩展更加方便。
+3. [3b03d02] [Patch] PatchManifest文件现在为二进制文件
+4. [645da05] [Utility] 优化了程序集工具类
+5. [0d7e36f] [Config] 改进了配备管理器的加载接口，移除了通过反射收集配表类型的代码。
+
+变更
+1. [c1550c6] [AssetBundleCollector] 移除LabelByFileName和LabelByFolderName
+2. [c132a60] [Console] 现在控制台需要独立初始化和绘制
+
+修复
+1. [24cd78f] [Console] 修复游戏对象池模块未创建时，打开控制台的游戏对象池窗口时报错的问题。
+
+
 v1.1.2 - 2020年6月7日
 改进
 1. [e30374c] [Patch] 现在和WEB服务器通信的数据格式改为更加灵活的JSON格式
