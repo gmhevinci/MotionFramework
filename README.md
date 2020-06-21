@@ -46,7 +46,9 @@ C# && .Net4.x
 
 7. [场景管理器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Module.Scene.md) **(SceneManager)**
 
-8. [游戏对象池管理器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Module.Pool.md) **(GameObjectPoolManager)**
+8. [窗口管理器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Module.Window.md) **(WindowManager)**
+
+9. [游戏对象池管理器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Module.Pool.md) **(GameObjectPoolManager)**
 
 ## 工具介绍
 内置的相关工具介绍
