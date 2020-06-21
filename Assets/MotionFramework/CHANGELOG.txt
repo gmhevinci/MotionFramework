@@ -11,7 +11,7 @@ v1.2.0 - 2020年6月21日
 
 变更
 1. [c1550c6] [AssetBundleCollector] 移除LabelByFileName和LabelByFolderName
-2. [c132a60] [Console] 现在控制台需要独立初始化和绘制
+2. [c135a60] [Console] 现在控制台需要独立初始化和绘制
 
 修复
 1. [24cd78f] [Console] 修复游戏对象池模块未创建时，打开控制台的游戏对象池窗口时报错的问题。
