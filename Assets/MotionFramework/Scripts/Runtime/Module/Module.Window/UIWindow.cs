@@ -151,6 +151,10 @@ namespace MotionFramework.Window
 			Go = _handle.InstantiateObject;
 
 			// 设置UI桌面
+			if (WindowManager.Instance.Root == null)
+				throw new Exception($"{nameof(UIRoot)} is not create. Use WindowManager.Instance.CreateUIRoot().");
+			if (WindowManager.Instance.Root.IsPrepare)
+				throw new Exception($"{nameof(UIRoot)} is not prepare.");
 			GameObject uiDesktop = WindowManager.Instance.Root.UIDesktop;
 			Go.transform.SetParent(uiDesktop.transform, false);
 
