@@ -6,11 +6,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace MotionFramework.Window
 {
-	public class UIManager : ModuleSingleton<UIManager>, IModule
+	public class WindowManager : ModuleSingleton<WindowManager>, IModule
 	{
 		private readonly List<UIWindow> _stack = new List<UIWindow>(100);
 

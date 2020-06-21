@@ -151,7 +151,7 @@ namespace MotionFramework.Window
 			Go = _handle.InstantiateObject;
 
 			// 设置UI桌面
-			GameObject uiDesktop = UIManager.Instance.Root.UIDesktop;
+			GameObject uiDesktop = WindowManager.Instance.Root.UIDesktop;
 			Go.transform.SetParent(uiDesktop.transform, false);
 
 			// 调用重载函数
