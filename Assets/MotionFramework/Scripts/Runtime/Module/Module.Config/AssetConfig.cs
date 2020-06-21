@@ -163,7 +163,7 @@ namespace MotionFramework.Config
 			}
 			else
 			{
-				MotionLog.Warning($"Faild to get tab. File is {Location}, key is {key}");
+				MotionLog.Warning($"Faild to get table. File is {Location}, key is {key}");
 				return null;
 			}
 		}
