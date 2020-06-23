@@ -92,6 +92,14 @@ namespace MotionFramework.Editor
 			targetImporter.ambisonic = templateImporter.ambisonic;
 			targetImporter.defaultSampleSettings = templateImporter.defaultSampleSettings;
 
+			// 注意：Normalize没有暴露的接口
+			var templateObject = new SerializedObject(templateImporter);
+			var templateProperty = templateObject.FindProperty("m_Normalize");
+			var targetObject = new SerializedObject(targetImporter);
+			var targetProperty = targetObject.FindProperty("m_Normalize");
+			targetProperty.boolValue = templateProperty.boolValue;
+			targetObject.ApplyModifiedProperties();
+
 			// 平台设置
 			AudioImporterSampleSettings sampleSettingsPC = templateImporter.GetOverrideSampleSettings("Standalone");
 			AudioImporterSampleSettings sampleSettingsIOS = templateImporter.GetOverrideSampleSettings("iOS");
