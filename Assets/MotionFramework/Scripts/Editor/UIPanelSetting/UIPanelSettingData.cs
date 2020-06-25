@@ -12,16 +12,28 @@ namespace MotionFramework.Editor
 {
 	public class UIPanelSettingData
 	{
-		public static UIPanelSetting Setting;
+		private static UIPanelSetting _setting = null;
+		public static UIPanelSetting Setting
+		{
+			get 
+			{
+				if (_setting == null)
+					LoadSettingData();
+				return _setting;
+			}
+		}
 
-		static UIPanelSettingData()
+		/// <summary>
+		/// 加载配置文件
+		/// </summary>
+		private static void LoadSettingData()
 		{
 			// 加载配置文件
-			Setting = AssetDatabase.LoadAssetAtPath<UIPanelSetting>(EditorDefine.UIPanelSettingFilePath);
-			if (Setting == null)
+			_setting = AssetDatabase.LoadAssetAtPath<UIPanelSetting>(EditorDefine.UIPanelSettingFilePath);
+			if (_setting == null)
 			{
-				Debug.LogWarning($"Create new ImportSetting.asset : {EditorDefine.UIPanelSettingFilePath}");
-				Setting = ScriptableObject.CreateInstance<UIPanelSetting>();
+				Debug.LogWarning($"Create new {nameof(UIPanelSetting)}.asset : {EditorDefine.UIPanelSettingFilePath}");
+				_setting = ScriptableObject.CreateInstance<UIPanelSetting>();
 				EditorTools.CreateFileDirectory(EditorDefine.UIPanelSettingFilePath);
 				AssetDatabase.CreateAsset(Setting, EditorDefine.UIPanelSettingFilePath);
 				AssetDatabase.SaveAssets();
@@ -29,7 +41,7 @@ namespace MotionFramework.Editor
 			}
 			else
 			{
-				Debug.Log("Load ImportSetting.asset ok");
+				Debug.Log($"Load {nameof(UIPanelSetting)}.asset ok");
 			}
 		}
 

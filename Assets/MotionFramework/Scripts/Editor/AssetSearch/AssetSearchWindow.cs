@@ -16,22 +16,20 @@ namespace MotionFramework.Editor
 		static AssetSearchWindow _thisInstance;
 
 		[MenuItem("MotionTools/Asset Search", false, 103)]
-		static void Init()
+		static void ShowWindow()
 		{
 			if (_thisInstance == null)
 			{
 				_thisInstance = EditorWindow.GetWindow(typeof(AssetSearchWindow), false, "资源引用搜索工具", true) as AssetSearchWindow;
 				_thisInstance.minSize = new Vector2(400, 600);
 			}
-
 			_thisInstance.Show();
 		}
-
 
 		/// <summary>
 		/// 默认的搜索路径
 		/// </summary>
-		private const string DEFAULT_SEARCH_PATH = "Assets/Works/Resources";
+		private const string DEFAULT_SEARCH_PATH = "Assets";
 
 		/// <summary>
 		/// 显示集合

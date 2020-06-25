@@ -14,20 +14,28 @@ namespace MotionFramework.Editor
 {
 	public static class AssetBundleCollectorSettingData
 	{
+		private static AssetBundleCollectorSetting _setting = null;
+		public static AssetBundleCollectorSetting Setting
+		{
+			get
+			{
+				if (_setting == null)
+					LoadSettingData();
+				return _setting;
+			}
+		}
+
 		/// <summary>
-		/// 配置文件
+		/// 加载配置文件
 		/// </summary>
-		public static AssetBundleCollectorSetting Setting;
-
-
-		static AssetBundleCollectorSettingData()
+		private static void LoadSettingData()
 		{
 			// 加载配置文件
-			Setting = AssetDatabase.LoadAssetAtPath<AssetBundleCollectorSetting>(EditorDefine.AssetBundleCollectorSettingFilePath);
-			if (Setting == null)
+			_setting = AssetDatabase.LoadAssetAtPath<AssetBundleCollectorSetting>(EditorDefine.AssetBundleCollectorSettingFilePath);
+			if (_setting == null)
 			{
-				Debug.LogWarning($"Create new CollectionSetting.asset : {EditorDefine.AssetBundleCollectorSettingFilePath}");
-				Setting = ScriptableObject.CreateInstance<AssetBundleCollectorSetting>();
+				Debug.LogWarning($"Create new {nameof(AssetBundleCollectorSetting)}.asset : {EditorDefine.AssetBundleCollectorSettingFilePath}");
+				_setting = ScriptableObject.CreateInstance<AssetBundleCollectorSetting>();
 				EditorTools.CreateFileDirectory(EditorDefine.AssetBundleCollectorSettingFilePath);
 				AssetDatabase.CreateAsset(Setting, EditorDefine.AssetBundleCollectorSettingFilePath);
 				AssetDatabase.SaveAssets();
@@ -217,7 +225,7 @@ namespace MotionFramework.Editor
 			else if (findWrapper.LabelRule == AssetBundleCollectorSetting.EBundleLabelRule.LabelByFilePath)
 			{
 				return assetPath.Remove(assetPath.LastIndexOf(".")); // "Assets/Config/test.txt" --> "Assets/Config/test"
-			}		
+			}
 			else if (findWrapper.LabelRule == AssetBundleCollectorSetting.EBundleLabelRule.LabelByFolderPath)
 			{
 				return Path.GetDirectoryName(assetPath); // "Assets/Config/test.txt" --> "Assets/Config"

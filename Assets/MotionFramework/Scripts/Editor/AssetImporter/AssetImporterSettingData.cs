@@ -25,20 +25,28 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public static readonly Dictionary<string, IAssetProcessor> CacheProcessor = new Dictionary<string, IAssetProcessor>();
 
+		private static AssetImporterSetting _setting = null;
+		public static AssetImporterSetting Setting
+		{
+			get
+			{
+				if (_setting == null)
+					LoadSettingData();
+				return _setting;
+			}
+		}
+
 		/// <summary>
-		/// 配置文件
+		/// 加载配置文件
 		/// </summary>
-		public static AssetImporterSetting Setting;
-
-
-		static AssetImporterSettingData()
+		private static void LoadSettingData()
 		{
 			// 加载配置文件
-			Setting = AssetDatabase.LoadAssetAtPath<AssetImporterSetting>(EditorDefine.AssetImporterSettingFilePath);
-			if (Setting == null)
+			_setting = AssetDatabase.LoadAssetAtPath<AssetImporterSetting>(EditorDefine.AssetImporterSettingFilePath);
+			if (_setting == null)
 			{
-				Debug.LogWarning($"Create new ImportSetting.asset : {EditorDefine.AssetImporterSettingFilePath}");
-				Setting = ScriptableObject.CreateInstance<AssetImporterSetting>();
+				Debug.LogWarning($"Create new {nameof(AssetImporterSetting)}.asset : {EditorDefine.AssetImporterSettingFilePath}");
+				_setting = ScriptableObject.CreateInstance<AssetImporterSetting>();
 				EditorTools.CreateFileDirectory(EditorDefine.AssetImporterSettingFilePath);
 				AssetDatabase.CreateAsset(Setting, EditorDefine.AssetImporterSettingFilePath);
 				AssetDatabase.SaveAssets();
@@ -46,7 +54,7 @@ namespace MotionFramework.Editor
 			}
 			else
 			{
-				Debug.Log("Load ImportSetting.asset ok");
+				Debug.Log($"Load {nameof(AssetImporterSetting)}.asset ok");
 			}
 
 			// Clear

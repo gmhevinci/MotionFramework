@@ -23,7 +23,6 @@ namespace MotionFramework.Editor
 				_thisInstance = EditorWindow.GetWindow(typeof(ParticleProfilerWindow), false, "特效分析器", true) as ParticleProfilerWindow;
 				_thisInstance.minSize = new Vector2(800, 600);
 			}
-
 			_thisInstance.Show();
 		}
 
