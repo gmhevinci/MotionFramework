@@ -91,6 +91,9 @@ public abstract class CanvasWindow : UIWindow
 		}
 	}
 
+	public CanvasWindow()
+	{
+	}
 	protected override void OnAssetLoad(GameObject go)
 	{
 		// 获取组件

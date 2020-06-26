@@ -13,6 +13,11 @@ namespace MotionFramework.Window
 	{
 		private readonly List<UIWindow> _stack = new List<UIWindow>(100);
 
+		/// <summary>
+		/// 反射服务接口
+		/// </summary>
+		public IActivatorServices ActivatorServices { get; set; }
+
 		void IModule.OnCreate(object createParam)
 		{
 		}
@@ -97,7 +102,7 @@ namespace MotionFramework.Window
 		}
 		public UIWindow PreloadWindow(Type type, string location)
 		{
-			string windowName = type.Name;
+			string windowName = type.FullName;
 
 			// 如果窗口已经存在
 			if (IsContains(windowName))
@@ -121,7 +126,7 @@ namespace MotionFramework.Window
 		}
 		public UIWindow OpenWindow(Type type, string location, System.Object userData = null)
 		{
-			string windowName = type.Name;
+			string windowName = type.FullName;
 
 			// 如果窗口已经存在
 			UIWindow window;
@@ -150,7 +155,7 @@ namespace MotionFramework.Window
 		}
 		public void CloseWindow(Type type)
 		{
-			string windowName = type.Name;
+			string windowName = type.FullName;
 			UIWindow window = GetWindow(windowName);
 			if (window == null)
 				return;
@@ -231,15 +236,26 @@ namespace MotionFramework.Window
 
 		private UIWindow CreateInstance(Type type)
 		{
-			UIWindow window = Activator.CreateInstance(type) as UIWindow;
+			UIWindow window;
+			WindowAttribute attribute;
+
+			if (ActivatorServices != null)
+			{
+				window = ActivatorServices.CreateInstance(type) as UIWindow;
+				attribute = ActivatorServices.GetAttribute(type) as WindowAttribute;
+			}
+			else
+			{
+				window = Activator.CreateInstance(type) as UIWindow;
+				attribute = Attribute.GetCustomAttribute(type, typeof(WindowAttribute)) as WindowAttribute;
+			}
+
 			if (window == null)
 				throw new Exception($"Window {type.FullName} create instance failed.");
-
-			WindowAttribute attribute = Attribute.GetCustomAttribute(type, typeof(WindowAttribute)) as WindowAttribute;
 			if (attribute == null)
 				throw new Exception($"Window {type.FullName} not found {nameof(WindowAttribute)} attribute.");
 
-			window.Init(type.Name, attribute.WindowLayer, attribute.DontDestroy, attribute.FullScreen);
+			window.Init(type.FullName, attribute.WindowLayer, attribute.DontDestroy, attribute.FullScreen);
 			return window;
 		}
 		private UIWindow GetWindow(string name)

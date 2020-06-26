@@ -5,6 +5,7 @@
 //--------------------------------------------------
 using UnityEngine;
 using MotionFramework.Window;
+using MotionFramework;
 
 public class CanvasRoot : UIRoot
 {
@@ -38,9 +39,21 @@ public class CanvasRoot : UIRoot
 		}
 	}
 
+	public CanvasRoot()
+	{
+	}
 	protected override void OnAssetLoad(GameObject go)
 	{
-		UIDesktop = Go.transform.BFSearch("UIDesktop").gameObject;
-		UICamera = Go.transform.BFSearch("UICamera").GetComponent<Camera>();
+		var desktopTrans = Go.transform.BFSearch("UIDesktop");
+		if (desktopTrans != null)
+			UIDesktop = desktopTrans.gameObject;
+		else
+			MotionLog.Error("Not found UIDesktop gameObject in UIRoot");
+
+		var cameraTrans = Go.transform.BFSearch("UICamera");
+		if (cameraTrans != null)
+			UICamera = cameraTrans.GetComponent<Camera>();
+		else
+			MotionLog.Error("Not found UICamera gameObject in UIRoot");
 	}
 }
