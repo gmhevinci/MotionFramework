@@ -1,3 +1,14 @@
+v1.2.1 - 2020年6月26日
+改进
+1. [38f4f18] [Window] 添加异形屏支持接口
+2. [32b0f65] [Config] 添加反射服务接口，方便接入ILRuntime库
+3. [f82ea38] [Window] 添加反射服务接口，方便接入ILRuntime库
+
+修复
+1. [9104a1e] [Window] 修复一个异常
+2. [8292e94] [AssetImporter] 修复音频文件Normalize属性没有复制
+
+
 v1.2.0 - 2020年6月21日
 新增
 1. [Window] 新加窗口系统，默认支持UGUI
