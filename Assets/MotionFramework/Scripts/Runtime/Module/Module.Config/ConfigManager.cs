@@ -6,7 +6,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 
 namespace MotionFramework.Config
 {
@@ -27,6 +26,11 @@ namespace MotionFramework.Config
 		}
 
 		private readonly Dictionary<string, AssetConfig> _configs = new Dictionary<string, AssetConfig>();
+
+		/// <summary>
+		/// 反射服务接口
+		/// </summary>
+		public IActivatorServices ActivatorServices { get; set; }
 
 		void IModule.OnCreate(System.Object param)
 		{
@@ -61,7 +65,7 @@ namespace MotionFramework.Config
 		}
 		public AssetConfig LoadConfig(Type configType, string location)
 		{
-			string configName = Path.GetFileName(location);
+			string configName = configType.FullName;
 
 			// 防止重复加载
 			if (_configs.ContainsKey(configName))
@@ -70,15 +74,20 @@ namespace MotionFramework.Config
 				return null;
 			}
 
-			AssetConfig config = Activator.CreateInstance(configType) as AssetConfig;
-			if (config != null)
+			AssetConfig config;
+			if (ActivatorServices != null)
+				config = ActivatorServices.CreateInstance(configType) as AssetConfig;
+			else
+				config = Activator.CreateInstance(configType) as AssetConfig;
+
+			if(config == null)
 			{
-				config.Load(location);
-				_configs.Add(configName, config);
+				MotionLog.Error($"Config {configName} create instance  failed.");
 			}
 			else
 			{
-				MotionLog.Error($"Config {configType.FullName} create instance  failed.");
+				config.Load(location);
+				_configs.Add(configName, config);
 			}
 
 			return config;
@@ -93,13 +102,14 @@ namespace MotionFramework.Config
 		}
 		public AssetConfig GetConfig(Type configType)
 		{
+			string configName = configType.FullName;
 			foreach (var pair in _configs)
 			{
-				if (pair.Value.GetType() == configType)
+				if (pair.Key== configName)
 					return pair.Value;
 			}
 
-			MotionLog.Error($"Not found config {configType.Name}");
+			MotionLog.Error($"Not found config {configName}");
 			return null;
 		}
 
