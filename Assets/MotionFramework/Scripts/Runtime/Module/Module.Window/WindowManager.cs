@@ -196,9 +196,9 @@ namespace MotionFramework.Window
 
 		private void OnWindowPrepare(UIWindow window)
 		{
-			window.OnRefresh();
 			OnSortWindowDepth(window.WindowLayer);
 			OnSetWindowVisible(window.WindowLayer);
+			window.OnRefresh();
 		}
 		private void OnSortWindowDepth(int layer)
 		{
