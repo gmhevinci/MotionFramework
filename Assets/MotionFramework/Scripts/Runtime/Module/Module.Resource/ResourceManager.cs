@@ -50,7 +50,6 @@ namespace MotionFramework.Resource
 
 		private RepeatTimer _releaseTimer;
 
-
 		void IModule.OnCreate(System.Object param)
 		{
 			CreateParameters createParam = param as CreateParameters;
@@ -102,22 +101,19 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 同步加载接口
-		/// 注意：仅支持无依赖关系的资源
+		/// 获取资源的最终加载路径
 		/// </summary>
-		public T SyncLoad<T>(string location, string variant) where T : UnityEngine.Object
+		public string GetLoadPath(string location, string variant = "unity3d")
 		{
-			UnityEngine.Object result = null;
-
 			if (AssetSystem.SimulationOnEditor)
 			{
 #if UNITY_EDITOR
 				string loadPath = AssetPathHelper.FindDatabaseAssetPath(location);
-				result = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(loadPath);
-				if (result == null)
-					MotionLog.Error($"Failed to load {loadPath}");
+				if (string.IsNullOrEmpty(loadPath))
+					MotionLog.Warning($"Not found asset : {location}");
+				return loadPath;
 #else
-				throw new Exception($"AssetSystem virtual simulation only support unity editor.");
+				throw new Exception($"AssetSystem simulation only support unity editor.");
 #endif
 			}
 			else
@@ -127,21 +123,10 @@ namespace MotionFramework.Resource
 
 				string manifestPath = AssetSystem.BundleServices.ConvertLocationToManifestPath(location, variant);
 				string loadPath = AssetSystem.BundleServices.GetAssetBundleLoadPath(manifestPath);
-				AssetBundle bundle = AssetBundle.LoadFromFile(loadPath);
-				if (bundle != null)
-				{
-					string fileName = System.IO.Path.GetFileName(location);
-					result = bundle.LoadAsset<T>(fileName);
-				}
-
-				if (result == null)
-					MotionLog.Error($"Failed to load {loadPath}");
-
-				if (bundle != null)
-					bundle.Unload(false);
+				if (string.IsNullOrEmpty(loadPath))
+					MotionLog.Warning($"Not found asset : {location}");
+				return loadPath;
 			}
-
-			return result as T;
 		}
 	}
 }
