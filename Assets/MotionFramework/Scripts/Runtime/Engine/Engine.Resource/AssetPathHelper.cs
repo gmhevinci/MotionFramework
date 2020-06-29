@@ -4,7 +4,6 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.IO;
-using UnityEngine;
 using MotionFramework.IO;
 
 namespace MotionFramework.Resource
@@ -20,11 +19,20 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
+		/// 获取文件所在的目录路径（Linux格式）
+		/// </summary>
+		public static string GetDirectory(string filePath)
+		{
+			string directory = Path.GetDirectoryName(filePath);
+			return GetRegularPath(directory);
+		}
+
+		/// <summary>
 		/// 获取基于流文件夹的加载路径
 		/// </summary>
 		public static string MakeStreamingLoadPath(string path)
 		{
-			return StringFormat.Format("{0}/{1}", Application.streamingAssetsPath, path);
+			return StringFormat.Format("{0}/{1}", UnityEngine.Application.streamingAssetsPath, path);
 		}
 
 		/// <summary>
@@ -34,11 +42,10 @@ namespace MotionFramework.Resource
 		{
 #if UNITY_EDITOR
 			// 注意：为了方便调试查看，编辑器下把存储目录放到项目里
-			string projectPath = Path.GetDirectoryName(Application.dataPath);
-			projectPath = GetRegularPath(projectPath);
+			string projectPath = GetDirectory(UnityEngine.Application.dataPath);
 			return StringFormat.Format("{0}/Sandbox/{1}", projectPath, path);
 #else
-		return StringFormat.Format("{0}/Sandbox/{1}", Application.persistentDataPath, path);
+		return StringFormat.Format("{0}/Sandbox/{1}", UnityEngine.Application.persistentDataPath, path);
 #endif
 		}
 
@@ -65,13 +72,13 @@ namespace MotionFramework.Resource
 		public static string FindDatabaseAssetPath(string location)
 		{
 #if UNITY_EDITOR
-			// 如果定位地址的资源是一个文件夹
+			// 如果定位地址的资源是一个文件夹（代表这个文件夹内的所有资源在一个AssetBundle资源包里）
 			string path = $"{AssetSystem.LocationRoot}/{location}";
 			if (UnityEditor.AssetDatabase.IsValidFolder(path))
 				return path;
 
 			string fileName = Path.GetFileName(path);
-			string folderPath = Path.GetDirectoryName(path);
+			string folderPath = GetDirectory(path);
 			string assetPath = FindDatabaseAssetPath(folderPath, fileName);
 			if (string.IsNullOrEmpty(assetPath))
 				return path;
@@ -89,10 +96,19 @@ namespace MotionFramework.Resource
 #if UNITY_EDITOR
 			// AssetDatabase加载资源需要提供文件后缀格式，然而资源定位地址并没有文件格式信息。
 			// 所以我们通过查找该文件所在文件夹内同名的首个文件来确定AssetDatabase的加载路径。
+			// 注意：AssetDatabase.FindAssets() 返回文件内包括递归文件夹内所有资源的GUID
 			string[] guids = UnityEditor.AssetDatabase.FindAssets(string.Empty, new[] { folderPath });
 			for (int i = 0; i < guids.Length; i++)
 			{
-				string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]);
+				string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]);	
+
+				if (UnityEditor.AssetDatabase.IsValidFolder(assetPath))
+					continue;
+
+				string directory = GetDirectory(assetPath);
+				if (directory != folderPath)
+					continue;
+
 				string assetName = Path.GetFileNameWithoutExtension(assetPath);
 				if (assetName == fileName)
 					return assetPath;

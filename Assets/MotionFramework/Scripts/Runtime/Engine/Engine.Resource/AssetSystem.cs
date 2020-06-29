@@ -50,7 +50,7 @@ namespace MotionFramework.Resource
 			if (_isInitialize == false)
 			{
 				_isInitialize = true;
-				LocationRoot = locationRoot;
+				LocationRoot = AssetPathHelper.GetRegularPath(locationRoot);
 				SimulationOnEditor = simulationOnEditor;
 				BundleServices = bundleServices;
 				DecryptServices = decryptServices;
@@ -88,7 +88,7 @@ namespace MotionFramework.Resource
 				string loadPath = AssetPathHelper.FindDatabaseAssetPath(location);
 				return CreateLoaderInternal(loadPath, null);
 #else
-				throw new Exception("AssetSystem virtual simulation only support unity editor.");
+				throw new Exception("AssetSystem simulation only support unity editor.");
 #endif
 			}
 			else
@@ -116,7 +116,7 @@ namespace MotionFramework.Resource
 			}
 
 			// 创建加载器
-			AssetLoaderBase newLoader = null;
+			AssetLoaderBase newLoader;
 			if (SimulationOnEditor)
 				newLoader = new AssetDatabaseLoader(loadPath);
 			else
