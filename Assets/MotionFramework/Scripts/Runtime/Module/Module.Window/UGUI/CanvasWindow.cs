@@ -36,6 +36,9 @@ public abstract class CanvasWindow : UIWindow
 		{
 			if (_canvas != null)
 			{
+				if (_canvas.sortingOrder == value)
+					return;
+
 				// 设置父类
 				_canvas.sortingOrder = value;
 
@@ -43,13 +46,16 @@ public abstract class CanvasWindow : UIWindow
 				int depth = value;
 				for (int i = 0; i < _childCanvas.Length; i++)
 				{
-					depth += 5;
 					var canvas = _childCanvas[i];
-					canvas.sortingOrder = depth;
+					if (canvas != _canvas)
+					{
+						depth += 5; //注意递增值
+						canvas.sortingOrder = depth;
+					}
 				}
 
 				// 虚函数
-				OnSortDepth();
+				OnSortDepth(value);
 			}
 		}
 	}
@@ -70,8 +76,11 @@ public abstract class CanvasWindow : UIWindow
 		{
 			if (_canvas != null && _raycaster != null)
 			{
-				// 显示设置
 				int setLayer = value ? WINDOW_SHOW_LAYER : WINDOW_HIDE_LAYER;
+				if (_canvas.gameObject.layer == setLayer)
+					return;
+
+				// 显示设置
 				_canvas.gameObject.layer = setLayer;
 				for (int i = 0; i < _childCanvas.Length; i++)
 				{
@@ -86,7 +95,7 @@ public abstract class CanvasWindow : UIWindow
 				}
 
 				// 虚函数
-				OnSetVisible();
+				OnSetVisible(value);
 			}
 		}
 	}
@@ -104,8 +113,9 @@ public abstract class CanvasWindow : UIWindow
 		// 获取组件
 		_canvas = go.GetComponent<Canvas>();
 		if (_canvas == null)
-			throw new Exception($"Not found {nameof(Canvas)} in panel {WindowName}");			
+			throw new Exception($"Not found {nameof(Canvas)} in panel {WindowName}");
 		_canvas.overrideSorting = true;
+		_canvas.sortingOrder = 0;
 
 		// 获取组件
 		_raycaster = go.GetComponent<GraphicRaycaster>();

@@ -86,8 +86,8 @@ namespace MotionFramework.Window
 		public abstract void OnDestroy();
 		public abstract void OnRefresh();
 		public abstract void OnUpdate();
-		public virtual void OnSortDepth() { }
-		public virtual void OnSetVisible() { }
+		public virtual void OnSortDepth(int depth) { }
+		public virtual void OnSetVisible(bool visible) { }
 
 		internal void InternalOpen(System.Object userData)
 		{

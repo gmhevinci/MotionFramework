@@ -6,6 +6,7 @@
 using UnityEngine;
 using MotionFramework.Window;
 using MotionFramework;
+using UnityEngine.UI;
 
 public class CanvasRoot : UIRoot
 {
@@ -18,26 +19,6 @@ public class CanvasRoot : UIRoot
 	/// UI相机
 	/// </summary>
 	public override Camera UICamera { protected set; get; }
-
-	/// <summary>
-	/// 异形屏支持
-	/// </summary>
-	/// <param name="landscape">是否是横屏</param>
-	/// <param name="offset">偏移值</param>
-	public void NotchSupport(bool landscape, float offset)
-	{
-		var rectTrans = this.UIDesktop.transform as RectTransform;
-		if (landscape)
-		{
-			rectTrans.offsetMin = new Vector2(offset, 0);
-			rectTrans.offsetMax = new Vector2(-offset, 0);
-		}
-		else
-		{
-			rectTrans.offsetMin = new Vector2(0, offset);
-			rectTrans.offsetMax = new Vector2(0, -offset);
-		}
-	}
 
 	public CanvasRoot()
 	{
@@ -55,5 +36,55 @@ public class CanvasRoot : UIRoot
 			UICamera = cameraTrans.GetComponent<Camera>();
 		else
 			MotionLog.Error("Not found UICamera gameObject in UIRoot");
+	}
+
+	/// <summary>
+	/// 设置屏幕安全区域（异形屏支持）
+	/// </summary>
+	/// <param name="safeRect">安全区域</param>
+	public void ApplySafeRect(Rect safeRect)
+	{
+		var rectTrans = this.UIDesktop.transform as RectTransform;
+		CanvasScaler scaler = Go.GetComponent<CanvasScaler>();
+
+		// Convert safe area rectangle from absolute pixels to UGUI coordinates
+		float rateX = scaler.referenceResolution.x / Screen.width;
+		float rateY = scaler.referenceResolution.y / Screen.height;
+		float posX = (int)(safeRect.position.x * rateX);
+		float posY = (int)(safeRect.position.y * rateY);
+		float width = (int)(safeRect.size.x * rateX);
+		float height = (int)(safeRect.size.y * rateY);
+
+		float offsetMin = scaler.referenceResolution.y - posY - height;
+		float offsetMax = scaler.referenceResolution.x - posX - width;
+		rectTrans.offsetMin = new Vector2(posX, offsetMin);
+		rectTrans.offsetMax = new Vector2(-offsetMax, -posY);
+	}
+
+	/// <summary>
+	/// 编辑器下模拟IPhoneX异形屏
+	/// </summary>
+	public void SimulateIPhoneXNotchScreenOnEditor()
+	{
+#if UNITY_EDITOR
+		Rect rect;
+		if (Screen.height > Screen.width)
+		{
+			// 竖屏Portrait
+			float deviceWidth = 1125;
+			float deviceHeight = 2436;
+			rect = new Rect(0f / deviceWidth, 102f / deviceHeight, 1125f / deviceWidth, 2202f / deviceHeight);
+		}
+		else
+		{
+			// 横屏Landscape
+			float deviceWidth = 2436;
+			float deviceHeight = 1125;
+			rect = new Rect(132f / deviceWidth, 63f / deviceHeight, 2172f / deviceWidth, 1062f / deviceHeight);
+		}
+
+		Rect safeArea = new Rect(Screen.width * rect.x, Screen.height * rect.y, Screen.width * rect.width, Screen.height * rect.height);
+		ApplySafeRect(safeArea);
+#endif
 	}
 }

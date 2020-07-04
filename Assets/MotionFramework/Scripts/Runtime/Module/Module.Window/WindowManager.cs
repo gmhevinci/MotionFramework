@@ -169,7 +169,7 @@ namespace MotionFramework.Window
 				window.InternalDestroy();
 				Pop(window);
 				OnSortWindowDepth(window.WindowLayer);
-				OnSetWindowVisible(window.WindowLayer);
+				OnSetWindowVisible();
 			}
 		}
 
@@ -197,7 +197,7 @@ namespace MotionFramework.Window
 		private void OnWindowPrepare(UIWindow window)
 		{
 			OnSortWindowDepth(window.WindowLayer);
-			OnSetWindowVisible(window.WindowLayer);
+			OnSetWindowVisible();
 			window.OnRefresh();
 		}
 		private void OnSortWindowDepth(int layer)
@@ -212,24 +212,21 @@ namespace MotionFramework.Window
 				}
 			}
 		}
-		private void OnSetWindowVisible(int layer)
+		private void OnSetWindowVisible()
 		{
 			bool isHideNext = false;
 			for (int i = _stack.Count - 1; i >= 0; i--)
 			{
 				UIWindow window = _stack[i];
-				if (window.WindowLayer == layer)
+				if (isHideNext == false)
 				{
-					if (isHideNext == false)
-					{
-						window.Visible = true;
-						if (window.IsPrepare && window.IsOpen && window.FullScreen)
-							isHideNext = true;
-					}
-					else
-					{
-						window.Visible = false;
-					}
+					window.Visible = true;
+					if (window.IsPrepare && window.IsOpen && window.FullScreen)
+						isHideNext = true;
+				}
+				else
+				{
+					window.Visible = false;
 				}
 			}
 		}
