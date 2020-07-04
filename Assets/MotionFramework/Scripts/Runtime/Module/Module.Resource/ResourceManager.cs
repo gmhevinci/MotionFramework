@@ -48,7 +48,7 @@ namespace MotionFramework.Resource
 			public float AutoReleaseInterval;
 		}
 
-		private RepeatTimer _releaseTimer;
+		private Timer _releaseTimer;
 
 		void IModule.OnCreate(System.Object param)
 		{
@@ -61,7 +61,7 @@ namespace MotionFramework.Resource
 
 			// 创建间隔计时器
 			if (createParam.AutoReleaseInterval > 0)
-				_releaseTimer = new RepeatTimer(0, createParam.AutoReleaseInterval);
+				_releaseTimer = Timer.CreatePepeatTimer(0, createParam.AutoReleaseInterval);
 		}
 		void IModule.OnUpdate()
 		{

@@ -7,27 +7,121 @@
 namespace MotionFramework.Utility
 {
 	/// <summary>
-	/// 计时器基类
+	///  综合计时器
 	/// </summary>
-	public abstract class TimerBase
+	public sealed class Timer
 	{
-		protected readonly float _delay;
+		/// <summary>
+		/// 延迟后，触发一次
+		/// </summary>
+		public static Timer CreateOnceTimer(float delay)
+		{
+			return new Timer(delay, -1, -1, 1);
+		}
 		
-		// 需要重置的变量
-		protected float _delayTimer = 0;
-		protected bool _isOver = false;
-		protected bool _isPause = false;
+		/// <summary>
+		/// 延迟后，永久性的间隔触发
+		/// </summary>
+		/// <param name="delay">延迟时间</param>
+		/// <param name="interval">间隔时间</param>
+		public static Timer CreatePepeatTimer(float delay, float interval)
+		{
+			return new Timer(delay, interval, -1, -1);
+		}
 
-		public bool IsOver { get { return _isOver; } }
-		public bool IsPause { get { return _isPause; } }
+		/// <summary>
+		/// 延迟后，在一段时间内间隔触发
+		/// </summary>
+		/// <param name="delay">延迟时间</param>
+		/// <param name="interval">间隔时间</param>
+		/// <param name="duration">触发周期</param>
+		public static Timer CreatePepeatTimer(float delay, float interval, float duration)
+		{
+			return new Timer(delay, interval, duration, -1);
+		}
+
+		/// <summary>
+		/// 延迟后，间隔触发一定次数
+		/// </summary>
+		/// <param name="delay">延迟时间</param>
+		/// <param name="interval">间隔时间</param>
+		/// <param name="maxTriggerCount">最大触发次数</param>
+		public static Timer CreatePepeatTimer(float delay, float interval, long maxTriggerCount)
+		{
+			return new Timer(delay, interval, -1, maxTriggerCount);
+		}
+		
+		/// <summary>
+		/// 延迟后，在一段时间内触发
+		/// </summary>
+		/// <param name="delay">延迟时间</param>
+		/// <param name="duration">触发周期</param>
+		public static Timer CreateDurationTimer(float delay, float duration)
+		{
+			return new Timer(delay, -1, duration, -1);
+		}
+
+		/// <summary>
+		/// 延迟后，永久触发
+		/// </summary>
+		public static Timer CreateForeverTimer(float delay)
+		{
+			return new Timer(delay, -1, -1, -1);
+		}
+		
+
+		private readonly float _intervalTime;
+		private readonly float _durationTime;
+		private readonly long _maxTriggerCount;
+
+		// 需要重置的变量
+		private float _delayTimer = 0;
+		private float _durationTimer = 0;
+		private float _intervalTimer = 0;
+		private long _triggerCount = 0;
+
+		/// <summary>
+		/// 延迟时间
+		/// </summary>
+		public float DelayTime { private set; get; }
+
+		/// <summary>
+		/// 是否已经结束
+		/// </summary>
+		public bool IsOver { private set; get; }
+
+		/// <summary>
+		/// 是否已经暂停
+		/// </summary>
+		public bool IsPause { private set; get; }
+
+		/// <summary>
+		/// 延迟剩余时间
+		/// </summary>
+		public float Remaining
+		{
+			get
+			{
+				if (IsOver)
+					return 0f;
+				else
+					return System.Math.Max(0f, DelayTime - _delayTimer);
+			}
+		}
 
 		/// <summary>
 		/// 计时器
 		/// </summary>
-		/// <param name="delay">延迟计时时间</param>
-		public TimerBase(float delay)
+		/// <param name="delay">延迟时间</param>
+		/// <param name="interval">间隔时间</param>
+		/// <param name="duration">运行时间</param>
+		/// <param name="maxTriggerTimes">最大触发次数</param>
+		public Timer(float delay, float interval, float duration, long maxTriggerCount)
 		{
-			_delay = delay;
+			DelayTime = delay;
+			_intervalTime = interval;
+			_durationTime = duration;
+			_maxTriggerCount = maxTriggerCount;
 		}
 
 		/// <summary>
@@ -35,7 +129,7 @@ namespace MotionFramework.Utility
 		/// </summary>
 		public void Pause()
 		{
-			_isPause = true;
+			IsPause = true;
 		}
 
 		/// <summary>
@@ -43,7 +137,7 @@ namespace MotionFramework.Utility
 		/// </summary>
 		public void Resume()
 		{
-			_isPause = false;
+			IsPause = false;
 		}
 
 		/// <summary>
@@ -51,181 +145,63 @@ namespace MotionFramework.Utility
 		/// </summary>
 		public void Kill()
 		{
-			_isOver = true;
-		}
-
-		/// <summary>
-		/// 延迟剩余时间
-		/// </summary>
-		public float Remaining()
-		{
-			if (_isOver)
-				return 0f;
-			else
-				return System.Math.Max(0f, _delay - _delayTimer);
+			IsOver = true;
 		}
 
 		/// <summary>
 		/// 重置计时器
 		/// </summary>
-		public abstract void Reset();
+		public void Reset()
+		{
+			_delayTimer = 0;
+			_durationTimer = 0;
+			_intervalTimer = 0;
+			_triggerCount = 0;
+			IsOver = false;
+			IsPause = false;
+		}
 
 		/// <summary>
 		/// 更新计时器
 		/// </summary>
-		public abstract bool Update(float deltaTime);
-	}
-
-	/// <summary>
-	/// 延迟后，执行一次
-	/// </summary>
-	public class OnceTimer : TimerBase
-	{
-		public OnceTimer(float delay) : base(delay)
+		public bool Update(float deltaTime)
 		{
-		}
-		public override void Reset()
-		{
-			_delayTimer = 0;
-			_isOver = false;
-			_isPause = false;
-		}
-		public override bool Update(float deltaTime)
-		{
-			if (_isOver || _isPause)
+			if (IsOver || IsPause)
 				return false;
 
 			_delayTimer += deltaTime;
-			if (_delayTimer > _delay)
-			{
-				Kill();
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-	}
-
-	/// <summary>
-	/// 延迟后，间隔执行
-	/// </summary>
-	public class RepeatTimer : TimerBase
-	{
-		private readonly float _repeat;
-
-		// 需要重置的变量
-		private float _repeatTimer = 0;
-
-		public RepeatTimer(float delay, float repeat) : base(delay)
-		{
-			_repeat = repeat;
-		}
-		public override void Reset()
-		{
-			_repeatTimer = 0;
-			_delayTimer = 0;
-			_isOver = false;
-			_isPause = false;
-		}
-		public override bool Update(float deltaTime)
-		{
-			if (_isOver || _isPause)
+			if (_delayTimer < DelayTime)
 				return false;
 
-			_delayTimer += deltaTime;
-			if (_delayTimer > _delay)
-			{
-				_repeatTimer += deltaTime;
-				if (_repeatTimer > _repeat)
-				{
-					_repeatTimer = 0;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
-		}
-	}
-
-	/// <summary>
-	/// 延迟后，执行一段时间
-	/// </summary>
-	public class DurationTimer : TimerBase
-	{
-		private readonly float _duration;
-
-		// 需要重置的变量
-		private float _durationTimer = 0;
-
-		public DurationTimer(float delay, float duration) : base(delay)
-		{
-			_duration = duration;
-		}
-		public override void Reset()
-		{
-			_durationTimer = 0;
-			_delayTimer = 0;
-			_isOver = false;
-			_isPause = false;
-		}
-		public override bool Update(float deltaTime)
-		{
-			if (_isOver || _isPause)
-				return false;
-
-			_delayTimer += deltaTime;
-			if (_delayTimer > _delay)
-			{
+			if(_intervalTime > 0)
+				_intervalTimer += deltaTime;
+			if (_durationTime > 0)
 				_durationTimer += deltaTime;
-				if (_durationTimer > _duration)
-				{
-					Kill();
+
+			// 检测间隔执行
+			if (_intervalTime > 0)
+			{		
+				if (_intervalTimer < _intervalTime)
 					return false;
-				}
-				else
-				{
-					return true;
-				}
+				_intervalTimer = 0;
 			}
-			else
+
+			// 检测结束条件
+			if (_durationTime > 0)
 			{
-				return false;
+				if (_durationTimer >= _durationTime)
+					Kill();
 			}
-		}
-	}
 
-	/// <summary>
-	/// 延迟后，永久执行
-	/// </summary>
-	public class ForeverTimer : TimerBase
-	{
-		public ForeverTimer(float delay) : base(delay)
-		{
-		}
-		public override void Reset()
-		{
-			_delayTimer = 0;
-			_isOver = false;
-			_isPause = false;
-		}
-		public override bool Update(float deltaTime)
-		{
-			if (_isOver || _isPause)
-				return false;
+			// 检测结束条件
+			if (_maxTriggerCount > 0)
+			{
+				_triggerCount++;
+				if (_triggerCount >= _maxTriggerCount)
+					Kill();
+			}
 
-			_delayTimer += deltaTime;
-			if (_delayTimer > _delay)
-				return true;
-			else
-				return false;
+			return true;
 		}
 	}
 }
