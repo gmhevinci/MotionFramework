@@ -8,9 +8,9 @@ using System.Collections.Generic;
 namespace MotionFramework.AI
 {
 	/// <summary>
-	/// 流程
+	/// 流程状态机
 	/// </summary>
-	public class Procedure
+	public class ProcedureFsm
 	{
 		private readonly List<string> _nodeNames = new List<string>();
 		private readonly FiniteStateMachine _fsm = new FiniteStateMachine();

@@ -14,7 +14,7 @@ namespace MotionFramework.Patch
 {
 	internal class PatchManagerImpl
 	{
-		private readonly Procedure _procedure = new Procedure();
+		private readonly ProcedureFsm _procedure = new ProcedureFsm();
 
 		// 参数相关
 		private Dictionary<RuntimePlatform, string> _webServers;
