@@ -1,6 +1,6 @@
 ### 有限状态机 (Engine.AI.FSM)
 
-定义有限状态机或流程的节点
+定义状态机节点
 ```C#
 public class CustomNode : IFsmNode
 {
@@ -8,7 +8,7 @@ public class CustomNode : IFsmNode
 
 	public CustomNode()
 	{
-		Name = "Node";
+		Name = "MyNodeName";
 	}
 
 	void IFsmNode.OnEnter()
@@ -26,13 +26,12 @@ public class CustomNode : IFsmNode
 }
 ```
 
-创建有限状态机
+创建普通的有限状态机
 ```C#
 using MotionFramework.AI;
 
 public class Test
 {
-	// 有限状态机
 	private FiniteStateMachine _fsm = new FiniteStateMachine();
 
 	public void Start()
@@ -66,30 +65,30 @@ public class Test
 }
 ```
 
-创建流程
+创建流程状态机
 ```C#
 using MotionFramework.AI;
 
 public class Test
 {
-	private Procedure _procedure = new Procedure();
+	private ProcedureFsm _proceFsm = new ProcedureFsm();
 
 	public void Start()
 	{
 		// 添加节点
 		// 注意：按照先后顺序添加流程节点
-		_procedure.AddNode(new CustomNode1());
-		_procedure.AddNode(new CustomNode2());
-		_procedure.AddNode(new CustomNode3());
-		_procedure.AddNode(new CustomNode4());
+		_proceFsm.AddNode(new CustomNode1());
+		_proceFsm.AddNode(new CustomNode2());
+		_proceFsm.AddNode(new CustomNode3());
+		_proceFsm.AddNode(new CustomNode4());
 
-		// 运行流程
-		_procedure.Run();
+		// 运行
+		_proceFsm.Run();
 	}
 	public void Update
 	{
 		// 更新
-		_procedure.Update();
+		_proceFsm.Update();
 	}
 }
 ```
