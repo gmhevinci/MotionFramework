@@ -13,6 +13,16 @@ namespace MotionFramework.Flow
 	/// </summary>
 	public class SequenceNode : IFlowNode
 	{
+		public static SequenceNode Allocate(params IFlowNode[] nodes)
+		{
+			SequenceNode sequence = new SequenceNode();
+			foreach (var node in nodes)
+			{
+				sequence.AddNode(node);
+			}
+			return sequence;
+		}
+
 		protected List<IFlowNode> _nodes = new List<IFlowNode>();
 		protected IFlowNode _currentNode;
 

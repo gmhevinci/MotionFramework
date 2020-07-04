@@ -7,28 +7,25 @@
 namespace MotionFramework.Flow
 {
 	/// <summary>
-	/// 帧数等待节点
+	/// 条件节点
 	/// </summary>
-	public class WaitFrameNode: IFlowNode
+	public class WaitUntilNode : IFlowNode
 	{
-		public static WaitFrameNode Allocate(int waitFrame)
+		public static WaitUntilNode Allocate(System.Func<bool> condition)
 		{
-			WaitFrameNode node = new WaitFrameNode
+			WaitUntilNode node = new WaitUntilNode
 			{
-				WaitFrame = waitFrame,
+				Condition = condition,
 			};
 			return node;
 		}
 
-		private int _framer = 0;
-
 		public bool IsDone { private set; get; } = false;
-		public int WaitFrame { set; get; }
+		public System.Func<bool> Condition { set; get; }
 
 		void IFlowNode.OnUpdate()
 		{
-			_framer++;
-			IsDone = _framer > WaitFrame;
+			IsDone = Condition.Invoke();
 		}
 		void IFlowNode.OnDispose()
 		{
