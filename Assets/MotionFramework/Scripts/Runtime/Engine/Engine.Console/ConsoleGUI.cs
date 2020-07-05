@@ -26,6 +26,7 @@ namespace MotionFramework.Console
 
 		/// <summary>
 		/// 创建一些高度和字体大小固定的控件样式
+		/// 控制台的标准分辨率为 : 1920X1080
 		/// </summary>
 		internal static void InitGlobalStyle()
 		{
@@ -33,32 +34,44 @@ namespace MotionFramework.Console
 			{
 				_initGlobalStyle = true;
 
+				float scale;
+				if (Screen.height > Screen.width)
+				{
+					// 竖屏Portrait
+					scale = Screen.width / 1080f;
+				}
+				else
+				{
+					// 横屏Landscape
+					scale = Screen.width / 1920f;
+				}
+
 				ToolbarStyle = new GUIStyle(GUI.skin.button);
-				ToolbarStyle.fontSize = 28;
-				ToolbarStyle.fixedHeight = 40;
+				ToolbarStyle.fontSize = (int)(28 * scale);
+				ToolbarStyle.fixedHeight = (int)(40 * scale);
 
 				ButtonStyle = new GUIStyle(GUI.skin.button);
-				ButtonStyle.fontSize = 28;
-				ButtonStyle.fixedHeight = 40;
+				ButtonStyle.fontSize = (int)(28 * scale);
+				ButtonStyle.fixedHeight = (int)(40 * scale);
 
 				ToogleStyle1 = new GUIStyle(GUI.skin.button);
-				ToogleStyle1.fontSize = 26;
-				ToogleStyle1.fixedHeight = 35;
+				ToogleStyle1.fontSize = (int)(26 * scale);
+				ToogleStyle1.fixedHeight = (int)(35 * scale);
 
 				ToogleStyle2 = new GUIStyle(GUI.skin.box);
-				ToogleStyle2.fontSize = 26;
-				ToogleStyle2.fixedHeight = 35;
+				ToogleStyle2.fontSize = (int)(26 * scale);
+				ToogleStyle2.fixedHeight = (int)(35 * scale);
 
 				TextFieldStyle = new GUIStyle(GUI.skin.textField);
-				TextFieldStyle.fontSize = 22;
-				TextFieldStyle.fixedHeight = 30;
+				TextFieldStyle.fontSize = (int)(22 * scale);
+				TextFieldStyle.fixedHeight = (int)(30 * scale);
 
 				LableStyle = new GUIStyle(GUI.skin.label);
-				LableStyle.fontSize = 24;
+				LableStyle.fontSize = (int)(24 * scale);
 
 				RichLabelStyle = GUIStyle.none;
 				RichLabelStyle.richText = true;
-				RichLabelFontSize = 24;
+				RichLabelFontSize = (int)(24 * scale);
 			}
 		}
 

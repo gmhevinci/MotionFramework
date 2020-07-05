@@ -44,6 +44,10 @@ namespace MotionFramework.Console
 		private static Texture _bgTexture;
 		private static string[] _toolbarTitles;
 
+		/// <summary>
+		/// 偏移像素
+		/// </summary>
+		public static float OffsetPixels { get; set; }
 
 		/// <summary>
 		/// 初始化控制台
@@ -101,6 +105,18 @@ namespace MotionFramework.Console
 			// 注意：GUI接口只能在OnGUI内部使用
 			ConsoleGUI.InitGlobalStyle();
 
+			// 整体偏移
+			if (OffsetPixels > 0)
+				GUILayout.Space(OffsetPixels);
+
+			if(_visibleToggle == false)
+			{
+				// 显示开关
+				if (GUILayout.Button("X", ConsoleGUI.ButtonStyle, GUILayout.Width(ConsoleGUI.ButtonStyle.fixedHeight)))
+					_visibleToggle = !_visibleToggle;
+				return;
+			}
+
 			GUILayout.BeginHorizontal();
 			{
 				// 绘制背景
@@ -110,8 +126,6 @@ namespace MotionFramework.Console
 				// 显示开关
 				if (GUILayout.Button("X", ConsoleGUI.ButtonStyle, GUILayout.Width(ConsoleGUI.ButtonStyle.fixedHeight)))
 					_visibleToggle = !_visibleToggle;
-				if (_visibleToggle == false)
-					return;
 
 				// 绘制按钮栏
 				_showIndex = GUILayout.Toolbar(_showIndex, _toolbarTitles, ConsoleGUI.ToolbarStyle);
