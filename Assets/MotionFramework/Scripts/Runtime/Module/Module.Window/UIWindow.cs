@@ -5,7 +5,6 @@
 //--------------------------------------------------
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Resource;
 using MotionFramework.Event;
@@ -14,10 +13,16 @@ namespace MotionFramework.Window
 {
 	public abstract class UIWindow : IEnumerator
 	{
-		protected readonly EventGroup _eventGroup = new EventGroup();
 		private AssetReference _assetRef;
 		private AssetOperationHandle _handle;
 		private System.Action<UIWindow> _prepareCallback;
+		protected bool IsCreate { private set; get; } = false;
+
+		/// <summary>
+		/// 事件组
+		/// 在面板销毁的时候，自动移除注册的事件
+		/// </summary>
+		protected readonly EventGroup EventGrouper = new EventGroup();
 
 		/// <summary>
 		/// 窗口名称
@@ -28,11 +33,6 @@ namespace MotionFramework.Window
 		/// 窗口层级
 		/// </summary>
 		public int WindowLayer { private set; get; }
-
-		/// <summary>
-		/// 是否为常驻窗口
-		/// </summary>
-		public bool DontDestroy { private set; get; }
 
 		/// <summary>
 		/// 是否是全屏窗口
@@ -60,11 +60,6 @@ namespace MotionFramework.Window
 		public bool IsPrepare { get { return Go != null; } }
 
 		/// <summary>
-		/// 窗口是否打开
-		/// </summary>
-		public bool IsOpen { private set; get; } = false;
-
-		/// <summary>
 		/// 窗口深度值
 		/// </summary>
 		public abstract int Depth { get; set; }
@@ -75,45 +70,55 @@ namespace MotionFramework.Window
 		public abstract bool Visible { get; set; }
 
 
-		public void Init(string name, int layer, bool dontDestroy, bool fullScreen)
+		public void Init(string name, int layer, bool fullScreen)
 		{
 			WindowName = name;
 			WindowLayer = layer;
-			DontDestroy = dontDestroy;
 			FullScreen = fullScreen;
 		}
 		public abstract void OnCreate();
-		public abstract void OnDestroy();
 		public abstract void OnRefresh();
 		public abstract void OnUpdate();
-		public virtual void OnSortDepth(int depth) { }
-		public virtual void OnSetVisible(bool visible) { }
+		public abstract void OnDestroy();
 
-		internal void InternalOpen(System.Object userData)
+		internal void TryInvoke(System.Action<UIWindow> prepareCallback, System.Object userData)
 		{
 			UserData = userData;
-			IsOpen = true;
-			if (Go != null && Go.activeSelf == false)
-				Go.SetActive(true);
-		}
-		internal void InternalClose()
-		{
-			IsOpen = false;
-			if (Go != null && Go.activeSelf)
-				Go.SetActive(false);
-		}
-		internal void InternalLoad(string location, System.Action<UIWindow> prepareCallback)
-		{
 			if (IsPrepare)
 				prepareCallback?.Invoke(this);
-
+			else
+				_prepareCallback = prepareCallback;
+		}
+		internal void InternalLoad(string location, System.Action<UIWindow> prepareCallback, System.Object userData)
+		{
 			if (_assetRef == null)
 			{
+				UserData = userData;
 				_prepareCallback = prepareCallback;
 				_assetRef = new AssetReference(location);
 				_handle = _assetRef.LoadAssetAsync<GameObject>();
 				_handle.Completed += Handle_Completed;
 			}
+			else
+			{
+				throw new System.NotImplementedException();
+			}
+		}
+		internal void InternalCreate()
+		{
+			if(IsCreate == false)
+			{
+				IsCreate = true;
+				OnCreate();
+			}
+		}
+		internal void InternalRefresh()
+		{
+			OnRefresh();
+		}
+		internal void InternalUpdate()
+		{
+			OnUpdate();
 		}
 		internal void InternalDestroy()
 		{
@@ -121,6 +126,7 @@ namespace MotionFramework.Window
 			_prepareCallback = null;
 
 			// 销毁面板对象
+			IsCreate = false;
 			if (Go != null)
 			{
 				OnDestroy();
@@ -136,12 +142,9 @@ namespace MotionFramework.Window
 			}
 
 			// 移除所有缓存的事件监听
-			_eventGroup.RemoveAllListener();
+			EventGrouper.RemoveAllListener();
 		}
-		internal void InternalUpdate()
-		{
-			OnUpdate();
-		}
+
 		private void Handle_Completed(AssetOperationHandle obj)
 		{
 			if (_handle.AssetObject == null)
@@ -158,12 +161,8 @@ namespace MotionFramework.Window
 			GameObject uiDesktop = WindowManager.Instance.Root.UIDesktop;
 			Go.transform.SetParent(uiDesktop.transform, false);
 
-			// 调用重载函数
+			// 扩展类的逻辑处理
 			OnAssetLoad(Go);
-			OnCreate();
-
-			// 最后设置是否激活
-			Go.SetActive(IsOpen);
 
 			// 通知UI管理器
 			_prepareCallback?.Invoke(this);

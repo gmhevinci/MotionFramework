@@ -29,7 +29,7 @@ namespace MotionFramework.Window
 				if (_stack.Count != count)
 					break;
 				UIWindow window = _stack[i];
-				if (window.IsPrepare && window.IsOpen)
+				if (window.IsPrepare)
 					window.InternalUpdate();
 			}
 		}
@@ -59,7 +59,11 @@ namespace MotionFramework.Window
 		/// <summary>
 		/// 查询顶端窗口
 		/// </summary>
-		public bool IsTop(string name, int layer)
+		public bool IsTop<T>(int layer)
+		{
+			return IsTop(typeof(T), layer);
+		}
+		public bool IsTop(Type type, int layer)
 		{
 			UIWindow lastOne = null;
 			for (int i = 0; i < _stack.Count; i++)
@@ -71,7 +75,25 @@ namespace MotionFramework.Window
 			if (lastOne == null)
 				return false;
 
-			return lastOne.WindowName == name;
+			string windowName = type.FullName;
+			return lastOne.WindowName == windowName;
+		}
+
+		/// <summary>
+		/// 查询顶端窗口
+		/// </summary>
+		public bool IsTop<T>()
+		{
+			return IsTop(typeof(T));
+		}
+		public bool IsTop(Type type)
+		{
+			if (_stack.Count == 0)
+				return false;
+
+			string windowName = type.FullName;
+			UIWindow lastOne = _stack[_stack.Count - 1];
+			return lastOne.WindowName == windowName;
 		}
 
 		/// <summary>
@@ -94,28 +116,6 @@ namespace MotionFramework.Window
 		}
 
 		/// <summary>
-		/// 预加载窗口
-		/// </summary>
-		public UIWindow PreloadWindow<T>(string location) where T : UIWindow
-		{
-			return PreloadWindow(typeof(T), location);
-		}
-		public UIWindow PreloadWindow(Type type, string location)
-		{
-			string windowName = type.FullName;
-
-			// 如果窗口已经存在
-			if (IsContains(windowName))
-				return GetWindow(windowName);
-
-			UIWindow window = CreateInstance(type);
-			Push(window); // 首次压入
-			window.InternalClose();
-			window.InternalLoad(location, OnWindowPrepare);
-			return window;
-		}
-
-		/// <summary>
 		/// 打开窗口
 		/// </summary>
 		/// <param name="location">资源路径</param>
@@ -129,21 +129,21 @@ namespace MotionFramework.Window
 			string windowName = type.FullName;
 
 			// 如果窗口已经存在
-			UIWindow window;
 			if (IsContains(windowName))
 			{
-				window = GetWindow(windowName);
-				Pop(window); //弹出旧窗口
+				UIWindow window = GetWindow(windowName);
+				Pop(window); //弹出窗口
+				Push(window); //重新压入
+				window.TryInvoke(OnWindowPrepare, userData);
+				return window;
 			}
 			else
 			{
-				window = CreateInstance(type);
+				UIWindow window = CreateInstance(type);
+				Push(window); //首次压入
+				window.InternalLoad(location, OnWindowPrepare, userData);
+				return window;
 			}
-
-			Push(window); // 首次压入或重新压入
-			window.InternalOpen(userData);
-			window.InternalLoad(location, OnWindowPrepare);
-			return window;
 		}
 
 		/// <summary>
@@ -160,45 +160,31 @@ namespace MotionFramework.Window
 			if (window == null)
 				return;
 
-			if (window.DontDestroy)
-			{
-				window.InternalClose();
-			}
-			else
-			{
-				window.InternalDestroy();
-				Pop(window);
-				OnSortWindowDepth(window.WindowLayer);
-				OnSetWindowVisible();
-			}
+			window.InternalDestroy();
+			Pop(window);
+			OnSortWindowDepth(window.WindowLayer);
+			OnSetWindowVisible();
 		}
 
 		/// <summary>
 		/// 关闭所有窗口
-		/// 注意：常驻窗口除外
 		/// </summary>
 		public void CloseAll()
 		{
-			List<UIWindow> tempList = new List<UIWindow>();
 			for (int i = 0; i < _stack.Count; i++)
 			{
 				UIWindow window = _stack[i];
-				if (window.DontDestroy == false)
-					tempList.Add(window);
+				window.InternalDestroy();
 			}
-
-			for (int i = 0; i < tempList.Count; i++)
-			{
-				UIWindow window = tempList[i];
-				CloseWindow(window.GetType());
-			}
+			_stack.Clear();
 		}
 
 		private void OnWindowPrepare(UIWindow window)
 		{
 			OnSortWindowDepth(window.WindowLayer);
+			window.InternalCreate();
+			window.InternalRefresh();
 			OnSetWindowVisible();
-			window.OnRefresh();
 		}
 		private void OnSortWindowDepth(int layer)
 		{
@@ -221,7 +207,7 @@ namespace MotionFramework.Window
 				if (isHideNext == false)
 				{
 					window.Visible = true;
-					if (window.IsPrepare && window.IsOpen && window.FullScreen)
+					if (window.IsPrepare && window.FullScreen)
 						isHideNext = true;
 				}
 				else
@@ -252,7 +238,7 @@ namespace MotionFramework.Window
 			if (attribute == null)
 				throw new Exception($"Window {type.FullName} not found {nameof(WindowAttribute)} attribute.");
 
-			window.Init(type.FullName, attribute.WindowLayer, attribute.DontDestroy, attribute.FullScreen);
+			window.Init(type.FullName, attribute.WindowLayer, attribute.FullScreen);
 			return window;
 		}
 		private UIWindow GetWindow(string name)

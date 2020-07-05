@@ -55,7 +55,8 @@ public abstract class CanvasWindow : UIWindow
 				}
 
 				// 虚函数
-				OnSortDepth(value);
+				if (IsCreate)
+					OnSortDepth(value);
 			}
 		}
 	}
@@ -95,14 +96,20 @@ public abstract class CanvasWindow : UIWindow
 				}
 
 				// 虚函数
-				OnSetVisible(value);
+				if(IsCreate)
+					OnSetVisible(value);
 			}
 		}
 	}
 
+
 	public CanvasWindow()
 	{
 	}
+
+	/// <summary>
+	/// 资源准备完毕
+	/// </summary>
 	protected override void OnAssetLoad(GameObject go)
 	{
 		// 获取组件
@@ -122,6 +129,16 @@ public abstract class CanvasWindow : UIWindow
 		_childCanvas = go.GetComponentsInChildren<Canvas>(true);
 		_childRaycaster = go.GetComponentsInChildren<GraphicRaycaster>(true);
 	}
+
+	/// <summary>
+	/// 当触发窗口的层级排序
+	/// </summary>
+	public virtual void OnSortDepth(int depth) { }
+
+	/// <summary>
+	/// 当因为全屏遮挡触发窗口的显隐
+	/// </summary>
+	public virtual void OnSetVisible(bool visible) { }
 
 	#region UI组件相关
 	/// <summary>
