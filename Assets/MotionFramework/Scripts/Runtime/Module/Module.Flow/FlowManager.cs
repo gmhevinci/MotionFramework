@@ -4,6 +4,7 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections.Generic;
+using MotionFramework.Console;
 
 namespace MotionFramework.Flow
 {
@@ -21,6 +22,8 @@ namespace MotionFramework.Flow
 		void IModule.OnUpdate()
 		{
 			_temper.Clear();
+
+			// 注意：这里按照添加的先后顺序执行所有流程
 			for (int i=0; i<_nodes.Count; i++)
 			{
 				var node = _nodes[i];
@@ -32,11 +35,14 @@ namespace MotionFramework.Flow
 			// 移除完成的节点
 			for(int i=0; i<_temper.Count; i++)
 			{
-				_nodes.Remove(_temper[i]);
+				var node = _temper[i];		
+				_nodes.Remove(node);
+				node.OnDispose();
 			}
 		}
 		void IModule.OnGUI()
 		{
+			ConsoleGUI.Lable($"[{nameof(FlowManager)}] Flow total count : {_nodes.Count}");
 		}
 
 		public void Add(IFlowNode node)
@@ -46,7 +52,10 @@ namespace MotionFramework.Flow
 		}
 		public void Remove(IFlowNode node)
 		{
-			_nodes.Remove(node);
+			if(_nodes.Remove(node))
+			{
+				node.OnDispose();
+			}
 		}
 	}
 }
