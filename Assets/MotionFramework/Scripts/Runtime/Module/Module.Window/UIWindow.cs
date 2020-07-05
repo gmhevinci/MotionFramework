@@ -8,6 +8,7 @@ using System.Collections;
 using UnityEngine;
 using MotionFramework.Resource;
 using MotionFramework.Event;
+using MotionFramework.Flow;
 
 namespace MotionFramework.Window
 {
@@ -20,9 +21,15 @@ namespace MotionFramework.Window
 
 		/// <summary>
 		/// 事件组
-		/// 在面板销毁的时候，自动移除注册的事件
+		/// 在窗口销毁的时候，自动移除注册的事件
 		/// </summary>
-		protected readonly EventGroup EventGrouper = new EventGroup();
+		public readonly EventGroup EventGrouper = new EventGroup();
+
+		/// <summary>
+		/// 流程组
+		/// 在窗口销毁的时候，自动移除注册的流程
+		/// </summary>
+		public readonly FlowGroup FlowGrouper = new FlowGroup();
 
 		/// <summary>
 		/// 窗口名称
@@ -62,12 +69,17 @@ namespace MotionFramework.Window
 		/// <summary>
 		/// 窗口深度值
 		/// </summary>
-		public abstract int Depth { get; set; }
+		public abstract int Depth { get; internal set; }
 
 		/// <summary>
 		/// 窗口可见性
 		/// </summary>
-		public abstract bool Visible { get; set; }
+		public abstract bool Visible { get; internal set; }
+
+		/// <summary>
+		/// 窗口打开的动画时长
+		/// </summary>
+		public float WindowOpenAnimationTime { get; set; }
 
 
 		public void Init(string name, int layer, bool fullScreen)
@@ -143,6 +155,8 @@ namespace MotionFramework.Window
 
 			// 移除所有缓存的事件监听
 			EventGrouper.RemoveAllListener();
+			// 移除所有缓存的流程节点
+			FlowGrouper.RemoveAllNodes();
 		}
 
 		private void Handle_Completed(AssetOperationHandle obj)

@@ -6,6 +6,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MotionFramework.Flow;
+using MotionFramework.Console;
 
 namespace MotionFramework.Window
 {
@@ -35,6 +37,7 @@ namespace MotionFramework.Window
 		}
 		void IModule.OnGUI()
 		{
+			ConsoleGUI.Lable($"[{nameof(WindowManager)}] Window total count : {_stack.Count}");
 		}
 
 		/// <summary>
@@ -184,7 +187,16 @@ namespace MotionFramework.Window
 			OnSortWindowDepth(window.WindowLayer);
 			window.InternalCreate();
 			window.InternalRefresh();
-			OnSetWindowVisible();
+
+			if (window.WindowOpenAnimationTime > 0f)
+			{
+				var delayNode = TimerNode.AllocateDelay(window.WindowOpenAnimationTime, () => { OnSetWindowVisible(); });
+				window.FlowGrouper.AddNode(delayNode);
+			}
+			else
+			{
+				OnSetWindowVisible();
+			}
 		}
 		private void OnSortWindowDepth(int layer)
 		{
