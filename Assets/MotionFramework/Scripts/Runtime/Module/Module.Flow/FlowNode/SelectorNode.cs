@@ -8,8 +8,8 @@ using System.Collections.Generic;
 namespace MotionFramework.Flow
 {
 	/// <summary>
-	/// 复合节点
-	/// 节点列表随机执行，在随机节点结束后复合节点结束。
+	/// 随机执行的复合节点
+	/// 说明：节点列表随机执行，在随机节点结束后复合节点结束。
 	/// </summary>
 	public class SelectorNode : IFlowNode
 	{

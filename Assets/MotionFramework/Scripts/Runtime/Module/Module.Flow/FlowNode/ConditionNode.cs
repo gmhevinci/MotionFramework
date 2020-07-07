@@ -9,11 +9,11 @@ namespace MotionFramework.Flow
 	/// <summary>
 	/// 条件节点
 	/// </summary>
-	public class WaitUntilNode : IFlowNode
+	public class ConditionNode : IFlowNode
 	{
-		public static WaitUntilNode Allocate(System.Func<bool> condition)
+		public static ConditionNode Allocate(System.Func<bool> condition)
 		{
-			WaitUntilNode node = new WaitUntilNode
+			ConditionNode node = new ConditionNode
 			{
 				Condition = condition,
 			};

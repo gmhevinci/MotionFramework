@@ -8,18 +8,15 @@ using System.Collections.Generic;
 namespace MotionFramework.Flow
 {
 	/// <summary>
-	/// 复合节点
-	/// 节点列表依次执行，每个子节点结束之后便执行下一个节点，所有节点都结束时复合节点结束。
+	/// 顺序执行的复合节点
+	/// 说明：节点列表依次执行，每个子节点结束之后便执行下一个节点，所有节点都结束时复合节点结束。
 	/// </summary>
 	public class SequenceNode : IFlowNode
 	{
 		public static SequenceNode Allocate(params IFlowNode[] nodes)
 		{
 			SequenceNode sequence = new SequenceNode();
-			foreach (var node in nodes)
-			{
-				sequence.AddNode(node);
-			}
+			sequence.AddNode(nodes);	
 			return sequence;
 		}
 
