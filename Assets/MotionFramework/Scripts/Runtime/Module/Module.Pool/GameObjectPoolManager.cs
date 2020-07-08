@@ -36,14 +36,14 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 创建指定资源的游戏对象池
 		/// </summary>
-		public void CreatePool(string location, int capacity = 0)
+		public GameObjectCollector CreatePool(string location, int capacity = 0)
 		{
 			if (_collectors.ContainsKey(location))
 			{
 				MotionLog.Warning($"Asset is already existed : {location}");
-				return;
+				return _collectors[location];
 			}
-			CreatePoolInternal(location, capacity);
+			return CreatePoolInternal(location, capacity);
 		}
 		private GameObjectCollector CreatePoolInternal(string location, int capacity)
 		{

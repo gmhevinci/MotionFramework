@@ -11,7 +11,7 @@ using MotionFramework.Resource;
 
 namespace MotionFramework.Pool
 {
-	internal class GameObjectCollector
+	public class GameObjectCollector : IEnumerator
 	{
 		private readonly Queue<SpawnGameObject> _collector;
 		private readonly List<SpawnGameObject> _loadingSpawn = new List<SpawnGameObject>();
@@ -209,5 +209,19 @@ namespace MotionFramework.Pool
 			cloneObj.transform.SetParent(_root);
 			cloneObj.transform.localPosition = Vector3.zero;
 		}
+
+		#region 异步相关
+		bool IEnumerator.MoveNext()
+		{
+			return !IsDone;
+		}
+		void IEnumerator.Reset()
+		{
+		}
+		object IEnumerator.Current
+		{
+			get { return null; }
+		}
+		#endregion
 	}
 }
