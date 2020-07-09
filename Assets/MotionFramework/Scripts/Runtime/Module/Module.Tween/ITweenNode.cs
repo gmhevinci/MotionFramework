@@ -4,9 +4,9 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
-	public interface IFlowNode
+	public interface ITweenNode
 	{
 		bool IsDone { get; }
 

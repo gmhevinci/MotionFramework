@@ -4,7 +4,7 @@
 //--------------------------------------------------
 using System;
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
 	/// <summary>
 	/// 补差委托方法

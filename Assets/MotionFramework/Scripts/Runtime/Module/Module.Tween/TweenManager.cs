@@ -6,15 +6,15 @@
 using System.Collections.Generic;
 using MotionFramework.Console;
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
 	/// <summary>
-	/// 流程管理器
+	/// 补间管理器
 	/// </summary>
-	public class FlowManager : ModuleSingleton<FlowManager>, IModule
+	public class TweenManager : ModuleSingleton<TweenManager>, IModule
 	{
-		private readonly List<IFlowNode> _nodes = new List<IFlowNode>(1000);
-		private readonly List<IFlowNode> _temper = new List<IFlowNode>(1000);
+		private readonly List<ITweenNode> _nodes = new List<ITweenNode>(1000);
+		private readonly List<ITweenNode> _temper = new List<ITweenNode>(1000);
 
 		void IModule.OnCreate(object createParam)
 		{
@@ -42,15 +42,15 @@ namespace MotionFramework.Flow
 		}
 		void IModule.OnGUI()
 		{
-			ConsoleGUI.Lable($"[{nameof(FlowManager)}] Flow total count : {_nodes.Count}");
+			ConsoleGUI.Lable($"[{nameof(TweenManager)}] Flow total count : {_nodes.Count}");
 		}
 
-		public void Add(IFlowNode node)
+		public void Add(ITweenNode node)
 		{
 			if (_nodes.Contains(node) == false)
 				_nodes.Add(node);
 		}
-		public void Remove(IFlowNode node)
+		public void Remove(ITweenNode node)
 		{
 			if(_nodes.Remove(node))
 			{

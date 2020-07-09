@@ -4,12 +4,12 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
 	/// <summary>
 	/// 执行节点
 	/// </summary>
-	public class ExecuteNode : IFlowNode
+	public class ExecuteNode : ITweenNode
 	{
 		public static ExecuteNode Allocate(System.Action execute)
 		{
@@ -23,12 +23,12 @@ namespace MotionFramework.Flow
 		public bool IsDone { private set; get; } = false;
 		public System.Action Execute { set; get; }
 
-		void IFlowNode.OnUpdate()
+		void ITweenNode.OnUpdate()
 		{
 			Execute.Invoke();
 			IsDone = true;
 		}
-		void IFlowNode.OnDispose()
+		void ITweenNode.OnDispose()
 		{
 		}
 	}

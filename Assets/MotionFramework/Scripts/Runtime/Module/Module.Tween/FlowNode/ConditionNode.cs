@@ -4,12 +4,12 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
 	/// <summary>
 	/// 条件节点
 	/// </summary>
-	public class ConditionNode : IFlowNode
+	public class ConditionNode : ITweenNode
 	{
 		public static ConditionNode Allocate(System.Func<bool> condition)
 		{
@@ -23,11 +23,11 @@ namespace MotionFramework.Flow
 		public bool IsDone { private set; get; } = false;
 		public System.Func<bool> Condition { set; get; }
 
-		void IFlowNode.OnUpdate()
+		void ITweenNode.OnUpdate()
 		{
 			IsDone = Condition.Invoke();
 		}
-		void IFlowNode.OnDispose()
+		void ITweenNode.OnDispose()
 		{
 		}
 	}

@@ -5,9 +5,9 @@
 //--------------------------------------------------
 using UnityEngine;
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
-	public abstract class TweenNode<T> : IFlowNode where T: struct
+	public abstract class TweenNode<T> : ITweenNode where T: struct
 	{
 		private readonly float _duration;
 		private readonly T _from;
@@ -35,10 +35,10 @@ namespace MotionFramework.Flow
 			_to = to;
 			_easeFun = TweenEase.Linear.Default;
 		}
-		void IFlowNode.OnDispose()
+		void ITweenNode.OnDispose()
 		{
 		}
-		void IFlowNode.OnUpdate()
+		void ITweenNode.OnUpdate()
 		{
 			float delatTime = _ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
 			_running += delatTime;

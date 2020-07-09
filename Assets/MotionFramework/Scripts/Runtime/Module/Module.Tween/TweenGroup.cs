@@ -5,22 +5,22 @@
 //--------------------------------------------------
 using System.Collections.Generic;
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
-	public class FlowGroup
+	public class TweenGroup
 	{
-		private readonly List<IFlowNode> _cachedNodes = new List<IFlowNode>(100);
+		private readonly List<ITweenNode> _cachedNodes = new List<ITweenNode>(100);
 
 		/// <summary>
 		/// 添加一个节点
 		/// </summary>
-		public void AddNode(IFlowNode node)
+		public void AddNode(ITweenNode node)
 		{
 			if (_cachedNodes.Contains(node))
 				return;
 
 			_cachedNodes.Add(node);
-			FlowManager.Instance.Add(node);
+			TweenManager.Instance.Add(node);
 		}
 
 		/// <summary>
@@ -30,7 +30,7 @@ namespace MotionFramework.Flow
 		{
 			for(int i=0; i<_cachedNodes.Count; i++)
 			{
-				FlowManager.Instance.Remove(_cachedNodes[i]);
+				TweenManager.Instance.Remove(_cachedNodes[i]);
 			}
 			_cachedNodes.Clear();
 		}

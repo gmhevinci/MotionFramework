@@ -5,32 +5,32 @@
 //--------------------------------------------------
 using System.Collections.Generic;
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
 	/// <summary>
 	/// 并行执行的复合节点
 	/// 说明：节点列表并行执行，所有子节点同时执行，所有节点都结束时复合节点结束。
 	/// </summary>
-	public class ParallelNode : IFlowNode
+	public class ParallelNode : ITweenNode
 	{
-		public static ParallelNode Allocate(params IFlowNode[] nodes)
+		public static ParallelNode Allocate(params ITweenNode[] nodes)
 		{
 			ParallelNode sequence = new ParallelNode();
 			sequence.AddNode(nodes);
 			return sequence;
 		}
 
-		protected List<IFlowNode> _nodes = new List<IFlowNode>();
+		protected List<ITweenNode> _nodes = new List<ITweenNode>();
 
 		public bool IsDone { private set; get; } = false;
 
-		public void AddNode(IFlowNode node)
+		public void AddNode(ITweenNode node)
 		{
 			if (_nodes.Contains(node) == false)
 				_nodes.Add(node);
 		}
 
-		public void AddNode(params IFlowNode[] nodes)
+		public void AddNode(params ITweenNode[] nodes)
 		{
 			foreach (var node in nodes)
 			{
@@ -38,7 +38,7 @@ namespace MotionFramework.Flow
 			}
 		}
 
-		void IFlowNode.OnUpdate()
+		void ITweenNode.OnUpdate()
 		{
 			bool isAllDone = true;
 			for (int index = 0; index < _nodes.Count; index++)
@@ -56,7 +56,7 @@ namespace MotionFramework.Flow
 			}
 			IsDone = isAllDone;
 		}
-		void IFlowNode.OnDispose()
+		void ITweenNode.OnDispose()
 		{
 		}
 	}

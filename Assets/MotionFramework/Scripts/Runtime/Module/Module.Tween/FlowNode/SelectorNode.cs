@@ -5,31 +5,31 @@
 //--------------------------------------------------
 using System.Collections.Generic;
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
 	/// <summary>
 	/// 随机执行的复合节点
 	/// 说明：节点列表随机执行，在随机节点结束后复合节点结束。
 	/// </summary>
-	public class SelectorNode : IFlowNode
+	public class SelectorNode : ITweenNode
 	{
-		protected List<IFlowNode> _nodes = new List<IFlowNode>();
-		protected IFlowNode _selectNode;
+		protected List<ITweenNode> _nodes = new List<ITweenNode>();
+		protected ITweenNode _selectNode;
 
 		public bool IsDone { private set; get; } = false;
 
-		public IFlowNode SelectNode
+		public ITweenNode SelectNode
 		{
 			get { return _selectNode; }
 		}
 
-		public void AddNode(IFlowNode node)
+		public void AddNode(ITweenNode node)
 		{
 			if (_nodes.Contains(node) == false)
 				_nodes.Add(node);
 		}
 
-		public void AddNode(params IFlowNode[] nodes)
+		public void AddNode(params ITweenNode[] nodes)
 		{
 			foreach (var node in nodes)
 			{
@@ -37,7 +37,7 @@ namespace MotionFramework.Flow
 			}
 		}
 
-		void IFlowNode.OnUpdate()
+		void ITweenNode.OnUpdate()
 		{
 			if(_selectNode == null)
 			{
@@ -58,7 +58,7 @@ namespace MotionFramework.Flow
 				IsDone = _selectNode.IsDone;
 			}
 		}
-		void IFlowNode.OnDispose()
+		void ITweenNode.OnDispose()
 		{
 		}
 	}

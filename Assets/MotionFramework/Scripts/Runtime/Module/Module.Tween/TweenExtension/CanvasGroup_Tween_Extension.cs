@@ -5,7 +5,7 @@
 //--------------------------------------------------
 using UnityEngine;
 
-namespace MotionFramework.Flow
+namespace MotionFramework.Tween
 {
     public static class CanvasGroup_Tween_Extension
     {
