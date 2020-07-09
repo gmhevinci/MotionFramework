@@ -9,6 +9,8 @@ namespace MotionFramework.Tween
 {
 	public abstract class TweenNode<T> : ITweenNode where T: struct
 	{
+		public delegate T TweenLerpDelegate(T from, T to, float progress);
+		
 		private readonly float _duration;
 		private readonly T _from;
 		private readonly T _to;
@@ -16,7 +18,8 @@ namespace MotionFramework.Tween
 		private float _running = 0;
 		private bool _ignoreTimeScale = false;
 		private System.Action<T> _update = null;
-		protected TweenEaseDelegate _easeFun;
+		protected TweenEaseDelegate _easeFun = null;
+		protected TweenLerpDelegate _lerpFun = null;
 
 		/// <summary>
 		/// 补间结果
@@ -44,7 +47,8 @@ namespace MotionFramework.Tween
 			_running += delatTime;
 			if (_duration > 0 && _running < _duration)
 			{
-				Result = UpdateEase(_from, _to, _running, _duration);
+				float progress = _easeFun.Invoke(_running, 0, 1, _duration);
+				Result = UpdateResultValue(_from, _to, progress);
 				_update(Result);
 			}
 			else
@@ -65,13 +69,18 @@ namespace MotionFramework.Tween
 			_easeFun = ease;
 			return this;
 		}
+		public TweenNode<T> SetLerp(TweenLerpDelegate lerp)
+		{
+			_lerpFun = lerp;
+			return this;
+		}
 		public TweenNode<T> SetUpdate(System.Action<T> update)
 		{
 			_update = update;
 			return this;
 		}
 
-		protected abstract T UpdateEase(T from, T to, float running, float duration);
+		protected abstract T UpdateResultValue(T from, T to, float progress);
 	}
 
 	/// <summary>
@@ -87,9 +96,12 @@ namespace MotionFramework.Tween
 		public FloatTween(float duration, float from, float to) : base(duration, from, to)
 		{
 		}
-		protected override float UpdateEase(float from, float to, float running, float duration)
+		protected override float UpdateResultValue(float from, float to, float progress)
 		{
-			return _easeFun.Invoke(running, from, (to - from), duration);
+			if (_lerpFun == null)
+				return Mathf.Lerp(from, to, progress);
+			else
+				return _lerpFun.Invoke(from, to, progress);
 		}
 	}
 
@@ -106,11 +118,12 @@ namespace MotionFramework.Tween
 		public Vector2Tween(float duration, Vector2 from, Vector2 to) : base(duration, from, to)
 		{
 		}
-		protected override Vector2 UpdateEase(Vector2 from, Vector2 to, float running, float duration)
+		protected override Vector2 UpdateResultValue(Vector2 from, Vector2 to, float progress)
 		{
-			float x = _easeFun.Invoke(running, from.x, (to.x - from.x), duration);
-			float y = _easeFun.Invoke(running, from.y, (to.y - from.y), duration);
-			return new Vector2(x, y);
+			if (_lerpFun == null)
+				return Vector2.Lerp(from, to, progress);
+			else
+				return _lerpFun.Invoke(from, to, progress);
 		}
 	}
 
@@ -127,12 +140,12 @@ namespace MotionFramework.Tween
 		public Vector3Tween(float duration, Vector3 from, Vector3 to) : base(duration, from, to)
 		{
 		}
-		protected override Vector3 UpdateEase(Vector3 from, Vector3 to, float running, float duration)
+		protected override Vector3 UpdateResultValue(Vector3 from, Vector3 to, float progress)
 		{
-			float x = _easeFun.Invoke(running, from.x, (to.x - from.x), duration);
-			float y = _easeFun.Invoke(running, from.y, (to.y - from.y), duration);
-			float z = _easeFun.Invoke(running, from.z, (to.z - from.z), duration);
-			return new Vector3(x, y, z);
+			if (_lerpFun == null)
+				return Vector3.Lerp(from, to, progress);
+			else
+				return _lerpFun.Invoke(from, to, progress);
 		}
 	}
 
@@ -149,13 +162,12 @@ namespace MotionFramework.Tween
 		public Vector4Tween(float duration, Vector4 from, Vector4 to) : base(duration, from, to)
 		{
 		}
-		protected override Vector4 UpdateEase(Vector4 from, Vector4 to, float running, float duration)
+		protected override Vector4 UpdateResultValue(Vector4 from, Vector4 to, float progress)
 		{
-			float x = _easeFun.Invoke(running, from.x, (to.x - from.x), duration);
-			float y = _easeFun.Invoke(running, from.y, (to.y - from.y), duration);
-			float z = _easeFun.Invoke(running, from.z, (to.z - from.z), duration);
-			float w = _easeFun.Invoke(running, from.w, (to.w - from.w), duration);
-			return new Vector4(x, y, z, w);
+			if (_lerpFun == null)
+				return Vector4.Lerp(from, to, progress);
+			else
+				return _lerpFun.Invoke(from, to, progress);
 		}
 	}
 
@@ -172,13 +184,12 @@ namespace MotionFramework.Tween
 		public ColorTween(float duration, Color from, Color to) : base(duration, from, to)
 		{
 		}
-		protected override Color UpdateEase(Color from, Color to, float running, float duration)
+		protected override Color UpdateResultValue(Color from, Color to, float progress)
 		{
-			float r = _easeFun.Invoke(running, from.r, (to.r - from.r), duration);
-			float g = _easeFun.Invoke(running, from.g, (to.g - from.g), duration);
-			float b = _easeFun.Invoke(running, from.b, (to.b - from.b), duration);
-			float a = _easeFun.Invoke(running, from.a, (to.a - from.a), duration);
-			return new Color(r, g, b, a);
+			if (_lerpFun == null)
+				return Color.Lerp(from, to, progress);
+			else
+				return _lerpFun.Invoke(from, to, progress);
 		}
 	}
 
@@ -195,13 +206,12 @@ namespace MotionFramework.Tween
 		public QuaternionTween(float duration, Quaternion from, Quaternion to) : base(duration, from, to)
 		{
 		}
-		protected override Quaternion UpdateEase(Quaternion from, Quaternion to, float running, float duration)
+		protected override Quaternion UpdateResultValue(Quaternion from, Quaternion to, float progress)
 		{
-			float x = _easeFun.Invoke(running, from.x, (to.x - from.x), duration);
-			float y = _easeFun.Invoke(running, from.y, (to.y - from.y), duration);
-			float z = _easeFun.Invoke(running, from.z, (to.z - from.z), duration);
-			float w = _easeFun.Invoke(running, from.w, (to.w - from.w), duration);
-			return new Quaternion(x, y, z, w);
+			if (_lerpFun == null)
+				return Quaternion.Lerp(from, to, progress);
+			else
+				return _lerpFun.Invoke(from, to, progress);
 		}
 	}
 }
