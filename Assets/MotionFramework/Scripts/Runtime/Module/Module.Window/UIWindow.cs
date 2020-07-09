@@ -8,7 +8,7 @@ using System.Collections;
 using UnityEngine;
 using MotionFramework.Resource;
 using MotionFramework.Event;
-using MotionFramework.Flow;
+using MotionFramework.Tween;
 
 namespace MotionFramework.Window
 {
@@ -26,10 +26,10 @@ namespace MotionFramework.Window
 		public readonly EventGroup EventGrouper = new EventGroup();
 
 		/// <summary>
-		/// 流程组
-		/// 在窗口销毁的时候，自动移除注册的流程
+		/// 补间组
+		/// 在窗口销毁的时候，自动移除注册的节点
 		/// </summary>
-		public readonly FlowGroup FlowGrouper = new FlowGroup();
+		public readonly TweenGroup TweenGrouper = new TweenGroup();
 
 		/// <summary>
 		/// 窗口名称
@@ -155,8 +155,9 @@ namespace MotionFramework.Window
 
 			// 移除所有缓存的事件监听
 			EventGrouper.RemoveAllListener();
-			// 移除所有缓存的流程节点
-			FlowGrouper.RemoveAllNodes();
+
+			// 移除所有缓存的补间节点
+			TweenGrouper.RemoveAllNodes();
 		}
 
 		private void Handle_Completed(AssetOperationHandle obj)

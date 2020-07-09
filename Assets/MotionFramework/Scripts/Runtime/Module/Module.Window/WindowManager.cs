@@ -6,7 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MotionFramework.Flow;
+using MotionFramework.Tween;
 using MotionFramework.Console;
 
 namespace MotionFramework.Window
@@ -191,7 +191,7 @@ namespace MotionFramework.Window
 			if (window.WindowOpenAnimationTime > 0f)
 			{
 				var delayNode = TimerNode.AllocateDelay(window.WindowOpenAnimationTime, () => { OnSetWindowVisible(); });
-				window.FlowGrouper.AddNode(delayNode);
+				window.TweenGrouper.AddNode(delayNode);
 			}
 			else
 			{
