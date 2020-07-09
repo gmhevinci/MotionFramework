@@ -39,13 +39,8 @@ namespace MotionFramework.Editor
 		private bool _isInit = false;
 		private void Init()
 		{
-			// 字典KEY转换为数组
-			List<string> keyList = new List<string>();
-			foreach (var pair in AssetImporterSettingData.CacheTypes)
-			{
-				keyList.Add(pair.Key);
-			}
-			_processorClassArray = keyList.ToArray();
+			List<string> names = AssetImporterSettingData.GetProcessorNames();
+			_processorClassArray = names.ToArray();
 		}
 		private int NameToIndex(string name)
 		{

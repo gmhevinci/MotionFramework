@@ -18,12 +18,12 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 导入器类型集合
 		/// </summary>
-		public static readonly Dictionary<string, System.Type> CacheTypes = new Dictionary<string, System.Type>();
+		private static readonly Dictionary<string, System.Type> _cacheTypes = new Dictionary<string, System.Type>();
 
 		/// <summary>
 		/// 导入器集合
 		/// </summary>
-		public static readonly Dictionary<string, IAssetProcessor> CacheProcessor = new Dictionary<string, IAssetProcessor>();
+		private static readonly Dictionary<string, IAssetProcessor> _cacheProcessor = new Dictionary<string, IAssetProcessor>();
 
 		private static AssetImporterSetting _setting = null;
 		public static AssetImporterSetting Setting
@@ -58,19 +58,34 @@ namespace MotionFramework.Editor
 			}
 
 			// Clear
-			CacheTypes.Clear();
-			CacheProcessor.Clear();
+			_cacheTypes.Clear();
+			_cacheProcessor.Clear();
 
 			// 获取所有资源处理器类型
-			List<Type> types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.MotionFrameworkAssemblyEditorName, typeof(IAssetProcessor));
-			List<Type> temps = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetProcessor));
-			types.AddRange(temps);
+			List<Type> types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetProcessor));
+			types.Add(typeof(DefaultProcessor));
 			for (int i = 0; i < types.Count; i++)
 			{
 				Type type = types[i];
-				if (CacheTypes.ContainsKey(type.Name) == false)
-					CacheTypes.Add(type.Name, type);
+				if (_cacheTypes.ContainsKey(type.Name) == false)
+					_cacheTypes.Add(type.Name, type);
 			}
+		}
+
+		/// <summary>
+		/// 获取所有导入器名称列表
+		/// </summary>
+		public static List<string> GetProcessorNames()
+		{
+			if (_setting == null)
+				LoadSettingData();
+
+			List<string> names = new List<string>();
+			foreach (var pair in _cacheTypes)
+			{
+				names.Add(pair.Key);
+			}
+			return names;
 		}
 
 		/// <summary>
@@ -173,14 +188,15 @@ namespace MotionFramework.Editor
 
 			// 先从缓存里获取
 			IAssetProcessor processor = null;
-			if (CacheProcessor.TryGetValue(className, out processor))
+			if (_cacheProcessor.TryGetValue(className, out processor))
 				return processor;
 
 			// 如果不存在创建处理器
 			System.Type type;
-			if (CacheTypes.TryGetValue(className, out type))
+			if (_cacheTypes.TryGetValue(className, out type))
 			{
 				processor = (IAssetProcessor)Activator.CreateInstance(type);
+				_cacheProcessor.Add(className, processor);
 				return processor;
 			}
 			else
