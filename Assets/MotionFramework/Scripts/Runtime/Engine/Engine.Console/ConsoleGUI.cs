@@ -15,6 +15,8 @@ namespace MotionFramework.Console
 	{
 		private static bool _initGlobalStyle = false;
 
+		public static GUIStyle SliderStyle { private set; get; }
+		public static GUIStyle SliderThumbStyle { private set; get; }
 		public static GUIStyle ToolbarStyle { private set; get; }
 		public static GUIStyle ButtonStyle { private set; get; }
 		public static GUIStyle ToogleStyle1 { private set; get; }
@@ -45,6 +47,13 @@ namespace MotionFramework.Console
 					// 横屏Landscape
 					scale = Screen.width / 1920f;
 				}
+
+				SliderStyle = new GUIStyle(GUI.skin.horizontalSlider);
+				SliderStyle.fixedHeight = (int)(20 * scale);
+
+				SliderThumbStyle = new GUIStyle(GUI.skin.horizontalSliderThumb);
+				SliderThumbStyle.fixedHeight = (int)(25 * scale);
+				SliderThumbStyle.fixedWidth = (int)(25 * scale);
 
 				ToolbarStyle = new GUIStyle(GUI.skin.button);
 				ToolbarStyle.fontSize = (int)(28 * scale);

@@ -15,12 +15,39 @@ namespace MotionFramework.Console
 	{
 		// GUI相关
 		private Vector2 _scrollPos = Vector2.zero;
+		private int _timeScaleLevel = 5;
 
 		void IConsoleWindow.OnGUI()
 		{
 			int space = 15;
 
 			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 0);
+
+			// 时间缩放相关
+			GUILayout.Space(space);
+			GUILayout.BeginHorizontal();	
+			if (GUILayout.Button("Reset", ConsoleGUI.ButtonStyle, GUILayout.Width(100)))
+			{
+				_timeScaleLevel = 5;
+				SetTimeScale(_timeScaleLevel);
+			}
+			if (GUILayout.Button("+", ConsoleGUI.ButtonStyle, GUILayout.Width(100)))
+			{
+				_timeScaleLevel++;
+				_timeScaleLevel = Mathf.Clamp(_timeScaleLevel, 0, 9);
+				SetTimeScale(_timeScaleLevel);
+			}
+			if (GUILayout.Button("-", ConsoleGUI.ButtonStyle, GUILayout.Width(100)))
+			{
+				_timeScaleLevel--;
+				_timeScaleLevel = Mathf.Clamp(_timeScaleLevel, 0, 9);
+				SetTimeScale(_timeScaleLevel);
+			}
+			GUILayout.EndHorizontal();
+
+			GUILayout.Space(space);
+			ConsoleGUI.Lable($"Elapse Time : {GetElapseTime()}");
+			ConsoleGUI.Lable($"Time Scale : {Time.timeScale}");
 
 			GUILayout.Space(space);
 			ConsoleGUI.Lable($"Unity Version : {Application.unityVersion}");
@@ -77,8 +104,6 @@ namespace MotionFramework.Console
 			ConsoleGUI.Lable($"Battery Level : {SystemInfo.batteryLevel}");
 			ConsoleGUI.Lable($"Battery Status : {SystemInfo.batteryStatus}");
 			ConsoleGUI.Lable($"Network Status : {GetNetworkState()}");
-			ConsoleGUI.Lable($"Elapse Time : {GetElapseTime()}");
-			ConsoleGUI.Lable($"Time Scale : {Time.timeScale}");
 
 			ConsoleGUI.EndScrollView();
 		}
@@ -100,6 +125,21 @@ namespace MotionFramework.Console
 			int hour = (int)((Time.realtimeSinceStartup % 86400f) / 3600f);
 			int sec = (int)(((Time.realtimeSinceStartup % 86400f) % 3600f) / 60f);
 			return $"{day}天{hour}小时{sec}分";
+		}
+		private void SetTimeScale(int timeScaleLevel)
+		{
+			if (timeScaleLevel == 5)
+			{
+				Time.timeScale = 1f;
+			}
+			else if (timeScaleLevel > 5)
+			{
+				Time.timeScale = timeScaleLevel - 4;
+			}
+			else
+			{
+				Time.timeScale = timeScaleLevel / 5f;
+			}
 		}
 	}
 }
