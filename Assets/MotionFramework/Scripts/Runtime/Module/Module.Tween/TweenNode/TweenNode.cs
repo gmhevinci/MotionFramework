@@ -9,8 +9,24 @@ namespace MotionFramework.Tween
 {
 	public abstract class TweenNode<T> : ITweenNode where T: struct
 	{
+		/// <summary>
+		/// 补间委托方法
+		/// </summary>
+		/// <param name="t">运行时长</param>
+		/// <param name="b">起始数值</param>
+		/// <param name="c">变化差值</param>
+		/// <param name="d">总时长</param>
+		public delegate float TweenEaseDelegate(float t, float b, float c, float d);
+
+		/// <summary>
+		/// 插值委托方法
+		/// </summary>
+		/// <param name="from">起始数值</param>
+		/// <param name="to">目标数值</param>
+		/// <param name="progress">进度值</param>
 		public delegate T TweenLerpDelegate(T from, T to, float progress);
 		
+
 		private readonly float _duration;
 		private readonly T _from;
 		private readonly T _to;
@@ -64,6 +80,32 @@ namespace MotionFramework.Tween
 			_ignoreTimeScale = value;
 			return this;
 		}
+		public TweenNode<T> SetEase(AnimationCurve easeCurve)
+		{
+			if (easeCurve == null)
+			{
+				MotionLog.Error("AnimationCurve is null. Tween ease function use default.");
+				_easeFun = TweenEase.Linear.Default;
+				return this;
+			}
+
+			// 获取动画总时长
+			float length = 0f;
+			for (int i = 0; i < easeCurve.keys.Length; i++)
+			{
+				var key = easeCurve.keys[i];
+				if (key.time > length)
+					length = key.time;
+			}
+
+			_easeFun = delegate (float t, float b, float c, float d)
+			{
+				float time = length * (t / d);
+				return easeCurve.Evaluate(time) * c + b;
+			};
+
+			return this;
+		}
 		public TweenNode<T> SetEase(TweenEaseDelegate ease)
 		{
 			_easeFun = ease;
@@ -99,7 +141,7 @@ namespace MotionFramework.Tween
 		protected override float UpdateResultValue(float from, float to, float progress)
 		{
 			if (_lerpFun == null)
-				return Mathf.Lerp(from, to, progress);
+				return Mathf.LerpUnclamped(from, to, progress);
 			else
 				return _lerpFun.Invoke(from, to, progress);
 		}
@@ -143,7 +185,7 @@ namespace MotionFramework.Tween
 		protected override Vector3 UpdateResultValue(Vector3 from, Vector3 to, float progress)
 		{
 			if (_lerpFun == null)
-				return Vector3.Lerp(from, to, progress);
+				return Vector3.LerpUnclamped(from, to, progress);
 			else
 				return _lerpFun.Invoke(from, to, progress);
 		}
@@ -165,7 +207,7 @@ namespace MotionFramework.Tween
 		protected override Vector4 UpdateResultValue(Vector4 from, Vector4 to, float progress)
 		{
 			if (_lerpFun == null)
-				return Vector4.Lerp(from, to, progress);
+				return Vector4.LerpUnclamped(from, to, progress);
 			else
 				return _lerpFun.Invoke(from, to, progress);
 		}
@@ -187,7 +229,7 @@ namespace MotionFramework.Tween
 		protected override Color UpdateResultValue(Color from, Color to, float progress)
 		{
 			if (_lerpFun == null)
-				return Color.Lerp(from, to, progress);
+				return Color.LerpUnclamped(from, to, progress);
 			else
 				return _lerpFun.Invoke(from, to, progress);
 		}
@@ -209,7 +251,7 @@ namespace MotionFramework.Tween
 		protected override Quaternion UpdateResultValue(Quaternion from, Quaternion to, float progress)
 		{
 			if (_lerpFun == null)
-				return Quaternion.Lerp(from, to, progress);
+				return Quaternion.LerpUnclamped(from, to, progress);
 			else
 				return _lerpFun.Invoke(from, to, progress);
 		}

@@ -3,11 +3,11 @@
 // Copyright©2020-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
-using UnityEngine;
+using MotionFramework.Tween;
 
-namespace MotionFramework.Tween
+namespace UnityEngine
 {
-    public static class CanvasGroup_Tween_Extension
+    public static class UnityEngine_CanvasGroup_Tween_Extension
     {
         public static FloatTween TweenAlpha(this CanvasGroup obj, float duration, float from, float to)
         {

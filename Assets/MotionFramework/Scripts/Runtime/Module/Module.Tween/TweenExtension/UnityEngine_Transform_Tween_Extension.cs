@@ -3,11 +3,11 @@
 // Copyright©2020-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
-using UnityEngine;
+using MotionFramework.Tween;
 
-namespace MotionFramework.Tween
+namespace UnityEngine
 {
-    public static class Transform_Tween_Extension
+    public static class UnityEngine_Transform_Tween_Extension
     {
 		public static Vector3Tween TweenScale(this Transform obj, float duration, Vector3 from, Vector3 to)
         {

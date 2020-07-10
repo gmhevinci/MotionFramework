@@ -7,14 +7,8 @@ using System;
 namespace MotionFramework.Tween
 {
 	/// <summary>
-	/// 补差委托方法
+	/// 公共补间方法
 	/// </summary>
-	/// <param name="t">运行时长</param>
-	/// <param name="b">起始数值</param>
-	/// <param name="c">变化差值</param>
-	/// <param name="d">总时长</param>
-	public delegate float TweenEaseDelegate(float t, float b, float c, float d);
-
 	public static class TweenEase
 	{
 		public static class Linear
@@ -133,6 +127,22 @@ namespace MotionFramework.Tween
 				return -c / 2 * ((t -= 2) * t * t * t - 2) + b;
 			}
 		}
+		public static class Quad
+		{
+			public static float EaseIn(float t, float b, float c, float d)
+			{
+				return c * (t /= d) * t + b;
+			}
+			public static float EaseOut(float t, float b, float c, float d)
+			{
+				return -c * (t /= d) * (t - 2) + b;
+			}
+			public static float EaseInOut(float t, float b, float c, float d)
+			{
+				if ((t /= d / 2) < 1) return c / 2 * t * t + b;
+				return -c / 2 * ((--t) * (t - 2) - 1) + b;
+			}
+		}
 		public static class Elastic
 		{
 			public static float EaseIn(float t, float b, float c, float d)
@@ -162,22 +172,6 @@ namespace MotionFramework.Tween
 
 				if (t < 1) return -.5f * (a * (float)Math.Pow(2, 10 * (t -= 1)) * (float)Math.Sin((t * d - s) * (2 * (float)Math.PI) / p)) + b;
 				return a * (float)Math.Pow(2, -10 * (t -= 1)) * (float)Math.Sin((t * d - s) * (2 * (float)Math.PI) / p) * .5f + c + b;
-			}
-		}
-		public static class Quad
-		{
-			public static float EaseIn(float t, float b, float c, float d)
-			{
-				return c * (t /= d) * t + b;
-			}
-			public static float EaseOut(float t, float b, float c, float d)
-			{
-				return -c * (t /= d) * (t - 2) + b;
-			}
-			public static float EaseInOut(float t, float b, float c, float d)
-			{
-				if ((t /= d / 2) < 1) return c / 2 * t * t + b;
-				return -c / 2 * ((--t) * (t - 2) - 1) + b;
 			}
 		}
 		public static class Expo
