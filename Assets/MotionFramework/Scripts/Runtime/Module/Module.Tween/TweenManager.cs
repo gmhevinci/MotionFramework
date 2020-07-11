@@ -42,7 +42,7 @@ namespace MotionFramework.Tween
 		}
 		void IModule.OnGUI()
 		{
-			ConsoleGUI.Lable($"[{nameof(TweenManager)}] Flow total count : {_nodes.Count}");
+			ConsoleGUI.Lable($"[{nameof(TweenManager)}] Tween total count : {_nodes.Count}");
 		}
 
 		public void Add(ITweenNode node)
