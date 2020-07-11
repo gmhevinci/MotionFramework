@@ -31,9 +31,14 @@ namespace MotionFramework.Tween
 		private readonly T _from;
 		private readonly T _to;
 
+		private ETweenLoop _tweenLoop = ETweenLoop.None;
+		private int _loopCount = -1;
+		private int _loopCounter = 0;
+		private float _timeReverse = 1f;
 		private float _running = 0;
 		private bool _ignoreTimeScale = false;
-		private System.Action<T> _update = null;
+		private System.Action<T> _onUpdate = null;
+		private System.Action _onDispose = null;
 		protected TweenEaseDelegate _easeFun = null;
 		protected TweenLerpDelegate _lerpFun = null;
 
@@ -56,28 +61,73 @@ namespace MotionFramework.Tween
 		}
 		void ITweenNode.OnDispose()
 		{
+			_onDispose?.Invoke();
 		}
 		void ITweenNode.OnUpdate()
 		{
 			float delatTime = _ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
-			_running += delatTime;
-			if (_duration > 0 && _running < _duration)
+			_running += (delatTime * _timeReverse);
+			if (_duration > 0 && _running > 0 && _running < _duration)
 			{
 				float progress = _easeFun.Invoke(_running, 0, 1, _duration);
 				Result = UpdateResultValue(_from, _to, progress);
-				_update(Result);
+				_onUpdate?.Invoke(Result);
 			}
 			else
 			{
-				Result = _to;
-				_update(Result);
-				IsDone = true;
+				if (_tweenLoop == ETweenLoop.None)
+				{
+					IsDone = true;
+					Result = _to;
+					_onUpdate?.Invoke(Result);
+				}
+				else if (_tweenLoop == ETweenLoop.Restart)
+				{
+					_running = 0;
+					Result = _to;
+					_onUpdate?.Invoke(Result);
+
+					_loopCounter++;
+					if (_loopCount > 0 && _loopCounter >= _loopCount)
+						IsDone = true;
+				}
+				else if (_tweenLoop == ETweenLoop.PingPong)
+				{
+					_timeReverse *= -1;
+					if(_timeReverse > 0)
+					{
+						_running = 0;
+						Result = _from;
+						_onUpdate?.Invoke(Result);
+
+						// 注意：完整PingPong算一次
+						_loopCounter++;
+						if (_loopCount > 0 && _loopCounter >= _loopCount)
+							IsDone = true;
+					}
+					else
+					{
+						_running = _duration;
+						Result = _to;
+						_onUpdate?.Invoke(Result);
+					}
+				}
+				else
+				{
+					throw new System.NotImplementedException();
+				}
 			}
 		}
 
 		public TweenNode<T> IgnoreTimeScale(bool value)
 		{
 			_ignoreTimeScale = value;
+			return this;
+		}
+		public TweenNode<T> SetLoop(ETweenLoop tweenLoop, int loopCount = -1)
+		{
+			_tweenLoop = tweenLoop;
+			_loopCount = loopCount;
 			return this;
 		}
 		public TweenNode<T> SetEase(AnimationCurve easeCurve)
@@ -116,9 +166,14 @@ namespace MotionFramework.Tween
 			_lerpFun = lerp;
 			return this;
 		}
-		public TweenNode<T> SetUpdate(System.Action<T> update)
+		public TweenNode<T> SetUpdate(System.Action<T> onUpdate)
 		{
-			_update = update;
+			_onUpdate = onUpdate;
+			return this;
+		}
+		public TweenNode<T> SetDispose(System.Action onDispose)
+		{
+			_onDispose = onDispose;
 			return this;
 		}
 

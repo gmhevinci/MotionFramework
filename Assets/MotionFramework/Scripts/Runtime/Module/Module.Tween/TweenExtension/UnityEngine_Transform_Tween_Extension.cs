@@ -24,6 +24,26 @@ namespace UnityEngine
             return TweenScale(obj, duration, from, obj.localScale);
         }
 
+        public static Vector3Tween ShakePosition(this Transform obj, float duration, Vector3 magnitude, bool relativeWorld = false)
+		{
+            Vector3 position = relativeWorld ? obj.position : obj.localPosition;
+            Vector3Tween node = Vector3Tween.Allocate(duration, position, position);
+            node.SetUpdate(
+                (result) =>
+                {
+                    if (relativeWorld)
+                        obj.position = result;
+                    else
+                        obj.localPosition = result;
+                });
+            node.SetLerp(
+                (from, to, progress) =>
+                {
+                    return TweenMath.Shake(magnitude, from, progress);
+                });
+            node.SetLoop(ETweenLoop.PingPong, 1);
+            return node;
+        }
 		public static Vector3Tween TweenPosition(this Transform obj, float duration, Vector3 from, Vector3 to, bool relativeWorld = false)
         {
             Vector3Tween node = Vector3Tween.Allocate(duration, from, to);

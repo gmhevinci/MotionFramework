@@ -28,7 +28,6 @@ namespace MotionFramework.Tween
 			if (_nodes.Contains(node) == false)
 				_nodes.Add(node);
 		}
-
 		public void AddNode(params ITweenNode[] nodes)
 		{
 			foreach (var node in nodes)
@@ -60,6 +59,11 @@ namespace MotionFramework.Tween
 		}
 		void ITweenNode.OnDispose()
 		{
+			foreach (var node in _nodes)
+			{
+				node.OnDispose();
+			}
+			_nodes.Clear();
 		}
 	}
 }
