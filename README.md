@@ -48,7 +48,9 @@ C# && .Net4.x
 
 8. [窗口管理器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Module.Window.md) **(WindowManager)**
 
-9. [游戏对象池管理器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Module.Pool.md) **(GameObjectPoolManager)**
+9. [补间管理器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Module.Tween.md) **(TweenManager)**
+
+10. [游戏对象池管理器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Module.Pool.md) **(GameObjectPoolManager)**
 
 ## 工具介绍
 内置的相关工具介绍
