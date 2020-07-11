@@ -21,6 +21,11 @@ namespace MotionFramework.Pool
 		private GameObject _cloneObject;
 
 		/// <summary>
+		/// 资源常驻不销毁
+		/// </summary>
+		public bool DontDestroy { private set; get; }
+
+		/// <summary>
 		/// 对象池容量
 		/// </summary>
 		public int Capacity { private set; get; }
@@ -72,11 +77,12 @@ namespace MotionFramework.Pool
 		public int SpawnCount { private set; get; }
 
 
-		public GameObjectCollector(Transform root, string location, int capacity)
+		public GameObjectCollector(Transform root, string location, int capacity, bool dontDestroy)
 		{
 			_root = root;
 			Capacity = capacity;
-
+			DontDestroy = dontDestroy;
+			
 			// 创建缓存池
 			_collector = new Queue<SpawnGameObject>(capacity);
 

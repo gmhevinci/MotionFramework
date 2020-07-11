@@ -36,18 +36,18 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 创建指定资源的游戏对象池
 		/// </summary>
-		public GameObjectCollector CreatePool(string location, int capacity = 0)
+		public GameObjectCollector CreatePool(string location, int capacity = 0, bool dontDestroy = false)
 		{
 			if (_collectors.ContainsKey(location))
 			{
 				MotionLog.Warning($"Asset is already existed : {location}");
 				return _collectors[location];
 			}
-			return CreatePoolInternal(location, capacity);
+			return CreatePoolInternal(location, capacity, dontDestroy);
 		}
-		private GameObjectCollector CreatePoolInternal(string location, int capacity)
+		private GameObjectCollector CreatePoolInternal(string location, int capacity, bool dontDestroy)
 		{
-			GameObjectCollector pool = new GameObjectCollector(_root.transform, location, capacity);
+			GameObjectCollector pool = new GameObjectCollector(_root.transform, location, capacity, dontDestroy);
 			_collectors.Add(location, pool);
 			return pool;
 		}
@@ -70,11 +70,19 @@ namespace MotionFramework.Pool
 		/// </summary>
 		public void DestroyAll()
 		{
+			List<GameObjectCollector> removeList = new List<GameObjectCollector>();
 			foreach (var pair in _collectors)
 			{
-				pair.Value.Destroy();
+				if (pair.Value.DontDestroy == false)
+					removeList.Add(pair.Value);
 			}
-			_collectors.Clear();
+
+			// 移除并销毁
+			foreach (var collector in removeList)
+			{
+				_collectors.Remove(collector.Location);
+				collector.Destroy();
+			}
 		}
 
 		/// <summary>
@@ -89,7 +97,7 @@ namespace MotionFramework.Pool
 			else
 			{
 				// 如果不存在创建游戏对象池
-				GameObjectCollector pool = CreatePoolInternal(location, 0);
+				GameObjectCollector pool = CreatePoolInternal(location, 0, false);
 				return pool.Spawn();
 			}
 		}
