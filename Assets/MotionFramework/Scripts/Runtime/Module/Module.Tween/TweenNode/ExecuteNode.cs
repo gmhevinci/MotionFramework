@@ -31,5 +31,9 @@ namespace MotionFramework.Tween
 		void ITweenNode.OnDispose()
 		{
 		}
+		void ITweenNode.Kill()
+		{
+			IsDone = true;
+		}
 	}
 }

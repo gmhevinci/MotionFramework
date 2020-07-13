@@ -118,6 +118,10 @@ namespace MotionFramework.Tween
 				}
 			}
 		}
+		void ITweenNode.Kill()
+		{
+			IsDone = true;
+		}
 
 		public TweenNode<T> IgnoreTimeScale(bool value)
 		{

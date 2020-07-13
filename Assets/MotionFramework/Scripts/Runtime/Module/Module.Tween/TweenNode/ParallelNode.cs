@@ -63,5 +63,9 @@ namespace MotionFramework.Tween
 			}
 			_nodes.Clear();
 		}
+		void ITweenNode.Kill()
+		{
+			IsDone = true;
+		}
 	}
 }

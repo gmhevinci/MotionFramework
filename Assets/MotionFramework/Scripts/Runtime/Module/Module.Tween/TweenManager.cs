@@ -13,49 +13,124 @@ namespace MotionFramework.Tween
 	/// </summary>
 	public class TweenManager : ModuleSingleton<TweenManager>, IModule
 	{
-		private readonly List<ITweenNode> _nodes = new List<ITweenNode>(1000);
-		private readonly List<ITweenNode> _temper = new List<ITweenNode>(1000);
+		private class TweenWrapper
+		{
+			public long TweenUID { private set; get; }
+			public ITweenNode TweenRoot { private set; get; }
+			public UnityEngine.Object SafeObject { private set; get; }
+			private readonly bool _safeMode = false;
+
+			public TweenWrapper(long tweenUID, ITweenNode tweenRoot, UnityEngine.Object safeObject)
+			{
+				TweenUID = tweenUID;
+				TweenRoot = tweenRoot;
+				SafeObject = safeObject;
+				_safeMode = safeObject != null;
+			}
+			public bool IsSafe()
+			{
+				if (_safeMode == false)
+					return true;
+				return SafeObject != null;
+			}
+		}
+
+		private static int StaticTweenUID = 0;
+		private readonly List<TweenWrapper> _wrappers = new List<TweenWrapper>(1000);
+		private readonly List<TweenWrapper> _remover = new List<TweenWrapper>(1000);
 
 		void IModule.OnCreate(object createParam)
 		{
 		}
 		void IModule.OnUpdate()
 		{
-			_temper.Clear();
+			_remover.Clear();
 
-			// 注意：这里按照添加的先后顺序执行所有流程
-			for (int i=0; i<_nodes.Count; i++)
+			// 更新所有补间动画
+			for (int i = 0; i < _wrappers.Count; i++)
 			{
-				var node = _nodes[i];
-				node.OnUpdate();
-				if (node.IsDone)
-					_temper.Add(node);
+				var wrapper = _wrappers[i];
+				if (wrapper.IsSafe() == false)
+				{
+					wrapper.TweenRoot.Kill();
+					_remover.Add(wrapper);
+					continue;
+				}
+
+				if(wrapper.TweenRoot.IsDone)
+					_remover.Add(wrapper);
+				else
+					wrapper.TweenRoot.OnUpdate();
 			}
 
-			// 移除完成的节点
-			for(int i=0; i<_temper.Count; i++)
+			// 移除完成的补间动画
+			for (int i = 0; i < _remover.Count; i++)
 			{
-				var node = _temper[i];		
-				_nodes.Remove(node);
-				node.OnDispose();
+				var wrapper = _remover[i];
+				_wrappers.Remove(wrapper);
+				wrapper.TweenRoot.OnDispose();
 			}
 		}
 		void IModule.OnGUI()
 		{
-			ConsoleGUI.Lable($"[{nameof(TweenManager)}] Tween total count : {_nodes.Count}");
+			ConsoleGUI.Lable($"[{nameof(TweenManager)}] Tween total count : {_wrappers.Count}");
 		}
 
-		public void Add(ITweenNode node)
+		/// <summary>
+		/// 播放一个补间动画
+		/// </summary>
+		/// <param name="tweenRoot">补间根节点</param>
+		/// <param name="safeObject">安全游戏对象：如果安全游戏对象被销毁，补间动画会自动终止</param>
+		/// <returns>补间动画唯一ID</returns>
+		public long Play(ITweenNode tweenRoot, UnityEngine.Object safeObject = null)
 		{
-			if (_nodes.Contains(node) == false)
-				_nodes.Add(node);
-		}
-		public void Remove(ITweenNode node)
-		{
-			if(_nodes.Remove(node))
+			if (tweenRoot == null)
 			{
-				node.OnDispose();
+				MotionLog.Warning("Tween root is null.");
+				return -1;
 			}
+
+			if (Contains(tweenRoot))
+			{
+				MotionLog.Warning("Tween root is running.");
+				return -1;
+			}
+
+			TweenWrapper wrapper = new TweenWrapper(++StaticTweenUID, tweenRoot, safeObject);
+			_wrappers.Add(wrapper);
+			return wrapper.TweenUID;
+		}
+
+		/// <summary>
+		/// 中途关闭补间动画
+		/// </summary>
+		/// <param name="tweenUID">补间动画唯一ID</param>
+		public void Kill(long tweenUID)
+		{
+			TweenWrapper wrapper = GetTweenWrapper(tweenUID);
+			if (wrapper != null)
+				wrapper.TweenRoot.Kill();
+		}
+
+		private bool Contains(ITweenNode tweenRoot)
+		{
+			for (int i = 0; i < _wrappers.Count; i++)
+			{
+				var wrapper = _wrappers[i];
+				if (wrapper.TweenRoot == tweenRoot)
+					return true;
+			}
+			return false;
+		}
+		private TweenWrapper GetTweenWrapper(long tweenUID)
+		{
+			for (int i = 0; i < _wrappers.Count; i++)
+			{
+				var wrapper = _wrappers[i];
+				if (wrapper.TweenUID == tweenUID)
+					return wrapper;
+			}
+			return null;
 		}
 	}
 }
