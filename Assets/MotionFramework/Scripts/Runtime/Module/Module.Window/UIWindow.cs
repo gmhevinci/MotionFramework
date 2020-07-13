@@ -8,7 +8,6 @@ using System.Collections;
 using UnityEngine;
 using MotionFramework.Resource;
 using MotionFramework.Event;
-using MotionFramework.Tween;
 
 namespace MotionFramework.Window
 {
@@ -24,12 +23,6 @@ namespace MotionFramework.Window
 		/// 在窗口销毁的时候，自动移除注册的事件
 		/// </summary>
 		public readonly EventGroup EventGrouper = new EventGroup();
-
-		/// <summary>
-		/// 补间组
-		/// 在窗口销毁的时候，自动移除注册的节点
-		/// </summary>
-		public readonly TweenGroup TweenGrouper = new TweenGroup();
 
 		/// <summary>
 		/// 窗口名称
@@ -80,7 +73,6 @@ namespace MotionFramework.Window
 		/// 窗口打开的动画时长
 		/// </summary>
 		public float WindowOpenAnimationTime { get; set; }
-
 
 		public void Init(string name, int layer, bool fullScreen)
 		{
@@ -155,9 +147,6 @@ namespace MotionFramework.Window
 
 			// 移除所有缓存的事件监听
 			EventGrouper.RemoveAllListener();
-
-			// 移除所有缓存的补间节点
-			TweenGrouper.RemoveAllNodes();
 		}
 
 		private void Handle_Completed(AssetOperationHandle obj)

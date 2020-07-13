@@ -190,8 +190,8 @@ namespace MotionFramework.Window
 
 			if (window.WindowOpenAnimationTime > 0f)
 			{
-				var delayNode = TimerNode.AllocateDelay(window.WindowOpenAnimationTime, () => { OnSetWindowVisible(); });
-				window.TweenGrouper.AddNode(delayNode);
+				var tween = TimerNode.AllocateDelay(window.WindowOpenAnimationTime, () => { OnSetWindowVisible(); });
+				TweenManager.Instance.Play(tween, window.Go);
 			}
 			else
 			{
