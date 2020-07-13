@@ -43,6 +43,11 @@ namespace MotionFramework.Patch
 		public PatchManifest WebPatchManifest { private set; get; }
 
 		/// <summary>
+		/// 远端WebPatchManifest文件二进制内容
+		/// </summary>
+		public byte[] WebPatchManifestData { get; set; } = null;
+
+		/// <summary>
 		/// 下载列表
 		/// </summary>
 		public readonly List<PatchElement> DownloadList = new List<PatchElement>(1000);
@@ -205,6 +210,7 @@ namespace MotionFramework.Patch
 				throw new Exception("Should never get here.");
 			WebPatchManifest = new PatchManifest();
 			WebPatchManifest.Parse(fileData);
+			WebPatchManifestData = fileData;
 		}
 
 		// 服务器IP相关
@@ -268,6 +274,21 @@ namespace MotionFramework.Patch
 			public bool ForceInstall; //是否需要强制安装
 			public string AppURL; //App安装的地址
 #pragma warning restore 0649
+		}
+
+		/// <summary>
+		/// 保存远端WebPatchManifest到本地
+		/// </summary>
+		/// <returns></returns>
+		public bool SaveWebPatchManifest(string savePath)
+        {
+			if (WebPatchManifestData == null)
+				return false;
+			else
+            {
+				System.IO.File.WriteAllBytes(savePath, WebPatchManifestData);
+				return true;
+			}
 		}
 	}
 }
