@@ -47,14 +47,5 @@ namespace MotionFramework.Patch
 			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestBytesFileName);
 			return File.Exists(filePath);
 		}
-
-		/// <summary>
-		/// 检测沙盒内Unity清单文件是否存在
-		/// </summary>
-		public static bool CheckSandboxUnityManifestFileExist()
-		{
-			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.UnityManifestFileName);
-			return File.Exists(filePath);
-		}
 	}
 }

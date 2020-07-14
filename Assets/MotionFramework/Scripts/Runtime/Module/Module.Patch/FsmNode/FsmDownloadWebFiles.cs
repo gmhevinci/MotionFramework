@@ -110,6 +110,10 @@ namespace MotionFramework.Patch
 				}
 			}
 
+			// 最后保存最新的补丁清单
+			_patcher.SaveWebPatchManifest();
+			_patcher.ClearWebPatchManifestCacheData();
+
 			// 最后清空下载列表
 			_patcher.DownloadList.Clear();
 			_patcher.SwitchNext();

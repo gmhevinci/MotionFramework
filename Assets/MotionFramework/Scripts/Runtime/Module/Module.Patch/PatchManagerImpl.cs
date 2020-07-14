@@ -1,14 +1,17 @@
 ﻿//--------------------------------------------------
 // Motion Framework
 // Copyright©2019-2020 何冠峰
+// Copyright©2020-2020 ZensYue
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using MotionFramework.AI;
 using MotionFramework.Event;
+using MotionFramework.Resource;
 
 namespace MotionFramework.Patch
 {
@@ -41,11 +44,7 @@ namespace MotionFramework.Patch
 		public PatchManifest AppPatchManifest { private set; get; }
 		public PatchManifest SandboxPatchManifest { private set; get; }
 		public PatchManifest WebPatchManifest { private set; get; }
-
-		/// <summary>
-		/// 远端WebPatchManifest文件二进制内容
-		/// </summary>
-		public byte[] WebPatchManifestData { get; set; } = null;
+		private byte[] _webPatchManifestCacheData = null;
 
 		/// <summary>
 		/// 下载列表
@@ -76,7 +75,7 @@ namespace MotionFramework.Patch
 			}
 		}
 
-		
+
 		public void Create(PatchManager.CreateParameters createParam)
 		{
 			_webServers = createParam.WebServers;
@@ -97,7 +96,6 @@ namespace MotionFramework.Patch
 			_procedure.AddNode(new FsmParseWebPatchManifest(this));
 			_procedure.AddNode(new FsmGetDonwloadList(this));
 			_procedure.AddNode(new FsmDownloadWebFiles(this));
-			_procedure.AddNode(new FsmDownloadWebPatchManifest(this));
 			_procedure.AddNode(new FsmDownloadOver(this));
 			_procedure.Run();
 		}
@@ -149,7 +147,7 @@ namespace MotionFramework.Patch
 				else if (message.operation == EPatchOperation.TryDownloadWebPatchManifest)
 				{
 					// 修复当前节点错误
-					if (_procedure.Current == EPatchStates.DownloadWebPatchManifest.ToString() || _procedure.Current == EPatchStates.ParseWebPatchManifest.ToString())
+					if (_procedure.Current == EPatchStates.ParseWebPatchManifest.ToString())
 						_procedure.Switch(_procedure.Current);
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
@@ -183,7 +181,7 @@ namespace MotionFramework.Patch
 			_procedure.SwitchLast();
 		}
 
-		// 解析补丁清单文件相关接口
+		// 补丁清单相关
 		public void ParseAppPatchManifest(byte[] fileData)
 		{
 			if (AppPatchManifest != null)
@@ -210,7 +208,20 @@ namespace MotionFramework.Patch
 				throw new Exception("Should never get here.");
 			WebPatchManifest = new PatchManifest();
 			WebPatchManifest.Parse(fileData);
-			WebPatchManifestData = fileData;
+			_webPatchManifestCacheData = fileData;
+		}
+		public void SaveWebPatchManifest()
+		{
+			if (_webPatchManifestCacheData == null)
+				throw new Exception("WebPatchManifest cached data is null.");
+
+			// 注意：这里会覆盖掉旧文件
+			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestBytesFileName);
+			File.WriteAllBytes(savePath, _webPatchManifestCacheData);
+		}
+		public void ClearWebPatchManifestCacheData()
+		{
+			_webPatchManifestCacheData = null;
 		}
 
 		// 服务器IP相关
@@ -274,21 +285,6 @@ namespace MotionFramework.Patch
 			public bool ForceInstall; //是否需要强制安装
 			public string AppURL; //App安装的地址
 #pragma warning restore 0649
-		}
-
-		/// <summary>
-		/// 保存远端WebPatchManifest到本地
-		/// </summary>
-		/// <returns></returns>
-		public bool SaveWebPatchManifest(string savePath)
-        {
-			if (WebPatchManifestData == null)
-				return false;
-			else
-            {
-				System.IO.File.WriteAllBytes(savePath, WebPatchManifestData);
-				return true;
-			}
 		}
 	}
 }

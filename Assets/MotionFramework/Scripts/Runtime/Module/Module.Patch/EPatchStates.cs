@@ -32,11 +32,6 @@ namespace MotionFramework.Patch
 		DownloadWebFiles,
 
 		/// <summary>
-		/// 下载网络补丁清单到沙盒
-		/// </summary>
-		DownloadWebPatchManifest,
-
-		/// <summary>
 		/// 下载结束
 		/// </summary>
 		DownloadOver,
