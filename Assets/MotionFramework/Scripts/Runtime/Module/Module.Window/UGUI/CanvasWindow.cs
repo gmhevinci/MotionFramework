@@ -7,6 +7,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using MotionFramework.Window;
+using MotionFramework.Tween;
 
 public abstract class CanvasWindow : UIWindow
 {
@@ -139,6 +140,24 @@ public abstract class CanvasWindow : UIWindow
 	/// 当因为全屏遮挡触发窗口的显隐
 	/// </summary>
 	public virtual void OnSetVisible(bool visible) { }
+
+	#region Tween相关
+	/// <summary>
+	/// 播放一个补间动画
+	/// </summary>
+	protected long PlayTween(ITweenNode tweenRoot)
+	{
+		return TweenManager.Instance.Play(tweenRoot, Go);
+	}
+
+	/// <summary>
+	/// 中途关闭补间动画
+	/// </summary>
+	protected void KillTween(long tweenUID)
+	{
+		TweenManager.Instance.Kill(tweenUID);
+	}
+	#endregion
 
 	#region UI组件相关
 	/// <summary>

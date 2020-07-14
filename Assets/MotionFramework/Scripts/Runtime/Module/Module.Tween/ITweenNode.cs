@@ -12,5 +12,6 @@ namespace MotionFramework.Tween
 
 		void OnUpdate();
 		void OnDispose();
+		void Kill();
 	}
 }

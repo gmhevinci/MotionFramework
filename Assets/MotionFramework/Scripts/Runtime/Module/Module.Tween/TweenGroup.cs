@@ -9,30 +9,29 @@ namespace MotionFramework.Tween
 {
 	public class TweenGroup
 	{
-		private readonly List<ITweenNode> _cachedNodes = new List<ITweenNode>(100);
-
+		private readonly List<long> _cachedTweens = new List<long>(100);
+		
 		/// <summary>
-		/// 添加一个节点
+		/// 播放一个补间动画
+		/// 注意：缓存列表不会自动移除
 		/// </summary>
-		public void AddNode(ITweenNode node)
+		public void Play(ITweenNode node, UnityEngine.Object safeObject = null)
 		{
-			if (_cachedNodes.Contains(node))
-				return;
-
-			_cachedNodes.Add(node);
-			TweenManager.Instance.Add(node);
+			long tweenUID = TweenManager.Instance.Play(node, safeObject);
+			if(tweenUID > 0)
+				_cachedTweens.Add(tweenUID);
 		}
 
 		/// <summary>
-		/// 移除所有缓存的节点
+		/// 移除所有缓存的补间动画
 		/// </summary>
-		public void RemoveAllNodes()
+		public void RemoveAll()
 		{
-			for(int i=0; i<_cachedNodes.Count; i++)
+			for (int i = 0; i < _cachedTweens.Count; i++)
 			{
-				TweenManager.Instance.Remove(_cachedNodes[i]);
+				TweenManager.Instance.Kill(_cachedTweens[i]);
 			}
-			_cachedNodes.Clear();
+			_cachedTweens.Clear();
 		}
 	}
 }
