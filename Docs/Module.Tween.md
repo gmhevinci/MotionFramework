@@ -16,11 +16,11 @@ public void Start()
 public void PlayWindowOpenAnim()
 {
   // 同时并行执行所有节点
-  var rootNode = ParallelNode.Allocate(
+  var tween = ParallelNode.Allocate(
     _animTrans.TweenScaleTo(0.8f, Vector3.one).SetEase(TweenEase.Bounce.EaseOut), //窗口放大
     _animTrans.TweenAnglesTo(0.4f, new Vector3(0, 0, 720)) //窗口旋转
   );
-  TweenManager.Instance.AddNode(rootNode);
+  TweenManager.Instance.Play(tween);
 }
 ```
 
@@ -29,12 +29,12 @@ public void PlayWindowOpenAnim()
 public void PlayWindowCloseAnim()
 {
   // 按顺序执行所有节点
-  var rootNode = SequenceNode.Allocate(
+  var tween = SequenceNode.Allocate(
     TimerNode.AllocateDelay(1f), //等待一秒
     _animTrans.TweenScaleTo(0.5f, Vector3.zero).SetEase(TweenEase.Bounce.EaseOut), //窗口缩小
     ExecuteNode.Allocate(() => { UITools.CloseWindow<MyWindow>(); }) //关闭窗口
   );
-  TweenManager.Instance.AddNode(rootNode);
+  TweenManager.Instance.Play(tween);
 }
 ```
 
@@ -46,14 +46,15 @@ public class Test
 
   public void PlayAnim()
   {
-    var rootNode = this.transform.TweenScaleTo(1f, Vector3.zero).SetEase(EaseCurve);
-    TweenManager.Instance.AddNode(rootNode);
+    var tween = this.transform.TweenScaleTo(1f, Vector3.zero).SetEase(EaseCurve);
+    TweenManager.Instance.Play(tween);
   }
 }
 ```
 
 扩展支持任意对象
 ```C#
+// 扩展支持Image对象
 public static class UnityEngine_UI_Image_Tween_Extension
 {
   public static ColorTween TweenColor(this Image obj, float duration, Color from, Color to)
