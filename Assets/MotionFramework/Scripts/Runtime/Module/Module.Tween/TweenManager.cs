@@ -15,13 +15,15 @@ namespace MotionFramework.Tween
 	{
 		private class TweenWrapper
 		{
+			public int GroupID { private set; get; }
 			public long TweenUID { private set; get; }
 			public ITweenNode TweenRoot { private set; get; }
 			public UnityEngine.Object SafeObject { private set; get; }
 			private readonly bool _safeMode = false;
 
-			public TweenWrapper(long tweenUID, ITweenNode tweenRoot, UnityEngine.Object safeObject)
+			public TweenWrapper(int groupID, long tweenUID, ITweenNode tweenRoot, UnityEngine.Object safeObject)
 			{
+				GroupID = groupID;
 				TweenUID = tweenUID;
 				TweenRoot = tweenRoot;
 				SafeObject = safeObject;
@@ -57,7 +59,7 @@ namespace MotionFramework.Tween
 					continue;
 				}
 
-				if(wrapper.TweenRoot.IsDone)
+				if (wrapper.TweenRoot.IsDone)
 					_remover.Add(wrapper);
 				else
 					wrapper.TweenRoot.OnUpdate();
@@ -81,8 +83,9 @@ namespace MotionFramework.Tween
 		/// </summary>
 		/// <param name="tweenRoot">补间根节点</param>
 		/// <param name="safeObject">安全游戏对象：如果安全游戏对象被销毁，补间动画会自动终止</param>
+		/// <param name="groupID">补间组ID</param>
 		/// <returns>补间动画唯一ID</returns>
-		public long Play(ITweenNode tweenRoot, UnityEngine.Object safeObject = null)
+		public long Play(ITweenNode tweenRoot, UnityEngine.Object safeObject = null, int groupID = 0)
 		{
 			if (tweenRoot == null)
 			{
@@ -96,13 +99,14 @@ namespace MotionFramework.Tween
 				return -1;
 			}
 
-			TweenWrapper wrapper = new TweenWrapper(++StaticTweenUID, tweenRoot, safeObject);
+			long tweenUID = ++StaticTweenUID;
+			TweenWrapper wrapper = new TweenWrapper(groupID, tweenUID, tweenRoot, safeObject);
 			_wrappers.Add(wrapper);
 			return wrapper.TweenUID;
 		}
 
 		/// <summary>
-		/// 中途关闭补间动画
+		/// 中途关闭一个补间动画
 		/// </summary>
 		/// <param name="tweenUID">补间动画唯一ID</param>
 		public void Kill(long tweenUID)
@@ -110,6 +114,20 @@ namespace MotionFramework.Tween
 			TweenWrapper wrapper = GetTweenWrapper(tweenUID);
 			if (wrapper != null)
 				wrapper.TweenRoot.Kill();
+		}
+
+		/// <summary>
+		/// 中途关闭一组补间动画
+		/// </summary>
+		/// <param name="groupID">补间组ID</param>
+		public void Kill(int groupID)
+		{
+			for (int i = 0; i < _wrappers.Count; i++)
+			{
+				var wrapper = _wrappers[i];
+				if (wrapper.GroupID != 0 && wrapper.GroupID == groupID)
+					wrapper.TweenRoot.Kill();
+			}
 		}
 
 		private bool Contains(ITweenNode tweenRoot)
