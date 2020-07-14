@@ -8,6 +8,7 @@ using System.Collections;
 using UnityEngine;
 using MotionFramework.Resource;
 using MotionFramework.Event;
+using MotionFramework.Tween;
 
 namespace MotionFramework.Window
 {
@@ -22,7 +23,13 @@ namespace MotionFramework.Window
 		/// 事件组
 		/// 在窗口销毁的时候，自动移除注册的事件
 		/// </summary>
-		public readonly EventGroup EventGrouper = new EventGroup();
+		protected readonly EventGroup EventGrouper = new EventGroup();
+
+		/// <summary>
+		/// 补间组
+		/// 在窗口销毁的时候，自动关闭播放的动画
+		/// </summary>
+		protected readonly TweenGroup TweenGrouper = new TweenGroup();
 
 		/// <summary>
 		/// 窗口名称
@@ -147,6 +154,9 @@ namespace MotionFramework.Window
 
 			// 移除所有缓存的事件监听
 			EventGrouper.RemoveAllListener();
+
+			// 关闭组内所有的补间动画
+			TweenGrouper.KillAll();
 		}
 
 		private void Handle_Completed(AssetOperationHandle obj)
