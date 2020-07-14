@@ -63,6 +63,7 @@ namespace MotionFramework.Console
 			ConsoleGUI.Lable($"CPU Core : {SystemInfo.processorCount}");
 
 			GUILayout.Space(space);
+			ConsoleGUI.Lable($"Device UID : {SystemInfo.deviceUniqueIdentifier}");
 			ConsoleGUI.Lable($"Device Model : {SystemInfo.deviceModel}");
 			ConsoleGUI.Lable($"Device Name : {SystemInfo.deviceName}");
 			ConsoleGUI.Lable($"Device Type : {SystemInfo.deviceType}");
