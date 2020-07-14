@@ -91,11 +91,11 @@ namespace MotionFramework.Console
 
 			GUILayout.Space(space);
 			long memory = Profiler.GetTotalReservedMemoryLong() / 1000000;
-			ConsoleGUI.Lable($"Total Memory : {memory}MB");
+			ConsoleGUI.Lable($"Reserved Total Memory : {memory}MB");
 			memory = Profiler.GetTotalAllocatedMemoryLong() / 1000000;
-			ConsoleGUI.Lable($"Used Memory : {memory}MB");
+			ConsoleGUI.Lable($"Used Total Memory : {memory}MB");
 			memory = Profiler.GetTotalUnusedReservedMemoryLong() / 1000000;
-			ConsoleGUI.Lable($"Free Memory : {memory}MB");
+			ConsoleGUI.Lable($"Unused Reserved Memory : {memory}MB");
 			memory = Profiler.GetMonoHeapSizeLong() / 1000000;
 			ConsoleGUI.Lable($"Total Mono Memory : {memory}MB");
 			memory = Profiler.GetMonoUsedSizeLong() / 1000000;
