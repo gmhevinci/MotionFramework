@@ -46,7 +46,7 @@ namespace MotionFramework.Window
 		public UIRoot Root { private set; get; }
 
 		/// <summary>
-		/// 是否有窗口正在加载
+		/// 是否有任意窗口正在加载
 		/// </summary>
 		public bool IsLoading()
 		{
@@ -57,6 +57,21 @@ namespace MotionFramework.Window
 					return true;
 			}
 			return false;
+		}
+
+		/// <summary>
+		/// 检测窗口是否加载完毕
+		/// </summary>
+		public bool IsLoadDone<T>()
+		{
+			return IsLoadDone(typeof(T));
+		}
+		public bool IsLoadDone(Type type)
+		{
+			UIWindow window = GetWindow(type.FullName);
+			if (window == null)
+				return false;
+			return window.IsDone;
 		}
 
 		/// <summary>
