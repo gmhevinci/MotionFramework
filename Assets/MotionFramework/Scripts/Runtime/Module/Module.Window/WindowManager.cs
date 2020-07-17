@@ -115,6 +115,31 @@ namespace MotionFramework.Window
 		}
 
 		/// <summary>
+		/// 查询层级窗口是否存在
+		/// </summary>
+		public bool HasWindow(int layer)
+		{
+			for (int i = 0; i < _stack.Count; i++)
+			{
+				if (_stack[i].WindowLayer == layer)
+					return true;
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// 查询窗口是否存在
+		/// </summary>
+		public bool HasWindow<T>()
+		{
+			return HasWindow(typeof(T));
+		}
+		public bool HasWindow(Type type)
+		{
+			return IsContains(type.FullName);
+		}
+
+		/// <summary>
 		/// 创建UIRoot
 		/// </summary>
 		public UIRoot CreateUIRoot<T>(string location) where T : UIRoot
