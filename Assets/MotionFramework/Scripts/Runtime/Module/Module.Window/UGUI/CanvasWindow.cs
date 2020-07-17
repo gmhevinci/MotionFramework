@@ -7,6 +7,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using MotionFramework.Window;
+using UnityEditor;
 
 public abstract class CanvasWindow : UIWindow
 {
@@ -141,6 +142,16 @@ public abstract class CanvasWindow : UIWindow
 	public virtual void OnSetVisible(bool visible) { }
 
 	#region UI组件相关
+	/// <summary>
+	/// 克隆一个附加的预制体
+	/// </summary>
+	protected GameObject CloneAttachPrefab(string name)
+	{
+		if (_manifest == null)
+			return null;
+		return _manifest.CloneAttachPrefab(name);
+	}
+
 	/// <summary>
 	/// 获取窗口里缓存的元素对象
 	/// </summary>

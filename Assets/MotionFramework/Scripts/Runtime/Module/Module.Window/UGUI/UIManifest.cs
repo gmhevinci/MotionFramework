@@ -3,6 +3,7 @@
 // Copyright©2018-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
+using MotionFramework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace UnityEngine.UI
 		public List<string> CacheAtlasTags = new List<string>();
 		public List<string> ElementPath = new List<string>();
 		public List<Transform> ElementTrans = new List<Transform>();
+		public List<GameObject> AttachPrefabs = new List<GameObject>();
 		
 		private readonly Dictionary<string, Transform> _runtimeDic = new Dictionary<string, Transform>(200);
 
@@ -45,6 +47,20 @@ namespace UnityEngine.UI
 				Transform trans = ElementTrans[i];
 				_runtimeDic.Add(path, trans);
 			}
+		}
+
+		/// <summary>
+		/// 克隆一个附加的预制体
+		/// </summary>
+		public GameObject CloneAttachPrefab(string name)
+		{
+			foreach (var obj in AttachPrefabs)
+			{
+				if (obj.name == name)
+					return GameObject.Instantiate(obj);
+			}
+			MotionLog.Warning($"Not found attach prefab : {name}");
+			return null;
 		}
 
 		/// <summary>
