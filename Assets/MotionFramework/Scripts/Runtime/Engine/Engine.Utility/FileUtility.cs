@@ -9,8 +9,8 @@ using System.IO;
 
 namespace MotionFramework.Utility
 {
-    public static class FileUtility
-    {
+	public static class FileUtility
+	{
 		/// <summary>
 		/// 读取文件
 		/// </summary>
@@ -44,14 +44,23 @@ namespace MotionFramework.Utility
 		}
 
 		/// <summary>
-		/// 创建文件路径
+		/// 创建文件的文件夹路径
 		/// </summary>
 		public static void CreateFileDirectory(string filePath)
 		{
-			// If the destination directory doesn't exist, create it.
-			string destDirectory = Path.GetDirectoryName(filePath);
-			if (Directory.Exists(destDirectory) == false)
-				Directory.CreateDirectory(destDirectory);
+			// 获取文件的文件夹路径
+			string directory = Path.GetDirectoryName(filePath);
+			CreateDirectory(directory);
+		}
+
+		/// <summary>
+		/// 创建文件夹路径
+		/// </summary>
+		public static void CreateDirectory(string directory)
+		{
+			// If the directory doesn't exist, create it.
+			if (Directory.Exists(directory) == false)
+				Directory.CreateDirectory(directory);
 		}
 
 		/// <summary>
