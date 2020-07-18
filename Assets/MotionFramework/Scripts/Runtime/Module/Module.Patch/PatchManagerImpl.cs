@@ -12,6 +12,7 @@ using UnityEngine;
 using MotionFramework.AI;
 using MotionFramework.Event;
 using MotionFramework.Resource;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Patch
 {
@@ -28,13 +29,11 @@ namespace MotionFramework.Patch
 		private int _channelID;
 		private long _deviceID;
 		private int _testFlag;
+		private ECheckLevel _checkLevel;
 
 		// 强更标记和地址
 		public bool ForceInstall { private set; get; } = false;
 		public string AppURL { private set; get; }
-
-		// 校验等级
-		public ECheckLevel CheckLevel { private set; get; }
 
 		// 版本号
 		public Version AppVersion { private set; get; }
@@ -85,7 +84,7 @@ namespace MotionFramework.Patch
 			_channelID = createParam.ChannelID;
 			_deviceID = createParam.DeviceID;
 			_testFlag = createParam.TestFlag;
-			CheckLevel = createParam.CheckLevel;
+			_checkLevel = createParam.CheckLevel;
 			AppVersion = new Version(Application.version);
 		}
 		public void Download()
@@ -164,6 +163,35 @@ namespace MotionFramework.Patch
 					throw new NotImplementedException($"{message.operation}");
 				}
 			}
+		}
+
+		/// <summary>
+		/// 检测补丁文件有效性
+		/// </summary>
+		public bool CheckPatchFileValid(PatchElement element)
+		{
+			string filePath = AssetPathHelper.MakePersistentLoadPath(element.MD5);
+			if (File.Exists(filePath) == false)
+				return false;
+
+			// 校验沙盒里的补丁文件
+			if (_checkLevel == ECheckLevel.CheckSize)
+			{
+				long fileSize = FileUtility.GetFileSize(filePath);
+				if (fileSize == element.SizeBytes)
+					return true;
+			}
+			else if (_checkLevel == ECheckLevel.CheckMD5)
+			{
+				string md5 = HashUtility.FileMD5(filePath);
+				if (md5 == element.MD5)
+					return true;
+			}
+			else
+			{
+				throw new NotImplementedException(_checkLevel.ToString());
+			}
+			return false;
 		}
 
 		// 流程相关

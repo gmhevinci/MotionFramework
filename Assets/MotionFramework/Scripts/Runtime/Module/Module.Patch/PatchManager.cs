@@ -164,30 +164,8 @@ namespace MotionFramework.Patch
 			_patcher.HandleEventMessage(msg);
 		}
 
-		/// <summary>
-		/// 重新载入Unity清单
-		/// 注意：在补丁更新结束之后，清单内容会发生变化。
-		/// </summary>
-		public void ReloadUnityManifest()
-		{
-			_unityManifest = LoadUnityManifest();
-		}
-
 		#region IBundleServices接口
 		private string _cachedLocationRoot;
-		private AssetBundleManifest _unityManifest;
-		private AssetBundleManifest LoadUnityManifest()
-		{
-			IBundleServices bundleServices = this;
-			string loadPath = bundleServices.GetAssetBundleLoadPath(PatchDefine.UnityManifestFileName);
-			AssetBundle bundle = AssetBundle.LoadFromFile(loadPath);
-			if (bundle == null)
-				return null;
-
-			AssetBundleManifest result = bundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
-			bundle.Unload(false);
-			return result;
-		}
 
 		string IBundleServices.ConvertLocationToManifestPath(string location, string variant)
 		{
@@ -205,12 +183,7 @@ namespace MotionFramework.Patch
 		}
 		string IBundleServices.GetAssetBundleLoadPath(string manifestPath)
 		{
-			PatchManifest patchManifest;
-			if (_patcher.WebPatchManifest != null)
-				patchManifest = _patcher.WebPatchManifest;
-			else
-				patchManifest = _patcher.SandboxPatchManifest;
-
+			PatchManifest patchManifest = GetPatchManifest();
 			manifestPath = GetVariantManifestPath(patchManifest, manifestPath);
 			if (patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
@@ -221,7 +194,7 @@ namespace MotionFramework.Patch
 						return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
 				}
 
-				// 如果APP里不存在或者MD5不匹配，则从沙盒里加载
+				// 如果APP里不存在或者MD5不匹配，则从沙盒里加载	
 				return AssetPathHelper.MakePersistentLoadPath(manifestPath);
 			}
 			else
@@ -232,17 +205,23 @@ namespace MotionFramework.Patch
 		}
 		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
 		{
-			if (_unityManifest == null)
-				_unityManifest = LoadUnityManifest();
-			return _unityManifest.GetDirectDependencies(assetBundleName);
+			PatchManifest patchManifest = GetPatchManifest();
+			return patchManifest.GetDirectDependencies(assetBundleName);
 		}
 		string[] IBundleServices.GetAllDependencies(string assetBundleName)
 		{
-			if (_unityManifest == null)
-				_unityManifest = LoadUnityManifest();
-			return _unityManifest.GetAllDependencies(assetBundleName);
+			PatchManifest patchManifest = GetPatchManifest();
+			return patchManifest.GetAllDependencies(assetBundleName);
 		}
 
+		private PatchManifest GetPatchManifest()
+		{
+			if (_patcher.WebPatchManifest != null)
+				return _patcher.WebPatchManifest;
+			if (_patcher.SandboxPatchManifest != null)
+				return _patcher.SandboxPatchManifest;
+			return _patcher.AppPatchManifest;
+		}
 		private string GetVariantManifestPath(PatchManifest patchManifest, string manifestPath)
 		{
 			if (_variantCollector == null)

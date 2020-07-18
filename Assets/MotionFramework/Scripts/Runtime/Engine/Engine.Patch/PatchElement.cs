@@ -4,6 +4,8 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace MotionFramework.Patch
 {
@@ -31,17 +33,23 @@ namespace MotionFramework.Patch
 		public int Version;
 
 		/// <summary>
-		/// 下载文件的保存路径
+		/// 依赖列表
 		/// </summary>
-		[NonSerialized]
-		public string SavePath;
+		public string[] Dependencies;
 
-		public PatchElement(string name, string md5, long sizeBytes, int version)
+		/// <summary>
+		/// 后台下载
+		/// 注意：标记为后台下载的资源，不会在补丁系统初始化的时候强制下载
+		/// </summary>
+		public bool BackgroundDownload = false;
+		
+		public PatchElement(string name, string md5, long sizeBytes, int version, string[] dependencies)
 		{
 			Name = name;
 			MD5 = md5;
 			SizeBytes = sizeBytes;
 			Version = version;
+			Dependencies = dependencies;
 		}
 	}
 }

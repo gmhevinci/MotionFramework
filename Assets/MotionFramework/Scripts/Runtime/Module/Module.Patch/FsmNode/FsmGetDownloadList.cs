@@ -46,57 +46,38 @@ namespace MotionFramework.Patch
 			// 准备下载列表
 			foreach (var pair in _patcher.WebPatchManifest.Elements)
 			{
-				PatchElement element = pair.Value;
+				PatchElement remoteElement = pair.Value;
+
+				// 忽略静默下载资源
+				if (remoteElement.BackgroundDownload)
+					continue;
 
 				// 先检测APP里的清单
-				PatchElement appElement;
-				if (_patcher.AppPatchManifest.Elements.TryGetValue(element.Name, out appElement))
+				if (_patcher.AppPatchManifest.Elements.TryGetValue(remoteElement.Name, out PatchElement appElement))
 				{
-					if (appElement.MD5 == element.MD5)
+					if (appElement.MD5 == remoteElement.MD5)
 						continue;
 				}
 
 				// 再检测沙盒里的清单
-				PatchElement sandboxElement;
-				if (_patcher.SandboxPatchManifest.Elements.TryGetValue(element.Name, out sandboxElement))
+				if (_patcher.SandboxPatchManifest.Elements.TryGetValue(remoteElement.Name, out PatchElement sandboxElement))
 				{
-					if (sandboxElement.MD5 != element.MD5)
-						downloadList.Add(element);
+					if (sandboxElement.MD5 != remoteElement.MD5)
+						downloadList.Add(remoteElement);
 				}
 				else
 				{
-					downloadList.Add(element);
+					downloadList.Add(remoteElement);
 				}
 			}
 
 			// 检测已经存在的文件
 			// 注意：如果玩家在加载过程中强制退出，下次再进入的时候跳过已经加载的文件
 			List<string> removeList = new List<string>();
-			if(_patcher.CheckLevel == ECheckLevel.CheckSize)
+			foreach (var element in downloadList)
 			{
-				foreach (var element in downloadList)
-				{
-					string filePath = AssetPathHelper.MakePersistentLoadPath(element.Name);
-					if (System.IO.File.Exists(filePath))
-					{
-						long fileSize = FileUtility.GetFileSize(filePath);
-						if (fileSize == element.SizeBytes)
-							removeList.Add(element.Name);
-					}
-				}
-			}
-			if(_patcher.CheckLevel == ECheckLevel.CheckMD5)
-			{
-				foreach (var element in downloadList)
-				{
-					string filePath = AssetPathHelper.MakePersistentLoadPath(element.Name);
-					if (System.IO.File.Exists(filePath))
-					{
-						string md5 = HashUtility.FileMD5(filePath);
-						if (md5 == element.MD5)
-							removeList.Add(element.Name);
-					}
-				}
+				if (_patcher.CheckPatchFileValid(element))
+					removeList.Add(element.Name);
 			}
 			foreach (var name in removeList)
 			{

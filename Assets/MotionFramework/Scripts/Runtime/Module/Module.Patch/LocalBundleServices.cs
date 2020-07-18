@@ -69,19 +69,6 @@ namespace MotionFramework.Patch
 
 		#region IBundleServices接口
 		private string _cachedLocationRoot;
-		private AssetBundleManifest _unityManifest;
-		private AssetBundleManifest LoadUnityManifest()
-		{
-			IBundleServices bundleServices = this;
-			string loadPath = bundleServices.GetAssetBundleLoadPath(PatchDefine.UnityManifestFileName);
-			AssetBundle bundle = AssetBundle.LoadFromFile(loadPath);
-			if (bundle == null)
-				return null;
-
-			AssetBundleManifest result = bundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
-			bundle.Unload(false);
-			return result;
-		}
 
 		string IBundleServices.ConvertLocationToManifestPath(string location, string variant)
 		{
@@ -119,15 +106,11 @@ namespace MotionFramework.Patch
 		}
 		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
 		{
-			if (_unityManifest == null)
-				_unityManifest = LoadUnityManifest();
-			return _unityManifest.GetDirectDependencies(assetBundleName);
+			return _patchManifest.GetDirectDependencies(assetBundleName);
 		}
 		string[] IBundleServices.GetAllDependencies(string assetBundleName)
 		{
-			if (_unityManifest == null)
-				_unityManifest = LoadUnityManifest();
-			return _unityManifest.GetAllDependencies(assetBundleName);
+			return _patchManifest.GetAllDependencies(assetBundleName);
 		}
 		#endregion
 	}

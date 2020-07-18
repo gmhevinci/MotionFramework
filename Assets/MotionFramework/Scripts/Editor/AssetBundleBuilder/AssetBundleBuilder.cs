@@ -13,7 +13,6 @@ using UnityEngine;
 using UnityEditor;
 using MotionFramework.Patch;
 using MotionFramework.Utility;
-using MotionFramework.IO;
 
 namespace MotionFramework.Editor
 {
@@ -133,23 +132,19 @@ namespace MotionFramework.Editor
 			// 开始构建
 			Log($"开始构建......");
 			BuildAssetBundleOptions opt = MakeBuildOptions();
-			AssetBundleManifest buildManifest = BuildPipeline.BuildAssetBundles(OutputPath, buildInfoList.ToArray(), opt, BuildTarget);
-			if (buildManifest == null)
+			AssetBundleManifest unityManifest = BuildPipeline.BuildAssetBundles(OutputPath, buildInfoList.ToArray(), opt, BuildTarget);
+			if (unityManifest == null)
 				throw new Exception("[BuildPatch] 构建过程中发生错误！");
-
-			// 清单列表
-			string[] allAssetBundles = buildManifest.GetAllAssetBundles();
-			Log($"资产清单里总共有{allAssetBundles.Length}个资产");
 
 			// 视频单独打包
 			PackVideo(buildMap);
 			// 加密资源文件
-			EncryptFiles(allAssetBundles);
+			EncryptFiles(unityManifest);
 
 			// 创建补丁文件
-			CreatePatchManifestFile(allAssetBundles);
+			CreatePatchManifestFile(unityManifest);
 			// 创建说明文件
-			CreateReadmeFile(allAssetBundles);
+			CreateReadmeFile(unityManifest);
 
 			// 复制更新文件到新的补丁文件夹
 			CopyUpdateFiles();
@@ -361,7 +356,7 @@ namespace MotionFramework.Editor
 		#endregion
 
 		#region 文件加密
-		private void EncryptFiles(string[] allAssetBundles)
+		private void EncryptFiles(AssetBundleManifest unityManifest)
 		{
 			Log($"开始加密资源文件");
 
@@ -369,6 +364,7 @@ namespace MotionFramework.Editor
 			InitAssetEncrypter();
 
 			int progressBarCount = 0;
+			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 			foreach (string assetName in allAssetBundles)
 			{
 				string path = $"{OutputPath}/{assetName}";
@@ -390,7 +386,6 @@ namespace MotionFramework.Editor
 				EditorUtility.DisplayProgressBar("进度", $"加密资源包：{progressBarCount}/{allAssetBundles.Length}", (float)progressBarCount / allAssetBundles.Length);
 			}
 			EditorUtility.ClearProgressBar();
-			progressBarCount = 0;
 		}
 
 		private Type _encrypterType = null;
@@ -428,8 +423,10 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 1. 创建补丁清单文件到输出目录
 		/// </summary>
-		private void CreatePatchManifestFile(string[] allAssetBundles)
+		private void CreatePatchManifestFile(AssetBundleManifest unityManifest)
 		{
+			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
+
 			// 加载旧补丁清单
 			PatchManifest oldPatchManifest = LoadPatchManifestFile();
 
@@ -438,18 +435,6 @@ namespace MotionFramework.Editor
 
 			// 写入版本信息
 			newPatchManifest.ResourceVersion = BuildVersion;
-
-			//写入UnityManifest文件的信息
-			{
-				string assetName = PatchDefine.UnityManifestFileName;
-				string path = $"{OutputPath}/{assetName}";
-				string md5 = HashUtility.FileMD5(path);
-				long sizeBytes = EditorTools.GetFileSize(path);
-				int version = BuildVersion;
-
-				PatchElement element = new PatchElement(assetName, md5, sizeBytes, version);
-				newPatchManifest.ElementList.Add(element);
-			}
 
 			// 写入所有AssetBundle文件的信息
 			for (int i = 0; i < allAssetBundles.Length; i++)
@@ -460,6 +445,9 @@ namespace MotionFramework.Editor
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = BuildVersion;
 
+				// 获取依赖列表
+				string[] depend = unityManifest.GetDirectDependencies(assetName);
+
 				// 注意：如果文件没有变化使用旧版本号
 				if (oldPatchManifest.Elements.TryGetValue(assetName, out PatchElement oldElement))
 				{
@@ -467,7 +455,7 @@ namespace MotionFramework.Editor
 						version = oldElement.Version;
 				}
 
-				PatchElement newElement = new PatchElement(assetName, md5, sizeBytes, version);
+				PatchElement newElement = new PatchElement(assetName, md5, sizeBytes, version, depend);
 				newPatchManifest.ElementList.Add(newElement);
 			}
 
@@ -510,8 +498,10 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 2. 创建Readme文件到输出目录
 		/// </summary>
-		private void CreateReadmeFile(string[] allAssetBundles)
+		private void CreateReadmeFile(AssetBundleManifest unityManifest)
 		{
+			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
+			
 			// 删除旧文件
 			string filePath = OutputPath + "/readme.txt";
 			if (File.Exists(filePath))

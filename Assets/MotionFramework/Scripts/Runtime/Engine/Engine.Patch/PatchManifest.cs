@@ -50,10 +50,17 @@ namespace MotionFramework.Patch
 		public readonly Dictionary<string, PatchVariant> Variants = new Dictionary<string, PatchVariant>();
 
 
+		/// <summary>
+		/// 是否包含变体资源
+		/// </summary>
 		public bool HasVariant(string name)
 		{
 			return Variants.ContainsKey(name);
 		}
+
+		/// <summary>
+		/// 获取首个变体格式
+		/// </summary>
 		public string GetFirstVariant(string name)
 		{
 			if(Variants.TryGetValue(name, out PatchVariant value))
@@ -61,6 +68,29 @@ namespace MotionFramework.Patch
 				return value.Variants[0];
 			}
 			return string.Empty;
+		}
+
+		/// <summary>
+		/// 获取资源依赖列表
+		/// </summary>
+		public string[] GetDirectDependencies(string name)
+		{
+			if(Elements.TryGetValue(name, out PatchElement value))
+			{
+				return value.Dependencies;
+			}
+			else
+			{
+				return new string[] { };
+			}
+		}
+
+		/// <summary>
+		/// 获取资源依赖列表
+		/// </summary>
+		public string[] GetAllDependencies(string name)
+		{
+			throw new NotImplementedException();
 		}
 
 

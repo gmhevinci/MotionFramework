@@ -57,8 +57,7 @@ namespace MotionFramework.Patch
 			{
 				// 注意：资源版本号只用于确定下载路径
 				string url = _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
-				string savePath = AssetPathHelper.MakePersistentLoadPath(element.Name);
-				element.SavePath = savePath;
+				string savePath = AssetPathHelper.MakePersistentLoadPath(element.MD5);
 				FileUtility.CreateFileDirectory(savePath);
 
 				// 创建下载器
@@ -80,33 +79,14 @@ namespace MotionFramework.Patch
 				PatchEventDispatcher.SendDownloadFilesProgressMsg(totalDownloadCount, currentDownloadCount, totalDownloadSizeBytes, currentDownloadSizeBytes);
 			}
 
-			// 验证下载文件的大小
-			if(_patcher.CheckLevel == ECheckLevel.CheckSize)
+			// 验证下载文件
+			foreach (var element in _patcher.DownloadList)
 			{
-				foreach (var element in _patcher.DownloadList)
+				if (_patcher.CheckPatchFileValid(element) == false)
 				{
-					long fileSize = FileUtility.GetFileSize(element.SavePath);
-					if (fileSize != element.SizeBytes)
-					{
-						MotionLog.Error($"Web file size check failed : {element.Name}");
-						PatchEventDispatcher.SendWebFileCheckFailedMsg(element.Name);
-						yield break;
-					}
-				}
-			}
-
-			// 验证下载文件的MD5
-			if(_patcher.CheckLevel == ECheckLevel.CheckMD5)
-			{
-				foreach (var element in _patcher.DownloadList)
-				{
-					string md5 = HashUtility.FileMD5(element.SavePath);
-					if (md5 != element.MD5)
-					{
-						MotionLog.Error($"Web file md5 check failed : {element.Name}");
-						PatchEventDispatcher.SendWebFileCheckFailedMsg(element.Name);
-						yield break;
-					}
+					MotionLog.Error($"Patch file is invalid : {element.Name}");
+					PatchEventDispatcher.SendWebFileCheckFailedMsg(element.Name);
+					yield break;
 				}
 			}
 
