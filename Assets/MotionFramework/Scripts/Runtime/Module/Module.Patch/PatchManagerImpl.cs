@@ -13,6 +13,7 @@ using MotionFramework.AI;
 using MotionFramework.Event;
 using MotionFramework.Resource;
 using MotionFramework.Utility;
+using MotionFramework.IO;
 
 namespace MotionFramework.Patch
 {
@@ -21,15 +22,12 @@ namespace MotionFramework.Patch
 		private readonly ProcedureFsm _procedure = new ProcedureFsm();
 
 		// 参数相关
-		private Dictionary<RuntimePlatform, string> _webServers;
-		private Dictionary<RuntimePlatform, string> _cdnServers;
-		private string _defaultWebServer;
-		private string _defaultCDNServer;
 		private int _serverID;
 		private int _channelID;
 		private long _deviceID;
 		private int _testFlag;
 		private ECheckLevel _checkLevel;
+		private RemoteServerInfo _serverInfo;
 
 		// 强更标记和地址
 		public bool ForceInstall { private set; get; } = false;
@@ -76,15 +74,12 @@ namespace MotionFramework.Patch
 
 		public void Create(PatchManager.CreateParameters createParam)
 		{
-			_webServers = createParam.WebServers;
-			_cdnServers = createParam.CDNServers;
-			_defaultWebServer = createParam.DefaultWebServerIP;
-			_defaultCDNServer = createParam.DefaultCDNServerIP;
 			_serverID = createParam.ServerID;
 			_channelID = createParam.ChannelID;
 			_deviceID = createParam.DeviceID;
 			_testFlag = createParam.TestFlag;
 			_checkLevel = createParam.CheckLevel;
+			_serverInfo = createParam.ServerInfo;
 			AppVersion = new Version(Application.version);
 		}
 		public void Download()
@@ -247,18 +242,12 @@ namespace MotionFramework.Patch
 		public string GetWebServerIP()
 		{
 			RuntimePlatform runtimePlatform = Application.platform;
-			if (_webServers != null && _webServers.ContainsKey(runtimePlatform))
-				return _webServers[runtimePlatform];
-			else
-				return _defaultWebServer;
+			return _serverInfo.GetPlatformWebServerIP(runtimePlatform);
 		}
 		public string GetCDNServerIP()
 		{
 			RuntimePlatform runtimePlatform = Application.platform;
-			if (_cdnServers != null && _cdnServers.ContainsKey(runtimePlatform))
-				return _cdnServers[runtimePlatform];
-			else
-				return _defaultCDNServer;
+			return _serverInfo.GetPlatformCDNServerIP(runtimePlatform);
 		}
 
 		// WEB相关

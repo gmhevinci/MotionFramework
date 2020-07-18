@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 using MotionFramework.Resource;
 using MotionFramework.Event;
 using MotionFramework.Console;
@@ -48,24 +47,9 @@ namespace MotionFramework.Patch
 			public ECheckLevel CheckLevel = ECheckLevel.CheckSize;
 
 			/// <summary>
-			/// WEB服务器地址
+			/// 远程服务器信息
 			/// </summary>
-			public Dictionary<RuntimePlatform, string> WebServers;
-
-			/// <summary>
-			/// CDN服务器地址
-			/// </summary>
-			public Dictionary<RuntimePlatform, string> CDNServers;
-
-			/// <summary>
-			/// 默认的Web服务器地址
-			/// </summary>
-			public string DefaultWebServerIP;
-
-			/// <summary>
-			/// 默认的CDN服务器地址
-			/// </summary>
-			public string DefaultCDNServerIP;
+			public RemoteServerInfo ServerInfo;
 
 			/// <summary>
 			/// 变体规则列表
@@ -84,6 +68,8 @@ namespace MotionFramework.Patch
 			CreateParameters createParam = param as CreateParameters;
 			if (createParam == null)
 				throw new Exception($"{nameof(PatchManager)} create param is invalid.");
+			if (createParam.ServerInfo == null)
+				throw new Exception("ServerInfo is null");
 
 			// 注册变体规则
 			if (createParam.VariantRules != null)
@@ -194,8 +180,14 @@ namespace MotionFramework.Patch
 						return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
 				}
 
-				// 如果APP里不存在或者MD5不匹配，则从沙盒里加载	
-				return AssetPathHelper.MakePersistentLoadPath(manifestPath);
+				// 如果APP里不存在或者MD5不匹配，则从沙盒里加载
+				// 注意：如果沙盒内文件不存在，那么将会从服务器下载
+				string sandboxPath = AssetPathHelper.MakePersistentLoadPath(element.MD5);
+				if(element.BackgroundDownload && File.Exists(sandboxPath) == false)
+				{
+					return _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
+				}
+				return sandboxPath;
 			}
 			else
 			{
