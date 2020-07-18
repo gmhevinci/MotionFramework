@@ -51,15 +51,14 @@ namespace MotionFramework.Patch
 				yield break;
 
 			// 解析APP里的补丁清单
-			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestBytesFileName);
+			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
 			string url = AssetPathHelper.ConvertToWWWPath(filePath);
 			WebDataRequest downloader = new WebDataRequest(url);
 			yield return downloader.DownLoad();
 
 			if (downloader.States == EWebRequestStates.Success)
 			{
-				_patchManifest = new PatchManifest();
-				_patchManifest.Parse(downloader.GetData());
+				_patchManifest = PatchManifest.Deserialize(downloader.GetText());
 				downloader.Dispose();
 			}
 			else
@@ -103,11 +102,10 @@ namespace MotionFramework.Patch
 			if (_patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
 				// 如果是变体资源
-				if (_variantCollector != null)
+				if (_variantCollector != null && _patchManifest.HasVariant(manifestPath))
 				{
-					string variant = element.GetFirstVariant();
-					if (string.IsNullOrEmpty(variant) == false)
-						manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
+					string variant = _patchManifest.GetFirstVariant(manifestPath);
+					manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
 				}
 
 				// 直接从沙盒里加载

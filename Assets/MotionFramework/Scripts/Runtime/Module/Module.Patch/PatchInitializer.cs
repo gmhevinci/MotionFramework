@@ -24,14 +24,14 @@ namespace MotionFramework.Patch
 
 			// 分析APP内的补丁清单
 			{
-				string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestBytesFileName);
+				string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
 				string url = AssetPathHelper.ConvertToWWWPath(filePath);
 				WebDataRequest downloader = new WebDataRequest(url);
 				yield return downloader.DownLoad();
 				if (downloader.States == EWebRequestStates.Success)
 				{
 					MotionLog.Log("Parse app patch manifest.");
-					patcher.ParseAppPatchManifest(downloader.GetData());
+					patcher.ParseAppPatchManifest(downloader.GetText());
 					downloader.Dispose();
 				}
 				else
@@ -43,10 +43,10 @@ namespace MotionFramework.Patch
 			// 分析沙盒内的补丁清单
 			if (PatchHelper.CheckSandboxPatchManifestFileExist())
 			{
-				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestBytesFileName);
-				byte[] fileData = File.ReadAllBytes(filePath);
 				MotionLog.Log($"Parse sandbox patch file.");
-				patcher.ParseSandboxPatchManifest(fileData);
+				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+				string jsonData = File.ReadAllText(filePath);				
+				patcher.ParseSandboxPatchManifest(jsonData);
 			}
 			else
 			{

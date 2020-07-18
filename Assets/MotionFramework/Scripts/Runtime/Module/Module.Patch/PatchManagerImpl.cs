@@ -44,7 +44,6 @@ namespace MotionFramework.Patch
 		public PatchManifest AppPatchManifest { private set; get; }
 		public PatchManifest SandboxPatchManifest { private set; get; }
 		public PatchManifest WebPatchManifest { private set; get; }
-		private byte[] _webPatchManifestCacheData = null;
 
 		/// <summary>
 		/// 下载列表
@@ -182,19 +181,17 @@ namespace MotionFramework.Patch
 		}
 
 		// 补丁清单相关
-		public void ParseAppPatchManifest(byte[] fileData)
+		public void ParseAppPatchManifest(string jsonData)
 		{
 			if (AppPatchManifest != null)
 				throw new Exception("Should never get here.");
-			AppPatchManifest = new PatchManifest();
-			AppPatchManifest.Parse(fileData);
+			AppPatchManifest = PatchManifest.Deserialize(jsonData);
 		}
-		public void ParseSandboxPatchManifest(byte[] fileData)
+		public void ParseSandboxPatchManifest(string jsonData)
 		{
 			if (SandboxPatchManifest != null)
 				throw new Exception("Should never get here.");
-			SandboxPatchManifest = new PatchManifest();
-			SandboxPatchManifest.Parse(fileData);
+			SandboxPatchManifest = PatchManifest.Deserialize(jsonData);
 		}
 		public void ParseSandboxPatchManifest(PatchManifest patchFile)
 		{
@@ -202,26 +199,20 @@ namespace MotionFramework.Patch
 				throw new Exception("Should never get here.");
 			SandboxPatchManifest = patchFile;
 		}
-		public void ParseWebPatchManifest(byte[] fileData)
+		public void ParseWebPatchManifest(string jsonData)
 		{
 			if (WebPatchManifest != null)
 				throw new Exception("Should never get here.");
-			WebPatchManifest = new PatchManifest();
-			WebPatchManifest.Parse(fileData);
-			_webPatchManifestCacheData = fileData;
+			WebPatchManifest = PatchManifest.Deserialize(jsonData);
 		}
 		public void SaveWebPatchManifest()
 		{
-			if (_webPatchManifestCacheData == null)
-				throw new Exception("WebPatchManifest cached data is null.");
+			if (WebPatchManifest == null)
+				throw new Exception("WebPatchManifest is null.");
 
-			// 注意：这里会覆盖掉旧文件
-			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestBytesFileName);
-			File.WriteAllBytes(savePath, _webPatchManifestCacheData);
-		}
-		public void ClearWebPatchManifestCacheData()
-		{
-			_webPatchManifestCacheData = null;
+			// 注意：这里会覆盖掉沙盒内的旧文件
+			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			PatchManifest.Serialize(savePath, WebPatchManifest);
 		}
 
 		// 服务器IP相关

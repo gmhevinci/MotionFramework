@@ -250,10 +250,12 @@ namespace MotionFramework.Patch
 
 			if (patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
-				// 如果是变体资源
-				string variant = element.GetFirstVariant();
-				if (string.IsNullOrEmpty(variant) == false)
-					manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
+				// 如果是变体资源			
+				if (_variantCollector != null && patchManifest.HasVariant(manifestPath))
+				{
+					string variant = patchManifest.GetFirstVariant(manifestPath);
+					return _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
+				}
 				return manifestPath;
 			}
 			else

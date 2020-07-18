@@ -59,7 +59,7 @@ namespace MotionFramework.Patch
 			}
 
 			int newResourceVersion = _patcher.RequestedResourceVersion;
-			int oldResourceVersion = _patcher.SandboxPatchManifest.Version;
+			int oldResourceVersion = _patcher.SandboxPatchManifest.ResourceVersion;
 
 			// 检测强更安装包
 			if(_patcher.ForceInstall)

@@ -430,186 +430,81 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void CreatePatchManifestFile(string[] allAssetBundles)
 		{
-			// 获取变体信息
-			Dictionary<string, List<string>> variantInfos = GetVariantInfos(allAssetBundles);
-
-			CreatePatchManifestBytesFile(allAssetBundles, variantInfos);
-			CreatePatchManifestTextFile(allAssetBundles, variantInfos);
-		}
-		private void CreatePatchManifestBytesFile(string[] allAssetBundles, Dictionary<string, List<string>> variantInfos)
-		{
-			ByteBuffer fileBuffer = new ByteBuffer(PatchManifest.FileStreamMaxLen);
-			ByteBuffer tableBuffer = new ByteBuffer(PatchManifest.TableStreamMaxLen);
-
-			// 加载补丁清单
+			// 加载旧补丁清单
 			PatchManifest oldPatchManifest = LoadPatchManifestFile();
 
-			// 删除旧文件
-			string filePath = OutputPath + $"/{PatchDefine.PatchManifestBytesFileName}";
-			if (File.Exists(filePath))
-				File.Delete(filePath);
-
-			// 创建新文件
-			Log($"创建补丁清单文件：{filePath}");
+			// 创建新补丁清单
+			PatchManifest newPatchManifest = new PatchManifest();
 
 			// 写入版本信息
-			fileBuffer.WriteInt(BuildVersion);
+			newPatchManifest.ResourceVersion = BuildVersion;
 
-			// 写入元素总数
-			fileBuffer.WriteInt(allAssetBundles.Length + 1);
-
-			// 写入UnityManifest文件的信息
+			//写入UnityManifest文件的信息
 			{
 				string assetName = PatchDefine.UnityManifestFileName;
 				string path = $"{OutputPath}/{assetName}";
 				string md5 = HashUtility.FileMD5(path);
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = BuildVersion;
-				List<string> variantList = null;
 
-				tableBuffer.Clear();
-				tableBuffer.WriteUTF(assetName);
-				tableBuffer.WriteUTF(md5);
-				tableBuffer.WriteLong(sizeBytes);
-				tableBuffer.WriteInt(version);
-				tableBuffer.WriteListUTF(variantList);
-
-				// 写入到总缓存
-				int tabSize = tableBuffer.ReadableBytes();
-				fileBuffer.WriteShort(PatchManifest.TableStreamHead);
-				fileBuffer.WriteInt(tabSize);
-				fileBuffer.WriteBytes(tableBuffer.ReadBytes(tabSize));
+				PatchElement element = new PatchElement(assetName, md5, sizeBytes, version);
+				newPatchManifest.ElementList.Add(element);
 			}
 
 			// 写入所有AssetBundle文件的信息
-			foreach (string assetName in allAssetBundles)
+			for (int i = 0; i < allAssetBundles.Length; i++)
 			{
+				string assetName = allAssetBundles[i];
 				string path = $"{OutputPath}/{assetName}";
 				string md5 = HashUtility.FileMD5(path);
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = BuildVersion;
 
-				string variants = GetVariants(variantInfos, assetName);
-				List<string> variantList = null;
-				if (string.IsNullOrEmpty(variants) == false)
-					variantList = variants.Split('|').ToList();
-
 				// 注意：如果文件没有变化使用旧版本号
-				if (oldPatchManifest.Elements.TryGetValue(assetName, out PatchElement element))
+				if (oldPatchManifest.Elements.TryGetValue(assetName, out PatchElement oldElement))
 				{
-					if (element.MD5 == md5)
-						version = element.Version;
+					if (oldElement.MD5 == md5)
+						version = oldElement.Version;
 				}
 
-				tableBuffer.Clear();
-				tableBuffer.WriteUTF(assetName);
-				tableBuffer.WriteUTF(md5);
-				tableBuffer.WriteLong(sizeBytes);
-				tableBuffer.WriteInt(version);
-				tableBuffer.WriteListUTF(variantList);
-
-				// 写入到总缓存
-				int tabSize = tableBuffer.ReadableBytes();
-				fileBuffer.WriteShort(PatchManifest.TableStreamHead);
-				fileBuffer.WriteInt(tabSize);
-				fileBuffer.WriteBytes(tableBuffer.ReadBytes(tabSize));
+				PatchElement newElement = new PatchElement(assetName, md5, sizeBytes, version);
+				newPatchManifest.ElementList.Add(newElement);
 			}
 
-			// 创建文件
-			using (FileStream fs = new FileStream(filePath, FileMode.Create))
+			// 写入所有变体信息
 			{
-				byte[] data = fileBuffer.Buf;
-				int length = fileBuffer.ReadableBytes();
-				fs.Write(data, 0, length);
+				Dictionary<string, List<string>> variantInfos = GetVariantInfos(allAssetBundles);
+				foreach (var pair in variantInfos)
+				{
+					if (pair.Value.Count > 0)
+					{
+						string name = $"{pair.Key}.{ PatchDefine.AssetBundleDefaultVariant}";
+						List<string> variants = pair.Value;
+						newPatchManifest.VariantList.Add(new PatchVariant(name, variants));
+					}
+				}
 			}
-		}
-		private void CreatePatchManifestTextFile(string[] allAssetBundles, Dictionary<string, List<string>> variantInfos)
-		{
-			// 加载补丁清单
-			PatchManifest patchManifest = LoadPatchManifestFile();
-
-			// 删除旧文件
-			string filePath = OutputPath + $"/{PatchDefine.PatchManifestTextFileName}";
-			if (File.Exists(filePath))
-				File.Delete(filePath);
 
 			// 创建新文件
+			string filePath = OutputPath + $"/{PatchDefine.PatchManifestFileName}";
 			Log($"创建补丁清单文件：{filePath}");
-			using (FileStream fs = File.Create(filePath))
-			{
-				StreamWriter sw = new StreamWriter(fs);
-
-				// 写入版本信息
-				sw.Write(patchManifest.Version);
-				sw.Write("\n");
-				sw.Flush();
-
-				// 写入所有AssetBundle文件的信息
-				foreach (var pair in patchManifest.Elements)
-				{
-					var element = pair.Value;
-					string name = element.Name;
-					string md5 = element.MD5;
-					long sizeBytes = element.SizeBytes;
-					int version = element.Version;
-
-					string variants = string.Empty;
-					if (element.Variants != null)
-					{
-						for (int i = 0; i < element.Variants.Count; i++)
-						{
-							string extension = element.Variants[i];
-							variants += extension;
-							variants += "|";
-						}
-						variants = variants.RemoveLastChar();
-					}
-
-					sw.Write($"{name}={md5}={sizeBytes}={version}={variants}");
-					sw.Write("\n");
-					sw.Flush();
-				}
-
-				// 关闭文件流
-				sw.Close();
-				fs.Close();
-			}
+			PatchManifest.Serialize(filePath, newPatchManifest);
 		}
 		private Dictionary<string, List<string>> GetVariantInfos(string[] allAssetBundles)
 		{
 			Dictionary<string, List<string>> dic = new Dictionary<string, List<string>>();
 			foreach (var assetName in allAssetBundles)
 			{
-				string key = assetName.Remove(assetName.LastIndexOf(".")); // "Assets/Config/test.unity3d" --> "Assets/Config/test"
+				string path = assetName.Remove(assetName.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
 				string extension = Path.GetExtension(assetName).Substring(1);
-				if (dic.ContainsKey(key))
-					dic[key].Add(extension);
-				else
-					dic.Add(key, new List<string>() { extension });
+
+				if (dic.ContainsKey(path) == false)
+					dic.Add(path, new List<string>());
+
+				if (extension != PatchDefine.AssetBundleDefaultVariant)
+					dic[path].Add(extension);
 			}
 			return dic;
-		}
-		private string GetVariants(Dictionary<string, List<string>> variantInfos, string assetName)
-		{
-			string key = assetName.Remove(assetName.LastIndexOf(".")); // "Assets/Config/test.unity3d" --> "Assets/Config/test"
-			List<string> variants = variantInfos[key];
-
-			// 如果不是变体资源
-			if (variants.Count == 1)
-				return string.Empty;
-
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < variants.Count; i++)
-			{
-				string value = variants[i];
-				if (value != PatchDefine.AssetBundleDefaultVariant)
-				{
-					sb.Append(value);
-					sb.Append('|');
-				}
-			}
-			sb.Remove(sb.Length - 1, 1); //移除最后一个分隔符
-			return sb.ToString();
 		}
 
 		/// <summary>
@@ -651,14 +546,23 @@ namespace MotionFramework.Editor
 				AppendData(content, allAssetBundles[i]);
 			}
 
-			AppendData(content, "");
-			AppendData(content, $"--更新清单--");
 			PatchManifest patchFile = LoadPatchManifestFile();
-			foreach (var pair in patchFile.Elements)
 			{
-				if (pair.Value.Version == BuildVersion)
+				AppendData(content, "");
+				AppendData(content, $"--更新清单--");
+				foreach (var element in patchFile.ElementList)
 				{
-					AppendData(content, pair.Key);
+					if (element.Version == BuildVersion)
+					{
+						AppendData(content, element.Name);
+					}
+				}
+
+				AppendData(content, "");
+				AppendData(content, $"--变体列表--");
+				foreach (var variant in patchFile.VariantList)
+				{
+					AppendData(content, variant.ToString());
 				}
 			}
 
@@ -687,18 +591,10 @@ namespace MotionFramework.Editor
 				Log($"复制Readme文件到：{destPath}");
 			}
 
-			// 复制PatchManifest文件（字节格式）
+			// 复制PatchManifest文件
 			{
-				string sourcePath = $"{OutputPath}/{PatchDefine.PatchManifestBytesFileName}";
-				string destPath = $"{packageFolderPath}/{PatchDefine.PatchManifestBytesFileName}";
-				EditorTools.CopyFile(sourcePath, destPath, true);
-				Log($"复制PatchManifest文件到：{destPath}");
-			}
-
-			// 复制PatchManifest文件（文本格式）
-			{
-				string sourcePath = $"{OutputPath}/{PatchDefine.PatchManifestTextFileName}";
-				string destPath = $"{packageFolderPath}/{PatchDefine.PatchManifestTextFileName}";
+				string sourcePath = $"{OutputPath}/{PatchDefine.PatchManifestFileName}";
+				string destPath = $"{packageFolderPath}/{PatchDefine.PatchManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 				Log($"复制PatchManifest文件到：{destPath}");
 			}
@@ -737,16 +633,12 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private PatchManifest LoadPatchManifestFile()
 		{
-			string filePath = $"{OutputPath}/{PatchDefine.PatchManifestBytesFileName}";
-			PatchManifest patchFile = new PatchManifest();
-
-			// 如果文件不存在
+			string filePath = $"{OutputPath}/{PatchDefine.PatchManifestFileName}";
 			if (File.Exists(filePath) == false)
-				return patchFile;
+				return new PatchManifest();
 
-			byte[] fileData = File.ReadAllBytes(filePath);
-			patchFile.Parse(fileData);
-			return patchFile;
+			string jsonData = FileUtility.ReadFile(filePath);
+			return PatchManifest.Deserialize(jsonData);
 		}
 		#endregion
 	}

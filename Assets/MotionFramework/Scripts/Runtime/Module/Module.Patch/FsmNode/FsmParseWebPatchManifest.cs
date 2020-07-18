@@ -39,7 +39,7 @@ namespace MotionFramework.Patch
 		{
 			// 从网络上解析最新的补丁清单
 			int newResourceVersion = _patcher.RequestedResourceVersion;
-			string url = _patcher.GetWebDownloadURL(newResourceVersion.ToString(), PatchDefine.PatchManifestBytesFileName);
+			string url = _patcher.GetWebDownloadURL(newResourceVersion.ToString(), PatchDefine.PatchManifestFileName);
 			WebDataRequest download = new WebDataRequest(url);
 			yield return download.DownLoad();
 
@@ -52,7 +52,7 @@ namespace MotionFramework.Patch
 			}
 
 			MotionLog.Log($"Parse web patch manifest.");
-			_patcher.ParseWebPatchManifest(download.GetData());
+			_patcher.ParseWebPatchManifest(download.GetText());
 			download.Dispose();
 			_patcher.SwitchNext();
 		}

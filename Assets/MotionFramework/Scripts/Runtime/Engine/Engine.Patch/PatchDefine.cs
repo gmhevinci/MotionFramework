@@ -24,13 +24,8 @@ namespace MotionFramework.Patch
 		public const string UnityManifestFileName = "UnityManifest";
 
 		/// <summary>
-		/// 构建输出的补丁清单文件名称（字节格式）
+		/// 构建输出的补丁清单文件名称
 		/// </summary>
-		public const string PatchManifestBytesFileName = "PatchManifest.bytes";
-
-		/// <summary>
-		/// 构建输出的补丁清单文件名称（文本格式）
-		/// </summary>
-		public const string PatchManifestTextFileName = "PatchManifest.infos";
+		public const string PatchManifestFileName = "PatchManifest.bytes";
 	}
 }
