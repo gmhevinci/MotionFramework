@@ -75,9 +75,9 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 创建资源文件加载器
+		/// 获取资源信息
 		/// </summary>
-		public static AssetLoaderBase CreateLoader(string location, string variant)
+		public static AssetBundleInfo GetAssetBundleInfo(string location, string variant)
 		{
 			if (_isInitialize == false)
 				throw new Exception($"{nameof(AssetSystem)} is not initialize.");
@@ -85,30 +85,36 @@ namespace MotionFramework.Resource
 			if (SimulationOnEditor)
 			{
 #if UNITY_EDITOR
-				string loadPath = AssetPathHelper.FindDatabaseAssetPath(location);
-				return CreateLoaderInternal(loadPath, null);
+				string localPath = AssetPathHelper.FindDatabaseAssetPath(location);
+				string manifestPath = AssetPathHelper.ConvertLocationToManifestPath(location, variant);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath);
+				return bundleInfo;
 #else
-				throw new Exception("AssetSystem simulation only support unity editor.");
+				throw new Exception($"AssetSystem simulation only support unity editor.");
 #endif
 			}
 			else
 			{
 				if (BundleServices == null)
-					throw new Exception($"{nameof(AssetSystem.BundleServices)} is null. Use {nameof(AssetSystem.Initialize)}");
+					throw new Exception($"{nameof(BundleServices)} is null. Use {nameof(AssetSystem.Initialize)}");
 
-				string manifestPath = BundleServices.ConvertLocationToManifestPath(location, variant);
-				string loadPath = BundleServices.GetAssetBundleLoadPath(manifestPath);
-				return CreateLoaderInternal(loadPath, manifestPath);
+				string manifestPath = AssetPathHelper.ConvertLocationToManifestPath(location, variant);
+				return BundleServices.GetAssetBundleInfo(manifestPath);
 			}
 		}
 
 		/// <summary>
 		/// 创建资源文件加载器
 		/// </summary>
-		internal static AssetLoaderBase CreateLoaderInternal(string loadPath, string manifestPath)
+		public static AssetLoaderBase CreateLoader(string location, string variant)
+		{
+			AssetBundleInfo bundleInfo = GetAssetBundleInfo(location, variant);
+			return CreateLoaderInternal(bundleInfo);
+		}
+		internal static AssetLoaderBase CreateLoaderInternal(AssetBundleInfo bundleInfo)
 		{
 			// 如果加载器已经存在
-			AssetLoaderBase loader = TryGetLoader(loadPath);
+			AssetLoaderBase loader = TryGetLoader(bundleInfo.ManifestPath);
 			if (loader != null)
 			{
 				loader.Reference(); //引用计数
@@ -118,9 +124,9 @@ namespace MotionFramework.Resource
 			// 创建加载器
 			AssetLoaderBase newLoader;
 			if (SimulationOnEditor)
-				newLoader = new AssetDatabaseLoader(loadPath);
+				newLoader = new AssetDatabaseLoader(bundleInfo);
 			else
-				newLoader = new AssetBundleLoader(loadPath, manifestPath);
+				newLoader = new AssetBundleLoader(bundleInfo);
 
 			// 新增下载需求
 			_loaders.Add(newLoader);
@@ -181,13 +187,13 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 从列表里获取加载器
 		/// </summary>
-		private static AssetLoaderBase TryGetLoader(string loadPath)
+		private static AssetLoaderBase TryGetLoader(string manifestPath)
 		{
 			AssetLoaderBase loader = null;
 			for (int i = 0; i < _loaders.Count; i++)
 			{
 				AssetLoaderBase temp = _loaders[i];
-				if (temp.LoadPath.Equals(loadPath))
+				if (temp.BundleInfo.ManifestPath.Equals(manifestPath))
 				{
 					loader = temp;
 					break;

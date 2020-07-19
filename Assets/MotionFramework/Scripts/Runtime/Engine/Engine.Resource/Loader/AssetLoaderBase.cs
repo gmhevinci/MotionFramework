@@ -11,9 +11,9 @@ namespace MotionFramework.Resource
 	internal abstract class AssetLoaderBase
 	{
 		/// <summary>
-		/// 加载路径
+		/// 资源文件信息
 		/// </summary>
-		public string LoadPath { get; private set; }
+		public AssetBundleInfo BundleInfo { get; private set; }
 
 		/// <summary>
 		/// 引用计数
@@ -31,9 +31,9 @@ namespace MotionFramework.Resource
 		public bool IsSceneLoader = false;
 
 
-		public AssetLoaderBase(string loadPath)
+		public AssetLoaderBase(AssetBundleInfo bundleInfo)
 		{
-			LoadPath = loadPath;
+			BundleInfo = bundleInfo;
 			RefCount = 0;
 			States = ELoaderStates.None;
 		}

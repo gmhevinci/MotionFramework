@@ -10,6 +10,8 @@ namespace MotionFramework.Resource
 {
 	internal static class AssetPathHelper
 	{
+		private static string _cachedLowerLocationRoot;
+
 		/// <summary>
 		/// 获取规范化的路径
 		/// </summary>
@@ -64,6 +66,25 @@ namespace MotionFramework.Resource
 #elif UNITY_STANDALONE
 			return StringFormat.Format("file:///{0}", path);
 #endif
+		}
+
+		/// <summary>
+		/// 将资源定位地址转换为清单路径
+		/// </summary>
+		public static string ConvertLocationToManifestPath(string location, string variant)
+		{
+			// 注意：在编辑器模式下，加载路径是大小写敏感的
+			if (_cachedLowerLocationRoot == null)
+			{
+				if (string.IsNullOrEmpty(AssetSystem.LocationRoot))
+					throw new System.Exception($"{nameof(AssetSystem.LocationRoot)} is null or empty.");
+				_cachedLowerLocationRoot = AssetSystem.LocationRoot.ToLower();
+			}
+
+			if (string.IsNullOrEmpty(variant))
+				throw new System.Exception($"Variant is null or empty: {location}");
+
+			return StringFormat.Format("{0}/{1}.{2}", _cachedLowerLocationRoot, location.ToLower(), variant.ToLower());
 		}
 
 		/// <summary>

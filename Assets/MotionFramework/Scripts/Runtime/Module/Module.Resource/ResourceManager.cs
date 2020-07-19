@@ -7,6 +7,7 @@ using System;
 using UnityEngine;
 using MotionFramework.Console;
 using MotionFramework.Utility;
+using MotionFramework.Patch;
 
 namespace MotionFramework.Resource
 {
@@ -101,32 +102,11 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 获取资源的最终加载路径
+		/// 获取资源的信息
 		/// </summary>
-		public string GetLoadPath(string location, string variant = "unity3d")
+		public AssetBundleInfo GetAssetBundleInfo(string location, string variant = PatchDefine.AssetBundleDefaultVariant)
 		{
-			if (AssetSystem.SimulationOnEditor)
-			{
-#if UNITY_EDITOR
-				string loadPath = AssetPathHelper.FindDatabaseAssetPath(location);
-				if (string.IsNullOrEmpty(loadPath))
-					MotionLog.Warning($"Not found asset : {location}");
-				return loadPath;
-#else
-				throw new Exception($"AssetSystem simulation only support unity editor.");
-#endif
-			}
-			else
-			{
-				if (AssetSystem.BundleServices == null)
-					throw new Exception($"{nameof(AssetSystem.BundleServices)} is null.");
-
-				string manifestPath = AssetSystem.BundleServices.ConvertLocationToManifestPath(location, variant);
-				string loadPath = AssetSystem.BundleServices.GetAssetBundleLoadPath(manifestPath);
-				if (string.IsNullOrEmpty(loadPath))
-					MotionLog.Warning($"Not found asset : {location}");
-				return loadPath;
-			}
+			return AssetSystem.GetAssetBundleInfo(location, variant);
 		}
 	}
 }

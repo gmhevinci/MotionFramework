@@ -9,14 +9,9 @@ namespace MotionFramework.Resource
 	public interface IBundleServices
 	{
 		/// <summary>
-		/// 将资源定位地址转换为清单路径
+		/// 获取AssetBundle的信息
 		/// </summary>
-		string ConvertLocationToManifestPath(string location, string variant);
-
-		/// <summary>
-		/// 获取AssetBundle的加载路径
-		/// </summary>
-		string GetAssetBundleLoadPath(string manifestPath);
+		AssetBundleInfo GetAssetBundleInfo(string manifestPath);
 
 		/// <summary>
 		/// 获取AssetBundle的直接依赖列表

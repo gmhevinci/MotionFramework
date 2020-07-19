@@ -12,8 +12,8 @@ namespace MotionFramework.Resource
 {
 	internal sealed class AssetDatabaseLoader : AssetLoaderBase
 	{
-		public AssetDatabaseLoader(string loadPath)
-			: base(loadPath)
+		public AssetDatabaseLoader(AssetBundleInfo bundleInfo)
+			: base(bundleInfo)
 		{
 		}
 		public override void Update()
@@ -27,7 +27,7 @@ namespace MotionFramework.Resource
 			}
 
 			// 检测资源文件是否存在
-			string guid = UnityEditor.AssetDatabase.AssetPathToGUID(LoadPath);
+			string guid = UnityEditor.AssetDatabase.AssetPathToGUID(BundleInfo.LocalPath);
 			if (string.IsNullOrEmpty(guid))
 				States = ELoaderStates.Fail;
 			else

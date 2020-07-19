@@ -7,20 +7,20 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using MotionFramework.Network;
 
 namespace MotionFramework.Resource
 {
 	internal sealed class AssetBundleLoader : AssetLoaderBase
 	{
 		private readonly List<AssetLoaderBase> _depends = new List<AssetLoaderBase>(10);
-		private string _manifestPath = string.Empty;
+		private WebFileRequest _downloader;
 		private AssetBundleCreateRequest _cacheRequest;
 		internal AssetBundle CacheBundle { private set; get; }
 
-		public AssetBundleLoader(string loadPath, string manifestPath)
-			: base(loadPath)
+		public AssetBundleLoader(AssetBundleInfo bundleInfo)
+			: base(bundleInfo)
 		{
-			_manifestPath = manifestPath;
 		}
 		public override void Update()
 		{
@@ -33,26 +33,62 @@ namespace MotionFramework.Resource
 
 			if (States == ELoaderStates.None)
 			{
-				States = ELoaderStates.LoadDepends;
+				if (string.IsNullOrEmpty(BundleInfo.RemoteURL))
+					States = ELoaderStates.LoadDepends;
+				else
+					States = ELoaderStates.Download;
 			}
 
-			// 1. 加载所有依赖项
+			// 1. 从服务器下载
+			if (States == ELoaderStates.Download)
+			{
+				_downloader = new WebFileRequest(BundleInfo.RemoteURL, BundleInfo.LocalPath);
+				_downloader.DownLoad();
+				States = ELoaderStates.CheckDownload;
+			}
+
+			// 2. 检测服务器下载结果
+			if (States == ELoaderStates.CheckDownload)
+			{
+				if (_downloader.IsDone() == false)
+					return;
+
+				if (_downloader.HasError())
+				{
+					_downloader.ReportError();
+					States = ELoaderStates.Fail;
+				}
+				else
+				{
+					//TODO 校验文件有效性
+					States = ELoaderStates.LoadDepends;
+				}
+
+				// 释放网络资源下载器
+				if (_downloader != null)
+				{
+					_downloader.Dispose();
+					_downloader = null;
+				}
+			}
+
+			// 3. 加载所有依赖项
 			if (States == ELoaderStates.LoadDepends)
 			{
-				string[] dependencies = AssetSystem.BundleServices.GetDirectDependencies(_manifestPath);
-				if (dependencies.Length > 0)
+				string[] dependencies = AssetSystem.BundleServices.GetDirectDependencies(BundleInfo.ManifestPath);
+				if (dependencies != null && dependencies.Length > 0)
 				{
 					foreach (string dpManifestPath in dependencies)
 					{
-						string dpLoadPath = AssetSystem.BundleServices.GetAssetBundleLoadPath(dpManifestPath);
-						AssetLoaderBase dpLoader = AssetSystem.CreateLoaderInternal(dpLoadPath, dpManifestPath);
+						AssetBundleInfo dpBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dpManifestPath);
+						AssetLoaderBase dpLoader = AssetSystem.CreateLoaderInternal(dpBundleInfo);
 						_depends.Add(dpLoader);
 					}
 				}
 				States = ELoaderStates.CheckDepends;
 			}
 
-			// 2. 检测所有依赖完成状态
+			// 4. 检测所有依赖完成状态
 			if (States == ELoaderStates.CheckDepends)
 			{
 				foreach (var dpLoader in _depends)
@@ -63,30 +99,30 @@ namespace MotionFramework.Resource
 				States = ELoaderStates.LoadFile;
 			}
 
-			// 3. 加载AssetBundle
+			// 5. 加载AssetBundle
 			if (States == ELoaderStates.LoadFile)
 			{
 #if UNITY_EDITOR
 				// 注意：Unity2017.4编辑器模式下，如果AssetBundle文件不存在会导致编辑器崩溃，这里做了预判。
-				if (System.IO.File.Exists(LoadPath) == false)
+				if (System.IO.File.Exists(BundleInfo.LocalPath) == false)
 				{
-					MotionLog.Warning($"Not found assetBundle file : {LoadPath}");
+					MotionLog.Warning($"Not found assetBundle file : {BundleInfo.LocalPath}");
 					States = ELoaderStates.Fail;
 					return;
 				}
 #endif
 
 				// Load assetBundle file
-				if( AssetSystem.DecryptServices != null)
+				if (AssetSystem.DecryptServices != null)
 				{
-					if(AssetSystem.DecryptServices.DecryptType == EDecryptMethod.GetDecryptOffset)
+					if (AssetSystem.DecryptServices.DecryptType == EDecryptMethod.GetDecryptOffset)
 					{
-						ulong offset = AssetSystem.DecryptServices.GetDecryptOffset(LoadPath);
-						_cacheRequest = AssetBundle.LoadFromFileAsync(LoadPath, 0, offset);
+						ulong offset = AssetSystem.DecryptServices.GetDecryptOffset(BundleInfo.LocalPath);
+						_cacheRequest = AssetBundle.LoadFromFileAsync(BundleInfo.LocalPath, 0, offset);
 					}
-					else if(AssetSystem.DecryptServices.DecryptType == EDecryptMethod.GetDecryptBinary)
+					else if (AssetSystem.DecryptServices.DecryptType == EDecryptMethod.GetDecryptBinary)
 					{
-						byte[] binary = AssetSystem.DecryptServices.GetDecryptBinary(LoadPath);
+						byte[] binary = AssetSystem.DecryptServices.GetDecryptBinary(BundleInfo.LocalPath);
 						_cacheRequest = AssetBundle.LoadFromMemoryAsync(binary);
 					}
 					else
@@ -96,12 +132,12 @@ namespace MotionFramework.Resource
 				}
 				else
 				{
-					_cacheRequest = AssetBundle.LoadFromFileAsync(LoadPath);
+					_cacheRequest = AssetBundle.LoadFromFileAsync(BundleInfo.LocalPath);
 				}
-				States = ELoaderStates.CheckFile;		
+				States = ELoaderStates.CheckFile;
 			}
 
-			// 4. 检测AssetBundle加载结果
+			// 6. 检测AssetBundle加载结果
 			if (States == ELoaderStates.CheckFile)
 			{
 				if (_cacheRequest.isDone == false)
@@ -111,7 +147,7 @@ namespace MotionFramework.Resource
 				// Check error
 				if (CacheBundle == null)
 				{
-					MotionLog.Warning($"Failed to load assetBundle file : {LoadPath}");
+					MotionLog.Warning($"Failed to load assetBundle file : {BundleInfo.LocalPath}");
 					States = ELoaderStates.Fail;
 				}
 				else
@@ -146,9 +182,9 @@ namespace MotionFramework.Resource
 
 			// Check fatal
 			if (RefCount > 0)
-				throw new Exception($"Bundle file loader ref is not zero : {LoadPath}");
+				throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.LocalPath}");
 			if (IsDone() == false)
-				throw new Exception($"Bundle file loader is not done : {LoadPath}");
+				throw new Exception($"Bundle file loader is not done : {BundleInfo.LocalPath}");
 
 			// 卸载AssetBundle
 			if (CacheBundle != null)

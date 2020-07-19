@@ -12,6 +12,8 @@ namespace MotionFramework.Resource
 	internal enum ELoaderStates
 	{
 		None = 0,
+		Download,
+		CheckDownload,
 		LoadDepends,
 		CheckDepends,
 		LoadFile,
