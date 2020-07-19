@@ -75,7 +75,7 @@ namespace MotionFramework.Patch
 			{
 				// 直接从沙盒里加载
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.MD5, element.SizeBytes, element.Version);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
 				return bundleInfo;
 			}
 			else

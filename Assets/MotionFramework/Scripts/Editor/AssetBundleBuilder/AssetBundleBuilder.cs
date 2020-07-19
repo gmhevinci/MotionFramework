@@ -139,17 +139,17 @@ namespace MotionFramework.Editor
 			// 视频单独打包
 			PackVideo(buildMap);
 			// 加密资源文件
-			EncryptFiles(unityManifest);
+			List<string> encryptList = EncryptFiles(unityManifest);
 
 			// 创建补丁文件
-			CreatePatchManifestFile(unityManifest);
+			CreatePatchManifestFile(unityManifest, encryptList);
 			// 创建说明文件
 			CreateReadmeFile(unityManifest);
 
 			// 复制更新文件到新的补丁文件夹
 			CopyUpdateFiles();
 
-			Log("构建完成");
+			Log("构建完成！");
 		}
 
 		/// <summary>
@@ -356,28 +356,35 @@ namespace MotionFramework.Editor
 		#endregion
 
 		#region 文件加密
-		private void EncryptFiles(AssetBundleManifest unityManifest)
+		private List<string> EncryptFiles(AssetBundleManifest unityManifest)
 		{
-			Log($"开始加密资源文件");
-
 			// 初始化加密器
 			InitAssetEncrypter();
 
+			// 加密资源列表
+			List<string> encryptList = new List<string>();
+
+			// 如果没有设置加密类
+			if (_encrypterType == null)
+				return encryptList;
+
+			Log($"开始加密资源文件");
 			int progressBarCount = 0;
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 			foreach (string assetName in allAssetBundles)
 			{
-				string path = $"{OutputPath}/{assetName}";
-				if (AssetEncrypterCheck(path))
+				string filePath = $"{OutputPath}/{assetName}";
+				if (InvokeCheckMethod(filePath))
 				{
-					byte[] fileData = File.ReadAllBytes(path);
+					encryptList.Add(assetName);
 
-					// 通过判断文件合法性，规避重复加密一个文件。
+					// 通过判断文件合法性，规避重复加密一个文件
+					byte[] fileData = File.ReadAllBytes(filePath);
 					if (EditorTools.CheckBundleFileValid(fileData))
 					{
-						byte[] bytes = AssetEncrypterEncrypt(fileData);
-						File.WriteAllBytes(path, bytes);
-						Log($"文件加密完成：{path}");
+						byte[] bytes = InvokeEncryptMethod(fileData);
+						File.WriteAllBytes(filePath, bytes);
+						Log($"文件加密完成：{filePath}");
 					}
 				}
 
@@ -386,36 +393,32 @@ namespace MotionFramework.Editor
 				EditorUtility.DisplayProgressBar("进度", $"加密资源包：{progressBarCount}/{allAssetBundles.Length}", (float)progressBarCount / allAssetBundles.Length);
 			}
 			EditorUtility.ClearProgressBar();
+
+			return encryptList;
 		}
 
+		// 资源加密类名为：AssetEncrypter.cs
+		// 检测方法为：public static bool Check(string filePath) { }
+		// 加密方法为：public static byte[] Encrypt(byte[] fileData) { }
 		private Type _encrypterType = null;
 		private void InitAssetEncrypter()
 		{
-			_encrypterType = Type.GetType("AssetEncrypter");
-		}
-		private bool AssetEncrypterCheck(string filePath)
-		{
-			if (_encrypterType != null)
+			var assembly = AssemblyUtility.GetAssembly(AssemblyUtility.UnityDefaultAssemblyEditorName);
+			if(assembly != null)
 			{
-				var method = _encrypterType.GetMethod("Check");
-				return (bool)method.Invoke(null, new object[] { filePath });
-			}
-			else
-			{
-				return false;
+				_encrypterType = assembly.GetType("AssetEncrypter");
+				Log($"发现加密类 : {_encrypterType.FullName}");
 			}
 		}
-		private byte[] AssetEncrypterEncrypt(byte[] data)
+		private bool InvokeCheckMethod(string filePath)
 		{
-			if (_encrypterType != null)
-			{
-				var method = _encrypterType.GetMethod("Encrypt");
-				return (byte[])method.Invoke(null, new object[] { data });
-			}
-			else
-			{
-				return data;
-			}
+			var method = _encrypterType.GetMethod("Check", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+			return (bool)method.Invoke(this, new object[] { filePath });
+		}
+		private byte[] InvokeEncryptMethod(byte[] fileData)
+		{
+			var method = _encrypterType.GetMethod("Encrypt", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+			return (byte[])method.Invoke(this, new object[] { fileData });
 		}
 		#endregion
 
@@ -423,7 +426,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 1. 创建补丁清单文件到输出目录
 		/// </summary>
-		private void CreatePatchManifestFile(AssetBundleManifest unityManifest)
+		private void CreatePatchManifestFile(AssetBundleManifest unityManifest, List<string> encryptList)
 		{
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 
@@ -444,8 +447,7 @@ namespace MotionFramework.Editor
 				string md5 = HashUtility.FileMD5(path);
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = BuildVersion;
-
-				// 获取依赖列表
+				bool isEncrypted = encryptList.Contains(assetName);
 				string[] depend = unityManifest.GetDirectDependencies(assetName);
 
 				// 注意：如果文件没有变化使用旧版本号
@@ -455,7 +457,7 @@ namespace MotionFramework.Editor
 						version = oldElement.Version;
 				}
 
-				PatchElement newElement = new PatchElement(assetName, md5, sizeBytes, version, depend);
+				PatchElement newElement = new PatchElement(assetName, md5, sizeBytes, version, isEncrypted, depend);
 				newPatchManifest.ElementList.Add(newElement);
 			}
 
@@ -501,7 +503,7 @@ namespace MotionFramework.Editor
 		private void CreateReadmeFile(AssetBundleManifest unityManifest)
 		{
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
-			
+
 			// 删除旧文件
 			string filePath = OutputPath + "/readme.txt";
 			if (File.Exists(filePath))

@@ -4,8 +4,6 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace MotionFramework.Patch
 {
@@ -33,6 +31,11 @@ namespace MotionFramework.Patch
 		public int Version;
 
 		/// <summary>
+		/// 是否为加密文件
+		/// </summary>
+		public bool IsEncrypted;
+
+		/// <summary>
 		/// 依赖列表
 		/// </summary>
 		public string[] Dependencies;
@@ -43,12 +46,13 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public bool BackgroundDownload = false;
 		
-		public PatchElement(string name, string md5, long sizeBytes, int version, string[] dependencies)
+		public PatchElement(string name, string md5, long sizeBytes, int version, bool isEncrypted, string[] dependencies)
 		{
 			Name = name;
 			MD5 = md5;
 			SizeBytes = sizeBytes;
 			Version = version;
+			IsEncrypted = isEncrypted;
 			Dependencies = dependencies;
 		}
 	}

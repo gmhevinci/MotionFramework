@@ -113,21 +113,25 @@ namespace MotionFramework.Resource
 #endif
 
 				// Load assetBundle file
-				if (AssetSystem.DecryptServices != null)
+				if (BundleInfo.IsEncrypted)
 				{
-					if (AssetSystem.DecryptServices.DecryptType == EDecryptMethod.GetDecryptOffset)
+					if (AssetSystem.DecryptServices == null)
+						throw new Exception($"AssetBundle need IDecryptServices : {BundleInfo.ManifestPath}");
+
+					EDecryptMethod decryptType = AssetSystem.DecryptServices.DecryptType;
+					if (decryptType == EDecryptMethod.GetDecryptOffset)
 					{
-						ulong offset = AssetSystem.DecryptServices.GetDecryptOffset(BundleInfo.LocalPath);
+						ulong offset = AssetSystem.DecryptServices.GetDecryptOffset(BundleInfo);
 						_cacheRequest = AssetBundle.LoadFromFileAsync(BundleInfo.LocalPath, 0, offset);
 					}
-					else if (AssetSystem.DecryptServices.DecryptType == EDecryptMethod.GetDecryptBinary)
+					else if (decryptType == EDecryptMethod.GetDecryptBinary)
 					{
-						byte[] binary = AssetSystem.DecryptServices.GetDecryptBinary(BundleInfo.LocalPath);
+						byte[] binary = AssetSystem.DecryptServices.GetDecryptBinary(BundleInfo);
 						_cacheRequest = AssetBundle.LoadFromMemoryAsync(binary);
 					}
 					else
 					{
-						throw new NotImplementedException($"{AssetSystem.DecryptServices.DecryptType}");
+						throw new NotImplementedException($"{decryptType}");
 					}
 				}
 				else

@@ -163,7 +163,7 @@ namespace MotionFramework.Patch
 					if (appElement.MD5 == element.MD5)
 					{
 						string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.MD5, element.SizeBytes, element.Version);
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
 						return bundleInfo;
 					}
 				}
@@ -174,12 +174,12 @@ namespace MotionFramework.Patch
 				if (element.BackgroundDownload && File.Exists(sandboxLocalPath) == false)
 				{
 					string remoteURL = _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLocalPath, remoteURL, element.MD5, element.SizeBytes, element.Version);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLocalPath, remoteURL, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}
 				else
 				{
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLocalPath, string.Empty, element.MD5, element.SizeBytes, element.Version);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLocalPath, string.Empty, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}
 			}

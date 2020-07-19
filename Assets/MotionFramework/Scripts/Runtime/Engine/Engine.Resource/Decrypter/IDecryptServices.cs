@@ -8,16 +8,16 @@ namespace MotionFramework.Resource
 {
 	public interface IDecryptServices
 	{
-		EDecryptMethod DecryptType { set; get; }
+		EDecryptMethod DecryptType { get; }
 
 		/// <summary>
 		/// 获取解密的数据偏移
 		/// </summary>
-		ulong GetDecryptOffset(string loadPath);
+		ulong GetDecryptOffset(AssetBundleInfo bundleInfo);
 
 		/// <summary>
 		/// 获取解密的字节数据
 		/// </summary>
-		byte[] GetDecryptBinary(string loadPath);
+		byte[] GetDecryptBinary(AssetBundleInfo bundleInfo);
 	}
 }

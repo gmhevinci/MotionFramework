@@ -38,7 +38,12 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public int Version { private set; get; }
 
-		public AssetBundleInfo(string manifestPath, string localPath, string remoteURL, string md5, long sizeBytes, int version)
+		/// <summary>
+		/// 是否为加密文件
+		/// </summary>
+		public bool IsEncrypted { private set; get; }
+
+		public AssetBundleInfo(string manifestPath, string localPath, string remoteURL, string md5, long sizeBytes, int version, bool isEncrypted)
 		{
 			ManifestPath = manifestPath;
 			LocalPath = localPath;
@@ -46,6 +51,7 @@ namespace MotionFramework.Resource
 			MD5 = md5;
 			SizeBytes = sizeBytes;
 			Version = version;
+			IsEncrypted = isEncrypted;
 		}
 		public AssetBundleInfo(string manifestPath, string localPath)
 		{
