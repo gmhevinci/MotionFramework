@@ -41,11 +41,13 @@ namespace MotionFramework.Patch
 			int newResourceVersion = _patcher.RequestedResourceVersion;
 			string url = _patcher.GetWebDownloadURL(newResourceVersion.ToString(), PatchDefine.PatchManifestFileName);
 			WebDataRequest download = new WebDataRequest(url);
-			yield return download.DownLoad();
+			download.DownLoad();
+			yield return download;
 
 			// Check fatal
-			if (download.States != EWebRequestStates.Success)
+			if (download.HasError())
 			{
+				download.ReportError();
 				download.Dispose();
 				PatchEventDispatcher.SendWebPatchManifestDownloadFailedMsg();
 				yield break;

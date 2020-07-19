@@ -41,7 +41,6 @@ namespace MotionFramework.Patch
 			}
 		}
 
-
 		/// <summary>
 		/// 异步初始化
 		/// </summary>
@@ -54,54 +53,37 @@ namespace MotionFramework.Patch
 			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
 			string url = AssetPathHelper.ConvertToWWWPath(filePath);
 			WebDataRequest downloader = new WebDataRequest(url);
-			yield return downloader.DownLoad();
+			downloader.DownLoad();
+			yield return downloader;
 
-			if (downloader.States == EWebRequestStates.Success)
+			if (downloader.HasError())
 			{
-				_patchManifest = PatchManifest.Deserialize(downloader.GetText());
+				downloader.ReportError();
 				downloader.Dispose();
-			}
-			else
-			{
 				throw new System.Exception($"Fatal error : Failed download file : {url}");
 			}
+
+			_patchManifest = PatchManifest.Deserialize(downloader.GetText());
+			downloader.Dispose();
 		}
 
 		#region IBundleServices接口
-		private string _cachedLocationRoot;
-
-		string IBundleServices.ConvertLocationToManifestPath(string location, string variant)
+		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
 		{
-			if (_cachedLocationRoot == null)
-			{
-				if (string.IsNullOrEmpty(AssetSystem.LocationRoot))
-					throw new System.Exception($"{nameof(AssetSystem.LocationRoot)} is null or empty.");
-				_cachedLocationRoot = AssetSystem.LocationRoot.ToLower();
-			}
-
-			if (string.IsNullOrEmpty(variant))
-				throw new System.Exception($"Variant is null or empty: {location}");
-
-			return StringFormat.Format("{0}/{1}.{2}", _cachedLocationRoot, location.ToLower(), variant.ToLower());
-		}
-		string IBundleServices.GetAssetBundleLoadPath(string manifestPath)
-		{
+			manifestPath = GetVariantManifestPath(_patchManifest, manifestPath);
 			if (_patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
-				// 如果是变体资源
-				if (_variantCollector != null && _patchManifest.HasVariant(manifestPath))
-				{
-					string variant = _patchManifest.GetFirstVariant(manifestPath);
-					manifestPath = _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
-				}
-
 				// 直接从沙盒里加载
-				return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+				string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.MD5, element.SizeBytes, element.Version);
+				return bundleInfo;
 			}
 			else
 			{
 				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
-				return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+				string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath);
+				return bundleInfo;
 			}
 		}
 		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
@@ -111,6 +93,19 @@ namespace MotionFramework.Patch
 		string[] IBundleServices.GetAllDependencies(string assetBundleName)
 		{
 			return _patchManifest.GetAllDependencies(assetBundleName);
+		}
+
+		private string GetVariantManifestPath(PatchManifest patchManifest, string manifestPath)
+		{
+			if (_variantCollector == null)
+				return manifestPath;
+
+			if (patchManifest.HasVariant(manifestPath))
+			{
+				string variant = patchManifest.GetFirstVariant(manifestPath);
+				return _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
+			}
+			return manifestPath;
 		}
 		#endregion
 	}

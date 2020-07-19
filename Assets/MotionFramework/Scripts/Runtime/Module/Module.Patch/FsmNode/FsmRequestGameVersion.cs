@@ -43,11 +43,13 @@ namespace MotionFramework.Patch
 				string post = _patcher.GetWebPostData();
 				MotionLog.Log($"Request game version : {url} : {post}");
 				WebPostRequest download = new WebPostRequest(url, post);
-				yield return download.DownLoad();
+				download.DownLoad();
+				yield return download;
 
 				//Check fatal
-				if (download.States != EWebRequestStates.Success)
+				if (download.HasError())
 				{
+					download.ReportError();
 					download.Dispose();
 					PatchEventDispatcher.SendGameVersionRequestFailedMsg();
 					yield break;

@@ -151,23 +151,7 @@ namespace MotionFramework.Patch
 		}
 
 		#region IBundleServices接口
-		private string _cachedLocationRoot;
-
-		string IBundleServices.ConvertLocationToManifestPath(string location, string variant)
-		{
-			if (_cachedLocationRoot == null)
-			{
-				if (string.IsNullOrEmpty(AssetSystem.LocationRoot))
-					throw new System.Exception($"{nameof(AssetSystem.LocationRoot)} is null or empty.");
-				_cachedLocationRoot = AssetSystem.LocationRoot.ToLower();
-			}
-
-			if (string.IsNullOrEmpty(variant))
-				throw new System.Exception($"Variant is null or empty: {location}");
-
-			return StringFormat.Format("{0}/{1}.{2}", _cachedLocationRoot, location.ToLower(), variant.ToLower());
-		}
-		string IBundleServices.GetAssetBundleLoadPath(string manifestPath)
+		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
 		{
 			PatchManifest patchManifest = GetPatchManifest();
 			manifestPath = GetVariantManifestPath(patchManifest, manifestPath);
@@ -177,22 +161,34 @@ namespace MotionFramework.Patch
 				if (_patcher.AppPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement appElement))
 				{
 					if (appElement.MD5 == element.MD5)
-						return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+					{
+						string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.MD5, element.SizeBytes, element.Version);
+						return bundleInfo;
+					}
 				}
 
 				// 如果APP里不存在或者MD5不匹配，则从沙盒里加载
 				// 注意：如果沙盒内文件不存在，那么将会从服务器下载
-				string sandboxPath = AssetPathHelper.MakePersistentLoadPath(element.MD5);
-				if(element.BackgroundDownload && File.Exists(sandboxPath) == false)
+				string sandboxLocalPath = AssetPathHelper.MakePersistentLoadPath(element.MD5);
+				if (element.BackgroundDownload && File.Exists(sandboxLocalPath) == false)
 				{
-					return _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
+					string remoteURL = _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLocalPath, remoteURL, element.MD5, element.SizeBytes, element.Version);
+					return bundleInfo;
 				}
-				return sandboxPath;
+				else
+				{
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLocalPath, string.Empty, element.MD5, element.SizeBytes, element.Version);
+					return bundleInfo;
+				}
 			}
 			else
 			{
 				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
-				return AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+				string loadPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, loadPath);
+				return bundleInfo;
 			}
 		}
 		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
@@ -219,21 +215,12 @@ namespace MotionFramework.Patch
 			if (_variantCollector == null)
 				return manifestPath;
 
-			if (patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			if (patchManifest.HasVariant(manifestPath))
 			{
-				// 如果是变体资源			
-				if (_variantCollector != null && patchManifest.HasVariant(manifestPath))
-				{
-					string variant = patchManifest.GetFirstVariant(manifestPath);
-					return _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
-				}
-				return manifestPath;
+				string variant = patchManifest.GetFirstVariant(manifestPath);
+				return _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
 			}
-			else
-			{
-				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
-				return manifestPath;
-			}
+			return manifestPath;
 		}
 		#endregion
 	}

@@ -27,17 +27,19 @@ namespace MotionFramework.Patch
 				string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
 				string url = AssetPathHelper.ConvertToWWWPath(filePath);
 				WebDataRequest downloader = new WebDataRequest(url);
-				yield return downloader.DownLoad();
-				if (downloader.States == EWebRequestStates.Success)
+				downloader.DownLoad();
+				yield return downloader;
+
+				if (downloader.HasError())
 				{
-					MotionLog.Log("Parse app patch manifest.");
-					patcher.ParseAppPatchManifest(downloader.GetText());
+					downloader.ReportError();
 					downloader.Dispose();
-				}
-				else
-				{
 					throw new System.Exception($"Fatal error : Failed download file : {url}");
 				}
+
+				MotionLog.Log("Parse app patch manifest.");
+				patcher.ParseAppPatchManifest(downloader.GetText());
+				downloader.Dispose();
 			}
 
 			// 分析沙盒内的补丁清单

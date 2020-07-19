@@ -61,13 +61,16 @@ namespace MotionFramework.Patch
 				FileUtility.CreateFileDirectory(savePath);
 
 				// 创建下载器
+				MotionLog.Log($"Beginning to download web file : {savePath}");
 				WebFileRequest download = new WebFileRequest(url, savePath);
-				yield return download.DownLoad(); //文件依次加载（在一个文件加载完毕后加载下一个）
-				MotionLog.Log($"Web file is download : {savePath}");
+				download.DownLoad();
+				yield return download; //文件依次加载（在一个文件加载完毕后加载下一个）				
 
 				// 检测是否下载失败
-				if (download.States != EWebRequestStates.Success)
+				if (download.HasError())
 				{
+					download.ReportError();
+					download.Dispose();
 					PatchEventDispatcher.SendWebFileDownloadFailedMsg(url, element.Name);
 					yield break;
 				}
