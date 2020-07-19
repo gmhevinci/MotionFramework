@@ -18,17 +18,14 @@ namespace MotionFramework.Network
 		{
 			PostData = post;
 		}
-		public override IEnumerator DownLoad()
+		public override void DownLoad()
 		{
-			// Check fatal
+			if (CacheRequest != null)
+				return;
+
+			// Check error
 			if (string.IsNullOrEmpty(PostData))
 				throw new Exception($"{nameof(WebPostRequest)} post content is null or empty : {URL}");
-
-			// Check fatal
-			if (States != EWebRequestStates.None)
-				throw new Exception($"{nameof(WebPostRequest)} is downloading yet : {URL}");
-
-			States = EWebRequestStates.Loading;
 
 			// 下载文件
 			CacheRequest = UnityWebRequest.Post(URL, PostData);
@@ -36,23 +33,17 @@ namespace MotionFramework.Network
 			CacheRequest.downloadHandler = downloadhandler;
 			CacheRequest.disposeDownloadHandlerOnDispose = true;
 			CacheRequest.timeout = Timeout;
-			yield return CacheRequest.SendWebRequest();
-
-			// Check error
-			if (CacheRequest.isNetworkError || CacheRequest.isHttpError)
-			{
+			AsyncOperationHandle = CacheRequest.SendWebRequest();
+		}
+		public override void ReportError()
+		{
+			if(CacheRequest != null)
 				MotionLog.Warning($"Failed to request web post : {URL} Error : {CacheRequest.error}");
-				States = EWebRequestStates.Fail;
-			}
-			else
-			{
-				States = EWebRequestStates.Success;
-			}
 		}
 
 		public string GetResponse()
 		{
-			if (States == EWebRequestStates.Success)
+			if (IsDone() && HasError() == false)
 				return CacheRequest.downloadHandler.text;
 			else
 				return null;

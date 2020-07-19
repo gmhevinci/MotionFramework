@@ -13,8 +13,19 @@ namespace MotionFramework.Network
 	/// 下载器基类
 	/// 说明：UnityWebRequest(UWR) supports reading streaming assets since 2017.1
 	/// </summary>
-	public abstract class WebRequestBase
+	public abstract class WebRequestBase : IEnumerator
 	{
+		/// <summary>
+		/// 缓存的UnityWebRequest
+		/// </summary>
+		protected UnityWebRequest CacheRequest;
+
+		/// <summary>
+		/// 异步操作句柄
+		/// </summary>
+		protected UnityWebRequestAsyncOperation AsyncOperationHandle;
+
+
 		/// <summary>
 		/// 下载路径
 		/// </summary>
@@ -52,27 +63,21 @@ namespace MotionFramework.Network
 			}
 		}
 
-		/// <summary>
-		/// 下载状态
-		/// </summary>
-		public EWebRequestStates States { get; protected set; }
-
-		/// <summary>
-		/// 缓存的UnityWebRequest
-		/// </summary>
-		protected UnityWebRequest CacheRequest;
-
 
 		public WebRequestBase(string url)
 		{
 			URL = url;
-			States = EWebRequestStates.None;
 		}
 
 		/// <summary>
 		/// 开始下载
 		/// </summary>
-		public abstract IEnumerator DownLoad();
+		public abstract void DownLoad();
+
+		/// <summary>
+		/// 报错错误
+		/// </summary>
+		public abstract void ReportError();
 
 		/// <summary>
 		/// 释放下载器
@@ -83,6 +88,7 @@ namespace MotionFramework.Network
 			{
 				CacheRequest.Dispose();
 				CacheRequest = null;
+				AsyncOperationHandle = null;
 			}
 		}
 
@@ -91,7 +97,32 @@ namespace MotionFramework.Network
 		/// </summary>
 		public bool IsDone()
 		{
-			return States == EWebRequestStates.Success || States == EWebRequestStates.Fail;
+			if (AsyncOperationHandle == null)
+				return false;
+			return AsyncOperationHandle.isDone;
 		}
+
+		/// <summary>
+		/// 下载是否发送错误
+		/// </summary>
+		public bool HasError()
+		{
+			return CacheRequest.isNetworkError || CacheRequest.isHttpError;
+		}
+
+
+		#region 异步相关
+		bool IEnumerator.MoveNext()
+		{
+			return !IsDone();
+		}
+		void IEnumerator.Reset()
+		{
+		}
+		object IEnumerator.Current
+		{
+			get { return null; }
+		}
+		#endregion
 	}
 }

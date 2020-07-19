@@ -15,13 +15,10 @@ namespace MotionFramework.Network
 		public WebDataRequest(string url) : base(url)
 		{
 		}
-		public override IEnumerator DownLoad()
+		public override void DownLoad()
 		{
-			// Check fatal
-			if (States != EWebRequestStates.None)
-				throw new Exception($"{nameof(WebDataRequest)} is downloading yet : {URL}");
-
-			States = EWebRequestStates.Loading;
+			if (CacheRequest != null)
+				return;
 
 			// 下载文件
 			CacheRequest = new UnityWebRequest(URL, UnityWebRequest.kHttpVerbGET);
@@ -29,30 +26,24 @@ namespace MotionFramework.Network
 			CacheRequest.downloadHandler = handler;
 			CacheRequest.disposeDownloadHandlerOnDispose = true;
 			CacheRequest.timeout = Timeout;
-			yield return CacheRequest.SendWebRequest();
-
-			// Check error
-			if (CacheRequest.isNetworkError || CacheRequest.isHttpError)
-			{
-				MotionLog.Warning($"Failed to download web data : {URL} Error : {CacheRequest.error}");
-				States = EWebRequestStates.Fail;
-			}
-			else
-			{
-				States = EWebRequestStates.Success;
-			}
+			AsyncOperationHandle = CacheRequest.SendWebRequest();
+		}
+		public override void ReportError()
+		{
+			if(CacheRequest != null)
+				MotionLog.Warning($"Failed to request web data : {URL} Error : {CacheRequest.error}");
 		}
 
 		public byte[] GetData()
 		{
-			if (States == EWebRequestStates.Success)
+			if (IsDone() && HasError() == false)
 				return CacheRequest.downloadHandler.data;
 			else
 				return null;
 		}
 		public string GetText()
 		{
-			if (States == EWebRequestStates.Success)
+			if (IsDone() && HasError() == false)
 				return CacheRequest.downloadHandler.text;
 			else
 				return null;

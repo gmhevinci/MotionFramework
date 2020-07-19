@@ -21,13 +21,10 @@ namespace MotionFramework.Network
 		{
 			SavePath = savePath;
 		}
-		public override IEnumerator DownLoad()
+		public override void DownLoad()
 		{
-			// Check fatal
-			if (States != EWebRequestStates.None)
-				throw new Exception($"{nameof(WebFileRequest)} is downloading yet : {URL}");
-
-			States = EWebRequestStates.Loading;
+			if (CacheRequest != null)
+				return;
 
 			// 下载文件
 			CacheRequest = new UnityWebRequest(URL, UnityWebRequest.kHttpVerbGET);
@@ -36,18 +33,12 @@ namespace MotionFramework.Network
 			CacheRequest.downloadHandler = handler;
 			CacheRequest.disposeDownloadHandlerOnDispose = true;
 			CacheRequest.timeout = Timeout;
-			yield return CacheRequest.SendWebRequest();
-
-			// Check error
-			if (CacheRequest.isNetworkError || CacheRequest.isHttpError)
-			{
+			AsyncOperationHandle = CacheRequest.SendWebRequest();
+		}
+		public override void ReportError()
+		{
+			if(CacheRequest != null)
 				MotionLog.Warning($"Failed to download web file : {URL} Error : {CacheRequest.error}");
-				States = EWebRequestStates.Fail;
-			}
-			else
-			{
-				States = EWebRequestStates.Success;
-			}
 		}
 	}
 }
