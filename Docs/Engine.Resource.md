@@ -7,7 +7,7 @@
 所有通过代码加载的资源文件都需要放在资源定位的根路径下，在加载这些资源的时候只需要提供相对路径，资源系统统一约定该相对路径名称为：**location**   
 
 **AssetBundle服务接口**  
-在使用AssetBundle加载模式的时候，我们需要提供实现了IBundleServices接口的对象，这个接口主要是提供了资源间依赖关系的查询工作，以及获取AssetBundle文件的加载路径。
+在使用AssetBundle加载模式的时候，我们需要提供实现了IBundleServices接口的对象，这个接口主要是提供了资源间依赖关系的查询工作，以及获取AssetBundle文件的相关信息。
 
 **文件解密服务器接口**  
 如果AssetBundle文件被加密，那么我们需要提供实现了IDecryptServices接口的对象。

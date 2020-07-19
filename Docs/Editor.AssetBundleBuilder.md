@@ -25,18 +25,18 @@ public static class AssetEncrypter
 	/// <summary>
 	/// 检测文件是否需要加密
 	/// </summary>
-	public static bool Check(string path)
+	public static bool Check(string filePath)
 	{
-		return path.Contains(StrEncryptFolderName);
+		return filePath.Contains(StrEncryptFolderName);
 	}
 
 	/// <summary>
 	/// 对数据进行加密，并返回加密后的数据
 	/// </summary>
-	public static byte[] Encrypt(byte[] data)
+	public static byte[] Encrypt(byte[] fileData)
 	{
 		// 这里使用你的加密算法
-		return data;
+		return fileData;
 	}
 }
 ```
