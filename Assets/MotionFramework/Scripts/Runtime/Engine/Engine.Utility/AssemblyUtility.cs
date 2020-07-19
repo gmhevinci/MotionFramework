@@ -28,6 +28,20 @@ namespace MotionFramework.Utility
 		}
 
 		/// <summary>
+		/// 获取程序集
+		/// </summary>
+		public static Assembly GetAssembly(string assemblyName)
+		{
+			Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+			foreach (Assembly assembly in assemblies)
+			{
+				if (assembly.GetName().Name == assemblyName)
+					return assembly;
+			}
+			return null;
+		}
+
+		/// <summary>
 		/// 获取程序集里的所有类型
 		/// </summary>
 		private static List<Type> GetTypes(string assemblyName)
