@@ -97,14 +97,11 @@ namespace MotionFramework.Console
 				// 只搜索关键字
 				if (string.IsNullOrEmpty(_filterKey) == false)
 				{
-					if (loader.LoadPath.Contains(_filterKey) == false)
+					if (loader.BundleInfo.LocalPath.Contains(_filterKey) == false)
 						continue;
 				}
 
-				string info = Substring(loader.LoadPath, "/assets/");
-				info = info.Replace(".unity3d", string.Empty);
-				info = $"{info} = {loader.RefCount}";
-
+				string info = $"资源名称：{loader.BundleInfo.ManifestPath}  资源版本：{loader.BundleInfo.Version}  引用计数：{loader.RefCount}";
 				InfoWrapper element = ReferencePool.Spawn<InfoWrapper>();
 				element.Info = info;
 				element.LoadState = loader.States;
@@ -116,17 +113,6 @@ namespace MotionFramework.Console
 
 			// 重新排序
 			_cacheInfos.Sort();
-		}
-		private string Substring(string content, string key)
-		{
-			// 返回子字符串第一次出现位置	
-			int startIndex = content.IndexOf(key);
-
-			// 如果没有找到匹配的关键字
-			if (startIndex == -1)
-				return content;
-
-			return content.Substring(startIndex + key.Length);
 		}
 	}
 }
