@@ -7,7 +7,6 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using MotionFramework.Window;
-using UnityEditor;
 
 public abstract class CanvasWindow : UIWindow
 {

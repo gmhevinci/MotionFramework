@@ -3,7 +3,6 @@
 // Copyright©2018-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
-using MotionFramework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -59,7 +58,7 @@ namespace UnityEngine.UI
 				if (obj.name == name)
 					return GameObject.Instantiate(obj);
 			}
-			MotionLog.Warning($"Not found attach prefab : {name}");
+			Debug.LogWarning($"Not found attach prefab : {name}");
 			return null;
 		}
 
