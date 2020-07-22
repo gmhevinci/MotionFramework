@@ -16,7 +16,7 @@ namespace MotionFramework.Editor
 		/// 文件夹打包规则
 		/// </summary>
 		[Serializable]
-		public enum EFolderPackRule
+		public enum ECollectRule
 		{
 			/// <summary>
 			/// 收集该文件夹
@@ -29,32 +29,12 @@ namespace MotionFramework.Editor
 			Ignore,
 		}
 
-		/// <summary>
-		/// AssetBundle标签规则
-		/// </summary>
-		[Serializable]
-		public enum EBundleLabelRule
-		{
-			None,
-
-			/// <summary>
-			/// 以文件路径作为标签名
-			/// </summary>
-			LabelByFilePath,
-
-			/// <summary>
-			/// 以文件夹路径作为标签名
-			/// 注意：该文件夹下所有资源被打到一个AssetBundle文件里
-			/// </summary>
-			LabelByFolderPath,
-		}
-
 		[Serializable]
 		public class Wrapper
 		{
-			public string FolderPath = string.Empty;
-			public EFolderPackRule PackRule = EFolderPackRule.Collect;
-			public EBundleLabelRule LabelRule = EBundleLabelRule.LabelByFilePath;
+			public string CollectDirectory = string.Empty;
+			public ECollectRule CollectRule = ECollectRule.Collect;
+			public string CollectorName = string.Empty;
 		}
 
 		/// <summary>

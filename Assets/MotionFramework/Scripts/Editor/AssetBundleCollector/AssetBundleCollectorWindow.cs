@@ -30,38 +30,77 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private string _lastOpenFolderPath = "Assets/";
 
+		/// <summary>
+		/// 资源处理器类列表
+		/// </summary>
+		private string[] _collectorClassArray = null;
+
+		// 初始化相关
+		private bool _isInit = false;
+		private void Init()
+		{
+			List<string> names = AssetBundleCollectorSettingData.GetCollectorNames();
+			_collectorClassArray = names.ToArray();
+		}
+		private int NameToIndex(string name)
+		{
+			for (int i = 0; i < _collectorClassArray.Length; i++)
+			{
+				if (_collectorClassArray[i] == name)
+					return i;
+			}
+			return 0;
+		}
+		private string IndexToName(int index)
+		{
+			for (int i = 0; i < _collectorClassArray.Length; i++)
+			{
+				if (i == index)
+					return _collectorClassArray[i];
+			}
+			return string.Empty;
+		}
+
 		private void OnGUI()
 		{
+			// 初始化
+			if (_isInit == false)
+			{
+				_isInit = true;
+				Init();
+			}
+
 			// 列表显示
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField($"Collection List");
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Elements.Count; i++)
 			{
-				string folderPath = AssetBundleCollectorSettingData.Setting.Elements[i].FolderPath;
-				AssetBundleCollectorSetting.EFolderPackRule packRule = AssetBundleCollectorSettingData.Setting.Elements[i].PackRule;
-				AssetBundleCollectorSetting.EBundleLabelRule labelRule = AssetBundleCollectorSettingData.Setting.Elements[i].LabelRule;
+				string directory = AssetBundleCollectorSettingData.Setting.Elements[i].CollectDirectory;
+				AssetBundleCollectorSetting.ECollectRule packRule = AssetBundleCollectorSettingData.Setting.Elements[i].CollectRule;
+				string collectorName = AssetBundleCollectorSettingData.Setting.Elements[i].CollectorName;
 
 				EditorGUILayout.BeginHorizontal();
 				{
-					EditorGUILayout.LabelField(folderPath);
+					EditorGUILayout.LabelField(directory);
 
-					AssetBundleCollectorSetting.EFolderPackRule newPackRule = (AssetBundleCollectorSetting.EFolderPackRule)EditorGUILayout.EnumPopup(packRule, GUILayout.MaxWidth(150));
+					AssetBundleCollectorSetting.ECollectRule newPackRule = (AssetBundleCollectorSetting.ECollectRule)EditorGUILayout.EnumPopup(packRule, GUILayout.MaxWidth(150));
 					if (newPackRule != packRule)
 					{
 						packRule = newPackRule;
-						AssetBundleCollectorSettingData.ModifyElement(folderPath, packRule, labelRule);
+						AssetBundleCollectorSettingData.ModifyElement(directory, packRule, collectorName);
 					}
 
-					AssetBundleCollectorSetting.EBundleLabelRule newLabelRule = (AssetBundleCollectorSetting.EBundleLabelRule)EditorGUILayout.EnumPopup(labelRule, GUILayout.MaxWidth(150));
-					if (newLabelRule != labelRule)
+					int index = NameToIndex(collectorName);
+					int newIndex = EditorGUILayout.Popup(index, _collectorClassArray, GUILayout.MaxWidth(150));
+					if (newIndex != index)
 					{
-						labelRule = newLabelRule;
-						AssetBundleCollectorSettingData.ModifyElement(folderPath, packRule, labelRule);
+						string newCollectorName = IndexToName(newIndex);
+						AssetBundleCollectorSettingData.ModifyElement(directory, packRule, newCollectorName);
 					}
 
 					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
 					{
-						AssetBundleCollectorSettingData.RemoveElement(folderPath);
+						AssetBundleCollectorSettingData.RemoveElement(directory);
 						break;
 					}
 				}

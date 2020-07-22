@@ -9,11 +9,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Editor
 {
 	public static class AssetBundleCollectorSettingData
 	{
+		/// <summary>
+		/// 收集器类型集合
+		/// </summary>
+		private static readonly Dictionary<string, System.Type> _cacheTypes = new Dictionary<string, System.Type>();
+
+		/// <summary>
+		/// 收集器实例集合
+		/// </summary>
+		private static readonly Dictionary<string, IAssetCollector> _cacheCollector = new Dictionary<string, IAssetCollector>();
+
 		private static AssetBundleCollectorSetting _setting = null;
 		public static AssetBundleCollectorSetting Setting
 		{
@@ -45,6 +56,38 @@ namespace MotionFramework.Editor
 			{
 				Debug.Log($"Load {nameof(AssetBundleCollectorSetting)}.asset ok");
 			}
+
+			// 清空缓存集合
+			_cacheTypes.Clear();
+			_cacheCollector.Clear();
+
+			// 获取所有资源收集器类型
+			List<Type> types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetCollector));
+			types.Add(typeof(LabelNone));
+			types.Add(typeof(LabelByFilePath));
+			types.Add(typeof(LabelByFolderPath));
+			for (int i = 0; i < types.Count; i++)
+			{
+				Type type = types[i];
+				if (_cacheTypes.ContainsKey(type.Name) == false)
+					_cacheTypes.Add(type.Name, type);
+			}
+		}
+
+		/// <summary>
+		/// 获取所有收集器名称列表
+		/// </summary>
+		public static List<string> GetCollectorNames()
+		{
+			if (_setting == null)
+				LoadSettingData();
+
+			List<string> names = new List<string>();
+			foreach (var pair in _cacheTypes)
+			{
+				names.Add(pair.Key);
+			}
+			return names;
 		}
 
 		/// <summary>
@@ -62,12 +105,12 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 添加元素
 		/// </summary>
-		public static void AddElement(string folderPath)
+		public static void AddElement(string directory)
 		{
-			if (IsContainsElement(folderPath) == false)
+			if (IsContainsElement(directory) == false)
 			{
 				AssetBundleCollectorSetting.Wrapper element = new AssetBundleCollectorSetting.Wrapper();
-				element.FolderPath = folderPath;
+				element.CollectDirectory = directory;
 				Setting.Elements.Add(element);
 				SaveFile();
 			}
@@ -76,11 +119,11 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 移除元素
 		/// </summary>
-		public static void RemoveElement(string folderPath)
+		public static void RemoveElement(string directory)
 		{
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
-				if (Setting.Elements[i].FolderPath == folderPath)
+				if (Setting.Elements[i].CollectDirectory == directory)
 				{
 					Setting.Elements.RemoveAt(i);
 					break;
@@ -92,25 +135,25 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 编辑元素
 		/// </summary>
-		public static void ModifyElement(string folderPath, AssetBundleCollectorSetting.EFolderPackRule packRule, AssetBundleCollectorSetting.EBundleLabelRule labelRule)
+		public static void ModifyElement(string directory, AssetBundleCollectorSetting.ECollectRule collectRule, string collectorName)
 		{
 			// 注意：这里强制修改忽略文件夹的命名规则为None
-			if (packRule == AssetBundleCollectorSetting.EFolderPackRule.Ignore)
+			if (collectRule == AssetBundleCollectorSetting.ECollectRule.Ignore)
 			{
-				labelRule = AssetBundleCollectorSetting.EBundleLabelRule.None;
+				collectorName = nameof(LabelNone);
 			}
 			else
 			{
-				if (labelRule == AssetBundleCollectorSetting.EBundleLabelRule.None)
-					labelRule = AssetBundleCollectorSetting.EBundleLabelRule.LabelByFilePath;
+				if (collectorName == nameof(LabelNone))
+					collectorName = nameof(LabelByFilePath);
 			}
 
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
-				if (Setting.Elements[i].FolderPath == folderPath)
+				if (Setting.Elements[i].CollectDirectory == directory)
 				{
-					Setting.Elements[i].PackRule = packRule;
-					Setting.Elements[i].LabelRule = labelRule;
+					Setting.Elements[i].CollectRule = collectRule;
+					Setting.Elements[i].CollectorName = collectorName;
 					break;
 				}
 			}
@@ -120,15 +163,16 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 是否包含元素
 		/// </summary>
-		public static bool IsContainsElement(string folderPath)
+		public static bool IsContainsElement(string directory)
 		{
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
-				if (Setting.Elements[i].FolderPath == folderPath)
+				if (Setting.Elements[i].CollectDirectory == directory)
 					return true;
 			}
 			return false;
 		}
+
 
 		/// <summary>
 		/// 获取所有的打包路径
@@ -139,8 +183,8 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
 				AssetBundleCollectorSetting.Wrapper wrapper = Setting.Elements[i];
-				if (wrapper.PackRule == AssetBundleCollectorSetting.EFolderPackRule.Collect)
-					result.Add(wrapper.FolderPath);
+				if (wrapper.CollectRule == AssetBundleCollectorSetting.ECollectRule.Collect)
+					result.Add(wrapper.CollectDirectory);
 			}
 
 			return result;
@@ -154,9 +198,9 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
 				AssetBundleCollectorSetting.Wrapper wrapper = Setting.Elements[i];
-				if (wrapper.PackRule == AssetBundleCollectorSetting.EFolderPackRule.Collect)
+				if (wrapper.CollectRule == AssetBundleCollectorSetting.ECollectRule.Collect)
 				{
-					if (assetPath.StartsWith(wrapper.FolderPath))
+					if (assetPath.StartsWith(wrapper.CollectDirectory))
 						return true;
 				}
 			}
@@ -171,9 +215,9 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
 				AssetBundleCollectorSetting.Wrapper wrapper = Setting.Elements[i];
-				if (wrapper.PackRule == AssetBundleCollectorSetting.EFolderPackRule.Ignore)
+				if (wrapper.CollectRule == AssetBundleCollectorSetting.ECollectRule.Ignore)
 				{
-					if (assetPath.StartsWith(wrapper.FolderPath))
+					if (assetPath.StartsWith(wrapper.CollectDirectory))
 						return true;
 				}
 			}
@@ -185,18 +229,18 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public static string GetAssetBundleLabel(string assetPath)
 		{
-			// 注意：一个资源有可能被多个规则覆盖
+			// 注意：一个资源有可能被多个收集器覆盖
 			List<AssetBundleCollectorSetting.Wrapper> filterWrappers = new List<AssetBundleCollectorSetting.Wrapper>();
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
 				AssetBundleCollectorSetting.Wrapper wrapper = Setting.Elements[i];
-				if (assetPath.StartsWith(wrapper.FolderPath))
+				if (assetPath.StartsWith(wrapper.CollectDirectory))
 				{
 					filterWrappers.Add(wrapper);
 				}
 			}
 
-			// 我们使用路径最深层的规则
+			// 我们使用路径最深层的收集器
 			AssetBundleCollectorSetting.Wrapper findWrapper = null;
 			for (int i = 0; i < filterWrappers.Count; i++)
 			{
@@ -206,33 +250,36 @@ namespace MotionFramework.Editor
 					findWrapper = wrapper;
 					continue;
 				}
-				if (wrapper.FolderPath.Length > findWrapper.FolderPath.Length)
+				if (wrapper.CollectDirectory.Length > findWrapper.CollectDirectory.Length)
 					findWrapper = wrapper;
 			}
 
-			// 如果没有找到命名规则，文件路径作为默认的标签名
+			// 如果没有找到收集器
 			if (findWrapper == null)
 			{
-				return assetPath.Remove(assetPath.LastIndexOf(".")); // "Assets/Config/test.txt" --> "Assets/Config/test"
+				IAssetCollector defaultCollector = new LabelByFilePath();
+				return defaultCollector.GetAssetBundleLabel(assetPath);
 			}
 
 			// 根据规则设置获取标签名称
-			if (findWrapper.LabelRule == AssetBundleCollectorSetting.EBundleLabelRule.None)
+			IAssetCollector collector = GetCollectorInstance(findWrapper.CollectorName);
+			return collector.GetAssetBundleLabel(assetPath);
+		}
+		private static IAssetCollector GetCollectorInstance(string className)
+		{
+			if (_cacheCollector.TryGetValue(className, out IAssetCollector instance))
+				return instance;
+
+			// 如果不存在创建类的实例
+			if (_cacheTypes.TryGetValue(className, out Type type))
 			{
-				// 注意：如果依赖资源来自于忽略文件夹，那么会触发这个异常
-				throw new Exception($"CollectionSetting has depend asset in ignore folder : {findWrapper.FolderPath}");
-			}
-			else if (findWrapper.LabelRule == AssetBundleCollectorSetting.EBundleLabelRule.LabelByFilePath)
-			{
-				return assetPath.Remove(assetPath.LastIndexOf(".")); // "Assets/Config/test.txt" --> "Assets/Config/test"
-			}
-			else if (findWrapper.LabelRule == AssetBundleCollectorSetting.EBundleLabelRule.LabelByFolderPath)
-			{
-				return Path.GetDirectoryName(assetPath); // "Assets/Config/test.txt" --> "Assets/Config"
+				instance = (IAssetCollector)Activator.CreateInstance(type);
+				_cacheCollector.Add(className, instance);
+				return instance;
 			}
 			else
 			{
-				throw new NotImplementedException($"{findWrapper.LabelRule}");
+				throw new Exception($"资源收集器类型无效：{className}");
 			}
 		}
 	}
