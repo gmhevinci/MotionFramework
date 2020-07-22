@@ -38,7 +38,8 @@ namespace MotionFramework.Patch
 				}
 
 				MotionLog.Log("Parse app patch manifest.");
-				patcher.ParseAppPatchManifest(downloader.GetText());
+				string jsonData = downloader.GetText();
+				patcher.ParseAppPatchManifest(jsonData);
 				downloader.Dispose();
 			}
 

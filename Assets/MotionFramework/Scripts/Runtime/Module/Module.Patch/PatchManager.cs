@@ -10,7 +10,6 @@ using System.IO;
 using MotionFramework.Resource;
 using MotionFramework.Event;
 using MotionFramework.Console;
-using MotionFramework.IO;
 
 namespace MotionFramework.Patch
 {
@@ -163,7 +162,7 @@ namespace MotionFramework.Patch
 					if (appElement.MD5 == element.MD5)
 					{
 						string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, appElement.MD5, appElement.SizeBytes, appElement.Version, appElement.IsEncrypted);
 						return bundleInfo;
 					}
 				}

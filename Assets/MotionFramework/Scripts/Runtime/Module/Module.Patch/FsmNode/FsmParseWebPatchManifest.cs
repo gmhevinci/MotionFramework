@@ -54,7 +54,8 @@ namespace MotionFramework.Patch
 			}
 
 			MotionLog.Log($"Parse web patch manifest.");
-			_patcher.ParseWebPatchManifest(download.GetText());
+			string jsonData = download.GetText();
+			_patcher.ParseWebPatchManifest(jsonData);
 			download.Dispose();
 			_patcher.SwitchNext();
 		}

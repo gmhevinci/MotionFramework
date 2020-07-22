@@ -60,9 +60,6 @@ namespace MotionFramework.Patch
 				download.Dispose();
 			}
 
-			int newResourceVersion = _patcher.RequestedResourceVersion;
-			int oldResourceVersion = _patcher.SandboxPatchManifest.ResourceVersion;
-
 			// 检测强更安装包
 			if(_patcher.ForceInstall)
 			{
@@ -72,6 +69,8 @@ namespace MotionFramework.Patch
 			}
 
 			// 检测资源版本是否变化
+			int newResourceVersion = _patcher.RequestedResourceVersion;
+			int oldResourceVersion = _patcher.SandboxPatchManifest.ResourceVersion;
 			if (newResourceVersion == oldResourceVersion)
 			{
 				MotionLog.Log($"Resource version is not change.");
