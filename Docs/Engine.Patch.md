@@ -41,7 +41,7 @@ class WebPost
   	public int ServerID; //最近登录的服务器ID
 	public int ChannelID; //渠道ID
 	public long DeviceID; //设备唯一ID
-	public int TestFlag; //测试包标记
+	public int TestFlag; //测试标记
 }
 ```
 
@@ -50,6 +50,7 @@ Response数据为Json文本
 class WebResponse
 {
 	public string GameVersion; //当前游戏版本号
+	public int ResourceVersion; //当前资源版本
 	public bool ForceInstall; //是否需要强制安装
 	public string AppURL; //App安装的地址
 }
@@ -96,6 +97,7 @@ Web服务器的PHP范例
 
 	$data=array(
 		'GameVersion'=>'1.0.0.0',
+		'ResourceVersion'=>123,
 		'ForceInstall'=>false,
 		'AppURL'=>'www.baidu.com',
 	);
