@@ -6,7 +6,7 @@
 
 namespace System
 {
-	public static class System_String_Extention
+	public static partial class System_String_Extension
 	{
 		/// <summary>
 		/// 移除首个字符

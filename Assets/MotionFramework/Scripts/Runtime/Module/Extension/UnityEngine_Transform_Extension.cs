@@ -8,9 +8,9 @@ using System.Collections.Generic;
 
 namespace UnityEngine
 {
-	public static class UnityEngine_Transform_Extension
+	public static partial class UnityEngine_Transform_Extension
 	{
-		private static List<Transform> _childStack = new List<Transform>(1000);
+		private static readonly List<Transform> _childStack = new List<Transform>(1000);
 
 		/// <summary>
 		/// 获取第一个子物体

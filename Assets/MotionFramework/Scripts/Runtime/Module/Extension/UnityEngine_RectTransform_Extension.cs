@@ -6,7 +6,7 @@
 
 namespace UnityEngine
 {
-	public static class UnityEngine_RectTransform_Extension
+	public static partial class UnityEngine_RectTransform_Extension
 	{
 		public static void SetSizeDeltaWidth(this RectTransform thisObj, float width)
 		{
