@@ -404,10 +404,13 @@ namespace MotionFramework.Editor
 		private void InitAssetEncrypter()
 		{
 			var assembly = AssemblyUtility.GetAssembly(AssemblyUtility.UnityDefaultAssemblyEditorName);
-			if(assembly != null)
+			if (assembly != null)
 			{
 				_encrypterType = assembly.GetType("AssetEncrypter");
-				Log($"发现加密类 : {_encrypterType.FullName}");
+				if(_encrypterType != null)
+				{
+					Log($"发现加密类 : {_encrypterType.FullName}");
+				}
 			}
 		}
 		private bool InvokeCheckMethod(string filePath)
