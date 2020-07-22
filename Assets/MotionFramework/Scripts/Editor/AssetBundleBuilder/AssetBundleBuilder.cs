@@ -524,7 +524,7 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Elements.Count; i++)
 			{
 				AssetBundleCollectorSetting.Wrapper wrapper = AssetBundleCollectorSettingData.Setting.Elements[i];
-				AppendData(content, $"FolderPath : {wrapper.FolderPath} || PackRule : {wrapper.PackRule} || LabelRule : {wrapper.LabelRule}");
+				AppendData(content, $"Directory : {wrapper.CollectDirectory} || CollectRule : {wrapper.CollectRule} || CollectorName : {wrapper.CollectorName}");
 			}
 
 			AppendData(content, "");
