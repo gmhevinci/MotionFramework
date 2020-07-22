@@ -63,6 +63,7 @@ namespace MotionFramework.Editor
 
 		private void OnGUI()
 		{
+			// 初始化
 			if (_isInit == false)
 			{
 				_isInit = true;
@@ -73,24 +74,24 @@ namespace MotionFramework.Editor
 			EditorGUILayout.Space();
 			for (int i = 0; i < AssetImporterSettingData.Setting.Elements.Count; i++)
 			{
-				string folderPath = AssetImporterSettingData.Setting.Elements[i].FolderPath;
+				string directory = AssetImporterSettingData.Setting.Elements[i].ProcessDirectory;
 				string processorName = AssetImporterSettingData.Setting.Elements[i].ProcessorName;
 
 				EditorGUILayout.BeginHorizontal();
 				{
-					EditorGUILayout.LabelField(folderPath);
+					EditorGUILayout.LabelField(directory);
 
 					int index = NameToIndex(processorName);
 					int newIndex = EditorGUILayout.Popup(index, _processorClassArray, GUILayout.MaxWidth(150));
 					if (newIndex != index)
 					{
-						string processClassName = IndexToName(newIndex);
-						AssetImporterSettingData.ModifyElement(folderPath, processClassName);
+						string newProcessName = IndexToName(newIndex);
+						AssetImporterSettingData.ModifyElement(directory, newProcessName);
 					}
 
 					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
 					{
-						AssetImporterSettingData.RemoveElement(folderPath);
+						AssetImporterSettingData.RemoveElement(directory);
 						break;
 					}
 				}

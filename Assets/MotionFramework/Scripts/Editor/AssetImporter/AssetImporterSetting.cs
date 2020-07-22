@@ -16,7 +16,7 @@ namespace MotionFramework.Editor
 		[Serializable]
 		public class Wrapper
 		{
-			public string FolderPath = string.Empty;
+			public string ProcessDirectory = string.Empty;
 			public string ProcessorName = string.Empty;
 		}
 

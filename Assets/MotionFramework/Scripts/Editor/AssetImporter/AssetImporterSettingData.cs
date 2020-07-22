@@ -21,7 +21,7 @@ namespace MotionFramework.Editor
 		private static readonly Dictionary<string, System.Type> _cacheTypes = new Dictionary<string, System.Type>();
 
 		/// <summary>
-		/// 导入器集合
+		/// 导入器实例集合
 		/// </summary>
 		private static readonly Dictionary<string, IAssetProcessor> _cacheProcessor = new Dictionary<string, IAssetProcessor>();
 
@@ -57,7 +57,7 @@ namespace MotionFramework.Editor
 				Debug.Log($"Load {nameof(AssetImporterSetting)}.asset ok");
 			}
 
-			// Clear
+			// 清空缓存集合
 			_cacheTypes.Clear();
 			_cacheProcessor.Clear();
 
@@ -103,12 +103,12 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 添加元素
 		/// </summary>
-		public static void AddElement(string folderPath)
+		public static void AddElement(string directory)
 		{
-			if (IsContainsElement(folderPath) == false)
+			if (IsContainsElement(directory) == false)
 			{
 				AssetImporterSetting.Wrapper element = new AssetImporterSetting.Wrapper();
-				element.FolderPath = folderPath;
+				element.ProcessDirectory = directory;
 				element.ProcessorName = nameof(DefaultProcessor);
 				Setting.Elements.Add(element);
 				SaveFile();
@@ -118,11 +118,11 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 移除元素
 		/// </summary>
-		public static void RemoveElement(string folderPath)
+		public static void RemoveElement(string directory)
 		{
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
-				if (Setting.Elements[i].FolderPath == folderPath)
+				if (Setting.Elements[i].ProcessDirectory == directory)
 				{
 					Setting.Elements.RemoveAt(i);
 					break;
@@ -134,11 +134,11 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 编辑元素
 		/// </summary>
-		public static void ModifyElement(string folderPath, string processorName)
+		public static void ModifyElement(string directory, string processorName)
 		{
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
-				if (Setting.Elements[i].FolderPath == folderPath)
+				if (Setting.Elements[i].ProcessDirectory == directory)
 				{
 					Setting.Elements[i].ProcessorName = processorName;
 					break;
@@ -150,18 +150,19 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 是否包含元素
 		/// </summary>
-		public static bool IsContainsElement(string folderPath)
+		public static bool IsContainsElement(string directory)
 		{
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
-				if (Setting.Elements[i].FolderPath == folderPath)
+				if (Setting.Elements[i].ProcessDirectory == directory)
 					return true;
 			}
 			return false;
 		}
 
+
 		/// <summary>
-		/// 获取资源处理器
+		/// 获取资源处理器实例
 		/// </summary>
 		/// <param name="importAssetPath">导入的资源路径</param>
 		/// <returns>如果该资源的路径没包含在列表里返回NULL</returns>
@@ -177,7 +178,7 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Elements.Count; i++)
 			{
 				var element = Setting.Elements[i];
-				if (importAssetPath.Contains(element.FolderPath))
+				if (importAssetPath.Contains(element.ProcessDirectory))
 				{
 					className = element.ProcessorName;
 					break;
@@ -186,23 +187,23 @@ namespace MotionFramework.Editor
 			if (string.IsNullOrEmpty(className))
 				return null;
 
-			// 先从缓存里获取
-			IAssetProcessor processor = null;
-			if (_cacheProcessor.TryGetValue(className, out processor))
-				return processor;
+			return GetProcessorInstance(className);
+		}
+		private static IAssetProcessor GetProcessorInstance(string className)
+		{
+			if (_cacheProcessor.TryGetValue(className, out IAssetProcessor instance))
+				return instance;
 
-			// 如果不存在创建处理器
-			System.Type type;
-			if (_cacheTypes.TryGetValue(className, out type))
+			// 如果不存在创建类的实例
+			if (_cacheTypes.TryGetValue(className, out Type type))
 			{
-				processor = (IAssetProcessor)Activator.CreateInstance(type);
-				_cacheProcessor.Add(className, processor);
-				return processor;
+				instance = (IAssetProcessor)Activator.CreateInstance(type);
+				_cacheProcessor.Add(className, instance);
+				return instance;
 			}
 			else
 			{
-				Debug.LogError($"资源处理器类型无效：{className}");
-				return null;
+				throw new Exception($"资源处理器类型无效：{className}");
 			}
 		}
 	}
