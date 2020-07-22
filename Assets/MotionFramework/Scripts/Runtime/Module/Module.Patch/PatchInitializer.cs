@@ -20,7 +20,7 @@ namespace MotionFramework.Patch
 		public IEnumerator InitializeAync(PatchManagerImpl patcher)
 		{
 			// 处理沙盒被污染
-			ProcessSandboxDirty();
+			ProcessSandboxDirty(patcher);
 
 			// 分析APP内的补丁清单
 			{
@@ -48,7 +48,7 @@ namespace MotionFramework.Patch
 			{
 				MotionLog.Log($"Parse sandbox patch file.");
 				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
-				string jsonData = File.ReadAllText(filePath);				
+				string jsonData = File.ReadAllText(filePath);
 				patcher.ParseSandboxPatchManifest(jsonData);
 			}
 			else
@@ -61,9 +61,9 @@ namespace MotionFramework.Patch
 		/// 处理沙盒被污染
 		/// 注意：在覆盖安装的时候，会保留沙盒目录里的文件，所以需要强制清空。
 		/// </summary>
-		private void ProcessSandboxDirty()
+		private void ProcessSandboxDirty(PatchManagerImpl patcher)
 		{
-			string appVersion = PatchManager.Instance.GetAPPVersion();
+			string appVersion = patcher.AppVersion.ToString();
 			string filePath = PatchHelper.GetSandboxStaticFilePath();
 
 			// 如果是首次打开，记录APP版本信息

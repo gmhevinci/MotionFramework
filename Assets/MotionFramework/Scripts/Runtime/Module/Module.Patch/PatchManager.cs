@@ -124,21 +124,29 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取APP版本号
 		/// </summary>
-		public string GetAPPVersion()
+		public Version GetAPPVersion()
 		{
 			if (_patcher.AppVersion == null)
-				return "0.0.0.0";
-			return _patcher.AppVersion.ToString();
+				return new Version(0, 0, 0, 0);
+			return _patcher.AppVersion;
 		}
 
 		/// <summary>
-		/// 获取游戏版本号
+		/// 获取请求的游戏版本号
 		/// </summary>
-		public string GetGameVersion()
+		public Version GetRequestedGameVersion()
 		{
-			if (_patcher.GameVersion == null)
-				return "0.0.0.0";
-			return _patcher.GameVersion.ToString();
+			if (_patcher.RequestedGameVersion == null)
+				return new Version(0, 0, 0, 0);
+			return _patcher.RequestedGameVersion;
+		}
+		
+		/// <summary>
+		/// 获取请求的资源版本号
+		/// </summary>
+		public int GetRequestedResourceVersion()
+		{
+			return _patcher.RequestedResourceVersion;
 		}
 
 		/// <summary>

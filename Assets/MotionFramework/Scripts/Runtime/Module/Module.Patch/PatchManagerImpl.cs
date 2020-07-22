@@ -35,8 +35,9 @@ namespace MotionFramework.Patch
 
 		// 版本号
 		public Version AppVersion { private set; get; }
-		public Version GameVersion { private set; get; }
-
+		public Version RequestedGameVersion { private set; get; }
+		public int RequestedResourceVersion { private set; get; }
+		
 		// 补丁清单
 		public PatchManifest AppPatchManifest { private set; get; }
 		public PatchManifest SandboxPatchManifest { private set; get; }
@@ -55,19 +56,6 @@ namespace MotionFramework.Patch
 			get
 			{
 				return _procedure.Current;
-			}
-		}
-
-		/// <summary>
-		/// 向WEB服务器请求的资源版本号
-		/// </summary>
-		public int RequestedResourceVersion
-		{
-			get
-			{
-				if (GameVersion.Revision < 0)
-					return 0;
-				return GameVersion.Revision;
 			}
 		}
 
@@ -273,7 +261,8 @@ namespace MotionFramework.Patch
 				throw new Exception("Web server response data is null or empty.");
 
 			WebResponse response = JsonUtility.FromJson<WebResponse>(data);
-			GameVersion = new Version(response.GameVersion);
+			RequestedGameVersion = new Version(response.GameVersion);
+			RequestedResourceVersion = response.ResourceVersion;
 			ForceInstall = response.ForceInstall;
 			AppURL = response.AppURL;
 		}
@@ -290,6 +279,7 @@ namespace MotionFramework.Patch
 		{
 #pragma warning disable 0649
 			public string GameVersion; //当前游戏版本号
+			public int ResourceVersion; //当前资源版本
 			public bool ForceInstall; //是否需要强制安装
 			public string AppURL; //App安装的地址
 #pragma warning restore 0649

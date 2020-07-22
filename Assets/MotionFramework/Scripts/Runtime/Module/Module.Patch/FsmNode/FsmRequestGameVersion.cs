@@ -41,7 +41,7 @@ namespace MotionFramework.Patch
 			{
 				string url = _patcher.GetWebServerIP();
 				string post = _patcher.GetWebPostData();
-				MotionLog.Log($"Request game version : {url} : {post}");
+				MotionLog.Log($"Beginning to request from web : {url} {post}");
 				WebPostRequest download = new WebPostRequest(url, post);
 				download.DownLoad();
 				yield return download;
@@ -56,6 +56,7 @@ namespace MotionFramework.Patch
 				}
 
 				string response = download.GetResponse();
+				MotionLog.Log($"Succeed get response from web : {url} {response}");
 				_patcher.ParseResponseData(response);
 				download.Dispose();
 			}
@@ -63,8 +64,9 @@ namespace MotionFramework.Patch
 			// 检测强更安装包
 			if(_patcher.ForceInstall)
 			{
-				MotionLog.Log($"Found new APP can be install : {_patcher.GameVersion.ToString()}");
-				PatchEventDispatcher.SendFoundForceInstallAPPMsg(_patcher.GameVersion.ToString(), _patcher.AppURL);
+				string requestedGameVersion = _patcher.RequestedGameVersion.ToString();
+				MotionLog.Log($"Found new APP can be install : {requestedGameVersion}");
+				PatchEventDispatcher.SendFoundForceInstallAPPMsg(requestedGameVersion, _patcher.AppURL);
 				yield break;
 			}
 
