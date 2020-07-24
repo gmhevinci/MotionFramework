@@ -87,5 +87,17 @@ namespace UnityEngine
 			// 没有发现返回空
 			return null;
 		}
+		
+		/// <summary>
+		/// 广度优先搜索查找子物体的组件
+		/// </summary>
+		public static T BFSearch<T>(this Transform root, string childName) where T : UnityEngine.Component
+		{
+			Transform trans = root.BFSearch(childName);
+			if (trans == null)
+				return null;
+
+			return trans.GetComponent<T>();
+		}
 	}
 }
