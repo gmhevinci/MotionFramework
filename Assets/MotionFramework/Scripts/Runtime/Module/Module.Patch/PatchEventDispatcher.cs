@@ -9,10 +9,10 @@ namespace MotionFramework.Patch
 {
 	internal static class PatchEventDispatcher
 	{
-		public static void SendPatchStatesChangeMsg(EPatchStates currentStates)
+		public static void SendPatchStepsChangeMsg(EPatchSteps currentSteps)
 		{
-			PatchEventMessageDefine.PatchStatesChange msg = new PatchEventMessageDefine.PatchStatesChange();
-			msg.CurrentStates = currentStates;
+			PatchEventMessageDefine.PatchSteptsChange msg = new PatchEventMessageDefine.PatchSteptsChange();
+			msg.CurrentSteps = currentSteps;
 			EventManager.Instance.SendMessage(msg);
 		}
 		public static void SendFoundForceInstallAPPMsg(string newVersion, string installURL)

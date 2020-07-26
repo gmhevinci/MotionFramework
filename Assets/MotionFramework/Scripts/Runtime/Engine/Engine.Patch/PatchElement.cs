@@ -41,12 +41,11 @@ namespace MotionFramework.Patch
 		public string[] Dependencies;
 
 		/// <summary>
-		/// 后台下载
-		/// 注意：标记为后台下载的资源，不会在补丁系统初始化的时候强制下载
+		/// DLC标签列表
 		/// </summary>
-		public bool BackgroundDownload = false;
-		
-		public PatchElement(string name, string md5, long sizeBytes, int version, bool isEncrypted, string[] dependencies)
+		public string[] DLCLabels;
+
+		public PatchElement(string name, string md5, long sizeBytes, int version, bool isEncrypted, string[] dependencies, string[] dlcLabels)
 		{
 			Name = name;
 			MD5 = md5;
@@ -54,6 +53,12 @@ namespace MotionFramework.Patch
 			Version = version;
 			IsEncrypted = isEncrypted;
 			Dependencies = dependencies;
+			DLCLabels = dlcLabels;
+		}
+
+		public bool IsDLC()
+		{
+			return DLCLabels != null && DLCLabels.Length > 0;
 		}
 	}
 }

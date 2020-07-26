@@ -18,10 +18,6 @@ namespace MotionFramework.Patch
 	[Serializable]
 	public class PatchManifest
 	{
-		public const int FileStreamMaxLen = 1024 * 1024 * 128; //最大128MB
-		public const int TableStreamMaxLen = 1024 * 256; //最大256K
-		public const short TableStreamHead = 0x2B2B; //文件标记
-	
 		/// <summary>
 		/// 资源版本号
 		/// </summary>

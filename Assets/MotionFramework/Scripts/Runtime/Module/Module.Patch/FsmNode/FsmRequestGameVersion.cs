@@ -18,11 +18,11 @@ namespace MotionFramework.Patch
 		public FsmRequestGameVersion(PatchManagerImpl patcher)
 		{
 			_patcher = patcher;
-			Name = EPatchStates.RequestGameVersion.ToString();
+			Name = EPatchSteps.RequestGameVersion.ToString();
 		}
 		void IFsmNode.OnEnter()
 		{
-			PatchEventDispatcher.SendPatchStatesChangeMsg(EPatchStates.RequestGameVersion);
+			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchSteps.RequestGameVersion);
 			MotionEngine.StartCoroutine(Download());
 		}
 		void IFsmNode.OnUpdate()
@@ -72,11 +72,11 @@ namespace MotionFramework.Patch
 
 			// 检测资源版本是否变化
 			int newResourceVersion = _patcher.RequestedResourceVersion;
-			int oldResourceVersion = _patcher.SandboxPatchManifest.ResourceVersion;
+			int oldResourceVersion = _patcher.Cache.LocalResourceVersion;
 			if (newResourceVersion == oldResourceVersion)
 			{
 				MotionLog.Log($"Resource version is not change.");
-				_patcher.Switch(EPatchStates.DownloadOver.ToString());
+				_patcher.Switch(EPatchSteps.DownloadOver.ToString());
 			}
 			else
 			{

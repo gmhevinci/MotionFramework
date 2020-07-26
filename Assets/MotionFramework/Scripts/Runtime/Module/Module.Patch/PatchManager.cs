@@ -6,7 +6,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using MotionFramework.Resource;
 using MotionFramework.Event;
 using MotionFramework.Console;
@@ -56,7 +55,6 @@ namespace MotionFramework.Patch
 			public List<VariantRule> VariantRules;
 		}
 
-		private readonly PatchInitializer _initializer = new PatchInitializer();
 		private PatchManagerImpl _patcher;
 		private VariantCollector _variantCollector;
 		private bool _isRun = false;
@@ -98,7 +96,7 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public IEnumerator InitializeAync()
 		{
-			yield return _initializer.InitializeAync(_patcher);
+			yield return _patcher.Cache.InitializeAsync();
 		}
 
 		/// <summary>
@@ -114,21 +112,12 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 修复客户端
+		/// 清空缓存
+		/// 注意：可以使用该方法修复我们本地的客户端
 		/// </summary>
-		public void FixClient()
+		public void ClearCache()
 		{
-			_patcher.FixClient();
-		}
-
-		/// <summary>
-		/// 获取APP版本号
-		/// </summary>
-		public Version GetAPPVersion()
-		{
-			if (_patcher.AppVersion == null)
-				return new Version(0, 0, 0, 0);
-			return _patcher.AppVersion;
+			_patcher.ClearCache();
 		}
 
 		/// <summary>
@@ -160,63 +149,21 @@ namespace MotionFramework.Patch
 		#region IBundleServices接口
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
 		{
-			PatchManifest patchManifest = GetPatchManifest();
+			PatchManifest patchManifest = _patcher.Cache.GetPatchManifest();
 			manifestPath = GetVariantManifestPath(patchManifest, manifestPath);
-			if (patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
-			{
-				// 先查询APP内的资源
-				if (_patcher.AppPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement appElement))
-				{
-					if (appElement.MD5 == element.MD5)
-					{
-						string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, appElement.MD5, appElement.SizeBytes, appElement.Version, appElement.IsEncrypted);
-						return bundleInfo;
-					}
-				}
-
-				// 如果APP里不存在或者MD5不匹配，则从沙盒里加载
-				// 注意：如果沙盒内文件不存在，那么将会从服务器下载
-				string sandboxLocalPath = AssetPathHelper.MakePersistentLoadPath(element.MD5);
-				if (element.BackgroundDownload && File.Exists(sandboxLocalPath) == false)
-				{
-					string remoteURL = _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLocalPath, remoteURL, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
-					return bundleInfo;
-				}
-				else
-				{
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLocalPath, string.Empty, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
-					return bundleInfo;
-				}
-			}
-			else
-			{
-				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
-				string loadPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, loadPath);
-				return bundleInfo;
-			}
+			return _patcher.Cache.GetAssetBundleLoadInfo(manifestPath);
 		}
 		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
 		{
-			PatchManifest patchManifest = GetPatchManifest();
+			PatchManifest patchManifest = _patcher.Cache.GetPatchManifest();
 			return patchManifest.GetDirectDependencies(assetBundleName);
 		}
 		string[] IBundleServices.GetAllDependencies(string assetBundleName)
 		{
-			PatchManifest patchManifest = GetPatchManifest();
+			PatchManifest patchManifest = _patcher.Cache.GetPatchManifest();
 			return patchManifest.GetAllDependencies(assetBundleName);
 		}
 
-		private PatchManifest GetPatchManifest()
-		{
-			if (_patcher.WebPatchManifest != null)
-				return _patcher.WebPatchManifest;
-			if (_patcher.SandboxPatchManifest != null)
-				return _patcher.SandboxPatchManifest;
-			return _patcher.AppPatchManifest;
-		}
 		private string GetVariantManifestPath(PatchManifest patchManifest, string manifestPath)
 		{
 			if (_variantCollector == null)

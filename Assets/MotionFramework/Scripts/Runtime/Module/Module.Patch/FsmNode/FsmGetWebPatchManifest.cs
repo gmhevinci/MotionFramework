@@ -10,19 +10,19 @@ using MotionFramework.Network;
 
 namespace MotionFramework.Patch
 {
-	internal class FsmParseWebPatchManifest : IFsmNode
+	internal class FsmGetWebPatchManifest : IFsmNode
 	{
 		private readonly PatchManagerImpl _patcher;
 		public string Name { private set; get; }
 
-		public FsmParseWebPatchManifest(PatchManagerImpl patcher)
+		public FsmGetWebPatchManifest(PatchManagerImpl patcher)
 		{
 			_patcher = patcher;
-			Name = EPatchStates.ParseWebPatchManifest.ToString();
+			Name = EPatchSteps.GetWebPatchManifest.ToString();
 		}
 		void IFsmNode.OnEnter()
 		{
-			PatchEventDispatcher.SendPatchStatesChangeMsg(EPatchStates.ParseWebPatchManifest);
+			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchSteps.GetWebPatchManifest);
 			MotionEngine.StartCoroutine(Download());
 		}
 		void IFsmNode.OnUpdate()
@@ -37,7 +37,7 @@ namespace MotionFramework.Patch
 
 		private IEnumerator Download()
 		{
-			// 从网络上解析最新的补丁清单
+			// 从远端下载最新的补丁清单
 			int newResourceVersion = _patcher.RequestedResourceVersion;
 			string url = _patcher.GetWebDownloadURL(newResourceVersion.ToString(), PatchDefine.PatchManifestFileName);
 			WebDataRequest download = new WebDataRequest(url);
@@ -52,10 +52,8 @@ namespace MotionFramework.Patch
 				PatchEventDispatcher.SendWebPatchManifestDownloadFailedMsg();
 				yield break;
 			}
-
-			MotionLog.Log($"Parse web patch manifest.");
-			string jsonData = download.GetText();
-			_patcher.ParseWebPatchManifest(jsonData);
+			
+			_patcher.Cache.OnDownloadRemotePatchManifest(download.GetText());
 			download.Dispose();
 			_patcher.SwitchNext();
 		}

@@ -11,7 +11,7 @@ namespace MotionFramework.Patch
 {
 	internal static class PatchHelper
 	{
-		private const string StrStaticFileName = "static.bytes";
+		private const string StrCacheFileName = "Cache.bytes";
 
 		/// <summary>
 		/// 清空沙盒目录
@@ -23,19 +23,19 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 获取沙盒内静态文件的路径
+		/// 获取沙盒内缓存文件的路径
 		/// </summary>
-		public static string GetSandboxStaticFilePath()
+		public static string GetSandboxCacheFilePath()
 		{
-			return AssetPathHelper.MakePersistentLoadPath(StrStaticFileName);
+			return AssetPathHelper.MakePersistentLoadPath(StrCacheFileName);
 		}
 
 		/// <summary>
-		/// 检测沙盒内静态文件是否存在
+		/// 检测沙盒内缓存文件是否存在
 		/// </summary>
-		public static bool CheckSandboxStaticFileExist()
+		public static bool CheckSandboxCacheFileExist()
 		{
-			string filePath = GetSandboxStaticFilePath();
+			string filePath = GetSandboxCacheFilePath();
 			return File.Exists(filePath);
 		}
 
@@ -46,6 +46,14 @@ namespace MotionFramework.Patch
 		{
 			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
 			return File.Exists(filePath);
+		}
+
+		/// <summary>
+		/// 获取缓存文件的存储路径
+		/// </summary>
+		public static string MakeSandboxCacheFilePath(string fileName)
+		{
+			return AssetPathHelper.MakePersistentLoadPath($"Cache/{fileName}");
 		}
 	}
 }

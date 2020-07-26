@@ -21,11 +21,11 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 补丁流程状态改变
+		/// 补丁流程步骤改变
 		/// </summary>
-		public class PatchStatesChange : IEventMessage
+		public class PatchSteptsChange : IEventMessage
 		{
-			public EPatchStates CurrentStates;
+			public EPatchSteps CurrentSteps;
 		}
 
 		/// <summary>

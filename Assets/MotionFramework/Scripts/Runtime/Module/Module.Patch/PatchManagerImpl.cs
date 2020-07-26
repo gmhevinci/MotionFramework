@@ -19,8 +19,26 @@ namespace MotionFramework.Patch
 {
 	internal class PatchManagerImpl
 	{
-		private readonly ProcedureFsm _procedure = new ProcedureFsm();
+		private class WebPost
+		{
+			public string AppVersion; //应用程序内置版本
+			public int ServerID; //最近登录的服务器ID
+			public int ChannelID; //渠道ID
+			public long DeviceID; //设备唯一ID
+			public int TestFlag; //测试标记
+		}
+		private class WebResponse
+		{
+#pragma warning disable 0649
+			public string GameVersion; //当前游戏版本号
+			public int ResourceVersion; //当前资源版本
+			public bool ForceInstall; //是否需要强制安装
+			public string AppURL; //App安装的地址
+#pragma warning restore 0649
+		}
 
+		private readonly ProcedureFsm _procedure = new ProcedureFsm();
+		
 		// 参数相关
 		private int _serverID;
 		private int _channelID;
@@ -33,20 +51,17 @@ namespace MotionFramework.Patch
 		public bool ForceInstall { private set; get; } = false;
 		public string AppURL { private set; get; }
 
-		// 版本号
-		public Version AppVersion { private set; get; }
+		// 请求的版本号
 		public Version RequestedGameVersion { private set; get; }
 		public int RequestedResourceVersion { private set; get; }
-		
-		// 补丁清单
-		public PatchManifest AppPatchManifest { private set; get; }
-		public PatchManifest SandboxPatchManifest { private set; get; }
-		public PatchManifest WebPatchManifest { private set; get; }
+
+		// 下载相关
+		public List<PatchElement> DownloadList;
 
 		/// <summary>
-		/// 下载列表
+		/// 缓存系统
 		/// </summary>
-		public readonly List<PatchElement> DownloadList = new List<PatchElement>(1000);
+		public PatchCache Cache { private set; get; }
 
 		/// <summary>
 		/// 当前运行的状态
@@ -68,13 +83,13 @@ namespace MotionFramework.Patch
 			_testFlag = createParam.TestFlag;
 			_checkLevel = createParam.CheckLevel;
 			_serverInfo = createParam.ServerInfo;
-			AppVersion = new Version(Application.version);
+			Cache = new PatchCache(this, _checkLevel);
 		}
 		public void Download()
 		{
 			// 注意：按照先后顺序添加流程节点
 			_procedure.AddNode(new FsmRequestGameVersion(this));
-			_procedure.AddNode(new FsmParseWebPatchManifest(this));
+			_procedure.AddNode(new FsmGetWebPatchManifest(this));
 			_procedure.AddNode(new FsmGetDonwloadList(this));
 			_procedure.AddNode(new FsmDownloadWebFiles(this));
 			_procedure.AddNode(new FsmDownloadOver(this));
@@ -86,19 +101,11 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 修复客户端
+		/// 清空缓存
 		/// </summary>
-		public void FixClient()
+		public void ClearCache()
 		{
-			// 清空缓存
-			PatchHelper.ClearSandbox();
-
-			// 重启游戏
-#if UNITY_EDITOR
-			UnityEditor.EditorApplication.isPlaying = false;
-#else
-			Application.Quit();
-#endif
+			Cache.ClearCache();
 		}
 
 		/// <summary>
@@ -112,7 +119,7 @@ namespace MotionFramework.Patch
 				if (message.operation == EPatchOperation.BeginingDownloadWebFiles)
 				{
 					// 从挂起的地方继续
-					if (_procedure.Current == EPatchStates.GetDonwloadList.ToString())
+					if (_procedure.Current == EPatchSteps.GetDonwloadList.ToString())
 						_procedure.SwitchNext();
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
@@ -120,7 +127,7 @@ namespace MotionFramework.Patch
 				else if (message.operation == EPatchOperation.TryRequestGameVersion)
 				{
 					// 修复当前节点错误
-					if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
+					if (_procedure.Current == EPatchSteps.RequestGameVersion.ToString())
 						_procedure.Switch(_procedure.Current);
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
@@ -128,7 +135,7 @@ namespace MotionFramework.Patch
 				else if (message.operation == EPatchOperation.TryDownloadWebPatchManifest)
 				{
 					// 修复当前节点错误
-					if (_procedure.Current == EPatchStates.ParseWebPatchManifest.ToString())
+					if (_procedure.Current == EPatchSteps.GetWebPatchManifest.ToString())
 						_procedure.Switch(_procedure.Current);
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
@@ -136,8 +143,8 @@ namespace MotionFramework.Patch
 				else if (message.operation == EPatchOperation.TryDownloadWebFiles)
 				{
 					// 修复当前节点错误
-					if (_procedure.Current == EPatchStates.DownloadWebFiles.ToString())
-						_procedure.Switch(EPatchStates.GetDonwloadList.ToString());
+					if (_procedure.Current == EPatchSteps.DownloadWebFiles.ToString())
+						_procedure.Switch(EPatchSteps.GetDonwloadList.ToString());
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
 				}
@@ -148,33 +155,23 @@ namespace MotionFramework.Patch
 			}
 		}
 
-		/// <summary>
-		/// 检测补丁文件有效性
-		/// </summary>
-		public bool CheckPatchFileValid(PatchElement element)
+		// 下载相关
+		public void ClearDownloadList()
 		{
-			string filePath = AssetPathHelper.MakePersistentLoadPath(element.MD5);
-			if (File.Exists(filePath) == false)
-				return false;
-
-			// 校验沙盒里的补丁文件
-			if (_checkLevel == ECheckLevel.CheckSize)
+			DownloadList.Clear();
+		}
+		public int GetDownloadTotalCount()
+		{
+			return DownloadList.Count;
+		}
+		public long GetDownloadTotalSize()
+		{
+			long totalDownloadSizeBytes = 0;
+			foreach (var element in DownloadList)
 			{
-				long fileSize = FileUtility.GetFileSize(filePath);
-				if (fileSize == element.SizeBytes)
-					return true;
+				totalDownloadSizeBytes += element.SizeBytes;
 			}
-			else if (_checkLevel == ECheckLevel.CheckMD5)
-			{
-				string md5 = HashUtility.FileMD5(filePath);
-				if (md5 == element.MD5)
-					return true;
-			}
-			else
-			{
-				throw new NotImplementedException(_checkLevel.ToString());
-			}
-			return false;
+			return totalDownloadSizeBytes;
 		}
 
 		// 流程相关
@@ -191,42 +188,7 @@ namespace MotionFramework.Patch
 			_procedure.SwitchLast();
 		}
 
-		// 补丁清单相关
-		public void ParseAppPatchManifest(string jsonData)
-		{
-			if (AppPatchManifest != null)
-				throw new Exception("Should never get here.");
-			AppPatchManifest = PatchManifest.Deserialize(jsonData);
-		}
-		public void ParseSandboxPatchManifest(string jsonData)
-		{
-			if (SandboxPatchManifest != null)
-				throw new Exception("Should never get here.");
-			SandboxPatchManifest = PatchManifest.Deserialize(jsonData);
-		}
-		public void ParseSandboxPatchManifest(PatchManifest patchFile)
-		{
-			if (SandboxPatchManifest != null)
-				throw new Exception("Should never get here.");
-			SandboxPatchManifest = patchFile;
-		}
-		public void ParseWebPatchManifest(string jsonData)
-		{
-			if (WebPatchManifest != null)
-				throw new Exception("Should never get here.");
-			WebPatchManifest = PatchManifest.Deserialize(jsonData);
-		}
-		public void SaveWebPatchManifest()
-		{
-			if (WebPatchManifest == null)
-				throw new Exception("WebPatchManifest is null.");
-
-			// 注意：这里会覆盖掉沙盒内的旧文件
-			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
-			PatchManifest.Serialize(savePath, WebPatchManifest);
-		}
-
-		// 服务器IP相关
+		// 服务器地址相关
 		public string GetWebServerIP()
 		{
 			RuntimePlatform runtimePlatform = Application.platform;
@@ -247,7 +209,7 @@ namespace MotionFramework.Patch
 		{
 			WebPost post = new WebPost
 			{
-				AppVersion = AppVersion.ToString(),
+				AppVersion = Application.version,
 				ServerID = _serverID,
 				ChannelID = _channelID,
 				DeviceID = _deviceID,
@@ -265,24 +227,6 @@ namespace MotionFramework.Patch
 			RequestedResourceVersion = response.ResourceVersion;
 			ForceInstall = response.ForceInstall;
 			AppURL = response.AppURL;
-		}
-
-		private class WebPost
-		{
-			public string AppVersion; //应用程序内置版本
-			public int ServerID; //最近登录的服务器ID
-			public int ChannelID; //渠道ID
-			public long DeviceID; //设备唯一ID
-			public int TestFlag; //测试标记
-		}
-		private class WebResponse
-		{
-#pragma warning disable 0649
-			public string GameVersion; //当前游戏版本号
-			public int ResourceVersion; //当前资源版本
-			public bool ForceInstall; //是否需要强制安装
-			public string AppURL; //App安装的地址
-#pragma warning restore 0649
 		}
 	}
 }

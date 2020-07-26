@@ -20,11 +20,11 @@ namespace MotionFramework.Patch
 		public FsmDownloadWebFiles(PatchManagerImpl patcher)
 		{
 			_patcher = patcher;
-			Name = EPatchStates.DownloadWebFiles.ToString();
+			Name = EPatchSteps.DownloadWebFiles.ToString();
 		}
 		void IFsmNode.OnEnter()
 		{
-			PatchEventDispatcher.SendPatchStatesChangeMsg(EPatchStates.DownloadWebFiles);
+			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchSteps.DownloadWebFiles);
 			MotionEngine.StartCoroutine(Download());
 		}
 		void IFsmNode.OnUpdate()
@@ -41,31 +41,26 @@ namespace MotionFramework.Patch
 		{
 			// 注意：开发者需要在下载前检测磁盘空间不足
 
-			// 计算下载文件的总大小
-			int totalDownloadCount = _patcher.DownloadList.Count;
-			long totalDownloadSizeBytes = 0;
-			foreach (var element in _patcher.DownloadList)
-			{
-				totalDownloadSizeBytes += element.SizeBytes;
-			}
+			int totalDownloadCount = _patcher.GetDownloadTotalCount();
+			long totalDownloadSizeBytes = _patcher.GetDownloadTotalSize();
+			int currentDownloadCount = 0;
+			long currentDownloadSizeBytes = 0;
 
 			// 开始下载列表里的所有资源
-			MotionLog.Log($"Begine download web files : {_patcher.DownloadList.Count}");
-			long currentDownloadSizeBytes = 0;
-			int currentDownloadCount = 0;
+			MotionLog.Log($"Begine download web files : {totalDownloadCount} count and total {totalDownloadSizeBytes} bytes");		
 			foreach (var element in _patcher.DownloadList)
 			{
 				// 注意：资源版本号只用于确定下载路径
 				string url = _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
-				string savePath = AssetPathHelper.MakePersistentLoadPath(element.MD5);
+				string savePath = PatchHelper.MakeSandboxCacheFilePath(element.MD5);
 				FileUtility.CreateFileDirectory(savePath);
 
 				// 创建下载器
-				MotionLog.Log($"Beginning to download web file : {savePath}");
+				MotionLog.Log($"Beginning to download web file : {url}");
 				WebFileRequest download = new WebFileRequest(url, savePath);
 				download.DownLoad();
 				yield return download; //文件依次加载（在一个文件加载完毕后加载下一个）				
-
+				
 				// 检测是否下载失败
 				if (download.HasError())
 				{
@@ -85,7 +80,7 @@ namespace MotionFramework.Patch
 			// 验证下载文件
 			foreach (var element in _patcher.DownloadList)
 			{
-				if (_patcher.CheckPatchFileValid(element) == false)
+				if (_patcher.Cache.CheckPatchFileValid(element) == false)
 				{
 					MotionLog.Error($"Patch file is invalid : {element.Name}");
 					PatchEventDispatcher.SendWebFileCheckFailedMsg(element.Name);
@@ -93,11 +88,11 @@ namespace MotionFramework.Patch
 				}
 			}
 
-			// 最后保存最新的补丁清单
-			_patcher.SaveWebPatchManifest();
+			// 更新缓存并保存
+			_patcher.Cache.OnDownloadRemotePatchFile(_patcher.DownloadList);
 
 			// 最后清空下载列表
-			_patcher.DownloadList.Clear();
+			_patcher.ClearDownloadList();
 			_patcher.SwitchNext();
 		}
 	}
