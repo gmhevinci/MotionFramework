@@ -16,7 +16,7 @@ namespace MotionFramework.Utility
 		{
 			string result = BitConverter.ToString(hashBytes);
 			result = result.Replace("-", "");
-			return result;
+			return result.ToLower();
 		}
 
 		#region SHA1
