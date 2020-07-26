@@ -9,7 +9,7 @@ namespace MotionFramework.Resource
 	public class AssetBundleInfo
 	{
 		/// <summary>
-		/// 清单路径名
+		/// 清单路径
 		/// </summary>
 		public string ManifestPath { private set; get; }
 
@@ -61,6 +61,7 @@ namespace MotionFramework.Resource
 			MD5 = string.Empty;
 			SizeBytes = 0;
 			Version = 0;
+			IsEncrypted = false;
 		}
 	}
 }
