@@ -203,12 +203,12 @@ namespace MotionFramework.Editor
 			Dictionary<string, AssetInfo> allAsset = new Dictionary<string, AssetInfo>();
 
 			// 获取所有的收集路径
-			List<string> collectPathList = AssetBundleCollectorSettingData.GetAllCollectPath();
-			if (collectPathList.Count == 0)
-				throw new Exception("[BuildPatch] 配置的打包路径列表为空");
+			List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
+			if (collectDirectorys.Count == 0)
+				throw new Exception("[BuildPatch] 配置的资源收集路径为空");
 
 			// 获取所有资源
-			string[] guids = AssetDatabase.FindAssets(string.Empty, collectPathList.ToArray());
+			string[] guids = AssetDatabase.FindAssets(string.Empty, collectDirectorys.ToArray());
 			foreach (string guid in guids)
 			{
 				string mainAssetPath = AssetDatabase.GUIDToAssetPath(guid);
@@ -223,8 +223,7 @@ namespace MotionFramework.Editor
 					AssetInfo assetInfo = depends[i];
 					if (allAsset.ContainsKey(assetInfo.AssetPath))
 					{
-						AssetInfo cacheInfo = allAsset[assetInfo.AssetPath];
-						cacheInfo.DependCount++;
+						allAsset[assetInfo.AssetPath].DependCount++;
 					}
 					else
 					{
@@ -263,7 +262,6 @@ namespace MotionFramework.Editor
 				EditorUtility.DisplayProgressBar("进度", $"设置资源标签：{progressBarCount}/{allAsset.Count}", (float)progressBarCount / allAsset.Count);
 			}
 			EditorUtility.ClearProgressBar();
-			progressBarCount = 0;
 
 			// 返回结果
 			return allAsset.Values.ToList();
@@ -318,7 +316,7 @@ namespace MotionFramework.Editor
 				string extension = Path.GetExtension(folderName);
 				string label = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
 				assetInfo.AssetBundleLabel = label.Replace(extension, string.Empty);
-				assetInfo.AssetBundleVariant = extension.Substring(1);
+				assetInfo.AssetBundleVariant = extension.RemoveFirstChar();
 			}
 			else
 			{
@@ -407,7 +405,7 @@ namespace MotionFramework.Editor
 			if (assembly != null)
 			{
 				_encrypterType = assembly.GetType("AssetEncrypter");
-				if(_encrypterType != null)
+				if (_encrypterType != null)
 				{
 					Log($"发现加密类 : {_encrypterType.FullName}");
 				}
@@ -433,6 +431,10 @@ namespace MotionFramework.Editor
 		{
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 
+			// 创建DLC管理器
+			DLCManager dlcManager = new DLCManager();
+			dlcManager.LoadAllDCL();
+
 			// 加载旧补丁清单
 			PatchManifest oldPatchManifest = LoadPatchManifestFile();
 
@@ -451,7 +453,8 @@ namespace MotionFramework.Editor
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = BuildVersion;
 				bool isEncrypted = encryptList.Contains(assetName);
-				string[] depend = unityManifest.GetDirectDependencies(assetName);
+				string[] depends = unityManifest.GetDirectDependencies(assetName);
+				string[] dlcLabels = dlcManager.GetAssetBundleDLCLabels(assetName);
 
 				// 注意：如果文件没有变化使用旧版本号
 				if (oldPatchManifest.Elements.TryGetValue(assetName, out PatchElement oldElement))
@@ -460,7 +463,7 @@ namespace MotionFramework.Editor
 						version = oldElement.Version;
 				}
 
-				PatchElement newElement = new PatchElement(assetName, md5, sizeBytes, version, isEncrypted, depend);
+				PatchElement newElement = new PatchElement(assetName, md5, sizeBytes, version, isEncrypted, depends, dlcLabels);
 				newPatchManifest.ElementList.Add(newElement);
 			}
 
@@ -521,9 +524,9 @@ namespace MotionFramework.Editor
 
 			AppendData(content, "");
 			AppendData(content, $"--配置信息--");
-			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Elements.Count; i++)
+			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
-				AssetBundleCollectorSetting.Wrapper wrapper = AssetBundleCollectorSettingData.Setting.Elements[i];
+				AssetBundleCollectorSetting.Collector wrapper = AssetBundleCollectorSettingData.Setting.Collectors[i];
 				AppendData(content, $"Directory : {wrapper.CollectDirectory} || CollectRule : {wrapper.CollectRule} || CollectorName : {wrapper.CollectorName}");
 			}
 

@@ -72,8 +72,8 @@ namespace MotionFramework.Editor
 		/// 打开搜索面板
 		/// </summary>
 		/// <param name="title">标题名称</param>
-		/// <param name="defaultPath">默认搜索路径，例如：Assets/Works/Resources</param>
-		/// <returns>返回选择的绝对路径，如果无效返回NULL</returns>
+		/// <param name="defaultPath">默认搜索路径</param>
+		/// <returns>返回选择的文件夹绝对路径，如果无效返回NULL</returns>
 		public static string OpenFolderPanel(string title, string defaultPath)
 		{
 			string openPath = EditorUtility.OpenFolderPanel(title, defaultPath, string.Empty);
@@ -85,7 +85,26 @@ namespace MotionFramework.Editor
 				Debug.LogWarning("Please select unity assets folder.");
 				return null;
 			}
+			return openPath;
+		}
 
+		/// <summary>
+		/// 打开搜索面板
+		/// </summary>
+		/// <param name="title">标题名称</param>
+		/// <param name="defaultPath">默认搜索路径</param>
+		/// <returns>返回选择的文件绝对路径，如果无效返回NULL</returns>
+		public static string OpenFilePath(string title, string defaultPath)
+		{
+			string openPath = EditorUtility.OpenFilePanel(title, defaultPath, string.Empty);
+			if (string.IsNullOrEmpty(openPath))
+				return null;
+
+			if (openPath.Contains("/Assets") == false)
+			{
+				Debug.LogWarning("Please select unity assets file.");
+				return null;
+			}
 			return openPath;
 		}
 		#endregion

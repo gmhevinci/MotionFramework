@@ -100,9 +100,6 @@ namespace MotionFramework.Editor
 			}
 		}
 
-		/// <summary>
-		/// 添加元素
-		/// </summary>
 		public static void AddElement(string directory)
 		{
 			if (IsContainsElement(directory) == false)
@@ -114,10 +111,6 @@ namespace MotionFramework.Editor
 				SaveFile();
 			}
 		}
-
-		/// <summary>
-		/// 移除元素
-		/// </summary>
 		public static void RemoveElement(string directory)
 		{
 			for (int i = 0; i < Setting.Elements.Count; i++)
@@ -130,10 +123,6 @@ namespace MotionFramework.Editor
 			}
 			SaveFile();
 		}
-
-		/// <summary>
-		/// 编辑元素
-		/// </summary>
 		public static void ModifyElement(string directory, string processorName)
 		{
 			for (int i = 0; i < Setting.Elements.Count; i++)
@@ -146,10 +135,6 @@ namespace MotionFramework.Editor
 			}
 			SaveFile();
 		}
-
-		/// <summary>
-		/// 是否包含元素
-		/// </summary>
 		public static bool IsContainsElement(string directory)
 		{
 			for (int i = 0; i < Setting.Elements.Count; i++)
@@ -159,7 +144,6 @@ namespace MotionFramework.Editor
 			}
 			return false;
 		}
-
 
 		/// <summary>
 		/// 获取资源处理器实例

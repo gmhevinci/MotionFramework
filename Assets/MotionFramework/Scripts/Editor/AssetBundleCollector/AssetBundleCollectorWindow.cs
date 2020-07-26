@@ -63,21 +63,26 @@ namespace MotionFramework.Editor
 
 		private void OnGUI()
 		{
-			// 初始化
 			if (_isInit == false)
 			{
 				_isInit = true;
 				Init();
 			}
 
+			OnDrawElement();
+			OnDrawDLC();
+		}
+
+		private void OnDrawElement()
+		{
 			// 列表显示
 			EditorGUILayout.Space();
-			EditorGUILayout.LabelField($"Collection List");
-			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Elements.Count; i++)
+			EditorGUILayout.LabelField($"Collector");
+			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
-				string directory = AssetBundleCollectorSettingData.Setting.Elements[i].CollectDirectory;
-				AssetBundleCollectorSetting.ECollectRule packRule = AssetBundleCollectorSettingData.Setting.Elements[i].CollectRule;
-				string collectorName = AssetBundleCollectorSettingData.Setting.Elements[i].CollectorName;
+				string directory = AssetBundleCollectorSettingData.Setting.Collectors[i].CollectDirectory;
+				AssetBundleCollectorSetting.ECollectRule packRule = AssetBundleCollectorSettingData.Setting.Collectors[i].CollectRule;
+				string collectorName = AssetBundleCollectorSettingData.Setting.Collectors[i].CollectorName;
 
 				EditorGUILayout.BeginHorizontal();
 				{
@@ -87,7 +92,7 @@ namespace MotionFramework.Editor
 					if (newPackRule != packRule)
 					{
 						packRule = newPackRule;
-						AssetBundleCollectorSettingData.ModifyElement(directory, packRule, collectorName);
+						AssetBundleCollectorSettingData.ModifyCollector(directory, packRule, collectorName);
 					}
 
 					int index = NameToIndex(collectorName);
@@ -95,12 +100,12 @@ namespace MotionFramework.Editor
 					if (newIndex != index)
 					{
 						string newCollectorName = IndexToName(newIndex);
-						AssetBundleCollectorSettingData.ModifyElement(directory, packRule, newCollectorName);
+						AssetBundleCollectorSettingData.ModifyCollector(directory, packRule, newCollectorName);
 					}
 
 					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
 					{
-						AssetBundleCollectorSettingData.RemoveElement(directory);
+						AssetBundleCollectorSettingData.RemoveCollector(directory);
 						break;
 					}
 				}
@@ -110,11 +115,42 @@ namespace MotionFramework.Editor
 			// 添加按钮
 			if (GUILayout.Button("+"))
 			{
-				string resultPath = EditorTools.OpenFolderPanel("+", _lastOpenFolderPath);
+				string resultPath = EditorTools.OpenFolderPanel("Select Folder", _lastOpenFolderPath);
 				if (resultPath != null)
 				{
 					_lastOpenFolderPath = EditorTools.AbsolutePathToAssetPath(resultPath);
-					AssetBundleCollectorSettingData.AddElement(_lastOpenFolderPath);
+					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath);
+				}
+			}
+		}
+		private void OnDrawDLC()
+		{
+			// 列表显示
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField($"DLC");
+			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.DLCFiles.Count; i++)
+			{
+				string filePath = AssetBundleCollectorSettingData.Setting.DLCFiles[i];
+				EditorGUILayout.BeginHorizontal();
+				{
+					EditorGUILayout.LabelField(filePath);
+					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
+					{
+						AssetBundleCollectorSettingData.RemoveDLC(filePath);
+						break;
+					}
+				}
+				EditorGUILayout.EndHorizontal();
+			}
+
+			// 添加按钮
+			if (GUILayout.Button("+"))
+			{
+				string resultPath = EditorTools.OpenFilePath("Select File", "Assets/");
+				if (resultPath != null)
+				{
+					string filePath = EditorTools.AbsolutePathToAssetPath(resultPath);
+					AssetBundleCollectorSettingData.AddDLC(filePath);
 				}
 			}
 		}

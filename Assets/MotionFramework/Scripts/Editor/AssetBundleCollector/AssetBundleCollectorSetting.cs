@@ -12,9 +12,6 @@ namespace MotionFramework.Editor
 {
 	public class AssetBundleCollectorSetting : ScriptableObject
 	{
-		/// <summary>
-		/// 文件夹打包规则
-		/// </summary>
 		[Serializable]
 		public enum ECollectRule
 		{
@@ -30,16 +27,32 @@ namespace MotionFramework.Editor
 		}
 
 		[Serializable]
-		public class Wrapper
+		public class Collector
 		{
+			/// <summary>
+			/// 收集路径
+			/// </summary>
 			public string CollectDirectory = string.Empty;
+
+			/// <summary>
+			/// 收集规则
+			/// </summary>
 			public ECollectRule CollectRule = ECollectRule.Collect;
+
+			/// <summary>
+			/// 收集器的类名
+			/// </summary>
 			public string CollectorName = string.Empty;
 		}
 
 		/// <summary>
-		/// 打包路径列表
+		/// 收集列表
 		/// </summary>
-		public List<Wrapper> Elements = new List<Wrapper>();
+		public List<Collector> Collectors = new List<Collector>();
+
+		/// <summary>
+		/// DLC文件列表
+		/// </summary>
+		public List<string> DLCFiles = new List<string>();
 	}
 }

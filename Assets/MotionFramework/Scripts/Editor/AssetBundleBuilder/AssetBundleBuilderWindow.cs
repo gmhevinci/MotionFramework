@@ -175,14 +175,14 @@ namespace MotionFramework.Editor
 		private void CheckAllPrefabValid()
 		{
 			// 获取所有的打包路径
-			List<string> packPathList = AssetBundleCollectorSettingData.GetAllCollectPath();
-			if (packPathList.Count == 0)
+			List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
+			if (collectDirectorys.Count == 0)
 				throw new Exception("[BuildPackage] 打包路径列表不能为空");
 
 			// 获取所有资源列表
 			int checkCount = 0;
 			int invalidCount = 0;
-			string[] guids = AssetDatabase.FindAssets(string.Empty, packPathList.ToArray());
+			string[] guids = AssetDatabase.FindAssets(string.Empty, collectDirectorys.ToArray());
 			foreach (string guid in guids)
 			{
 				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
