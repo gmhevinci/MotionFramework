@@ -20,11 +20,11 @@ namespace MotionFramework.Patch
 		public FsmDownloadWebFiles(PatchManagerImpl patcher)
 		{
 			_patcher = patcher;
-			Name = EPatchSteps.DownloadWebFiles.ToString();
+			Name = EPatchStates.DownloadWebFiles.ToString();
 		}
 		void IFsmNode.OnEnter()
 		{
-			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchSteps.DownloadWebFiles);
+			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.DownloadWebFiles);
 			MotionEngine.StartCoroutine(Download());
 		}
 		void IFsmNode.OnUpdate()

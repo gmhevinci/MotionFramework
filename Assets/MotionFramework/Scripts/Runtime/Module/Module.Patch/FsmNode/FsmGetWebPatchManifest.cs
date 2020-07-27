@@ -18,11 +18,11 @@ namespace MotionFramework.Patch
 		public FsmGetWebPatchManifest(PatchManagerImpl patcher)
 		{
 			_patcher = patcher;
-			Name = EPatchSteps.GetWebPatchManifest.ToString();
+			Name = EPatchStates.GetWebPatchManifest.ToString();
 		}
 		void IFsmNode.OnEnter()
 		{
-			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchSteps.GetWebPatchManifest);
+			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.GetWebPatchManifest);
 			MotionEngine.StartCoroutine(Download());
 		}
 		void IFsmNode.OnUpdate()

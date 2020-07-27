@@ -7,9 +7,9 @@
 namespace MotionFramework.Patch
 {
 	/// <summary>
-	/// 补丁系统更新步骤
+	/// 补丁系统更新状态
 	/// </summary>
-	public enum EPatchSteps
+	public enum EPatchStates
 	{
 		/// <summary>
 		/// 请求最新的游戏版本
