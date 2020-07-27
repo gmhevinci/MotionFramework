@@ -33,6 +33,12 @@ namespace MotionFramework.Resource
 
 			if (States == ELoaderStates.None)
 			{
+				if(string.IsNullOrEmpty(BundleInfo.LocalPath))
+				{
+					States = ELoaderStates.Fail;
+					return;
+				}
+
 				if (string.IsNullOrEmpty(BundleInfo.RemoteURL))
 					States = ELoaderStates.LoadDepends;
 				else

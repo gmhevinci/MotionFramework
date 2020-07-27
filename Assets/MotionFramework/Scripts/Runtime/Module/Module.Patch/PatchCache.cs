@@ -277,8 +277,7 @@ namespace MotionFramework.Patch
 			else
 			{
 				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
-				string loadPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, loadPath);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, string.Empty);
 				return bundleInfo;
 			}
 		}
