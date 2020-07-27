@@ -33,7 +33,8 @@ namespace MotionFramework.Resource
 
 			if (States == ELoaderStates.None)
 			{
-				if(string.IsNullOrEmpty(BundleInfo.LocalPath))
+				// 检测加载地址是否为空
+				if (string.IsNullOrEmpty(BundleInfo.LocalPath))
 				{
 					States = ELoaderStates.Fail;
 					return;
@@ -66,8 +67,16 @@ namespace MotionFramework.Resource
 				}
 				else
 				{
-					//TODO 校验文件有效性
-					States = ELoaderStates.LoadDepends;
+					// 校验文件完整性
+					if (AssetSystem.BundleServices.CheckContentIntegrity(BundleInfo.ManifestPath) == false)
+					{
+						MotionLog.Error($"Check download content integrity is failed : {BundleInfo.ManifestPath}");
+						States = ELoaderStates.Fail;
+					}
+					else
+					{
+						States = ELoaderStates.LoadDepends;
+					}
 				}
 
 				// 释放网络资源下载器
@@ -196,7 +205,12 @@ namespace MotionFramework.Resource
 			if (IsDone() == false)
 				throw new Exception($"Bundle file loader is not done : {BundleInfo.LocalPath}");
 
-			// 卸载AssetBundle
+			if (_downloader != null)
+			{
+				_downloader.Dispose();
+				_downloader = null;
+			}
+
 			if (CacheBundle != null)
 			{
 				CacheBundle.Unload(force);

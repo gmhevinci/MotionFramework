@@ -9,6 +9,11 @@ namespace MotionFramework.Resource
 	public interface IBundleServices
 	{
 		/// <summary>
+		/// 检测下载内容的完整性
+		/// </summary>
+		bool CheckContentIntegrity(string manifestPath);
+		
+		/// <summary>
 		/// 获取AssetBundle的信息
 		/// </summary>
 		AssetBundleInfo GetAssetBundleInfo(string manifestPath);
@@ -16,11 +21,11 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 获取AssetBundle的直接依赖列表
 		/// </summary>
-		string[] GetDirectDependencies(string assetBundleName);
+		string[] GetDirectDependencies(string manifestPath);
 
 		/// <summary>
 		/// 获取AssetBundle的所有依赖列表
 		/// </summary>
-		string[] GetAllDependencies(string assetBundleName);
+		string[] GetAllDependencies(string manifestPath);
 	}
 }
