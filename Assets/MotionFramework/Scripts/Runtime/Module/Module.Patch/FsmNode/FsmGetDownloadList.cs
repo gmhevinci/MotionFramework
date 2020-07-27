@@ -36,19 +36,22 @@ namespace MotionFramework.Patch
 
 		private void GetDownloadList()
 		{
-			_patcher.DownloadList = _patcher.Cache.GetDownloadList();
+			var downloadList = _patcher.GetPatchDownloadList();
 
 			// 如果下载列表为空
-			if (_patcher.DownloadList.Count == 0)
+			if (downloadList.Count == 0)
 			{
 				_patcher.SwitchNext();
 			}
 			else
 			{
+				// 创建补丁下载器
+				_patcher.Downloader = new PatchDownloader(_patcher, downloadList);
+
 				// 发现新更新文件后，挂起流程系统
-				int totalDownloadCount = _patcher.GetDownloadTotalCount();
-				long totalDownloadSizeBytes = _patcher.GetDownloadTotalSize();
-				PatchEventDispatcher.SendFoundUpdateFilesMsg(totalDownloadCount, totalDownloadSizeBytes);
+				int totalDownloadCount = _patcher.Downloader.TotalDownloadCount;
+				long totalDownloadBytes = _patcher.Downloader.TotalDownloadBytes;
+				PatchEventDispatcher.SendFoundUpdateFilesMsg(totalDownloadCount, totalDownloadBytes);
 			}
 		}
 	}

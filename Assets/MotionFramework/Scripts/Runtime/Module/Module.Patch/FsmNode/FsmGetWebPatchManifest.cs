@@ -53,7 +53,7 @@ namespace MotionFramework.Patch
 				yield break;
 			}
 			
-			_patcher.Cache.OnDownloadRemotePatchManifest(download.GetText());
+			_patcher.OnDownloadWebPatchManifest(download.GetText());
 			download.Dispose();
 			_patcher.SwitchNext();
 		}

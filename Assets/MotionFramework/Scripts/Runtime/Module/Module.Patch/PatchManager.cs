@@ -96,7 +96,7 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public IEnumerator InitializeAync()
 		{
-			yield return _patcher.Cache.InitializeAsync();
+			yield return _patcher.InitializeAsync();
 		}
 
 		/// <summary>
@@ -129,13 +129,27 @@ namespace MotionFramework.Patch
 				return new Version(0, 0, 0, 0);
 			return _patcher.RequestedGameVersion;
 		}
-		
+
 		/// <summary>
 		/// 获取请求的资源版本号
 		/// </summary>
 		public int GetRequestedResourceVersion()
 		{
 			return _patcher.RequestedResourceVersion;
+		}
+
+		/// <summary>
+		/// 获取DLC下载器
+		/// </summary>
+		public PatchDownloader CreateDLCDownloader(string dlcLabel)
+		{
+			return CreateDLCDownloader(new List<string>() { dlcLabel });
+		}
+		public PatchDownloader CreateDLCDownloader(List<string> dlcLabels)
+		{
+			var downloadList = _patcher.GetDLCDownloadList(dlcLabels);
+			PatchDownloader downlader = new PatchDownloader(_patcher, downloadList);
+			return downlader;
 		}
 
 		/// <summary>
@@ -149,18 +163,18 @@ namespace MotionFramework.Patch
 		#region IBundleServices接口
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
 		{
-			PatchManifest patchManifest = _patcher.Cache.GetPatchManifest();
+			PatchManifest patchManifest = _patcher.GetPatchManifest();
 			manifestPath = GetVariantManifestPath(patchManifest, manifestPath);
-			return _patcher.Cache.GetAssetBundleLoadInfo(manifestPath);
+			return _patcher.GetAssetBundleInfo(manifestPath);
 		}
 		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
 		{
-			PatchManifest patchManifest = _patcher.Cache.GetPatchManifest();
+			PatchManifest patchManifest = _patcher.GetPatchManifest();
 			return patchManifest.GetDirectDependencies(assetBundleName);
 		}
 		string[] IBundleServices.GetAllDependencies(string assetBundleName)
 		{
-			PatchManifest patchManifest = _patcher.Cache.GetPatchManifest();
+			PatchManifest patchManifest = _patcher.GetPatchManifest();
 			return patchManifest.GetAllDependencies(assetBundleName);
 		}
 

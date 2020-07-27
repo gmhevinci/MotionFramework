@@ -4,6 +4,7 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
+using System.Linq;
 
 namespace MotionFramework.Patch
 {
@@ -56,9 +57,22 @@ namespace MotionFramework.Patch
 			DLCLabels = dlcLabels;
 		}
 
+		/// <summary>
+		/// 是否为DLC资源
+		/// </summary>
 		public bool IsDLC()
 		{
 			return DLCLabels != null && DLCLabels.Length > 0;
+		}
+
+		/// <summary>
+		/// 是否包含DLC标签
+		/// </summary>
+		public bool HasDLCLabel(string label)
+		{
+			if (DLCLabels == null)
+				return false;
+			return DLCLabels.Contains(label);
 		}
 	}
 }

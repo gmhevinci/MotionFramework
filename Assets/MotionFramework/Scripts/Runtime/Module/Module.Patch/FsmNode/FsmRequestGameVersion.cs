@@ -57,7 +57,7 @@ namespace MotionFramework.Patch
 
 				string response = download.GetResponse();
 				MotionLog.Log($"Succeed get response from web : {url} {response}");
-				_patcher.ParseResponseData(response);
+				_patcher.OnGetWebResponseData(response);
 				download.Dispose();
 			}
 
@@ -72,7 +72,7 @@ namespace MotionFramework.Patch
 
 			// 检测资源版本是否变化
 			int newResourceVersion = _patcher.RequestedResourceVersion;
-			int oldResourceVersion = _patcher.Cache.LocalResourceVersion;
+			int oldResourceVersion = _patcher.LocalResourceVersion;
 			if (newResourceVersion == oldResourceVersion)
 			{
 				MotionLog.Log($"Resource version is not change.");
