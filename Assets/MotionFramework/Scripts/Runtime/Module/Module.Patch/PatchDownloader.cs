@@ -98,9 +98,9 @@ namespace MotionFramework.Patch
 			// 验证下载文件
 			foreach (var element in _downloadList)
 			{
-				if (_patcher.CheckPatchFileValid(element) == false)
-				{
-					MotionLog.Error($"Download patch file is invalid : {element.Name}");
+				if (_patcher.CheckContentIntegrity(element) == false)
+				{				
+					MotionLog.Error($"Check download content integrity is failed : {element.Name}");
 					DownloadStates = EDownloaderStates.DownloadFailed;
 					OnPatchFileCheckFailedCallback?.Invoke(element.Name);
 					yield break;

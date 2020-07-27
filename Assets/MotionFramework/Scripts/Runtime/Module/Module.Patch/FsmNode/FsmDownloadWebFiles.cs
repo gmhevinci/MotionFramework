@@ -35,8 +35,6 @@ namespace MotionFramework.Patch
 
 		private IEnumerator Download()
 		{
-			// 注意：开发者需要在下载前检测磁盘空间不足
-
 			// 注册下载回调
 			var downloader = _patcher.Downloader;
 			downloader.OnPatchFileCheckFailedCallback = PatchEventDispatcher.SendWebFileCheckFailedMsg;

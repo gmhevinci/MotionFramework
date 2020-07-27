@@ -25,12 +25,13 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public List<string> CachedFileHashList = new List<string>();
 
+
 		// 缓存操作方法
-		public void CacheDownloadPatchFile(AssetBundleInfo bundleInfo)
+		public void CacheDownloadPatchFile(string md5)
 		{
-			if (CachedFileHashList.Contains(bundleInfo.MD5) == false)
+			if (CachedFileHashList.Contains(md5) == false)
 			{
-				CachedFileHashList.Add(bundleInfo.MD5);
+				CachedFileHashList.Add(md5);
 
 				// 保存缓存
 				SaveCache();
@@ -38,13 +39,7 @@ namespace MotionFramework.Patch
 		}
 		public void CacheDownloadPatchFile(PatchElement element)
 		{
-			if (CachedFileHashList.Contains(element.MD5) == false)
-			{
-				CachedFileHashList.Add(element.MD5);
-
-				// 保存缓存
-				SaveCache();
-			}
+			CacheDownloadPatchFile(element.MD5);
 		}
 		public void CacheDownloadPatchFiles(List<PatchElement> elements)
 		{

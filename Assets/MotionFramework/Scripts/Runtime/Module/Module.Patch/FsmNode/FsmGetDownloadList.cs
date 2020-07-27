@@ -49,6 +49,7 @@ namespace MotionFramework.Patch
 				_patcher.Downloader = new PatchDownloader(_patcher, downloadList);
 
 				// 发现新更新文件后，挂起流程系统
+				// 注意：开发者需要在下载前检测磁盘空间不足
 				int totalDownloadCount = _patcher.Downloader.TotalDownloadCount;
 				long totalDownloadBytes = _patcher.Downloader.TotalDownloadBytes;
 				PatchEventDispatcher.SendFoundUpdateFilesMsg(totalDownloadCount, totalDownloadBytes);

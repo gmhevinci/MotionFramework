@@ -161,21 +161,25 @@ namespace MotionFramework.Patch
 		}
 
 		#region IBundleServices接口
+		bool IBundleServices.CheckContentIntegrity(string manifestPath)
+		{
+			return _patcher.CheckContentIntegrity(manifestPath);
+		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
 		{
 			PatchManifest patchManifest = _patcher.GetPatchManifest();
 			manifestPath = GetVariantManifestPath(patchManifest, manifestPath);
 			return _patcher.GetAssetBundleInfo(manifestPath);
 		}
-		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
+		string[] IBundleServices.GetDirectDependencies(string manifestPath)
 		{
 			PatchManifest patchManifest = _patcher.GetPatchManifest();
-			return patchManifest.GetDirectDependencies(assetBundleName);
+			return patchManifest.GetDirectDependencies(manifestPath);
 		}
-		string[] IBundleServices.GetAllDependencies(string assetBundleName)
+		string[] IBundleServices.GetAllDependencies(string manifestPath)
 		{
 			PatchManifest patchManifest = _patcher.GetPatchManifest();
-			return patchManifest.GetAllDependencies(assetBundleName);
+			return patchManifest.GetAllDependencies(manifestPath);
 		}
 
 		private string GetVariantManifestPath(PatchManifest patchManifest, string manifestPath)

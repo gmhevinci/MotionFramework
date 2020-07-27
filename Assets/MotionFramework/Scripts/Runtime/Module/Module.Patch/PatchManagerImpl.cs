@@ -183,7 +183,7 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 更新
+		/// 更新流程
 		/// </summary>
 		public void Update()
 		{
@@ -224,7 +224,7 @@ namespace MotionFramework.Patch
 					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
 					{
 						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, appLoadPath, string.Empty, appElement.MD5, appElement.SizeBytes, appElement.Version, appElement.IsEncrypted);
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, appLoadPath, string.Empty, appElement.Version, appElement.IsEncrypted);
 						return bundleInfo;
 					}
 				}
@@ -234,13 +234,13 @@ namespace MotionFramework.Patch
 				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(element.MD5);
 				if (_cache.Contains(element.MD5))
 				{
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, string.Empty, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, string.Empty, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}
 				else
 				{
 					string remoteURL = GetWebDownloadURL(element.Version.ToString(), element.Name);
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, remoteURL, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, remoteURL, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}
 			}
@@ -286,7 +286,7 @@ namespace MotionFramework.Patch
 			for (int i = downloadList.Count - 1; i >= 0; i--)
 			{
 				var element = downloadList[i];
-				if (CheckPatchFileValid(element))
+				if (CheckContentIntegrity(element))
 				{
 					validList.Add(element);
 					downloadList.RemoveAt(i);
@@ -339,7 +339,7 @@ namespace MotionFramework.Patch
 			for (int i = downloadList.Count - 1; i >= 0; i--)
 			{
 				var element = downloadList[i];
-				if (CheckPatchFileValid(element))
+				if (CheckContentIntegrity(element))
 				{
 					validList.Add(element);
 					downloadList.RemoveAt(i);
@@ -354,11 +354,27 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 检测补丁文件有效性
+		/// 检测下载内容的完整性
 		/// </summary>
-		public bool CheckPatchFileValid(PatchElement element)
+		public bool CheckContentIntegrity(PatchElement element)
 		{
-			string filePath = PatchHelper.MakeSandboxCacheFilePath(element.MD5);
+			return CheckContentIntegrity(element.MD5, element.SizeBytes);
+		}
+		public bool CheckContentIntegrity(string manifestPath)
+		{
+			if(_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			{
+				return CheckContentIntegrity(element.MD5, element.SizeBytes);
+			}
+			else
+			{
+				MotionLog.Warning($"Not found check content file in patch manifest : {manifestPath}");
+				return false;
+			}
+		}
+		private bool CheckContentIntegrity(string md5, long size)
+		{
+			string filePath = PatchHelper.MakeSandboxCacheFilePath(md5);
 			if (File.Exists(filePath) == false)
 				return false;
 
@@ -366,13 +382,13 @@ namespace MotionFramework.Patch
 			if (_checkLevel == ECheckLevel.CheckSize)
 			{
 				long fileSize = FileUtility.GetFileSize(filePath);
-				if (fileSize == element.SizeBytes)
+				if (fileSize == size)
 					return true;
 			}
 			else if (_checkLevel == ECheckLevel.CheckMD5)
 			{
-				string md5 = HashUtility.FileMD5(filePath);
-				if (md5 == element.MD5)
+				string fileHash = HashUtility.FileMD5(filePath);
+				if (fileHash == md5)
 					return true;
 			}
 			else
@@ -482,7 +498,9 @@ namespace MotionFramework.Patch
 		}
 
 		#region 流程节点回调方法
-		// 当获取到WEB服务器的反馈信息
+		/// <summary>
+		/// 当获取到WEB服务器的反馈信息
+		/// </summary>
 		public void OnGetWebResponseData(string data)
 		{
 			if (string.IsNullOrEmpty(data))
@@ -495,7 +513,9 @@ namespace MotionFramework.Patch
 			AppURL = response.AppURL;
 		}
 
-		// 当服务端的补丁清单下载完毕
+		/// <summary>
+		/// 当服务端的补丁清单下载完毕
+		/// </summary>
 		public void OnDownloadWebPatchManifest(string content)
 		{
 			if (_remotePatchManifest != null)
@@ -503,7 +523,9 @@ namespace MotionFramework.Patch
 			_remotePatchManifest = PatchManifest.Deserialize(content);
 		}
 
-		// 当服务端的补丁文件下载完毕
+		/// <summary>
+		/// 当服务端的补丁文件下载完毕
+		/// </summary>
 		public void OnDownloadWebPatchFile()
 		{
 			// 保存补丁清单

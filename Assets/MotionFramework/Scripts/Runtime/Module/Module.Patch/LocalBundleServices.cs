@@ -68,6 +68,10 @@ namespace MotionFramework.Patch
 		}
 
 		#region IBundleServices接口
+		bool IBundleServices.CheckContentIntegrity(string manifestPath)
+		{
+			throw new NotImplementedException();
+		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
 		{
 			manifestPath = GetVariantManifestPath(_patchManifest, manifestPath);
@@ -75,7 +79,7 @@ namespace MotionFramework.Patch
 			{
 				// 直接从沙盒里加载
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.MD5, element.SizeBytes, element.Version, element.IsEncrypted);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.Version, element.IsEncrypted);
 				return bundleInfo;
 			}
 			else
@@ -85,13 +89,13 @@ namespace MotionFramework.Patch
 				return bundleInfo;
 			}
 		}
-		string[] IBundleServices.GetDirectDependencies(string assetBundleName)
+		string[] IBundleServices.GetDirectDependencies(string manifestPath)
 		{
-			return _patchManifest.GetDirectDependencies(assetBundleName);
+			return _patchManifest.GetDirectDependencies(manifestPath);
 		}
-		string[] IBundleServices.GetAllDependencies(string assetBundleName)
+		string[] IBundleServices.GetAllDependencies(string manifestPath)
 		{
-			return _patchManifest.GetAllDependencies(assetBundleName);
+			return _patchManifest.GetAllDependencies(manifestPath);
 		}
 
 		private string GetVariantManifestPath(PatchManifest patchManifest, string manifestPath)
