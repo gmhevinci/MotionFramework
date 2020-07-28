@@ -63,6 +63,11 @@ namespace MotionFramework.Network
 			}
 		}
 
+		/// <summary>
+		/// 用户数据
+		/// </summary>
+		public object UserData { set; get; }
+
 
 		public WebRequestBase(string url)
 		{
