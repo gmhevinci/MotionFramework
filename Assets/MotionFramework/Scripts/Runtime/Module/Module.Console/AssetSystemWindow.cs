@@ -97,7 +97,7 @@ namespace MotionFramework.Console
 				// 只搜索关键字
 				if (string.IsNullOrEmpty(_filterKey) == false)
 				{
-					if (loader.BundleInfo.LocalPath.Contains(_filterKey) == false)
+					if (loader.BundleInfo.ManifestPath.Contains(_filterKey) == false)
 						continue;
 				}
 
