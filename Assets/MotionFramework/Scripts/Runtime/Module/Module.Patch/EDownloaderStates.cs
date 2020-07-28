@@ -11,8 +11,10 @@ namespace MotionFramework.Patch
 	/// </summary>
 	public enum EDownloaderStates
 	{
-		Downloading,
-		DownloadFailed,
-		DownloadSucceed,
+		None,
+		Loading,
+		Failed,
+		Succeed,
+		Forbid,
 	}
 }

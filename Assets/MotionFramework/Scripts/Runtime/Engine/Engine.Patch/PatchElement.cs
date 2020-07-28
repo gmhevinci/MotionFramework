@@ -74,5 +74,20 @@ namespace MotionFramework.Patch
 				return false;
 			return DLCLabels.Contains(label);
 		}
+
+		/// <summary>
+		/// 是否包含DLC标签
+		/// </summary>
+		public bool HasDLCLabel(string[] labels)
+		{
+			if (DLCLabels == null)
+				return false;
+			for (int i = 0; i < labels.Length; i++)
+			{
+				if (DLCLabels.Contains(labels[i]))
+					return true;
+			}
+			return false;
+		}
 	}
 }

@@ -14,6 +14,7 @@ using MotionFramework.Event;
 using MotionFramework.Resource;
 using MotionFramework.Network;
 using MotionFramework.Utility;
+using UnityEngine.iOS;
 
 namespace MotionFramework.Patch
 {
@@ -24,7 +25,7 @@ namespace MotionFramework.Patch
 			public string AppVersion; //应用程序内置版本
 			public int ServerID; //最近登录的服务器ID
 			public int ChannelID; //渠道ID
-			public long DeviceID; //设备唯一ID
+			public string DeviceUID; //设备唯一ID
 			public int TestFlag; //测试标记
 		}
 		private class WebResponse
@@ -37,16 +38,19 @@ namespace MotionFramework.Patch
 #pragma warning restore 0649
 		}
 
+		// 流程状态机
 		private readonly ProcedureFsm _procedure = new ProcedureFsm();
 
 		// 参数相关
 		private int _serverID;
 		private int _channelID;
-		private long _deviceID;
+		private string _deviceUID;
 		private int _testFlag;
 		private ECheckLevel _checkLevel;
 		private RemoteServerInfo _serverInfo;
-
+		private string[] _autoDownloadDLC;
+		private int _maxNumberOnLoad;
+		
 		// 强更标记和APP地址
 		public bool ForceInstall { private set; get; } = false;
 		public string AppURL { private set; get; }
@@ -58,11 +62,11 @@ namespace MotionFramework.Patch
 		// 补丁清单
 		private PatchManifest _appPatchManifest;
 		private PatchManifest _localPatchManifest;
-		private PatchManifest _remotePatchManifest;
-		private CacheData _cache;
+		private PatchCache _cache;
 
-		// 补丁下载器
-		public PatchDownloader Downloader;
+		// 补丁下载器		
+		public PatchDownloader InternalDownloader { private set; get; }
+
 
 		/// <summary>
 		/// 当前运行的状态
@@ -76,27 +80,29 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 本地资源版本号
+		/// 本地的资源版本号
 		/// </summary>
 		public int LocalResourceVersion
 		{
 			get
 			{
-				if (_localPatchManifest == null)
-					return 0;
-				return _localPatchManifest.ResourceVersion;
+				if (_cache == null)
+					return -1;
+				return _cache.ResourceVersion;
 			}
 		}
 
-
+		
 		public void Create(PatchManager.CreateParameters createParam)
 		{
 			_serverID = createParam.ServerID;
 			_channelID = createParam.ChannelID;
-			_deviceID = createParam.DeviceID;
+			_deviceUID = createParam.DeviceUID;
 			_testFlag = createParam.TestFlag;
 			_checkLevel = createParam.CheckLevel;
 			_serverInfo = createParam.ServerInfo;
+			_autoDownloadDLC = createParam.AutoDownloadDLC;
+			_maxNumberOnLoad = createParam.MaxNumberOnLoad;
 		}
 
 		/// <summary>
@@ -104,10 +110,10 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public IEnumerator InitializeAsync()
 		{
-			MotionLog.Log($"Beginning to initialize cache");
+			MotionLog.Log($"Beginning to initialize patch manager.");
 
 			// 加载缓存
-			_cache = CacheData.LoadCache();
+			_cache = PatchCache.LoadCache();
 
 			// 检测沙盒被污染
 			// 注意：在覆盖安装的时候，会保留沙盒目录里的文件，所以需要强制清空
@@ -134,7 +140,7 @@ namespace MotionFramework.Patch
 			}
 
 			// 加载APP内的补丁清单
-			MotionLog.Log($"Load app patch file.");
+			MotionLog.Log($"Load app patch manifest.");
 			{
 				string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
 				string url = AssetPathHelper.ConvertToWWWPath(filePath);
@@ -149,13 +155,21 @@ namespace MotionFramework.Patch
 					throw new System.Exception($"Fatal error : Failed download file : {url}");
 				}
 
+				// 解析补丁清单
 				string jsonData = downloader.GetText();
 				_appPatchManifest = PatchManifest.Deserialize(jsonData);
 				downloader.Dispose();
+
+				// 保存资源版本号
+				if (_cache.ResourceVersion == PatchCache.DEFAULT_VERSION)
+				{
+					_cache.ResourceVersion = _appPatchManifest.ResourceVersion;
+					_cache.SaveCache();
+				}
 			}
 
 			// 加载沙盒内的补丁清单
-			MotionLog.Log($"Load sandbox patch file.");
+			MotionLog.Log($"Load sandbox patch manifest.");
 			if (PatchHelper.CheckSandboxPatchManifestFileExist())
 			{
 				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
@@ -169,10 +183,12 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 开始补丁更新流程
+		/// 开启更新
 		/// </summary>
 		public void Download()
 		{
+			MotionLog.Log("Begin to run patch procedure.");
+
 			// 注意：按照先后顺序添加流程节点
 			_procedure.AddNode(new FsmRequestGameVersion(this));
 			_procedure.AddNode(new FsmGetWebPatchManifest(this));
@@ -188,222 +204,6 @@ namespace MotionFramework.Patch
 		public void Update()
 		{
 			_procedure.Update();
-		}
-
-		/// <summary>
-		/// 清空缓存并删除所有沙盒文件
-		/// </summary>
-		public void ClearCache()
-		{
-			MotionLog.Warning("Clear cache and remove all sandbox files.");
-			PatchHelper.ClearSandbox();
-			_appPatchManifest = null;
-			_localPatchManifest = null;
-			_remotePatchManifest = null;
-			_cache = null;
-		}
-
-		/// <summary>
-		/// 获取本地补丁清单
-		/// </summary>
-		public PatchManifest GetPatchManifest()
-		{
-			return _localPatchManifest;
-		}
-
-		/// <summary>
-		/// 获取AssetBundle的加载信息
-		/// </summary>
-		public AssetBundleInfo GetAssetBundleInfo(string manifestPath)
-		{
-			if (_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
-			{
-				// 查询内置资源
-				if (_appPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement appElement))
-				{
-					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
-					{
-						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, appLoadPath, string.Empty, appElement.Version, appElement.IsEncrypted);
-						return bundleInfo;
-					}
-				}
-
-				// 查询缓存资源
-				// 注意：如果沙盒内缓存文件不存在，那么将会从服务器下载
-				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(element.MD5);
-				if (_cache.Contains(element.MD5))
-				{
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, string.Empty, element.Version, element.IsEncrypted);
-					return bundleInfo;
-				}
-				else
-				{
-					string remoteURL = GetWebDownloadURL(element.Version.ToString(), element.Name);
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, remoteURL, element.Version, element.IsEncrypted);
-					return bundleInfo;
-				}
-			}
-			else
-			{
-				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, string.Empty);
-				return bundleInfo;
-			}
-		}
-
-		/// <summary>
-		/// 获取补丁的下载列表
-		/// </summary>
-		public List<PatchElement> GetPatchDownloadList()
-		{
-			List<PatchElement> downloadList = new List<PatchElement>(1000);
-
-			// 准备下载列表
-			foreach (var webElement in _remotePatchManifest.ElementList)
-			{
-				// 忽略DLC资源
-				if (webElement.IsDLC())
-					continue;
-
-				// 内置资源比较
-				if (_appPatchManifest.Elements.TryGetValue(webElement.Name, out PatchElement appElement))
-				{
-					if (appElement.IsDLC() == false && appElement.MD5 == webElement.MD5)
-						continue;
-				}
-
-				// 缓存资源比较
-				if (_cache.Contains(webElement.MD5))
-					continue;
-
-				downloadList.Add(webElement);
-			}
-
-			// 检测文件是否已经下载完毕
-			// 注意：如果玩家在加载过程中强制退出，下次再进入的时候跳过已经加载的文件
-			List<PatchElement> validList = new List<PatchElement>();
-			for (int i = downloadList.Count - 1; i >= 0; i--)
-			{
-				var element = downloadList[i];
-				if (CheckContentIntegrity(element))
-				{
-					validList.Add(element);
-					downloadList.RemoveAt(i);
-				}
-			}
-
-			// 缓存已经下载的有效文件
-			if (validList.Count > 0)
-				_cache.CacheDownloadPatchFiles(validList);
-
-			return downloadList;
-		}
-
-		/// <summary>
-		/// 获取DLC的下载列表
-		/// </summary>
-		public List<PatchElement> GetDLCDownloadList(List<string> dlcLabels)
-		{
-			List<PatchElement> downloadList = new List<PatchElement>(1000);
-
-			// 准备下载列表
-			foreach (var element in _localPatchManifest.ElementList)
-			{
-				if (element.IsDLC() == false)
-					continue;
-
-				// 标签比较
-				bool hasLabel = false;
-				for (int i = 0; i < dlcLabels.Count; i++)
-				{
-					if (element.HasDLCLabel(dlcLabels[i]))
-					{
-						hasLabel = true;
-						break;
-					}
-				}
-				if (hasLabel == false)
-					continue;
-
-				// 缓存资源比较
-				if (_cache.Contains(element.MD5))
-					continue;
-
-				downloadList.Add(element);
-			}
-
-			// 检测文件是否已经下载完毕
-			// 注意：如果玩家在加载过程中强制退出，下次再进入的时候跳过已经加载的文件
-			List<PatchElement> validList = new List<PatchElement>();
-			for (int i = downloadList.Count - 1; i >= 0; i--)
-			{
-				var element = downloadList[i];
-				if (CheckContentIntegrity(element))
-				{
-					validList.Add(element);
-					downloadList.RemoveAt(i);
-				}
-			}
-
-			// 缓存已经下载的有效文件
-			if (validList.Count > 0)
-				_cache.CacheDownloadPatchFiles(validList);
-
-			return downloadList;
-		}
-
-		/// <summary>
-		/// 检测下载内容的完整性
-		/// </summary>
-		public bool CheckContentIntegrity(PatchElement element)
-		{
-			return CheckContentIntegrity(element.MD5, element.SizeBytes);
-		}
-		public bool CheckContentIntegrity(string manifestPath)
-		{
-			if(_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
-			{
-				return CheckContentIntegrity(element.MD5, element.SizeBytes);
-			}
-			else
-			{
-				MotionLog.Warning($"Not found check content file in patch manifest : {manifestPath}");
-				return false;
-			}
-		}
-		private bool CheckContentIntegrity(string md5, long size)
-		{
-			string filePath = PatchHelper.MakeSandboxCacheFilePath(md5);
-			if (File.Exists(filePath) == false)
-				return false;
-
-			// 校验沙盒里的补丁文件
-			if (_checkLevel == ECheckLevel.CheckSize)
-			{
-				long fileSize = FileUtility.GetFileSize(filePath);
-				if (fileSize == size)
-					return true;
-			}
-			else if (_checkLevel == ECheckLevel.CheckMD5)
-			{
-				string fileHash = HashUtility.FileMD5(filePath);
-				if (fileHash == md5)
-					return true;
-			}
-			else
-			{
-				throw new NotImplementedException(_checkLevel.ToString());
-			}
-			return false;
-		}
-
-		/// <summary>
-		/// 缓存下载的补丁文件
-		/// </summary>
-		public void CacheDownloadPatchFiles(List<PatchElement> downloadList)
-		{
-			_cache.CacheDownloadPatchFiles(downloadList);
 		}
 
 		/// <summary>
@@ -453,6 +253,216 @@ namespace MotionFramework.Patch
 			}
 		}
 
+		/// <summary>
+		/// 清空缓存并删除所有沙盒文件
+		/// </summary>
+		public void ClearCache()
+		{
+			_cache.ClearCache();
+		}
+
+		/// <summary>
+		/// 获取AssetBundle的加载信息
+		/// </summary>
+		public AssetBundleInfo GetAssetBundleInfo(string manifestPath)
+		{
+			if (_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			{
+				// 查询内置资源
+				if (_appPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement appElement))
+				{
+					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
+					{
+						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, appLoadPath, string.Empty, appElement.Version, appElement.IsEncrypted);
+						return bundleInfo;
+					}
+				}
+
+				// 查询缓存资源
+				// 注意：如果沙盒内缓存文件不存在，那么将会从服务器下载
+				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(element.MD5);
+				if (_cache.Contains(element.MD5))
+				{
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, string.Empty, element.Version, element.IsEncrypted);
+					return bundleInfo;
+				}
+				else
+				{
+					string remoteURL = GetWebDownloadURL(element.Version.ToString(), element.Name);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, remoteURL, element.Version, element.IsEncrypted);
+					return bundleInfo;
+				}
+			}
+			else
+			{
+				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, string.Empty);
+				return bundleInfo;
+			}
+		}
+
+		/// <summary>
+		/// 获取启动游戏时的下载列表
+		/// </summary>
+		public List<PatchElement> GetAutoPatchDownloadList()
+		{
+			return GetPatchDownloadList(_autoDownloadDLC);
+		}
+
+		/// <summary>
+		/// 获取补丁下载列表
+		/// </summary>
+		public List<PatchElement> GetPatchDownloadList(string[] dlcLabels)
+		{
+			List<PatchElement> downloadList = new List<PatchElement>(1000);
+
+			// 准备下载列表
+			foreach (var element in _localPatchManifest.ElementList)
+			{
+				// 忽略缓存资源
+				if (_cache.Contains(element.MD5))
+					continue;
+
+				// 查询DLC资源
+				if (element.IsDLC())
+				{
+					if (dlcLabels == null)
+						continue;
+					if (element.HasDLCLabel(dlcLabels) == false)
+						continue;
+				}
+
+				// 忽略内置资源
+				if (_appPatchManifest.Elements.TryGetValue(element.Name, out PatchElement appElement))
+				{
+					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
+						continue;
+				}
+
+				downloadList.Add(element);
+			}
+
+			return CacheAndFilterDownloadList(downloadList);
+		}
+
+		/// <summary>
+		/// 创建内置的加载器
+		/// </summary>
+		public void CreateInternalDownloader(List<PatchElement> downloadList)
+		{
+			MotionLog.Log("Create internal patch downloader.");
+			InternalDownloader = new PatchDownloader(this, downloadList, _maxNumberOnLoad);
+		}
+
+		// 检测下载内容的完整性并缓存
+		public bool CheckContentIntegrity(string manifestPath)
+		{
+			if (_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			{
+				return CheckContentIntegrity(element.MD5, element.SizeBytes);
+			}
+			else
+			{
+				MotionLog.Warning($"Not found check content file in local patch manifest : {manifestPath}");
+				return false;
+			}
+		}
+		public bool CheckContentIntegrity(PatchElement element)
+		{
+			return CheckContentIntegrity(element.MD5, element.SizeBytes);
+		}
+		private bool CheckContentIntegrity(string md5, long size)
+		{
+			string filePath = PatchHelper.MakeSandboxCacheFilePath(md5);
+			if (File.Exists(filePath) == false)
+				return false;
+
+			// 校验沙盒里的补丁文件
+			if (_checkLevel == ECheckLevel.CheckSize)
+			{
+				long fileSize = FileUtility.GetFileSize(filePath);
+				if (fileSize == size)
+					return true;
+			}
+			else if (_checkLevel == ECheckLevel.CheckMD5)
+			{
+				string fileHash = HashUtility.FileMD5(filePath);
+				if (fileHash == md5)
+					return true;
+			}
+			else
+			{
+				throw new NotImplementedException(_checkLevel.ToString());
+			}
+			return false;
+		}
+
+		// 缓存系统相关
+		public void CacheLocalResourceVersion()
+		{
+			_cache.ResourceVersion = _localPatchManifest.ResourceVersion;
+			_cache.SaveCache();
+		}
+		public void CacheDownloadPatchFile(string manifestPath)
+		{
+			if (_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			{
+				MotionLog.Log($"Cache download file : {element.Name} : {element.Version}");
+				_cache.CacheDownloadPatchFile(element.MD5);
+			}
+			else
+			{
+				MotionLog.Warning($"Not found cache content file in local patch manifest : {manifestPath}");
+			}
+		}
+		public void CacheDownloadPatchFiles(List<PatchElement> downloadList)
+		{
+			List<string> hashList = new List<string>(downloadList.Count);
+			foreach(var element in downloadList)
+			{
+				MotionLog.Log($"Cache download file : {element.Name} : {element.Version}");
+				hashList.Add(element.MD5);
+			}
+			_cache.CacheDownloadPatchFiles(hashList);
+		}
+		private List<PatchElement> CacheAndFilterDownloadList(List<PatchElement> downloadList)
+		{
+			// 检测文件是否已经下载完毕
+			// 注意：如果玩家在加载过程中强制退出，下次再进入的时候跳过已经加载的文件
+			List<PatchElement> cacheList = new List<PatchElement>();
+			for (int i = downloadList.Count - 1; i >= 0; i--)
+			{
+				var element = downloadList[i];
+				if (CheckContentIntegrity(element))
+				{
+					cacheList.Add(element);
+					downloadList.RemoveAt(i);
+				}
+			}
+
+			// 缓存已经下载的有效文件
+			if (cacheList.Count > 0)
+				CacheDownloadPatchFiles(cacheList);
+
+			return downloadList;
+		}
+
+		// 补丁清单相关
+		public PatchManifest GetPatchManifest()
+		{
+			return _localPatchManifest;
+		}
+		public void SaveRemotePatchManifest(string content)
+		{
+			_localPatchManifest = PatchManifest.Deserialize(content);
+
+			// 注意：这里会覆盖掉沙盒内的补丁清单文件
+			MotionLog.Log("Save remote patch manifest.");
+			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			PatchManifest.Serialize(savePath, _localPatchManifest);
+		}
+
 		// 流程相关
 		public void Switch(string nodeName)
 		{
@@ -491,17 +501,12 @@ namespace MotionFramework.Patch
 				AppVersion = Application.version,
 				ServerID = _serverID,
 				ChannelID = _channelID,
-				DeviceID = _deviceID,
+				DeviceUID = _deviceUID,
 				TestFlag = _testFlag
 			};
 			return JsonUtility.ToJson(post);
 		}
-
-		#region 流程节点回调方法
-		/// <summary>
-		/// 当获取到WEB服务器的反馈信息
-		/// </summary>
-		public void OnGetWebResponseData(string data)
+		public void ParseWebResponseData(string data)
 		{
 			if (string.IsNullOrEmpty(data))
 				throw new Exception("Web server response data is null or empty.");
@@ -512,28 +517,5 @@ namespace MotionFramework.Patch
 			ForceInstall = response.ForceInstall;
 			AppURL = response.AppURL;
 		}
-
-		/// <summary>
-		/// 当服务端的补丁清单下载完毕
-		/// </summary>
-		public void OnDownloadWebPatchManifest(string content)
-		{
-			if (_remotePatchManifest != null)
-				throw new Exception("Should never get here.");
-			_remotePatchManifest = PatchManifest.Deserialize(content);
-		}
-
-		/// <summary>
-		/// 当服务端的补丁文件下载完毕
-		/// </summary>
-		public void OnDownloadWebPatchFile()
-		{
-			// 保存补丁清单
-			// 注意：这里会覆盖掉沙盒内的补丁清单文件
-			_localPatchManifest = _remotePatchManifest;
-			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
-			PatchManifest.Serialize(savePath, _remotePatchManifest);
-		}
-		#endregion
 	}
 }

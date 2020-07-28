@@ -48,10 +48,9 @@ namespace MotionFramework.Patch
 			PatchEventMessageDefine.WebPatchManifestDownloadFailed msg = new PatchEventMessageDefine.WebPatchManifestDownloadFailed();
 			EventManager.Instance.SendMessage(msg);
 		}
-		public static void SendWebFileDownloadFailedMsg(string url, string name)
+		public static void SendWebFileDownloadFailedMsg(string name)
 		{
 			PatchEventMessageDefine.WebFileDownloadFailed msg = new PatchEventMessageDefine.WebFileDownloadFailed();
-			msg.URL = url;
 			msg.Name = name;
 			EventManager.Instance.SendMessage(msg);
 		}

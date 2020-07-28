@@ -13,12 +13,19 @@ using MotionFramework.Utility;
 namespace MotionFramework.Patch
 {
 	[Serializable]
-	public class CacheData
+	public class PatchCache
 	{
+		public const int DEFAULT_VERSION = -1;
+
 		/// <summary>
 		/// 缓存版本
 		/// </summary>
 		public string CacheVersion = string.Empty;
+
+		/// <summary>
+		/// 资源版本
+		/// </summary>
+		public int ResourceVersion = DEFAULT_VERSION;
 
 		/// <summary>
 		/// 缓存文件的哈希列表
@@ -27,28 +34,24 @@ namespace MotionFramework.Patch
 
 
 		// 缓存操作方法
-		public void CacheDownloadPatchFile(string md5)
+		public void CacheDownloadPatchFile(string hash)
 		{
-			if (CachedFileHashList.Contains(md5) == false)
+			if (CachedFileHashList.Contains(hash) == false)
 			{
-				CachedFileHashList.Add(md5);
+				CachedFileHashList.Add(hash);
 
 				// 保存缓存
 				SaveCache();
 			}
 		}
-		public void CacheDownloadPatchFile(PatchElement element)
-		{
-			CacheDownloadPatchFile(element.MD5);
-		}
-		public void CacheDownloadPatchFiles(List<PatchElement> elements)
+		public void CacheDownloadPatchFiles(List<string> hashList)
 		{
 			bool hasCached = false;
-			foreach (var element in elements)
+			foreach (var hash in hashList)
 			{
-				if (CachedFileHashList.Contains(element.MD5) == false)
+				if (CachedFileHashList.Contains(hash) == false)
 				{
-					CachedFileHashList.Add(element.MD5);
+					CachedFileHashList.Add(hash);
 					hasCached = true;
 				}
 			}
@@ -73,24 +76,36 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public void SaveCache()
 		{
-			MotionLog.Log("Save patch cache file.");
+			MotionLog.Log("Save cache to disk.");
 			string filePath = PatchHelper.GetSandboxCacheFilePath();
 			string jsonData = JsonUtility.ToJson(this);
 			FileUtility.CreateFile(filePath, jsonData);
 		}
 
 		/// <summary>
+		/// 清空缓存并删除所有缓存文件
+		/// </summary>
+		public void ClearCache()
+		{
+			MotionLog.Warning("Clear cache and remove all sandbox files.");
+			CacheVersion = string.Empty;
+			ResourceVersion = DEFAULT_VERSION;
+			CachedFileHashList.Clear();
+			PatchHelper.ClearSandbox();
+		}
+
+		/// <summary>
 		/// 读取缓存文件
 		/// </summary>
-		public static CacheData LoadCache()
+		public static PatchCache LoadCache()
 		{
 			if (PatchHelper.CheckSandboxCacheFileExist() == false)
-				return new CacheData();
+				return new PatchCache();
 
-			MotionLog.Log("Load patch cache file.");
+			MotionLog.Log("Load cache from disk.");
 			string filePath = PatchHelper.GetSandboxCacheFilePath();
 			string jsonData = FileUtility.ReadFile(filePath);
-			return JsonUtility.FromJson<CacheData>(jsonData);
+			return JsonUtility.FromJson<PatchCache>(jsonData);
 		}
 	}
 }

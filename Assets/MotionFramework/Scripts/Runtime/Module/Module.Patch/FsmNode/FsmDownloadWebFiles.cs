@@ -25,6 +25,8 @@ namespace MotionFramework.Patch
 		}
 		void IFsmNode.OnUpdate()
 		{
+			if (_patcher.InternalDownloader != null)
+				_patcher.InternalDownloader.Update();
 		}
 		void IFsmNode.OnExit()
 		{
@@ -35,20 +37,21 @@ namespace MotionFramework.Patch
 
 		private IEnumerator Download()
 		{
+			var downloader = _patcher.InternalDownloader;
+
 			// 注册下载回调
-			var downloader = _patcher.Downloader;
 			downloader.OnPatchFileCheckFailedCallback = PatchEventDispatcher.SendWebFileCheckFailedMsg;
 			downloader.OnPatchFileDownloadFailedCallback = PatchEventDispatcher.SendWebFileDownloadFailedMsg;
 			downloader.OnPatchFileDownloadSucceedCallback = PatchEventDispatcher.SendDownloadFilesProgressMsg;
-
-			MotionLog.Log($"Begine download web files : {downloader.TotalDownloadCount} files and total {downloader.TotalDownloadBytes} bytes");
-			yield return downloader.Download();
+			downloader.Download();
+			yield return downloader;
 
 			// 检测下载结果
-			if (downloader.DownloadStates != EDownloaderStates.DownloadSucceed)
+			if (downloader.DownloadStates != EDownloaderStates.Succeed)
 				yield break;
 
-			_patcher.OnDownloadWebPatchFile();
+			// 缓存本地资源版本号
+			_patcher.CacheLocalResourceVersion();
 			_patcher.SwitchNext();
 		}
 	}

@@ -36,22 +36,25 @@ namespace MotionFramework.Patch
 
 		private void GetDownloadList()
 		{
-			var downloadList = _patcher.GetPatchDownloadList();
+			// 获取游戏启动时的下载列表
+			var downloadList = _patcher.GetAutoPatchDownloadList();
 
 			// 如果下载列表为空
 			if (downloadList.Count == 0)
 			{
-				_patcher.SwitchNext();
+				_patcher.Switch(EPatchStates.DownloadOver.ToString());
 			}
 			else
 			{
+				MotionLog.Log($"Found update web files : {downloadList.Count}");
+
 				// 创建补丁下载器
-				_patcher.Downloader = new PatchDownloader(_patcher, downloadList);
+				_patcher.CreateInternalDownloader(downloadList);
 
 				// 发现新更新文件后，挂起流程系统
 				// 注意：开发者需要在下载前检测磁盘空间不足
-				int totalDownloadCount = _patcher.Downloader.TotalDownloadCount;
-				long totalDownloadBytes = _patcher.Downloader.TotalDownloadBytes;
+				int totalDownloadCount = _patcher.InternalDownloader.TotalDownloadCount;
+				long totalDownloadBytes = _patcher.InternalDownloader.TotalDownloadBytes;
 				PatchEventDispatcher.SendFoundUpdateFilesMsg(totalDownloadCount, totalDownloadBytes);
 			}
 		}

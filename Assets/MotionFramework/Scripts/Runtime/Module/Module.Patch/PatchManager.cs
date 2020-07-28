@@ -32,7 +32,7 @@ namespace MotionFramework.Patch
 			/// <summary>
 			/// 设备唯一ID
 			/// </summary>
-			public long DeviceID;
+			public string DeviceUID;
 
 			/// <summary>
 			/// 测试包标记
@@ -53,12 +53,21 @@ namespace MotionFramework.Patch
 			/// 变体规则列表
 			/// </summary>
 			public List<VariantRule> VariantRules;
+
+			/// <summary>
+			/// 启动游戏时自动下载的DLC内容
+			/// </summary>
+			public string[] AutoDownloadDLC;
+
+			/// <summary>
+			/// 下载器同时下载的文件数
+			/// </summary>
+			public int MaxNumberOnLoad;
 		}
 
 		private PatchManagerImpl _patcher;
 		private VariantCollector _variantCollector;
 		private bool _isRun = false;
-
 
 		void IModule.OnCreate(System.Object param)
 		{
@@ -94,7 +103,7 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 异步初始化
 		/// </summary>
-		public IEnumerator InitializeAync()
+		public IEnumerator InitializeAsync()
 		{
 			yield return _patcher.InitializeAsync();
 		}
@@ -109,6 +118,14 @@ namespace MotionFramework.Patch
 				_isRun = true;
 				_patcher.Download();
 			}
+		}
+
+		/// <summary>
+		/// 查询补丁系统是否更新结束
+		/// </summary>
+		public bool IsFinish()
+		{
+			return _patcher.CurrentStates == EPatchStates.DownloadOver.ToString();
 		}
 
 		/// <summary>
@@ -141,14 +158,21 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取DLC下载器
 		/// </summary>
-		public PatchDownloader CreateDLCDownloader(string dlcLabel)
+		/// <param name="dlcLabel">DLC标签</param>
+		/// <param name="maxNumberOnLoad">下载器同时下载的文件数</param>
+		public PatchDownloader CreateDLCDownloader(string dlcLabel, int maxNumberOnLoad)
 		{
-			return CreateDLCDownloader(new List<string>() { dlcLabel });
+			return CreateDLCDownloader(new string[] { dlcLabel }, maxNumberOnLoad);
 		}
-		public PatchDownloader CreateDLCDownloader(List<string> dlcLabels)
+		public PatchDownloader CreateDLCDownloader(string[] dlcLabels, int maxNumberOnLoad)
 		{
-			var downloadList = _patcher.GetDLCDownloadList(dlcLabels);
-			PatchDownloader downlader = new PatchDownloader(_patcher, downloadList);
+			if (_isRun == false)
+				throw new Exception($"The patch system is not start. Call PatchManager.Instance.Download()");
+			if (IsFinish() == false)
+				throw new Exception($"The patch system is not over.");
+
+			var downloadList = _patcher.GetPatchDownloadList(dlcLabels);
+			PatchDownloader downlader = new PatchDownloader(_patcher, downloadList, maxNumberOnLoad);
 			return downlader;
 		}
 
@@ -163,12 +187,18 @@ namespace MotionFramework.Patch
 		#region IBundleServices接口
 		bool IBundleServices.CheckContentIntegrity(string manifestPath)
 		{
-			return _patcher.CheckContentIntegrity(manifestPath);
+			bool result = _patcher.CheckContentIntegrity(manifestPath);
+			if (result)
+				_patcher.CacheDownloadPatchFile(manifestPath);
+			return result;
 		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
 		{
-			PatchManifest patchManifest = _patcher.GetPatchManifest();
-			manifestPath = GetVariantManifestPath(patchManifest, manifestPath);
+			if (_variantCollector != null)
+			{
+				PatchManifest patchManifest = _patcher.GetPatchManifest();
+				manifestPath = _variantCollector.RemapVariantName(patchManifest, manifestPath);
+			}
 			return _patcher.GetAssetBundleInfo(manifestPath);
 		}
 		string[] IBundleServices.GetDirectDependencies(string manifestPath)
@@ -180,19 +210,6 @@ namespace MotionFramework.Patch
 		{
 			PatchManifest patchManifest = _patcher.GetPatchManifest();
 			return patchManifest.GetAllDependencies(manifestPath);
-		}
-
-		private string GetVariantManifestPath(PatchManifest patchManifest, string manifestPath)
-		{
-			if (_variantCollector == null)
-				return manifestPath;
-
-			if (patchManifest.HasVariant(manifestPath))
-			{
-				string variant = patchManifest.GetFirstVariant(manifestPath);
-				return _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
-			}
-			return manifestPath;
 		}
 		#endregion
 	}

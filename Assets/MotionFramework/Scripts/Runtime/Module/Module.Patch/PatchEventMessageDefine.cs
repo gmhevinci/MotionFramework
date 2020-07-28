@@ -76,7 +76,6 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public class WebFileDownloadFailed : IEventMessage
 		{
-			public string URL;
 			public string Name;
 		}
 

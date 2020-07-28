@@ -57,7 +57,7 @@ namespace MotionFramework.Patch
 
 				string response = download.GetResponse();
 				MotionLog.Log($"Succeed get response from web : {url} {response}");
-				_patcher.OnGetWebResponseData(response);
+				_patcher.ParseWebResponseData(response);
 				download.Dispose();
 			}
 

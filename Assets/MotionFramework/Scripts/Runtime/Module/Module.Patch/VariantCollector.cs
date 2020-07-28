@@ -59,10 +59,22 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 尝试获取注册的变体资源清单路径
+		/// Remaps the asset bundle name to the target variant.
 		/// </summary>
-		/// <returns>如果没有注册，返回原路径</returns>
-		public string TryGetVariantManifestPath(string manifestPath, string variant)
+		public string RemapVariantName(PatchManifest patchManifest, string manifestPath)
+		{
+			if (patchManifest.HasVariant(manifestPath))
+			{
+				string variant = patchManifest.GetFirstVariant(manifestPath);
+				return GetCachedVariantManifestPath(manifestPath, variant);
+			}
+			return manifestPath;
+		}
+
+		/// <summary>
+		/// 获取缓存的变体清单路径
+		/// </summary>
+		private string GetCachedVariantManifestPath(string manifestPath, string variant)
 		{
 			if (_cacheFiles.ContainsKey(manifestPath))
 				return _cacheFiles[manifestPath];
@@ -76,6 +88,10 @@ namespace MotionFramework.Patch
 					extension = PatchDefine.AssetBundleDefaultVariant;
 				string filePathWithoutExtension = manifestPath.Remove(manifestPath.LastIndexOf("."));
 				variantManifestPath = StringFormat.Format("{0}.{1}", filePathWithoutExtension, extension);
+			}
+			else
+			{
+				MotionLog.Warning($"Not found variant in rules : {variant}");
 			}
 
 			// 添加到缓存列表

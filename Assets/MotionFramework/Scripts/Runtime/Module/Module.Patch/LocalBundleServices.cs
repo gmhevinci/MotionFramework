@@ -31,13 +31,13 @@ namespace MotionFramework.Patch
 		/// <param name="variantRules">变体规则</param>
 		public LocalBundleServices(List<VariantRule> variantRules)
 		{
+			if (variantRules == null)
+				throw new ArgumentNullException();
+
 			_variantCollector = new VariantCollector();
-			if (variantRules != null)
+			foreach (var variantRule in variantRules)
 			{
-				foreach (var variantRule in variantRules)
-				{
-					_variantCollector.RegisterVariantRule(variantRule.VariantGroup, variantRule.TargetVariant);
-				}
+				_variantCollector.RegisterVariantRule(variantRule.VariantGroup, variantRule.TargetVariant);
 			}
 		}
 
@@ -74,7 +74,9 @@ namespace MotionFramework.Patch
 		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
 		{
-			manifestPath = GetVariantManifestPath(_patchManifest, manifestPath);
+			if (_variantCollector != null)
+				manifestPath = _variantCollector.RemapVariantName(_patchManifest, manifestPath);
+
 			if (_patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
 				// 直接从沙盒里加载
@@ -96,19 +98,6 @@ namespace MotionFramework.Patch
 		string[] IBundleServices.GetAllDependencies(string manifestPath)
 		{
 			return _patchManifest.GetAllDependencies(manifestPath);
-		}
-
-		private string GetVariantManifestPath(PatchManifest patchManifest, string manifestPath)
-		{
-			if (_variantCollector == null)
-				return manifestPath;
-
-			if (patchManifest.HasVariant(manifestPath))
-			{
-				string variant = patchManifest.GetFirstVariant(manifestPath);
-				return _variantCollector.TryGetVariantManifestPath(manifestPath, variant);
-			}
-			return manifestPath;
 		}
 		#endregion
 	}
