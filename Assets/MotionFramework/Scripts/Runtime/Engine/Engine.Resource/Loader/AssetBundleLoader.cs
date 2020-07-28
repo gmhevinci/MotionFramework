@@ -131,7 +131,7 @@ namespace MotionFramework.Resource
 				if (BundleInfo.IsEncrypted)
 				{
 					if (AssetSystem.DecryptServices == null)
-						throw new Exception($"AssetBundle need IDecryptServices : {BundleInfo.ManifestPath}");
+						throw new Exception($"{nameof(AssetBundleLoader)} need IDecryptServices : {BundleInfo.ManifestPath}");
 
 					EDecryptMethod decryptType = AssetSystem.DecryptServices.DecryptType;
 					if (decryptType == EDecryptMethod.GetDecryptOffset)
@@ -166,7 +166,7 @@ namespace MotionFramework.Resource
 				// Check error
 				if (CacheBundle == null)
 				{
-					MotionLog.Warning($"Failed to load assetBundle file : {BundleInfo.LocalPath}");
+					MotionLog.Warning($"Failed to load assetBundle file : {BundleInfo.ManifestPath}");
 					States = ELoaderStates.Fail;
 				}
 				else
@@ -201,9 +201,9 @@ namespace MotionFramework.Resource
 
 			// Check fatal
 			if (RefCount > 0)
-				throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.LocalPath}");
+				throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.ManifestPath}");
 			if (IsDone() == false)
-				throw new Exception($"Bundle file loader is not done : {BundleInfo.LocalPath}");
+				throw new Exception($"Bundle file loader is not done : {BundleInfo.ManifestPath}");
 
 			if (_downloader != null)
 			{
