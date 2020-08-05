@@ -14,7 +14,6 @@ using MotionFramework.Event;
 using MotionFramework.Resource;
 using MotionFramework.Network;
 using MotionFramework.Utility;
-using UnityEngine.iOS;
 
 namespace MotionFramework.Patch
 {
@@ -144,7 +143,7 @@ namespace MotionFramework.Patch
 			{
 				string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
 				string url = AssetPathHelper.ConvertToWWWPath(filePath);
-				WebDataRequest downloader = new WebDataRequest(url);
+				WebGetRequest downloader = new WebGetRequest(url);
 				downloader.DownLoad();
 				yield return downloader;
 

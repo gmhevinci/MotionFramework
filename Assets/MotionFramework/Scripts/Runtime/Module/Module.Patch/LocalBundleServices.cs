@@ -52,7 +52,7 @@ namespace MotionFramework.Patch
 			// 解析APP里的补丁清单
 			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
 			string url = AssetPathHelper.ConvertToWWWPath(filePath);
-			WebDataRequest downloader = new WebDataRequest(url);
+			WebGetRequest downloader = new WebGetRequest(url);
 			downloader.DownLoad();
 			yield return downloader;
 

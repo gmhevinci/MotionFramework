@@ -40,7 +40,7 @@ namespace MotionFramework.Patch
 			// 从远端下载最新的补丁清单
 			int newResourceVersion = _patcher.RequestedResourceVersion;
 			string url = _patcher.GetWebDownloadURL(newResourceVersion.ToString(), PatchDefine.PatchManifestFileName);
-			WebDataRequest download = new WebDataRequest(url);
+			WebGetRequest download = new WebGetRequest(url);
 			download.DownLoad();
 			yield return download;
 
