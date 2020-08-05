@@ -38,7 +38,7 @@ namespace MotionFramework.Network
 		public override void ReportError()
 		{
 			if(CacheRequest != null)
-				MotionLog.Warning($"Failed to request web post : {URL} Error : {CacheRequest.error}");
+				MotionLog.Warning($"{nameof(WebPostRequest)}  : {URL} Error : {CacheRequest.error}");
 		}
 
 		public string GetResponse()

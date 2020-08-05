@@ -38,7 +38,7 @@ namespace MotionFramework.Network
 		public override void ReportError()
 		{
 			if(CacheRequest != null)
-				MotionLog.Warning($"Failed to download web file : {URL} Error : {CacheRequest.error}");
+				MotionLog.Warning($"{nameof(WebFileRequest)} : {URL} Error : {CacheRequest.error}");
 		}
 	}
 }

@@ -10,9 +10,9 @@ using UnityEngine.Networking;
 
 namespace MotionFramework.Network
 {
-	public sealed class WebDataRequest : WebRequestBase
+	public sealed class WebGetRequest : WebRequestBase
 	{
-		public WebDataRequest(string url) : base(url)
+		public WebGetRequest(string url) : base(url)
 		{
 		}
 		public override void DownLoad()
@@ -31,7 +31,7 @@ namespace MotionFramework.Network
 		public override void ReportError()
 		{
 			if(CacheRequest != null)
-				MotionLog.Warning($"Failed to request web data : {URL} Error : {CacheRequest.error}");
+				MotionLog.Warning($"{nameof(WebGetRequest)} : {URL} Error : {CacheRequest.error}");
 		}
 
 		public byte[] GetData()
