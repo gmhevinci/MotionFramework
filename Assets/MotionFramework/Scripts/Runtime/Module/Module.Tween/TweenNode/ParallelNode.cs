@@ -11,7 +11,7 @@ namespace MotionFramework.Tween
 	/// 并行执行的复合节点
 	/// 说明：节点列表并行执行，所有子节点同时执行，所有节点都结束时复合节点结束。
 	/// </summary>
-	public class ParallelNode : ITweenNode
+	public class ParallelNode : ITweenNode, ITweenChain
 	{
 		public static ParallelNode Allocate(params ITweenNode[] nodes)
 		{
@@ -66,6 +66,12 @@ namespace MotionFramework.Tween
 		void ITweenNode.Kill()
 		{
 			IsDone = true;
+		}
+
+		ITweenChain ITweenChain.Append(ITweenNode node)
+		{
+			AddNode(node);
+			return this;
 		}
 	}
 }

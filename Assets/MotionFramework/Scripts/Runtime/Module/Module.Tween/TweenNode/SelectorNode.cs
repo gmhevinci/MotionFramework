@@ -11,7 +11,7 @@ namespace MotionFramework.Tween
 	/// 随机执行的复合节点
 	/// 说明：节点列表随机执行，在随机节点结束后复合节点结束。
 	/// </summary>
-	public class SelectorNode : ITweenNode
+	public class SelectorNode : ITweenNode, ITweenChain
 	{
 		protected List<ITweenNode> _nodes = new List<ITweenNode>();
 		protected ITweenNode _selectNode;
@@ -68,6 +68,12 @@ namespace MotionFramework.Tween
 		void ITweenNode.Kill()
 		{
 			IsDone = true;
+		}
+
+		ITweenChain ITweenChain.Append(ITweenNode node)
+		{
+			AddNode(node);
+			return this;
 		}
 	}
 }

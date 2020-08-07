@@ -7,13 +7,13 @@
 namespace MotionFramework.Tween
 {
 	/// <summary>
-	/// 条件节点
+	/// 条件等待节点
 	/// </summary>
-	public class ConditionNode : ITweenNode
+	public class UntilNode : ITweenNode
 	{
-		public static ConditionNode Allocate(System.Func<bool> condition)
+		public static UntilNode Allocate(System.Func<bool> condition)
 		{
-			ConditionNode node = new ConditionNode
+			UntilNode node = new UntilNode
 			{
 				Condition = condition,
 			};
