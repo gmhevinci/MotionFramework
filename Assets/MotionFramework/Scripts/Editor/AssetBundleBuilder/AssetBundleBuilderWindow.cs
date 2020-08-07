@@ -145,6 +145,12 @@ namespace MotionFramework.Editor
 						EditorApplication.delayCall += CheckAllPrefabValid;
 					}
 
+					// 清理无用的材质球属性
+					if (GUILayout.Button("Clear Material Unused Property", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
+					{
+						EditorApplication.delayCall += ClearMaterialUnusedProperty;
+					}
+
 					// 清空并拷贝所有补丁包到StreamingAssets目录
 					if (GUILayout.Button("Copy Patch To StreamingAssets", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
@@ -187,7 +193,7 @@ namespace MotionFramework.Editor
 			{
 				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 				string ext = System.IO.Path.GetExtension(assetPath);
-				if (ext == ".prefab")
+				if (ext == $".{EAssetFileExtension.prefab}")
 				{
 					UnityEngine.Object prefab = AssetDatabase.LoadAssetAtPath(assetPath, typeof(UnityEngine.Object));
 					if (prefab == null)
@@ -205,6 +211,47 @@ namespace MotionFramework.Editor
 			EditorUtility.ClearProgressBar();
 			if (invalidCount == 0)
 				Debug.Log($"没有发现损坏预制件");
+		}
+
+		/// <summary>
+		/// 清理无用的材质球属性
+		/// </summary>
+		private void ClearMaterialUnusedProperty()
+		{
+			// 获取所有的打包路径
+			List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
+			if (collectDirectorys.Count == 0)
+				throw new Exception("[BuildPackage] 打包路径列表不能为空");
+
+			// 获取所有资源列表
+			int checkCount = 0;
+			int removedCount = 0;
+			string[] guids = AssetDatabase.FindAssets(string.Empty, collectDirectorys.ToArray());
+			foreach (string guid in guids)
+			{
+				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+				string ext = System.IO.Path.GetExtension(assetPath);
+				if (ext == $".{EAssetFileExtension.mat}")
+				{
+					Material mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+					bool removed = EditorTools.ClearMaterialUnusedProperty(mat);
+					if (removed)
+					{
+						removedCount++;
+						Debug.LogWarning($"[Build] 材质球已被处理：{assetPath}");
+					}
+				}
+
+				// 进度条相关
+				checkCount++;
+				EditorUtility.DisplayProgressBar("进度", $"清理无用的材质球属性：{checkCount}/{guids.Length}", (float)checkCount / guids.Length);
+			}
+
+			EditorUtility.ClearProgressBar();
+			if (removedCount == 0)
+				Debug.Log($"没有发现冗余的材质球属性");
+			else
+				AssetDatabase.SaveAssets();
 		}
 
 		/// <summary>
