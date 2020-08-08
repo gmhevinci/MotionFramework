@@ -39,7 +39,7 @@ public IEnumerator Start()
 	createParam.CheckLevel = ECheckLevel.CheckSize;
 	createParam.ServerInfo = serverInfo;
 	createParam.VariantRules = variantRules;
-	patchCreateParam.MaxNumberOnLoad = 4;
+	createParam.MaxNumberOnLoad = 4;
 	
 	// 创建模块
 	var patchManager = MotionEngine.CreateModule<PatchManager>(createParam);
