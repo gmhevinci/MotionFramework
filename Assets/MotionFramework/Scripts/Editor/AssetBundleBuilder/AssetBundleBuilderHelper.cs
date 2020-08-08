@@ -9,6 +9,7 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 using MotionFramework.Patch;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Editor
 {
@@ -100,21 +101,34 @@ namespace MotionFramework.Editor
 		/// <param name="targetVersion">目标版本。如果版本为负值则拷贝所有版本</param>
 		public static void CopyPackageToStreamingFolder(BuildTarget buildTarget, string outputRoot, int targetVersion = -1)
 		{
-			string parentPath = $"{outputRoot}/{buildTarget}";
-			string streamingPath = Application.dataPath + "/StreamingAssets";
+			// 补丁清单路径
+			string filePath = $"{outputRoot}/{buildTarget}/{PatchDefine.UnityManifestFileName}/{PatchDefine.PatchManifestFileName}";
+			if (File.Exists(filePath) == false)
+				throw new System.Exception($"Not found {PatchDefine.PatchManifestFileName} file : {filePath}");
 
-			// 获取所有补丁包版本列表
-			List<int> versionList = GetPackageVersionList(buildTarget, outputRoot);
+			// 加载补丁清单
+			string jsonData = FileUtility.ReadFile(filePath);
+			PatchManifest pm = PatchManifest.Deserialize(jsonData);
 
-			// 拷贝资源
-			for (int i = 0; i < versionList.Count; i++)
+			// 拷贝文件列表
+			foreach(var element in pm.ElementList)
 			{
-				if (targetVersion >= 0 && versionList[i] > targetVersion)
-					break;
+				if (element.IsDLC())
+					continue;
 
-				string sourcePath = $"{parentPath}/{versionList[i]}";
-				Debug.Log($"拷贝版本文件到流目录：{sourcePath}");
-				EditorTools.CopyDirectory(sourcePath, streamingPath);
+				if (targetVersion >= 0 && element.Version > targetVersion)
+					continue;
+
+				string sourcePath = $"{outputRoot}/{buildTarget}/{element.Version}/{element.Name}";
+				string destPath = $"{Application.dataPath}/StreamingAssets/{element.Name}";
+				Debug.Log($"拷贝版本文件到流目录：{destPath}");
+				EditorTools.CopyFile(sourcePath, destPath, true);
+			}
+
+			// 拷贝核心文件
+			{
+				string destFilePath = $"{Application.dataPath}/StreamingAssets/{PatchDefine.PatchManifestFileName}";
+				EditorTools.CopyFile(filePath, destFilePath, true);
 			}
 
 			// 刷新目录

@@ -71,7 +71,7 @@ namespace MotionFramework.Editor
 			_assetBuilder.BuildVersion = EditorGUILayout.IntField("Build Version", _assetBuilder.BuildVersion, GUILayout.MaxWidth(250));
 
 			// 输出路径
-			EditorGUILayout.LabelField("Build Output", _assetBuilder.OutputPath);
+			EditorGUILayout.LabelField("Build Output", _assetBuilder.OutputDirectory);
 
 			// 构建选项
 			EditorGUILayout.Space();
@@ -259,8 +259,8 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void RefreshStreammingFolder()
 		{
-			string streamingPath = Application.dataPath + "/StreamingAssets";
-			EditorTools.ClearFolder(streamingPath);
+			string streamingDirectory = Application.dataPath + "/StreamingAssets";
+			EditorTools.ClearFolder(streamingDirectory);
 
 			string outputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
 			AssetBundleBuilderHelper.CopyPackageToStreamingFolder(_assetBuilder.BuildTarget, outputRoot);
@@ -271,8 +271,8 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void RefreshOutputMainFolder()
 		{
-			string outputPath = _assetBuilder.OutputPath;
-			EditorTools.ClearFolder(outputPath);
+			string outputDirectory = _assetBuilder.OutputDirectory;
+			EditorTools.ClearFolder(outputDirectory);
 
 			string outputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
 			AssetBundleBuilderHelper.CopyPackageToUnityManifestFolder(_assetBuilder.BuildTarget, outputRoot);
