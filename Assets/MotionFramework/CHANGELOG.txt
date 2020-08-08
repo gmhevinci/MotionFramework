@@ -1,3 +1,20 @@
+v1.3.1 - 2020年8月8日
+为了支持DLC，补丁系统整体做了优化和调整。
+
+改进
+1. [c2df1b1] [Tween] 增加了组ID概念，方便统一终止补间动画。
+2. [e6d89b3] [AssetBundleCollector] 增加了自定义收集功能。
+3. [feba649] [AssetBundleCollector] 增加了DLC打包功能。
+4. [b12cd13] [Resource] 增加了静默下载功能。
+5. [10b7d29] [Patch] 增加了DLC下载功能，支持游戏启动下载DLC，支持游戏运行时边玩边下DLC。
+6. [66b132d] [Tween] 增加了TweenChain接口，方便简化代码。
+7. [428a258] [AssetBundleBuilder] 增加了清空材质球冗余属性的按钮，可以清除材质球旧的依赖图片。
+
+变更
+1. [b8de030] [Patch] PatchManifest文件改为了JSON格式。
+2. [663c5a7] [ParticleProfiler] 移除了ParticleProfiler窗体。
+
+
 v1.3.0 - 2020年7月12日
 新增
 1. [95c1a6c] 新增轻量化的补间系统
