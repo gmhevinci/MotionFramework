@@ -19,7 +19,7 @@ C# && .Net4.x
 
 4. [引用池](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.Reference.md) **(Engine.Reference)** - 用于C#引用类型的对象池，对于频繁创建的引用类型，使用引用池可以帮助减少GC。
 
-5. [资源系统](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.Resource.md) **(Engine.Resource)** - 基于资源定位的资源系统（LocationBased AssetSystem），支持自定义解密方法，支持AssetBundle变体。编辑器下的模拟运行方式可以不依赖于AssetBundle文件，省去每次修改资源都要重新构建的时间。业务逻辑支持协程，异步，委托多种异步加载方式。
+5. [资源系统](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.Resource.md) **(Engine.Resource)** - 基于资源定位的资源系统（LocationBased AssetSystem），支持自定义加密解密，支持AssetBundle变体，支持DLC内容构建，支持边玩边下载。编辑器下的模拟运行方式可以不依赖于AssetBundle文件，省去每次修改资源都要重新构建的时间。业务逻辑支持协程，异步，委托多种异步加载方式。
 
 6. [补丁系统](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.Patch.md) **(Engine.Patch)** - 通过补丁系统可以实现资源热更新。支持版本回退，支持区分审核版本，测试版本，线上版本，支持灰度更新。
 

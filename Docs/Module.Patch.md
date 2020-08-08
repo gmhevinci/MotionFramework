@@ -2,8 +2,24 @@
 
 创建补丁管理器  
 ```C#
+public enum ELanguage
+{
+	Default,
+	EN,
+	KR,
+}
+
 public IEnumerator Start()
 {
+	// 创建变体规则集合
+	var variantRules = new List<VariantRule>();
+	{
+		var rule1 = new VariantRule();
+		rule1.VariantGroup = new List<string>() { "EN", "KR" };
+		rule1.TargetVariant = Language.ToString();
+		variantRules.Add(rule1);
+	}
+
 	// 远程服务器信息
 	// 默认配置：在没有配置的平台上会走默认的地址。
 	string webServer = "http://127.0.0.1";
@@ -18,12 +34,13 @@ public IEnumerator Start()
 	var createParam = new PatchManager.CreateParameters();
 	createParam.ServerID = PlayerPrefs.GetInt("SERVER_ID_KEY", 0); //最近登录的服务器ID
 	createParam.ChannelID = 0; //渠道ID
-	createParam.DeviceID = 0; //设备唯一ID
+	createParam.DeviceUID = string.Empty; //设备唯一ID
 	createParam.TestFlag = PlayerPrefs.GetInt("TEST_FLAG_KEY", 0); //测试包标记
 	createParam.CheckLevel = ECheckLevel.CheckSize;
 	createParam.ServerInfo = serverInfo;
-	createParam.VariantRules = null;
-
+	createParam.VariantRules = variantRules;
+	patchCreateParam.MaxNumberOnLoad = 4;
+	
 	// 创建模块
 	var patchManager = MotionEngine.CreateModule<PatchManager>(createParam);
 	yield return patchManager.InitializeAync();

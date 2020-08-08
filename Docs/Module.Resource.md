@@ -10,7 +10,7 @@ public IEnumerator Start()
 
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
-	createParam.AssetRootPath = "Assets/GameRes";
+	createParam.LocationRoot = "Assets/GameRes";
 	createParam.SimulationOnEditor = true;
 	createParam.BundleServices = bundleServices;
 	createParam.DecryptServices = null;
@@ -29,7 +29,7 @@ public IEnumerator Start()
 
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
-	createParam.AssetRootPath = "Assets/GameRes";
+	createParam.LocationRoot = "Assets/GameRes";
 	createParam.SimulationOnEditor = true;
 	createParam.BundleServices = localBundleServices;
 	createParam.DecryptServices = null;

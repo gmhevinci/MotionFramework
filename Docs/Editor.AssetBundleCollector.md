@@ -11,6 +11,24 @@
 
 注意：LabelByFolder会将文件夹内所有资源打在一个AssetBundle文件里。
 
+**自定义打包规则**   
+如果内置的打包规则已经不能满足需求，那么我们可以轻松实现自定义打包规则
+```C#
+using MotionFramework.Editor;
+
+public class MyAssetCollector : IAssetCollector
+{
+	/// <summary>
+	/// 获取资源的打包标签
+	/// </summary>
+	public string GetAssetBundleLabel(string assetPath)
+	{
+		// Your code in here
+		throw new System.NotImplementedException();
+	}
+}
+```
+
 **什么是变体**  
 通过构建变体AssetBundle文件，我们可以使用不同变体的AssetBundle并自由切换它们。例如：高清特效纹理，普通特效纹理；中文艺术字，日文艺术字，韩文艺术字。  
 在游戏运行时，可以通过MotionFramework提供的接口设置要使用的变体类型，开发者不用关心这些变体资源的引用关系。
