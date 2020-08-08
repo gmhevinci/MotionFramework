@@ -63,8 +63,6 @@ C# && .Net4.x
 
 4. [资源引用搜索工具](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Editor.AssetSearch.md) **(AssetSearch)**
 
-5. [特效性能查看工具](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Editor.ParticleProfiler.md) **(ParticleProfiler)**
-
 ## 新手教程
 1. [游戏启动器](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/GameLauncher.md) **(GameLauncher)**
 
