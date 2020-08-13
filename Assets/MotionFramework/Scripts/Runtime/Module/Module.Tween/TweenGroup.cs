@@ -11,10 +11,19 @@ namespace MotionFramework.Tween
 		/// <summary>
 		/// 播放一个补间动画
 		/// </summary>
-		public long Play(ITweenNode node, UnityEngine.Object safeObject = null)
+		public long Play(ITweenNode tweenRoot, UnityEngine.Object safeObject = null)
 		{
 			int groupID = this.GetHashCode();
-			return TweenManager.Instance.Play(node, safeObject, groupID);
+			return TweenManager.Instance.Play(tweenRoot, safeObject, groupID);
+		}
+
+		/// <summary>
+		/// 播放一个补间动画
+		/// </summary>
+		public long Play(ITweenChain tweenChain, UnityEngine.Object safeObject = null)
+		{
+			int groupID = this.GetHashCode();
+			return TweenManager.Instance.Play(tweenChain, safeObject, groupID);
 		}
 
 		/// <summary>

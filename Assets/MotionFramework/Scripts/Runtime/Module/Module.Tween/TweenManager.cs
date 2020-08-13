@@ -4,6 +4,7 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using MotionFramework.Console;
 
 namespace MotionFramework.Tween
@@ -103,6 +104,22 @@ namespace MotionFramework.Tween
 			TweenWrapper wrapper = new TweenWrapper(groupID, tweenUID, tweenRoot, safeObject);
 			_wrappers.Add(wrapper);
 			return wrapper.TweenUID;
+		}
+
+		/// <summary>
+		/// 播放一个补间动画
+		/// </summary>
+		/// <param name="tweenChain">补间根节点</param>
+		/// <param name="safeObject">安全游戏对象：如果安全游戏对象被销毁，补间动画会自动终止</param>
+		/// <param name="groupID">补间组ID</param>
+		/// <returns>补间动画唯一ID</returns>
+		public long Play(ITweenChain tweenChain, UnityEngine.Object safeObject = null, int groupID = 0)
+		{
+			ITweenNode tweenRoot = tweenChain as ITweenNode;
+			if (tweenRoot == null)
+				throw new System.InvalidCastException();
+
+			return Play(tweenRoot, safeObject, groupID);
 		}
 
 		/// <summary>
