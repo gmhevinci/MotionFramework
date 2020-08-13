@@ -450,6 +450,7 @@ namespace MotionFramework.Editor
 				string assetName = allAssetBundles[i];
 				string path = $"{OutputDirectory}/{assetName}";
 				string md5 = HashUtility.FileMD5(path);
+				uint crc32 = HashUtility.FileCRC32(path);
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = BuildVersion;
 				bool isEncrypted = encryptList.Contains(assetName);
@@ -463,7 +464,7 @@ namespace MotionFramework.Editor
 						version = oldElement.Version;
 				}
 
-				PatchElement newElement = new PatchElement(assetName, md5, sizeBytes, version, isEncrypted, depends, dlcLabels);
+				PatchElement newElement = new PatchElement(assetName, md5, crc32, sizeBytes, version, isEncrypted, depends, dlcLabels);
 				newPatchManifest.ElementList.Add(newElement);
 			}
 

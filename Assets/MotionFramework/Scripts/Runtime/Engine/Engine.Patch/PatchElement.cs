@@ -22,6 +22,11 @@ namespace MotionFramework.Patch
 		public string MD5;
 
 		/// <summary>
+		/// 文件校验码
+		/// </summary>
+		public uint CRC32;
+
+		/// <summary>
 		/// 文件大小
 		/// </summary>
 		public long SizeBytes;
@@ -46,10 +51,11 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public string[] DLCLabels;
 
-		public PatchElement(string name, string md5, long sizeBytes, int version, bool isEncrypted, string[] dependencies, string[] dlcLabels)
+		public PatchElement(string name, string md5, uint crc32, long sizeBytes, int version, bool isEncrypted, string[] dependencies, string[] dlcLabels)
 		{
 			Name = name;
 			MD5 = md5;
+			CRC32 = crc32;
 			SizeBytes = sizeBytes;
 			Version = version;
 			IsEncrypted = isEncrypted;
