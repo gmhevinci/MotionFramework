@@ -42,7 +42,7 @@ namespace MotionFramework.Patch
 			/// <summary>
 			/// 补丁文件校验等级
 			/// </summary>
-			public ECheckLevel CheckLevel = ECheckLevel.CheckSize;
+			public EVerifyLevel VerifyLevel = EVerifyLevel.Size;
 
 			/// <summary>
 			/// 远程服务器信息
@@ -62,7 +62,7 @@ namespace MotionFramework.Patch
 			/// <summary>
 			/// 下载器同时下载的文件数
 			/// </summary>
-			public int MaxNumberOnLoad;
+			public int MaxNumberOnLoad = 1;
 		}
 
 		private PatchManagerImpl _patcher;

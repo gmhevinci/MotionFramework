@@ -45,7 +45,7 @@ namespace MotionFramework.Patch
 		private int _channelID;
 		private string _deviceUID;
 		private int _testFlag;
-		private ECheckLevel _checkLevel;
+		private EVerifyLevel _verifyLevel;
 		private RemoteServerInfo _serverInfo;
 		private string[] _autoDownloadDLC;
 		private int _maxNumberOnLoad;
@@ -98,7 +98,7 @@ namespace MotionFramework.Patch
 			_channelID = createParam.ChannelID;
 			_deviceUID = createParam.DeviceUID;
 			_testFlag = createParam.TestFlag;
-			_checkLevel = createParam.CheckLevel;
+			_verifyLevel = createParam.VerifyLevel;
 			_serverInfo = createParam.ServerInfo;
 			_autoDownloadDLC = createParam.AutoDownloadDLC;
 			_maxNumberOnLoad = createParam.MaxNumberOnLoad;
@@ -359,7 +359,7 @@ namespace MotionFramework.Patch
 		{
 			if (_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
-				return CheckContentIntegrity(element.MD5, element.SizeBytes);
+				return CheckContentIntegrity(element.MD5, element.CRC32, element.SizeBytes);
 			}
 			else
 			{
@@ -369,30 +369,36 @@ namespace MotionFramework.Patch
 		}
 		public bool CheckContentIntegrity(PatchElement element)
 		{
-			return CheckContentIntegrity(element.MD5, element.SizeBytes);
+			return CheckContentIntegrity(element.MD5, element.CRC32, element.SizeBytes);
 		}
-		private bool CheckContentIntegrity(string md5, long size)
+		private bool CheckContentIntegrity(string md5, uint crc32, long size)
 		{
 			string filePath = PatchHelper.MakeSandboxCacheFilePath(md5);
 			if (File.Exists(filePath) == false)
 				return false;
 
 			// 校验沙盒里的补丁文件
-			if (_checkLevel == ECheckLevel.CheckSize)
+			if (_verifyLevel == EVerifyLevel.Size)
 			{
 				long fileSize = FileUtility.GetFileSize(filePath);
 				if (fileSize == size)
 					return true;
 			}
-			else if (_checkLevel == ECheckLevel.CheckMD5)
+			else if (_verifyLevel == EVerifyLevel.MD5)
 			{
 				string fileHash = HashUtility.FileMD5(filePath);
 				if (fileHash == md5)
 					return true;
 			}
+			else if(_verifyLevel == EVerifyLevel.CRC32)
+			{
+				uint fileHash = HashUtility.FileCRC32(filePath);
+				if (fileHash == crc32)
+					return true;
+			}
 			else
 			{
-				throw new NotImplementedException(_checkLevel.ToString());
+				throw new NotImplementedException(_verifyLevel.ToString());
 			}
 			return false;
 		}
