@@ -74,9 +74,11 @@ namespace MotionFramework.Network
 
 			// 拉取网络包
 			// 注意：如果服务器意外断开，未拉取的网络包将会丢失
-			INetworkPackage package = (INetworkPackage)_client.PickPackage();
-			if (package != null)
+			while (true)
 			{
+				INetworkPackage package = (INetworkPackage)_client.PickPackage();
+				if (package == null)
+					break;
 				if (package.IsHotfixPackage)
 					HotfixPackageCallback.Invoke(package);
 				else
