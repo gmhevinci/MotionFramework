@@ -4,6 +4,7 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Console;
 using MotionFramework.Utility;
@@ -107,6 +108,14 @@ namespace MotionFramework.Resource
 		public AssetBundleInfo GetAssetBundleInfo(string location, string variant = PatchDefine.AssetBundleDefaultVariant)
 		{
 			return AssetSystem.GetAssetBundleInfo(location, variant);
+		}
+
+		/// <summary>
+		/// 获取当前所有正在使用的Bundle信息
+		/// </summary>
+		public static List<AssetBundleInfo> GetAllBundleInfos()
+		{
+			return AssetSystem.GetAllBundleInfos();
 		}
 	}
 }

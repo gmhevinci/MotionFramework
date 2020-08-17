@@ -185,6 +185,20 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
+		/// 获取当前所有正在使用的Bundle信息
+		/// </summary>
+		public static List<AssetBundleInfo> GetAllBundleInfos()
+		{
+			List<AssetBundleInfo> infos = new List<AssetBundleInfo>(_loaders.Count);
+			for (int i = 0; i < _loaders.Count; i++)
+			{
+				AssetLoaderBase loader = _loaders[i];
+				infos.Add(loader.BundleInfo);
+			}
+			return infos;
+		}
+		
+		/// <summary>
 		/// 从列表里获取加载器
 		/// </summary>
 		private static AssetLoaderBase TryGetLoader(string manifestPath)
