@@ -36,7 +36,7 @@ public IEnumerator Start()
 	createParam.ChannelID = 0; //渠道ID
 	createParam.DeviceUID = string.Empty; //设备唯一ID
 	createParam.TestFlag = PlayerPrefs.GetInt("TEST_FLAG_KEY", 0); //测试包标记
-	createParam.CheckLevel = ECheckLevel.CheckSize;
+	createParam.VerifyLevel = EVerifyLevel.CRC32;
 	createParam.ServerInfo = serverInfo;
 	createParam.VariantRules = variantRules;
 	createParam.MaxNumberOnLoad = 4;
