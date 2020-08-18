@@ -141,12 +141,13 @@ namespace MotionFramework.Editor
 			// 加密资源文件
 			List<string> encryptList = EncryptFiles(unityManifest);
 
-			// 创建补丁文件
+			// 1. 检测循环依赖
+			CheckCycleDepend(unityManifest);
+			// 2. 创建补丁文件
 			CreatePatchManifestFile(unityManifest, encryptList);
-			// 创建说明文件
+			// 3. 创建说明文件
 			CreateReadmeFile(unityManifest);
-
-			// 复制更新文件到新的补丁文件夹
+			// 4. 复制更新文件
 			CopyUpdateFiles();
 
 			Log("构建完成！");
@@ -425,7 +426,53 @@ namespace MotionFramework.Editor
 
 		#region 文件相关
 		/// <summary>
-		/// 1. 创建补丁清单文件到输出目录
+		/// 1. 检测循环依赖
+		/// </summary>
+		private void CheckCycleDepend(AssetBundleManifest unityManifest)
+		{
+			List<string> visited = new List<string>(100);
+			List<string> stack = new List<string>(100);
+			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
+			for (int i = 0; i < allAssetBundles.Length; i++)
+			{
+				var element = allAssetBundles[i];
+				visited.Clear();
+				stack.Clear();
+
+				// 深度优先搜索检测有向图有无环路算法
+				if (CheckCycle(unityManifest, element, visited, stack))
+				{
+					foreach (var ele in stack)
+					{
+						UnityEngine.Debug.LogWarning(ele);
+					}
+					throw new Exception($"Found cycle assetbundle : {element}");
+				}
+			}
+		}
+		private bool CheckCycle(AssetBundleManifest unityManifest, string element, List<string> visited, List<string> stack)
+		{
+			if (visited.Contains(element) == false)
+			{
+				visited.Add(element);
+				stack.Add(element);
+
+				string[] depends = unityManifest.GetDirectDependencies(element);
+				foreach (var dp in depends)
+				{
+					if (visited.Contains(dp) == false && CheckCycle(unityManifest, dp, visited, stack))
+						return true;
+					else if (stack.Contains(dp))
+						return true;
+				}
+			}
+
+			stack.Remove(element);
+			return false;
+		}
+
+		/// <summary>
+		/// 2. 创建补丁清单文件到输出目录
 		/// </summary>
 		private void CreatePatchManifestFile(AssetBundleManifest unityManifest, List<string> encryptList)
 		{
@@ -505,7 +552,7 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 2. 创建Readme文件到输出目录
+		/// 3. 创建Readme文件到输出目录
 		/// </summary>
 		private void CreateReadmeFile(AssetBundleManifest unityManifest)
 		{
@@ -575,7 +622,7 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 3. 复制更新文件到补丁包目录
+		/// 4. 复制更新文件到补丁包目录
 		/// </summary>
 		private void CopyUpdateFiles()
 		{
