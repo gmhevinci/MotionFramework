@@ -21,7 +21,7 @@ namespace MotionFramework.Console
 		{
 			int space = 15;
 
-			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 0);
+			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos);
 
 			// 时间缩放相关
 			GUILayout.Space(space);

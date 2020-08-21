@@ -53,7 +53,8 @@ namespace MotionFramework.Console
 			_showError = ConsoleGUI.Toggle("Error", _showError);
 			GUILayout.EndHorizontal();
 
-			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 40);
+			float offset = ConsoleGUI.ToolbarStyle.fixedHeight;
+			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
 			for (int i = 0; i < _logs.Count; i++)
 			{
 				LogWrapper wrapper = _logs[i];

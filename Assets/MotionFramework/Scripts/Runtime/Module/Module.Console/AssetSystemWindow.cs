@@ -69,7 +69,8 @@ namespace MotionFramework.Console
 
 			ConsoleGUI.Lable($"加载器总数：{_loaderTotalCount}");
 
-			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 80);
+			float offset = ConsoleGUI.ToolbarStyle.fixedHeight + ConsoleGUI.LableStyle.fontSize;
+			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
 			for (int i = 0; i < _cacheInfos.Count; i++)
 			{
 				var element = _cacheInfos[i];

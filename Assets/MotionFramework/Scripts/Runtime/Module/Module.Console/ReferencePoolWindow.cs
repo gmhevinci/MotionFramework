@@ -21,7 +21,8 @@ namespace MotionFramework.Console
 			var pools = ReferencePool.GetAllCollectors;
 			ConsoleGUI.Lable($"池总数：{pools.Count}");
 
-			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 30);
+			float offset = ConsoleGUI.LableStyle.fontSize;
+			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
 			foreach (var pair in pools)
 			{
 				ConsoleGUI.Lable($"[{pair.Value.ClassType.FullName}] CacheCount = {pair.Value.Count} SpwanCount = {pair.Value.SpawnCount}");

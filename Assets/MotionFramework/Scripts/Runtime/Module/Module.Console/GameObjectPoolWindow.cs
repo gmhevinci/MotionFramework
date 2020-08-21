@@ -22,16 +22,15 @@ namespace MotionFramework.Console
 			// 如果游戏模块没有创建
 			if (MotionEngine.Contains(typeof(GameObjectPoolManager)) == false)
 			{
-				_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 30);
 				ConsoleGUI.YellowLable($"{nameof(GameObjectPoolManager)} is not create.");
-				ConsoleGUI.EndScrollView();
 				return;
 			}
 
 			var pools = GameObjectPoolManager.Instance.GetAllCollectors;
 			ConsoleGUI.Lable($"池总数：{pools.Count}");
 
-			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, 30);
+			float offset = ConsoleGUI.LableStyle.fontSize;
+			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
 			foreach (var pair in pools)
 			{
 				string content = $"[{pair.Value.Location}] CacheCount = {pair.Value.Count} SpwanCount = {pair.Value.SpawnCount}";
