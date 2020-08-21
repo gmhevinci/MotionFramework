@@ -62,20 +62,21 @@ public abstract class CanvasWindow : UIWindow
 	}
 
 	/// <summary>
-	/// 窗口是否可见
+	/// 窗口可见性
 	/// </summary>
 	public override bool Visible
 	{
 		get
 		{
-			if (_canvas != null && _raycaster != null)
+			if (_canvas != null)
 				return _canvas.gameObject.layer == WINDOW_SHOW_LAYER;
 			else
 				return false;
 		}
+
 		internal set
 		{
-			if (_canvas != null && _raycaster != null)
+			if (_canvas != null)
 			{
 				int setLayer = value ? WINDOW_SHOW_LAYER : WINDOW_HIDE_LAYER;
 				if (_canvas.gameObject.layer == setLayer)
@@ -89,15 +90,37 @@ public abstract class CanvasWindow : UIWindow
 				}
 
 				// 交互设置
+				Interactable = value;
+
+				// 虚函数
+				if(IsCreate)
+					OnSetVisible(value);
+			}
+		}
+	}
+
+	/// <summary>
+	/// 窗口交互性
+	/// </summary>
+	private bool Interactable
+	{
+		get
+		{
+			if (_raycaster != null)
+				return _raycaster.enabled;
+			else
+				return false;
+		}
+
+		set
+		{
+			if (_raycaster != null)
+			{
 				_raycaster.enabled = value;
 				for (int i = 0; i < _childRaycaster.Length; i++)
 				{
 					_childRaycaster[i].enabled = value;
 				}
-
-				// 虚函数
-				if(IsCreate)
-					OnSetVisible(value);
 			}
 		}
 	}
@@ -133,12 +156,12 @@ public abstract class CanvasWindow : UIWindow
 	/// <summary>
 	/// 当触发窗口的层级排序
 	/// </summary>
-	public virtual void OnSortDepth(int depth) { }
+	protected virtual void OnSortDepth(int depth) { }
 
 	/// <summary>
 	/// 当因为全屏遮挡触发窗口的显隐
 	/// </summary>
-	public virtual void OnSetVisible(bool visible) { }
+	protected virtual void OnSetVisible(bool visible) { }
 
 	#region UI组件相关
 	/// <summary>
