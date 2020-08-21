@@ -8,12 +8,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using MotionFramework.IO;
 
 namespace MotionFramework.Network
 {
 	public class TcpChannel : IDisposable
 	{
-		#region Fields
 		private readonly SocketAsyncEventArgs _receiveArgs = new SocketAsyncEventArgs();
 		private readonly SocketAsyncEventArgs _sendArgs = new SocketAsyncEventArgs();
 
@@ -21,49 +22,61 @@ namespace MotionFramework.Network
 		private readonly Queue<System.Object> _receiveQueue = new Queue<System.Object>(10000);
 		private readonly List<System.Object> _decodeTempList = new List<object>(100);
 
-		private NetworkPackageCoder _packageCoder;
 		private int _packageMaxSize;
+		private byte[] _tempBuffer;
+		private ByteBuffer _sendBuffer;
+		private ByteBuffer _receiveBuffer;
+		private NetworkPackageCoder _packageCoder;
 
-		private bool _isSending = false;
-		private bool _isReceiving = false;
-		#endregion
-
-		#region Properties
 		/// <summary>
 		/// 通信Socket
 		/// </summary>
-		private Socket IOSocket { get; set; }
-
-		/// <summary>
-		/// 频道是否有效
-		/// </summary>
-		public bool IsValid { get { return IOSocket != null; } }
-		#endregion
+		private Socket _socket;
 
 
 		/// <summary>
 		/// 初始化频道
 		/// </summary>
-		public void InitChannel(Socket socket, Type packageCoderType, int packageMaxSize)
+		public void InitChannel(Socket socket, Type packageCoderType, int packageBodyMaxSize)
 		{
-			if(packageCoderType == null)
+			if (packageCoderType == null)
 				throw new System.ArgumentException($"packageCoderType is null.");
-			if (packageMaxSize <= 0)
-				throw new System.ArgumentException($"packageMaxSize is invalid : {packageMaxSize}");
+			if (packageBodyMaxSize <= 0)
+				throw new System.ArgumentException($"packageMaxSize is invalid : {packageBodyMaxSize}");
 
-			IOSocket = socket;
-			IOSocket.NoDelay = true;
-			_packageMaxSize = packageMaxSize;
+			_socket = socket;
+			_socket.NoDelay = true;
 
 			// 创建编码解码器
 			_packageCoder = (NetworkPackageCoder)Activator.CreateInstance(packageCoderType);
-			_packageCoder.InitCoder(this, packageMaxSize);
+			_packageCoder.InitCoder(this, packageBodyMaxSize);
+			_packageMaxSize = packageBodyMaxSize + _packageCoder.GetPackageHeaderSize();
 
+			// 创建字节缓冲类
+			// 注意：字节缓冲区长度，推荐4倍最大包体长度
+			int byteBufferSize = _packageMaxSize * 4;
+			int tempBufferSize = _packageMaxSize * 2;
+			_sendBuffer = new ByteBuffer(byteBufferSize);
+			_receiveBuffer = new ByteBuffer(byteBufferSize);
+			_tempBuffer = new byte[tempBufferSize];
+
+			// 创建IOCP接收类
 			_receiveArgs.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-			_receiveArgs.SetBuffer(_packageCoder.GetReceiveBuffer(), 0, _packageCoder.GetReceiveBufferCapacity());
+			_receiveArgs.SetBuffer(_tempBuffer, 0, _tempBuffer.Length);
 
+			// 创建IOCP发送类
 			_sendArgs.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-			_sendArgs.SetBuffer(_packageCoder.GetSendBuffer(), 0, _packageCoder.GetSendBufferCapacity());
+			_sendArgs.SetBuffer(_sendBuffer.GetBuffer(), 0, _sendBuffer.Capacity);
+
+			// 请求操作
+			bool willRaiseEvent = _socket.ReceiveAsync(_receiveArgs);
+			if (!willRaiseEvent)
+			{
+				ProcessReceive(_receiveArgs);
+			}
+
+			// 发送线程
+			ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadUpdate));
 		}
 
 		/// <summary>
@@ -71,9 +84,9 @@ namespace MotionFramework.Network
 		/// </summary>
 		public bool IsConnected()
 		{
-			if (IOSocket == null)
+			if (_socket == null)
 				return false;
-			return IOSocket.Connected;
+			return _socket.Connected;
 		}
 
 		/// <summary>
@@ -83,8 +96,8 @@ namespace MotionFramework.Network
 		{
 			try
 			{
-				if (IOSocket != null)
-					IOSocket.Shutdown(SocketShutdown.Both);
+				if (_socket != null)
+					_socket.Shutdown(SocketShutdown.Both);
 
 				_receiveArgs.Dispose();
 				_sendArgs.Dispose();
@@ -93,11 +106,8 @@ namespace MotionFramework.Network
 				_receiveQueue.Clear();
 				_decodeTempList.Clear();
 
-				if (_packageCoder != null)
-					_packageCoder.Dispose();
-
-				_isSending = false;
-				_isReceiving = false;
+				_sendBuffer.Clear();
+				_receiveBuffer.Clear();
 			}
 			catch (Exception)
 			{
@@ -105,10 +115,10 @@ namespace MotionFramework.Network
 			}
 			finally
 			{
-				if (IOSocket != null)
+				if (_socket != null)
 				{
-					IOSocket.Close();
-					IOSocket = null;
+					_socket.Close();
+					_socket = null;
 				}
 			}
 		}
@@ -118,54 +128,52 @@ namespace MotionFramework.Network
 		/// </summary>
 		public void Update()
 		{
-			if (IOSocket == null || IOSocket.Connected == false)
-				return;
+		}
 
-			// 接收数据
-			if (_isReceiving == false)
+		/// <summary>
+		/// 子线程内发送数据
+		/// </summary>
+		private void ThreadUpdate(object param)
+		{
+			while (true)
 			{
-				_isReceiving = true;
+				if (_socket == null || _socket.Connected == false)
+					return;
 
-				// 清空缓存
-				_packageCoder.ClearReceiveBuffer();
-
-				// 请求操作
-				_receiveArgs.SetBuffer(0, _packageCoder.GetReceiveBufferCapacity());
-				bool willRaiseEvent = IOSocket.ReceiveAsync(_receiveArgs);
-				if (!willRaiseEvent)
+				if (_sendQueue.Count == 0)
 				{
-					ProcessReceive(_receiveArgs);
+					Thread.Sleep(10);
+				}
+
+				lock (_sendQueue)
+				{
+					SendInternal();
 				}
 			}
+		}
+		private void SendInternal()
+		{
+			// 清空缓存
+			_sendBuffer.Clear();
 
-			// 发送数据
-			if (_isSending == false && _sendQueue.Count > 0)
+			// 合并数据一起发送
+			while (_sendQueue.Count > 0)
 			{
-				_isSending = true;
+				// 如果不够写入一个最大的消息包
+				if (_sendBuffer.WriteableBytes < _packageMaxSize)
+					break;
 
-				// 清空缓存
-				_packageCoder.ClearSendBuffer();
+				// 数据压码
+				System.Object packet = _sendQueue.Dequeue();
+				_packageCoder.Encode(_sendBuffer, packet);
+			}
 
-				// 合并数据一起发送
-				while (_sendQueue.Count > 0)
-				{
-					// 数据压码
-					System.Object packet = _sendQueue.Dequeue();
-					_packageCoder.Encode(packet);
-
-					// 如果已经超过一个最大包体尺寸
-					// 注意：发送的数据理论最大值为俩个最大包体大小
-					if (_packageCoder.GetSendBufferWriterIndex() >= _packageMaxSize)
-						break;
-				}
-
-				// 请求操作
-				_sendArgs.SetBuffer(0, _packageCoder.GetSendBufferReadableBytes());
-				bool willRaiseEvent = IOSocket.SendAsync(_sendArgs);
-				if (!willRaiseEvent)
-				{
-					ProcessSend(_sendArgs);
-				}
+			// 请求操作
+			_sendArgs.SetBuffer(0, _sendBuffer.ReadableBytes);
+			bool willRaiseEvent = _socket.SendAsync(_sendArgs);
+			if (!willRaiseEvent)
+			{
+				ProcessSend(_sendArgs);
 			}
 		}
 
@@ -175,7 +183,10 @@ namespace MotionFramework.Network
 		/// </summary>
 		public void SendPackage(System.Object packet)
 		{
-			_sendQueue.Enqueue(packet);
+			lock (_sendQueue)
+			{
+				_sendQueue.Enqueue(packet);
+			}
 		}
 
 		/// <summary>
@@ -202,10 +213,10 @@ namespace MotionFramework.Network
 			switch (e.LastOperation)
 			{
 				case SocketAsyncOperation.Receive:
-					MainThreadSyncContext.Instance.Post(ProcessReceive, e);
+					ProcessReceive(e);
 					break;
 				case SocketAsyncOperation.Send:
-					MainThreadSyncContext.Instance.Post(ProcessSend, e);
+					ProcessSend(e);
 					break;
 				default:
 					throw new ArgumentException("The last operation completed on the socket was not a receive or send");
@@ -222,29 +233,30 @@ namespace MotionFramework.Network
 			// check if the remote host closed the connection	
 			if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
 			{
-				_packageCoder.SetReceiveDataSize(e.BytesTransferred);
-
 				// 如果数据写穿
-				if (_packageCoder.GetReceiveBufferWriterIndex() > _packageCoder.GetReceiveBufferCapacity())
+				if (_receiveBuffer.IsWriteable(e.BytesTransferred) == false)
 				{
 					HandleError(true, "The channel fatal error");
 					return;
 				}
 
+				// 拷贝数据
+				_receiveBuffer.WriteBytes(e.Buffer, 0, e.BytesTransferred);
+
 				// 数据解码
 				_decodeTempList.Clear();
-				_packageCoder.Decode(_decodeTempList);
+				_packageCoder.Decode(_receiveBuffer, _decodeTempList);
 				lock (_receiveQueue)
 				{
-					for(int i=0; i< _decodeTempList.Count; i++)
+					for (int i = 0; i < _decodeTempList.Count; i++)
 					{
 						_receiveQueue.Enqueue(_decodeTempList[i]);
 					}
 				}
 
 				// 为接收下一段数据，投递接收请求
-				e.SetBuffer(_packageCoder.GetReceiveBufferWriterIndex(), _packageCoder.GetReceiveBufferWriteableBytes());
-				bool willRaiseEvent = IOSocket.ReceiveAsync(e);
+				e.SetBuffer(0, _tempBuffer.Length);
+				bool willRaiseEvent = _socket.ReceiveAsync(e);
 				if (!willRaiseEvent)
 				{
 					ProcessReceive(e);
@@ -264,7 +276,6 @@ namespace MotionFramework.Network
 			SocketAsyncEventArgs e = obj as SocketAsyncEventArgs;
 			if (e.SocketError == SocketError.Success)
 			{
-				_isSending = false;
 			}
 			else
 			{

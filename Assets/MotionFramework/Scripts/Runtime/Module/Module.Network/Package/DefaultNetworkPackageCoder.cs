@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MotionFramework.IO;
 
 namespace MotionFramework.Network
 {
@@ -59,29 +60,43 @@ namespace MotionFramework.Network
 		public EMessageIDFieldType MessageIDFieldType = EMessageIDFieldType.UShort;
 
 
-		public override void Encode(System.Object packageObj)
+		/// <summary>
+		/// 获取包头的尺寸
+		/// </summary>
+		public override int GetPackageHeaderSize()
+		{
+			int size = 0;
+			size += (int)PackageSizeFieldType;
+			size += (int)MessageIDFieldType;
+			return size;
+		}
+
+		/// <summary>
+		/// 编码
+		/// </summary>
+		public override void Encode(ByteBuffer sendBuffer, System.Object packageObj)
 		{
 			DefaultNetworkPackage package = (DefaultNetworkPackage)packageObj;
 			if (package == null)
 			{
-				Channel.HandleError(false, $"The package object is invalid : {packageObj.GetType()}");
+				HandleError(false, $"The package object is invalid : {packageObj.GetType()}");
 				return;
 			}
 
 			// 检测逻辑是否合法
-			if(package.IsHotfixPackage)
+			if (package.IsHotfixPackage)
 			{
-				if(package.BodyBytes == null)
+				if (package.BodyBytes == null)
 				{
-					Channel.HandleError(false, $"The package BodyBytes field is null : {packageObj.GetType()}");
+					HandleError(false, $"The package BodyBytes field is null : {packageObj.GetType()}");
 					return;
 				}
 			}
 			else
 			{
-				if(package.MsgObj == null)
+				if (package.MsgObj == null)
 				{
-					Channel.HandleError(false, $"The package MsgObj field is null : {packageObj.GetType()}");
+					HandleError(false, $"The package MsgObj field is null : {packageObj.GetType()}");
 					return;
 				}
 			}
@@ -94,9 +109,9 @@ namespace MotionFramework.Network
 				bodyData = EncodeInternal(package.MsgObj);
 
 			// 检测包体长度
-			if (bodyData.Length > PackageMaxSize)
+			if (bodyData.Length > PackageBodyMaxSize)
 			{
-				Channel.HandleError(false, $"The package {package.MsgID} body size is larger than NetworkDefine.PackageBodyMaxSize");
+				HandleError(false, $"The package {package.MsgID} body size is larger than NetworkDefine.PackageBodyMaxSize");
 				return;
 			}
 
@@ -107,14 +122,14 @@ namespace MotionFramework.Network
 				// 检测是否越界
 				if (packetSize > ushort.MaxValue)
 				{
-					Channel.HandleError(true, $"The package {package.MsgID} size is larger than ushort.MaxValue.");
+					HandleError(true, $"The package {package.MsgID} size is larger than ushort.MaxValue.");
 					return;
 				}
-				_sendBuffer.WriteUShort((ushort)packetSize);
+				sendBuffer.WriteUShort((ushort)packetSize);
 			}
 			else
 			{
-				_sendBuffer.WriteInt(packetSize);
+				sendBuffer.WriteInt(packetSize);
 			}
 
 			// 写入包头
@@ -125,42 +140,46 @@ namespace MotionFramework.Network
 					// 检测是否越界
 					if (package.MsgID > ushort.MaxValue)
 					{
-						Channel.HandleError(true, $"The package {package.MsgID} ID is larger than ushort.MaxValue");
+						HandleError(true, $"The package {package.MsgID} ID is larger than ushort.MaxValue");
 						return;
 					}
-					_sendBuffer.WriteUShort((ushort)package.MsgID);
+					sendBuffer.WriteUShort((ushort)package.MsgID);
 				}
 				else
 				{
-					_sendBuffer.WriteInt(package.MsgID);
+					sendBuffer.WriteInt(package.MsgID);
 				}
 			}
 
 			// 写入包体
-			_sendBuffer.WriteBytes(bodyData, 0, bodyData.Length);
+			sendBuffer.WriteBytes(bodyData, 0, bodyData.Length);
 		}
-		public override void Decode(List<System.Object> packageObjList)
+
+		/// <summary>
+		/// 解码
+		/// </summary>
+		public override void Decode(ByteBuffer receiveBuffer, List<System.Object> outputResult)
 		{
 			// 循环解包
 			while (true)
 			{
 				// 如果数据不够一个SIZE
-				if (_receiveBuffer.ReadableBytes() < (int)PackageSizeFieldType)
+				if (receiveBuffer.ReadableBytes < (int)PackageSizeFieldType)
 					break;
 
-				_receiveBuffer.MarkReaderIndex();
+				receiveBuffer.MarkReaderIndex();
 
 				// 读取Package长度
 				int packageSize;
 				if (PackageSizeFieldType == EPackageSizeFieldType.UShort)
-					packageSize = _receiveBuffer.ReadUShort();
+					packageSize = receiveBuffer.ReadUShort();
 				else
-					packageSize = _receiveBuffer.ReadInt();
+					packageSize = receiveBuffer.ReadInt();
 
 				// 如果剩余可读数据小于Package长度
-				if (_receiveBuffer.ReadableBytes() < packageSize)
+				if (receiveBuffer.ReadableBytes < packageSize)
 				{
-					_receiveBuffer.ResetReaderIndex();
+					receiveBuffer.ResetReaderIndex();
 					break; //需要退出读够数据再解包
 				}
 
@@ -170,24 +189,24 @@ namespace MotionFramework.Network
 				{
 					// 读取消息ID
 					if (MessageIDFieldType == EMessageIDFieldType.UShort)
-						package.MsgID = _receiveBuffer.ReadUShort();
+						package.MsgID = receiveBuffer.ReadUShort();
 					else
-						package.MsgID = _receiveBuffer.ReadInt();
+						package.MsgID = receiveBuffer.ReadInt();
 				}
 
 				// 检测包体长度
 				int bodySize = packageSize - (int)MessageIDFieldType;
-				if (bodySize > PackageMaxSize)
+				if (bodySize > PackageBodyMaxSize)
 				{
-					Channel.HandleError(true, $"The package {package.MsgID} size is larger than NetworkDefine.PackageBodyMaxSize");
+					HandleError(true, $"The package {package.MsgID} size is larger than {PackageBodyMaxSize} !");
 					break;
 				}
 
 				// 正常解包
 				try
-				{			
+				{
 					// 读取包体
-					byte[] bodyData = _receiveBuffer.ReadBytes(bodySize);
+					byte[] bodyData = receiveBuffer.ReadBytes(bodySize);
 
 					Type classType = NetworkMessageRegister.TryGetMessageType(package.MsgID);
 					if (classType != null)
@@ -195,25 +214,25 @@ namespace MotionFramework.Network
 						// 非热更协议
 						package.MsgObj = DecodeInternal(classType, bodyData);
 						if (package.MsgObj != null)
-							packageObjList.Add(package);
+							outputResult.Add(package);
 					}
 					else
 					{
 						// 热更协议
 						package.IsHotfixPackage = true;
 						package.BodyBytes = bodyData;
-						packageObjList.Add(package);
+						outputResult.Add(package);
 					}
 				}
 				catch (Exception ex)
 				{
 					// 解包异常后继续解包
-					Channel.HandleError(false, $"The package {package.MsgID} decode error : {ex.ToString()}");
+					HandleError(false, $"The package {package.MsgID} decode error : {ex.ToString()}");
 				}
 			} //while end
 
 			// 注意：将剩余数据移至起始
-			_receiveBuffer.DiscardReadBytes();
+			receiveBuffer.DiscardReadBytes();
 		}
 
 		/// <summary>

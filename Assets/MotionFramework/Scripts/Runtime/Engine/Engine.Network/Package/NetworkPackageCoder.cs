@@ -14,105 +14,47 @@ namespace MotionFramework.Network
 	/// </summary>
 	public abstract class NetworkPackageCoder
 	{
-		protected ByteBuffer _sendBuffer;
-		protected ByteBuffer _receiveBuffer;
-		public TcpChannel Channel { private set; get; }
-		public int PackageMaxSize { private set; get; }
+		private TcpChannel _channel;
 
 		/// <summary>
-		/// 初始化解码器
+		/// 包体的最大尺寸
 		/// </summary>
-		public void InitCoder(TcpChannel channel, int packageMaxSize)
-		{
-			Channel = channel;
-			PackageMaxSize = packageMaxSize;
+		public int PackageBodyMaxSize { private set; get; }
 
-			// 注意：字节缓冲区长度，推荐4倍最大包体长度
-			int byteBufferSize = packageMaxSize * 4;
-			_sendBuffer = new ByteBuffer(byteBufferSize);
-			_receiveBuffer = new ByteBuffer(byteBufferSize);
+		/// <summary>
+		/// 初始化编码解码器
+		/// </summary>
+		public void InitCoder(TcpChannel channel, int packageBodyMaxSize)
+		{
+			_channel = channel;
+			PackageBodyMaxSize = packageBodyMaxSize;
 		}
 
 		/// <summary>
-		/// 释放
+		/// 获取包头的尺寸
 		/// </summary>
-		public virtual void Dispose()
-		{
-			if (_sendBuffer != null)
-				_sendBuffer.Clear();
-
-			if (_receiveBuffer != null)
-				_receiveBuffer.Clear();
-		}
+		public abstract int GetPackageHeaderSize();
 
 		/// <summary>
 		/// 编码
 		/// </summary>
+		/// <param name="sendBuffer">编码填充的字节缓冲区</param>
 		/// <param name="packageObj">需要编码的包裹对象</param>
-		public abstract void Encode(System.Object packageObj);
+		public abstract void Encode(ByteBuffer sendBuffer, System.Object packageObj);
 
 		/// <summary>
 		/// 解码
 		/// </summary>
-		/// <param name="packageObjList">解码成功后的包裹对象列表</param>
-		public abstract void Decode(List<System.Object> packageObjList);
+		/// <param name="receiveBuffer">解码需要的字节缓冲区</param>
+		/// <param name="outputResult">解码成功后的包裹对象列表</param>
+		public abstract void Decode(ByteBuffer receiveBuffer, List<System.Object> outputResult);
 
-
-		#region 字节缓冲区处理接口
-		public void SetReceiveDataSize(int size)
+		/// <summary>
+		/// 捕捉错误异常
+		/// </summary>
+		protected void HandleError(bool isDispose, string error)
 		{
-			_receiveBuffer.WriterIndex += size;
+			_channel.HandleError(isDispose, error);
 		}
-
-		public void ClearReceiveBuffer()
-		{
-			_receiveBuffer.Clear();
-		}
-		public byte[] GetReceiveBuffer()
-		{
-			return _receiveBuffer.Buf;
-		}
-		public int GetReceiveBufferCapacity()
-		{
-			return _receiveBuffer.Capacity;
-		}
-		public int GetReceiveBufferWriterIndex()
-		{
-			return _receiveBuffer.WriterIndex;
-		}
-		public int GetReceiveBufferWriteableBytes()
-		{
-			return _receiveBuffer.WriteableBytes();
-		}
-		public int GetReceiveBufferReadableBytes()
-		{
-			return _receiveBuffer.ReadableBytes();
-		}
-
-		public void ClearSendBuffer()
-		{
-			_sendBuffer.Clear();
-		}
-		public byte[] GetSendBuffer()
-		{
-			return _sendBuffer.Buf;
-		}
-		public int GetSendBufferCapacity()
-		{
-			return _sendBuffer.Capacity;
-		}
-		public int GetSendBufferWriterIndex()
-		{
-			return _sendBuffer.WriterIndex;
-		}
-		public int GetSendBufferWriteableBytes()
-		{
-			return _sendBuffer.WriteableBytes();
-		}
-		public int GetSendBufferReadableBytes()
-		{
-			return _sendBuffer.ReadableBytes();
-		}
-		#endregion
 	}
 }
