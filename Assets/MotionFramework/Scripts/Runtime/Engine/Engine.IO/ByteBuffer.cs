@@ -22,26 +22,44 @@ namespace MotionFramework.IO
 	/// </summary>
 	public class ByteBuffer
 	{
-		public byte[] Buf { get; }
-		public int ReaderIndex { set; get; }
-		public int WriterIndex { set; get; }
-		public int Capacity
-		{
-			get { return Buf.Length; }
-		}
-
-		private int _markedReaderIndex;
-		private int _markedWriterIndex;
+		private readonly byte[] _buffer;
+		private int _readerIndex = 0;
+		private int _writerIndex = 0;
+		private int _markedReaderIndex = 0;
+		private int _markedWriterIndex = 0;
 
 
+		/// <summary>
+		/// 字节缓冲区
+		/// </summary>
 		public ByteBuffer(int capacity)
 		{
-			Buf = new byte[capacity];
+			_buffer = new byte[capacity];
 		}
-		public ByteBuffer(byte[] buffer)
+
+		/// <summary>
+		/// 字节缓冲区
+		/// </summary>
+		public ByteBuffer(byte[] data)
 		{
-			Buf = buffer;
-			WriterIndex = buffer.Length;
+			_buffer = data;
+			_writerIndex = data.Length;
+		}
+
+		/// <summary>
+		/// 获取数据
+		/// </summary>
+		public byte[] GetBuffer()
+		{
+			return _buffer;
+		}
+
+		/// <summary>
+		/// 缓冲区容量
+		/// </summary>
+		public int Capacity
+		{
+			get { return _buffer.Length; }
 		}
 
 		/// <summary>
@@ -49,223 +67,275 @@ namespace MotionFramework.IO
 		/// </summary>
 		public void Clear()
 		{
-			ReaderIndex = 0;
-			WriterIndex = 0;
+			_readerIndex = 0;
+			_writerIndex = 0;
+			_markedReaderIndex = 0;
+			_markedWriterIndex = 0;
 		}
 
 		/// <summary>
-		/// 移动未读数据到最前列
+		/// 删除已读部分，重新初始化数组
 		/// </summary>
 		public void DiscardReadBytes()
 		{
-			if (ReaderIndex == 0)
-			{
+			if (_readerIndex == 0)
 				return;
-			}
 
-			if (ReaderIndex == WriterIndex)
+			if (_readerIndex == _writerIndex)
 			{
-				ReaderIndex = 0;
-				WriterIndex = 0;
+				_readerIndex = 0;
+				_writerIndex = 0;
 			}
 			else
 			{
-				for (int i = 0, j = ReaderIndex, len = WriterIndex - ReaderIndex; i < len; i++, j++)
+				for (int i = 0, j = _readerIndex, length = _writerIndex - _readerIndex; i < length; i++, j++)
 				{
-					Buf[i] = Buf[j];
+					_buffer[i] = _buffer[j];
 				}
-				WriterIndex -= ReaderIndex;
-				ReaderIndex = 0;
+				_writerIndex -= _readerIndex;
+				_readerIndex = 0;
 			}
 		}
 
-		public int ReadableBytes()
+		#region 读取相关
+		/// <summary>
+		/// 读取的下标位置
+		/// </summary>
+		public int ReaderIndex
 		{
-			return WriterIndex - ReaderIndex;
-		}
-		public bool IsReadable(int size = 1)
-		{
-			return WriterIndex - ReaderIndex >= size;
-		}
-		public void MarkReaderIndex()
-		{
-			_markedReaderIndex = ReaderIndex;
-		}
-		public void ResetReaderIndex()
-		{
-			ReaderIndex = _markedReaderIndex;
+			get { return _readerIndex; }
 		}
 
-		public int WriteableBytes()
+		/// <summary>
+		/// 当前可读数据量
+		/// </summary>
+		public int ReadableBytes
 		{
-			return Capacity - WriterIndex;
+			get { return _writerIndex - _readerIndex; }
 		}
+
+		/// <summary>
+		/// 查询是否可以读取
+		/// </summary>
+		/// <param name="size">读取数据量</param>
+		public bool IsReadable(int size = 1)
+		{
+			return _writerIndex - _readerIndex >= size;
+		}
+
+		/// <summary>
+		/// 标记读取的下标位置，便于某些时候回退到该位置
+		/// </summary>
+		public void MarkReaderIndex()
+		{
+			_markedReaderIndex = _readerIndex;
+		}
+
+		/// <summary>
+		/// 回退到标记的读取下标位置
+		/// </summary>
+		public void ResetReaderIndex()
+		{
+			_readerIndex = _markedReaderIndex;
+		}
+		#endregion
+
+		#region 写入相关
+		/// <summary>
+		/// 写入的下标位置
+		/// </summary>
+		public int WriterIndex
+		{
+			get { return _writerIndex; }
+		}
+
+		/// <summary>
+		/// 当前可写入数据量
+		/// </summary>
+		public int WriteableBytes
+		{
+			get { return Capacity - _writerIndex; }
+		}
+
+		/// <summary>
+		/// 查询是否可以写入
+		/// </summary>
+		/// <param name="size">写入数据量</param>
 		public bool IsWriteable(int size = 1)
 		{
-			return Capacity - WriterIndex >= size;
+			return Capacity - _writerIndex >= size;
 		}
+
+		/// <summary>
+		/// 标记写入的下标位置，便于某些时候回退到该位置。
+		/// </summary>
 		public void MarkWriterIndex()
 		{
-			_markedWriterIndex = WriterIndex;
+			_markedWriterIndex = _writerIndex;
 		}
+
+		/// <summary>
+		/// 回退到标记的写入下标位置
+		/// </summary>
 		public void ResetWriterIndex()
 		{
-			WriterIndex = _markedWriterIndex;
+			_writerIndex = _markedWriterIndex;
 		}
+		#endregion
 
 		#region 读取操作
 		[Conditional("DEBUG")]
-		private void CheckReaderIndex(int len)
+		private void CheckReaderIndex(int length)
 		{
-			if (ReaderIndex + len > WriterIndex)
+			if (_readerIndex + length > _writerIndex)
 			{
 				throw new IndexOutOfRangeException();
 			}
 		}
 
+		public byte[] ReadBytes(int count)
+		{
+			CheckReaderIndex(count);
+			var data = new byte[count];
+			Buffer.BlockCopy(_buffer, _readerIndex, data, 0, count);
+			_readerIndex += count;
+			return data;
+		}
 		public bool ReadBool()
 		{
 			CheckReaderIndex(1);
-			return (Buf[ReaderIndex++] == 1);
+			return _buffer[_readerIndex++] == 1;
 		}
 		public byte ReadByte()
 		{
 			CheckReaderIndex(1);
-			return Buf[ReaderIndex++];
+			return _buffer[_readerIndex++];
 		}
 		public sbyte ReadSbyte()
 		{
 			return (sbyte)ReadByte();
 		}
-		public byte[] ReadBytes(int count)
-		{
-			CheckReaderIndex(count);
-			var dst = new byte[count];
-			Buffer.BlockCopy(Buf, ReaderIndex, dst, 0, count);
-			ReaderIndex += count;
-			return dst;
-		}
-		public double ReadDouble()
-		{
-			CheckReaderIndex(8);
-			ReverseOrder(Buf, ReaderIndex, 8);
-			double result = BitConverter.ToDouble(Buf, ReaderIndex);
-			ReaderIndex += 8;
-			return result;
-		}
-		public float ReadFloat()
-		{
-			CheckReaderIndex(4);
-			ReverseOrder(Buf, ReaderIndex, 4);
-			float result = BitConverter.ToSingle(Buf, ReaderIndex);
-			ReaderIndex += 4;
-			return result;
-		}
-		public int ReadInt()
-		{
-			CheckReaderIndex(4);
-			ReverseOrder(Buf, ReaderIndex, 4);
-			int result = BitConverter.ToInt32(Buf, ReaderIndex);
-			ReaderIndex += 4;
-			return result;
-		}
-		public uint ReadUInt()
-		{
-			CheckReaderIndex(4);
-			ReverseOrder(Buf, ReaderIndex, 4);
-			uint result = BitConverter.ToUInt32(Buf, ReaderIndex);
-			ReaderIndex += 4;
-			return result;
-		}
-		public long ReadLong()
-		{
-			CheckReaderIndex(8);
-			ReverseOrder(Buf, ReaderIndex, 8);
-			long result = BitConverter.ToInt64(Buf, ReaderIndex);
-			ReaderIndex += 8;
-			return result;
-		}
 		public short ReadShort()
 		{
 			CheckReaderIndex(2);
-			ReverseOrder(Buf, ReaderIndex, 2);
-			short result = BitConverter.ToInt16(Buf, ReaderIndex);
-			ReaderIndex += 2;
+			short result = BitConverter.ToInt16(_buffer, _readerIndex);
+			_readerIndex += 2;
 			return result;
 		}
 		public ushort ReadUShort()
 		{
 			CheckReaderIndex(2);
-			ReverseOrder(Buf, ReaderIndex, 2);
-			ushort result = BitConverter.ToUInt16(Buf, ReaderIndex);
-			ReaderIndex += 2;
+			ushort result = BitConverter.ToUInt16(_buffer, _readerIndex);
+			_readerIndex += 2;
+			return result;
+		}
+		public int ReadInt()
+		{
+			CheckReaderIndex(4);
+			int result = BitConverter.ToInt32(_buffer, _readerIndex);
+			_readerIndex += 4;
+			return result;
+		}
+		public uint ReadUInt()
+		{
+			CheckReaderIndex(4);
+			uint result = BitConverter.ToUInt32(_buffer, _readerIndex);
+			_readerIndex += 4;
+			return result;
+		}
+		public long ReadLong()
+		{
+			CheckReaderIndex(8);
+			long result = BitConverter.ToInt64(_buffer, _readerIndex);
+			_readerIndex += 8;
+			return result;
+		}
+		public ulong ReadULong()
+		{
+			CheckReaderIndex(8);
+			ulong result = BitConverter.ToUInt64(_buffer, _readerIndex);
+			_readerIndex += 8;
+			return result;
+		}
+		public float ReadFloat()
+		{
+			CheckReaderIndex(4);
+			float result = BitConverter.ToSingle(_buffer, _readerIndex);
+			_readerIndex += 4;
+			return result;
+		}
+		public double ReadDouble()
+		{
+			CheckReaderIndex(8);
+			double result = BitConverter.ToDouble(_buffer, _readerIndex);
+			_readerIndex += 8;
 			return result;
 		}
 		public string ReadUTF()
 		{
-			CheckReaderIndex(2);
 			ushort count = ReadUShort();
 			CheckReaderIndex(count);
-			string str = Encoding.UTF8.GetString(Buf, ReaderIndex, count - 1);
-			ReaderIndex += count;
-			return str;
+			string result = Encoding.UTF8.GetString(_buffer, _readerIndex, count - 1); // 注意：读取的时候忽略字符串末尾写入结束符
+			_readerIndex += count;
+			return result;
 		}
-		public string ReadUTF(int count)
-		{
-			CheckReaderIndex(count);
-			string str = Encoding.UTF8.GetString(Buf, ReaderIndex, count);
-			ReaderIndex += count;
-			return str.Split('\0')[0]; // 注意：服务器发回来的字符串最后结尾很有可能带数个\0
-		}
-		public List<string> ReadListUTF()
-		{
-			List<string> list = new List<string>();
-			int count = ReadInt();
 
-			for (int i = 0; i < count; i++)
-				list.Add(ReadUTF());
-
-			return list;
-		}
-		public List<float> ReadListFloat()
-		{
-			List<float> list = new List<float>();
-			int count = ReadInt();
-
-			for (int i = 0; i < count; i++)
-				list.Add(ReadFloat());
-
-			return list;
-		}
-		public List<double> ReadListDouble()
-		{
-			List<double> list = new List<double>();
-			int count = ReadInt();
-
-			for (int i = 0; i < count; i++)
-				list.Add(ReadDouble());
-
-			return list;
-		}
 		public List<int> ReadListInt()
 		{
-			List<int> list = new List<int>();
+			List<int> result = new List<int>();
 			int count = ReadInt();
-
 			for (int i = 0; i < count; i++)
-				list.Add(ReadInt());
-
-			return list;
+			{
+				result.Add(ReadInt());
+			}
+			return result;
 		}
 		public List<long> ReadListLong()
 		{
-			List<long> list = new List<long>();
+			List<long> result = new List<long>();
 			int count = ReadInt();
-
 			for (int i = 0; i < count; i++)
-				list.Add(ReadLong());
+			{
+				result.Add(ReadLong());
+			}
+			return result;
+		}
+		public List<float> ReadListFloat()
+		{
+			List<float> result = new List<float>();
+			int count = ReadInt();
+			for (int i = 0; i < count; i++)
+			{
+				result.Add(ReadFloat());
+			}
+			return result;
+		}
+		public List<double> ReadListDouble()
+		{
+			List<double> result = new List<double>();
+			int count = ReadInt();
+			for (int i = 0; i < count; i++)
+			{
+				result.Add(ReadDouble());
+			}
+			return result;
+		}
+		public List<string> ReadListUTF()
+		{
+			List<string> result = new List<string>();
+			int count = ReadInt();
+			for (int i = 0; i < count; i++)
+			{
+				result.Add(ReadUTF());
+			}
+			return result;
+		}
 
-			return list;
+		public Vector2 ReadVector2()
+		{
+			float x = ReadFloat();
+			float y = ReadFloat();
+			return new Vector2(x, y);
 		}
 		public Vector3 ReadVector3()
 		{
@@ -274,245 +344,224 @@ namespace MotionFramework.IO
 			float z = ReadFloat();
 			return new Vector3(x, y, z);
 		}
-		public Vector2 ReadVector2()
+		public Vector4 ReadVector4()
 		{
 			float x = ReadFloat();
 			float y = ReadFloat();
-			return new Vector2(x, y);
+			float z = ReadFloat();
+			float w = ReadFloat();
+			return new Vector4(x, y, z, w);
 		}
 		#endregion
 
 		#region 写入操作
 		[Conditional("DEBUG")]
-		private void CheckWriterIndex(int len)
+		private void CheckWriterIndex(int length)
 		{
-			if (WriterIndex + len > Capacity)
+			if (_writerIndex + length > Capacity)
 			{
 				throw new IndexOutOfRangeException();
 			}
 		}
 
-		public void WriteBool(bool b)
+		public void WriteBytes(byte[] data)
 		{
-			WriteByte((byte)(b ? 1 : 0));
+			WriteBytes(data, 0, data.Length);
 		}
-		public void WriteByte(byte b)
+		public void WriteBytes(byte[] data, int offset, int count)
+		{
+			CheckWriterIndex(count);
+			Buffer.BlockCopy(data, offset, _buffer, _writerIndex, count);
+			_writerIndex += count;
+		}
+		public void WriteBool(bool value)
+		{
+			WriteByte((byte)(value ? 1 : 0));
+		}
+		public void WriteByte(byte value)
 		{
 			CheckWriterIndex(1);
-			Buf[WriterIndex++] = b;
+			_buffer[_writerIndex++] = value;
 		}
-		public void WriteSbyte(sbyte b)
+		public void WriteSbyte(sbyte value)
 		{
 			// 注意：从sbyte强转到byte不会有数据变化或丢失
-			WriteByte((byte)b);
+			WriteByte((byte)value);
 		}
-		public void WriteBytes(byte[] data, int ofs = -1, int count = -1)
+		public void WriteShort(short value)
 		{
-			if (ofs == -1 || count == -1)
-			{
-				ofs = 0;
-				count = data.Length;
-			}
-			CheckWriterIndex(count);
-			Buffer.BlockCopy(data, ofs, Buf, WriterIndex, count);
-			WriterIndex += count;
-		}
-		public void WriteDouble(double d)
-		{
-			byte[] bytes = BitConverter.GetBytes(d);
-			ReverseOrder(bytes);
+			byte[] bytes = BitConverter.GetBytes(value);
 			WriteBytes(bytes);
 		}
-		public void WriteFloat(float f)
+		public void WriteUShort(ushort value)
 		{
-			byte[] bytes = BitConverter.GetBytes(f);
-			ReverseOrder(bytes);
+			byte[] bytes = BitConverter.GetBytes(value);
 			WriteBytes(bytes);
 		}
-		public void WriteInt(int i)
+		public void WriteInt(int value)
 		{
-			byte[] bytes = BitConverter.GetBytes(i);
-			ReverseOrder(bytes);
+			byte[] bytes = BitConverter.GetBytes(value);
 			WriteBytes(bytes);
 		}
-		public void WriteUInt(uint i)
+		public void WriteUInt(uint value)
 		{
-			byte[] bytes = BitConverter.GetBytes(i);
-			ReverseOrder(bytes);
+			byte[] bytes = BitConverter.GetBytes(value);
 			WriteBytes(bytes);
 		}
-		public void WriteLong(long l)
+		public void WriteLong(long value)
 		{
-			byte[] bytes = BitConverter.GetBytes(l);
-			ReverseOrder(bytes);
+			byte[] bytes = BitConverter.GetBytes(value);
 			WriteBytes(bytes);
 		}
-		public void WriteShort(short s)
+		public void WriteULong(ulong value)
 		{
-			byte[] bytes = BitConverter.GetBytes(s);
-			ReverseOrder(bytes);
+			byte[] bytes = BitConverter.GetBytes(value);
 			WriteBytes(bytes);
 		}
-		public void WriteUShort(ushort us)
+		public void WriteFloat(float value)
 		{
-			byte[] bytes = BitConverter.GetBytes(us);
-			ReverseOrder(bytes);
+			byte[] bytes = BitConverter.GetBytes(value);
 			WriteBytes(bytes);
 		}
-		public void WriteUTF(string str)
+		public void WriteDouble(double value)
 		{
-			byte[] bytes = Encoding.UTF8.GetBytes(str);
-			int num = bytes.Length;
-			if (num > 0x8000)
-			{
-				throw new FormatException("String length cannot be greater then 32768 !");
-			}
-			WriteUShort(Convert.ToUInt16(num + 1));
+			byte[] bytes = BitConverter.GetBytes(value);
 			WriteBytes(bytes);
-			WriteByte(((byte)'\0'));
 		}
-		public void WriteUTF(string str, int count)
+		public void WriteUTF(string value)
 		{
-			if (count > 0x8000)
-			{
-				throw new FormatException("String length cannot be greater then 32768 !");
-			}
+			byte[] bytes = Encoding.UTF8.GetBytes(value);
+			int num = bytes.Length + 1; // 注意：字符串末尾写入结束符
+			if (num > ushort.MaxValue)
+				throw new FormatException($"String length cannot be greater than {ushort.MaxValue} !");
 
-			// 如果传入的字符串为空
-			if (string.IsNullOrEmpty(str))
-			{
-				byte[] bytes = new byte[count];
-				for (int j = 0; j < count; j++)
-				{
-					bytes[j] = 0;
-				}
-				WriteBytes(bytes);
-				return;
-			}
-
-			// 当传入字符串大于限制最大字符串时进行截断处理
-			{
-				byte[] bytes = new byte[count];
-				byte[] availablebytes = Encoding.UTF8.GetBytes(str);
-				int num = availablebytes.Length;
-				if (count <= num)
-				{
-					Buffer.BlockCopy(availablebytes, 0, bytes, 0, count);
-					bytes[count - 1] = 0;
-				}
-				else
-				{
-					Buffer.BlockCopy(availablebytes, 0, bytes, 0, num);
-					for (int j = num; j < count; j++)
-					{
-						bytes[j] = 0;
-					}
-				}
-				WriteBytes(bytes);
-			}
+			WriteUShort(Convert.ToUInt16(num));
+			WriteBytes(bytes);
+			WriteByte((byte)'\0');
 		}
-		public void WriteListUTF(List<string> list)
+
+		public void WriteListInt(List<int> values)
 		{
 			int count = 0;
-			if (list != null)
-				count = list.Count;
+			if (values != null)
+				count = values.Count;
 
 			WriteInt(count);
-
 			for (int i = 0; i < count; i++)
-				WriteUTF(list[i]);
+			{
+				WriteInt(values[i]);
+			}
 		}
-		public void WriteListFloat(List<float> list)
+		public void WriteListLong(List<long> values)
 		{
 			int count = 0;
-			if (list != null)
-				count = list.Count;
+			if (values != null)
+				count = values.Count;
 
 			WriteInt(count);
-
 			for (int i = 0; i < count; i++)
-				WriteFloat(list[i]);
+			{
+				WriteLong(values[i]);
+			}
 		}
-		public void WriteListDouble(List<double> list)
+		public void WriteListFloat(List<float> values)
 		{
 			int count = 0;
-			if (list != null)
-				count = list.Count;
+			if (values != null)
+				count = values.Count;
 
 			WriteInt(count);
-
 			for (int i = 0; i < count; i++)
-				WriteDouble(list[i]);
+			{
+				WriteFloat(values[i]);
+			}
 		}
-		public void WriteListInt(List<int> list)
+		public void WriteListDouble(List<double> values)
 		{
 			int count = 0;
-			if (list != null)
-				count = list.Count;
+			if (values != null)
+				count = values.Count;
 
 			WriteInt(count);
-
 			for (int i = 0; i < count; i++)
-				WriteInt(list[i]);
+			{
+				WriteDouble(values[i]);
+			}
 		}
-		public void WriteListLong(List<long> list)
+		public void WriteListUTF(List<string> values)
 		{
 			int count = 0;
-			if (list != null)
-				count = list.Count;
+			if (values != null)
+				count = values.Count;
 
 			WriteInt(count);
-
 			for (int i = 0; i < count; i++)
-				WriteLong(list[i]);
+			{
+				WriteUTF(values[i]);
+			}
 		}
 
 #if MOTION_SERVER
-		public void WriteVector3(Vector3 v)
+		public void WriteVector2(Vector2 value)
 		{
-			WriteFloat(v.X);
-			WriteFloat(v.Y);
-			WriteFloat(v.Z);
+			WriteFloat(value.X);
+			WriteFloat(value.Y);
 		}
-		public void WriteVector2(Vector2 v)
+		public void WriteVector3(Vector3 value)
 		{
-			WriteFloat(v.X);
-			WriteFloat(v.Y);
+			WriteFloat(value.X);
+			WriteFloat(value.Y);
+			WriteFloat(value.Z);
+		}
+		public void WriteVector4(Vector4 value)
+		{
+			WriteFloat(value.X);
+			WriteFloat(value.Y);
+			WriteFloat(value.Z);
+			WriteFloat(value.W);
 		}
 #else
-		public void WriteVector3(Vector3 v)
+		public void WriteVector2(Vector2 value)
 		{
-			WriteFloat(v.x);
-			WriteFloat(v.y);
-			WriteFloat(v.z);
+			WriteFloat(value.x);
+			WriteFloat(value.y);
 		}
-		public void WriteVector2(Vector2 v)
+		public void WriteVector3(Vector3 value)
 		{
-			WriteFloat(v.x);
-			WriteFloat(v.y);
+			WriteFloat(value.x);
+			WriteFloat(value.y);
+			WriteFloat(value.z);
+		}
+		public void WriteVector4(Vector4 value)
+		{
+			WriteFloat(value.x);
+			WriteFloat(value.y);
+			WriteFloat(value.z);
+			WriteFloat(value.w);
 		}
 #endif
 		#endregion
 
-		[Conditional("LITTLE_ENDIAN")]
-		private void ReverseOrder(byte[] dt, int startIndex = -1, int len = -1)
+		/// <summary>
+		/// 大小端转换
+		/// </summary>
+		public static void ReverseOrder(byte[] data)
 		{
-			if (startIndex == -1 || len == -1)
-			{
-				startIndex = 0;
-				len = dt.Length;
-			}
-
-			if (len <= 1)
+			ReverseOrder(data, 0, data.Length);
+		}
+		public static void ReverseOrder(byte[] data, int offset, int length)
+		{
+			if (length <= 1)
 				return;
 
-			int num = startIndex + len - 1;
-			byte tb = 0;
-			for (int i = startIndex, max = startIndex - 1 + (len >> 1); i <= max; i++, num--)
+			int end = offset + length - 1;
+			int max = offset + length / 2;
+			byte temp;
+			for (int index = offset; index < max; index++, end--)
 			{
-				tb = dt[num];
-				dt[num] = dt[i];
-				dt[i] = tb;
+				temp = data[end];
+				data[end] = data[index];
+				data[index] = temp;
 			}
 		}
 	}
