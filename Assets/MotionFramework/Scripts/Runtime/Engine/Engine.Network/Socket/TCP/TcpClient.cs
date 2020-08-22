@@ -12,9 +12,6 @@ using System.Threading;
 
 namespace MotionFramework.Network
 {
-	/// <summary>
-	/// 异步IOCP SOCKET客户端
-	/// </summary>
 	public class TcpClient : IDisposable
 	{
 		private class UserToken
@@ -23,19 +20,19 @@ namespace MotionFramework.Network
 		}
 
 		private TcpChannel _channel;
-		private Type _packageCoderType;
-		private int _packageMaxSize;
+		private readonly Type _packageCoderType;
+		private readonly int _packageBodyMaxSize;
 
 
 		/// <summary>
 		/// 构造函数
 		/// </summary>
 		/// <param name="packageCoderType">通信频道使用的网络包编码解码器类型</param>
-		/// <param name="packageMaxSize">网络包最大长度</param>
-		public TcpClient(Type packageCoderType, int packageMaxSize)
+		/// <param name="packageBodyMaxSize">网络包体最大长度</param>
+		public TcpClient(Type packageCoderType, int packageBodyMaxSize)
 		{
 			_packageCoderType = packageCoderType;
-			_packageMaxSize = packageMaxSize;
+			_packageBodyMaxSize = packageBodyMaxSize;
 		}
 
 		/// <summary>
@@ -133,11 +130,11 @@ namespace MotionFramework.Network
 
 				// 创建频道
 				_channel = new TcpChannel();
-				_channel.InitChannel(e.ConnectSocket, _packageCoderType, _packageMaxSize);
+				_channel.InitChannel(e.ConnectSocket, _packageCoderType, _packageBodyMaxSize);
 			}
 			else
 			{
-				MotionLog.Error($"ProcessConnected error : {e.SocketError}");
+				MotionLog.Error($"Network connecte error : {e.SocketError}");
 			}
 
 			// 回调函数		
