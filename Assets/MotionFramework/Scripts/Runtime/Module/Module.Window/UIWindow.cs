@@ -76,10 +76,6 @@ namespace MotionFramework.Window
 		/// </summary>
 		public abstract bool Visible { get; internal set; }
 
-		/// <summary>
-		/// 窗口打开的动画时长
-		/// </summary>
-		public float WindowOpenAnimationTime { get; set; }
 
 		public void Init(string name, int layer, bool fullScreen)
 		{

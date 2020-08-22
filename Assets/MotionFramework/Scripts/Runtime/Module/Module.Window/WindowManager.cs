@@ -227,16 +227,7 @@ namespace MotionFramework.Window
 			OnSortWindowDepth(window.WindowLayer);
 			window.InternalCreate();
 			window.InternalRefresh();
-
-			if (window.WindowOpenAnimationTime > 0f)
-			{
-				var tween = TimerNode.AllocateDelay(window.WindowOpenAnimationTime, () => { OnSetWindowVisible(); });
-				TweenManager.Instance.Play(tween, window.Go);
-			}
-			else
-			{
-				OnSetWindowVisible();
-			}
+			OnSetWindowVisible();
 		}
 		private void OnSortWindowDepth(int layer)
 		{
