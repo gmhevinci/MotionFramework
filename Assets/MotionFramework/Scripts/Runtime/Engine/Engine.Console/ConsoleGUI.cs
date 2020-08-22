@@ -102,7 +102,7 @@ namespace MotionFramework.Console
 
 			float scrollWidth = Screen.width;
 			float scrollHeight = Screen.height - DeveloperConsole.OffsetPixels - ToolbarStyle.fixedHeight -  offset - 10f;
-			return GUILayout.BeginScrollView(pos, true, true, HorizontalScrollbarStyle, VerticalScrollbarStyle, GUILayout.Width(scrollWidth), GUILayout.Height(scrollHeight));
+			return GUILayout.BeginScrollView(pos, HorizontalScrollbarStyle, VerticalScrollbarStyle, GUILayout.Width(scrollWidth), GUILayout.Height(scrollHeight));
 		}
 		public static void EndScrollView()
 		{
