@@ -189,12 +189,25 @@ namespace MotionFramework.Config
 		/// </summary>
 		public List<int> GetKeys()
 		{
-			List<int> keys = new List<int>();
+			List<int> keys = new List<int>(_tables.Count);
 			foreach (var tab in _tables)
 			{
 				keys.Add(tab.Key);
 			}
 			return keys;
+		}
+
+		/// <summary>
+		/// 获取所有Value
+		/// </summary>
+		public List<ConfigTable> GetValues()
+		{
+			List<ConfigTable> values = new List<ConfigTable>(_tables.Count);
+			foreach (var tab in _tables)
+			{
+				values.Add(tab.Value);
+			}
+			return values;
 		}
 
 		#region 异步相关
