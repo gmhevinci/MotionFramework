@@ -130,7 +130,6 @@ namespace MotionFramework.Resource
 
 			// 新增下载需求
 			_loaders.Add(newLoader);
-			newLoader.Reference(); //引用计数
 			return newLoader;
 		}
 

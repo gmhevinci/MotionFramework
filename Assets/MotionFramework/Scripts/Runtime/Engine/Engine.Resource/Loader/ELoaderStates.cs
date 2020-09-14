@@ -14,7 +14,6 @@ namespace MotionFramework.Resource
 		None = 0,
 		Download,
 		CheckDownload,
-		LoadDepends,
 		CheckDepends,
 		LoadFile,
 		CheckFile,

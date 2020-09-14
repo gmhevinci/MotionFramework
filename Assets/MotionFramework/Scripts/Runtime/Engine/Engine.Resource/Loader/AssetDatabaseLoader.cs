@@ -15,6 +15,8 @@ namespace MotionFramework.Resource
 		public AssetDatabaseLoader(AssetBundleInfo bundleInfo)
 			: base(bundleInfo)
 		{
+			// 更新引用计数
+			base.Reference();
 		}
 		public override void Update()
 		{

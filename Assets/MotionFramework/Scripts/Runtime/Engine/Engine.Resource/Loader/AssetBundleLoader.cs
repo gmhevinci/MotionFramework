@@ -21,6 +21,20 @@ namespace MotionFramework.Resource
 		public AssetBundleLoader(AssetBundleInfo bundleInfo)
 			: base(bundleInfo)
 		{
+			// 更新引用计数
+			base.Reference();
+
+			// 准备依赖列表
+			string[] dependencies = AssetSystem.BundleServices.GetDirectDependencies(bundleInfo.ManifestPath);
+			if (dependencies != null && dependencies.Length > 0)
+			{
+				foreach (string dpManifestPath in dependencies)
+				{
+					AssetBundleInfo dpBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dpManifestPath);
+					AssetLoaderBase dpLoader = AssetSystem.CreateLoaderInternal(dpBundleInfo);
+					_depends.Add(dpLoader);
+				}
+			}
 		}
 		public override void Update()
 		{
@@ -41,7 +55,7 @@ namespace MotionFramework.Resource
 				}
 
 				if (string.IsNullOrEmpty(BundleInfo.RemoteURL))
-					States = ELoaderStates.LoadDepends;
+					States = ELoaderStates.CheckDepends;
 				else
 					States = ELoaderStates.Download;
 			}
@@ -75,7 +89,7 @@ namespace MotionFramework.Resource
 					}
 					else
 					{
-						States = ELoaderStates.LoadDepends;
+						States = ELoaderStates.CheckDepends;
 					}
 				}
 
@@ -87,23 +101,7 @@ namespace MotionFramework.Resource
 				}
 			}
 
-			// 3. 加载所有依赖项
-			if (States == ELoaderStates.LoadDepends)
-			{
-				string[] dependencies = AssetSystem.BundleServices.GetDirectDependencies(BundleInfo.ManifestPath);
-				if (dependencies != null && dependencies.Length > 0)
-				{
-					foreach (string dpManifestPath in dependencies)
-					{
-						AssetBundleInfo dpBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dpManifestPath);
-						AssetLoaderBase dpLoader = AssetSystem.CreateLoaderInternal(dpBundleInfo);
-						_depends.Add(dpLoader);
-					}
-				}
-				States = ELoaderStates.CheckDepends;
-			}
-
-			// 4. 检测所有依赖完成状态
+			// 3. 检测所有依赖完成状态
 			if (States == ELoaderStates.CheckDepends)
 			{
 				foreach (var dpLoader in _depends)
@@ -114,7 +112,7 @@ namespace MotionFramework.Resource
 				States = ELoaderStates.LoadFile;
 			}
 
-			// 5. 加载AssetBundle
+			// 4. 加载AssetBundle
 			if (States == ELoaderStates.LoadFile)
 			{
 #if UNITY_EDITOR
@@ -156,7 +154,7 @@ namespace MotionFramework.Resource
 				States = ELoaderStates.CheckFile;
 			}
 
-			// 6. 检测AssetBundle加载结果
+			// 5. 检测AssetBundle加载结果
 			if (States == ELoaderStates.CheckFile)
 			{
 				if (_cacheRequest.isDone == false)
