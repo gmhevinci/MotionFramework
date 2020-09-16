@@ -34,7 +34,7 @@ namespace MotionFramework.Resource
 		public AssetLoaderBase(AssetBundleInfo bundleInfo)
 		{
 			BundleInfo = bundleInfo;
-			RefCount = 0;
+			RefCount = 1;
 			States = ELoaderStates.None;
 		}
 

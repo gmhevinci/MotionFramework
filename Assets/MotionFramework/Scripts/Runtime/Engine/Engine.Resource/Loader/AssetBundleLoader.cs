@@ -21,9 +21,6 @@ namespace MotionFramework.Resource
 		public AssetBundleLoader(AssetBundleInfo bundleInfo)
 			: base(bundleInfo)
 		{
-			// 更新引用计数
-			base.Reference();
-
 			// 准备依赖列表
 			string[] dependencies = AssetSystem.BundleServices.GetDirectDependencies(bundleInfo.ManifestPath);
 			if (dependencies != null && dependencies.Length > 0)
