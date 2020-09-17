@@ -25,7 +25,7 @@ namespace MotionFramework.Console
 
 			// 时间缩放相关
 			GUILayout.Space(space);
-			GUILayout.BeginHorizontal();	
+			GUILayout.BeginHorizontal();
 			if (GUILayout.Button("Reset", ConsoleGUI.ButtonStyle, GUILayout.Width(100)))
 			{
 				_timeScaleLevel = 5;
@@ -90,16 +90,12 @@ namespace MotionFramework.Console
 			ConsoleGUI.Lable($"Graphics Quality : {QualitySettings.names[QualitySettings.GetQualityLevel()]}");
 
 			GUILayout.Space(space);
-			long memory = Profiler.GetTotalReservedMemoryLong() / 1000000;
-			ConsoleGUI.Lable($"Reserved Total Memory : {memory}MB");
-			memory = Profiler.GetTotalAllocatedMemoryLong() / 1000000;
-			ConsoleGUI.Lable($"Used Total Memory : {memory}MB");
-			memory = Profiler.GetTotalUnusedReservedMemoryLong() / 1000000;
-			ConsoleGUI.Lable($"Unused Reserved Memory : {memory}MB");
-			memory = Profiler.GetMonoHeapSizeLong() / 1000000;
-			ConsoleGUI.Lable($"Total Mono Memory : {memory}MB");
-			memory = Profiler.GetMonoUsedSizeLong() / 1000000;
-			ConsoleGUI.Lable($"Used Mono Memory : {memory}MB");
+			ConsoleGUI.Lable($"Reserved Total Memory : {Profiler.GetTotalReservedMemoryLong() / 1000000}MB");
+			ConsoleGUI.Lable($"Allocated Graphics Memory : {Profiler.GetAllocatedMemoryForGraphicsDriver() / 1000000}MB");
+			ConsoleGUI.Lable($"Used Memory Pool : {Profiler.GetTotalAllocatedMemoryLong() / 1000000}MB");
+			ConsoleGUI.Lable($"Unused Memory Pool : {Profiler.GetTotalUnusedReservedMemoryLong() / 1000000}MB");
+			ConsoleGUI.Lable($"Total Mono Memory : {Profiler.GetMonoHeapSizeLong() / 1000000}MB");
+			ConsoleGUI.Lable($"Used Mono Memory : {Profiler.GetMonoUsedSizeLong() / 1000000}MB");
 
 			GUILayout.Space(space);
 			ConsoleGUI.Lable($"Battery Level : {SystemInfo.batteryLevel}");
