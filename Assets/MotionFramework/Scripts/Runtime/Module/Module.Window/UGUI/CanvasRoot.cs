@@ -44,6 +44,7 @@ public class CanvasRoot : UIRoot
 	/// <param name="safeRect">安全区域</param>
 	public void ApplySafeRect(Rect safeRect)
 	{
+		// 注意：安全区坐标系的原点为左下角
 		var rectTrans = this.UIDesktop.transform as RectTransform;
 		CanvasScaler scaler = Go.GetComponent<CanvasScaler>();
 
@@ -55,10 +56,10 @@ public class CanvasRoot : UIRoot
 		float width = (int)(safeRect.size.x * rateX);
 		float height = (int)(safeRect.size.y * rateY);
 
-		float offsetMin = scaler.referenceResolution.y - posY - height;
-		float offsetMax = scaler.referenceResolution.x - posX - width;
-		rectTrans.offsetMin = new Vector2(posX, offsetMin);
-		rectTrans.offsetMax = new Vector2(-offsetMax, -posY);
+		float offsetMaxX = scaler.referenceResolution.x - width - posX;
+		float offsetMaxY = scaler.referenceResolution.y - height - posY;
+		rectTrans.offsetMin = new Vector2(posX, posY); //锚框状态下的屏幕左下角偏移向量
+		rectTrans.offsetMax = new Vector2(-offsetMaxX, -offsetMaxY); //锚框状态下的屏幕右上角偏移向量
 	}
 
 	/// <summary>
