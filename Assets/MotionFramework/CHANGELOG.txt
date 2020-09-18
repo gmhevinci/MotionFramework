@@ -1,3 +1,22 @@
+v1.3.2 - 2020年9月18日
+新增
+1. [ad9dda800b1b5dd8eb615c88ff4d4d657cb4c08a][Utility] 增加了加密的值类型，可以防止内存值修改。
+
+改进
+1. [29804a5119ad94ab6a4b23c685304ac41ebae0e8][Patch] 文件合法性校验增加CRC32方法
+2. [699c86428807a96b918c351729447eb3cd198180][Tween] 编码上增强了对程序链的支持
+3. [6fb0d6052a83624fb05d17a810836a7c5e37369a][Network] 优化了网络系统，协议的解码和编码放在了线程内处理。
+4. [f1ae1a9e302e376d9b2907553866a5078af6ab67][Editor] AssetBundleBuilder增加了对循环依赖的检测。
+5. [372741d923dc49632db2d7084394a5360db9d732][Console] 优化了控制台的滑动条，现在更容易触摸。
+
+修复
+1. [05298ab55ab48703b7a419f2e94ff83f126fd52f][Resource] 修复了引用计数一个非常隐秘的BUG。
+2. [5764a369419e0dc82f3ab7fde24a306eb384440f][Window] 修复了屏幕安全区不正常的问题。
+
+变更
+1. [0c61281c4a5ec68d5e60f3480ab4d3178d0545f3][Patch] ECheckLevel 重命名为 EVerifyLevel
+
+
 v1.3.1 - 2020年8月8日
 为了支持DLC，补丁系统整体做了优化和调整。
 
