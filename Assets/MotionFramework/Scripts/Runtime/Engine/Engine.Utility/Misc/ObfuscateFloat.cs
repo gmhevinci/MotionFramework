@@ -9,7 +9,7 @@ using UnityEngine;
 namespace MotionFramework.Utility
 {
 	[Serializable]
-	public struct ObfuscateFloat
+	public struct ObfuscateFloat : IFormattable, IEquatable<ObfuscateFloat>, IComparable<ObfuscateFloat>, IComparable<float>, IComparable
 	{
 		private static int GlobalSeed = (int)DateTime.Now.Ticks;
 
@@ -24,7 +24,7 @@ namespace MotionFramework.Utility
 			_data = 0;
 			Value = value;
 		}
-		public float Value
+		internal float Value
 		{
 			get
 			{
@@ -38,14 +38,59 @@ namespace MotionFramework.Utility
 			}
 		}
 
-		public override string ToString()
-		{
-			return Value.ToString();
-		}
 		public override int GetHashCode()
 		{
 			return Value.GetHashCode();
 		}
+		public override string ToString()
+		{
+			return Value.ToString();
+		}
+		public override bool Equals(object obj)
+		{
+			return obj is ObfuscateFloat && Equals((ObfuscateFloat)obj);
+		}
+
+		public string ToString(string format)
+		{
+			return Value.ToString(format);
+		}
+		public string ToString(IFormatProvider provider)
+		{
+			return Value.ToString(provider);
+		}
+		public string ToString(string format, IFormatProvider provider)
+		{
+			return Value.ToString(format, provider);
+		}
+
+		public bool Equals(ObfuscateFloat obj)
+		{
+			return obj.Value.Equals(Value);
+		}
+		public int CompareTo(ObfuscateFloat other)
+		{
+			return Value.CompareTo(other.Value);
+		}
+		public int CompareTo(float other)
+		{
+			return Value.CompareTo(other);
+		}
+		public int CompareTo(object obj)
+		{
+			return Value.CompareTo(obj);
+		}
+
+		#region 运算符重载
+		public static implicit operator float(ObfuscateFloat value)
+		{
+			return value.Value;
+		}
+		public static implicit operator ObfuscateFloat(float value)
+		{
+			return new ObfuscateFloat(value);
+		}
+		#endregion
 
 		unsafe static int ConvertValue(float value)
 		{
@@ -57,8 +102,5 @@ namespace MotionFramework.Utility
 			int* ptr = &value;
 			return *((float*)ptr);
 		}
-
-		public static implicit operator float(ObfuscateFloat value) { return value.Value; }
-		public static implicit operator ObfuscateFloat(float value) { return new ObfuscateFloat(value); }
 	}
 }

@@ -9,7 +9,7 @@ using UnityEngine;
 namespace MotionFramework.Utility
 {
 	[Serializable]
-	public struct ObfuscateDouble
+	public struct ObfuscateDouble : IFormattable, IEquatable<ObfuscateDouble>, IComparable<ObfuscateDouble>, IComparable<double>, IComparable
 	{
 		private static long GlobalSeed = DateTime.Now.Ticks;
 
@@ -24,7 +24,7 @@ namespace MotionFramework.Utility
 			_data = 0;
 			Value = value;
 		}
-		public double Value
+		internal double Value
 		{
 			get
 			{
@@ -38,14 +38,63 @@ namespace MotionFramework.Utility
 			}
 		}
 
-		public override string ToString()
-		{
-			return Value.ToString();
-		}
 		public override int GetHashCode()
 		{
 			return Value.GetHashCode();
 		}
+		public override string ToString()
+		{
+			return Value.ToString();
+		}
+		public override bool Equals(object obj)
+		{
+			return obj is ObfuscateDouble && Equals((ObfuscateDouble)obj);
+		}
+
+		public string ToString(string format)
+		{
+			return Value.ToString(format);
+		}
+		public string ToString(IFormatProvider provider)
+		{
+			return Value.ToString(provider);
+		}
+		public string ToString(string format, IFormatProvider provider)
+		{
+			return Value.ToString(format, provider);
+		}
+
+		public bool Equals(ObfuscateDouble obj)
+		{
+			return obj.Value.Equals(Value);
+		}
+		public int CompareTo(ObfuscateDouble other)
+		{
+			return Value.CompareTo(other.Value);
+		}
+		public int CompareTo(double other)
+		{
+			return Value.CompareTo(other);
+		}
+		public int CompareTo(object obj)
+		{
+			return Value.CompareTo(obj);
+		}
+
+		#region 运算符重载
+		public static implicit operator double(ObfuscateDouble value)
+		{
+			return value.Value;
+		}
+		public static implicit operator ObfuscateDouble(double value)
+		{
+			return new ObfuscateDouble(value);
+		}
+		public static explicit operator ObfuscateDouble(ObfuscateFloat value)
+		{
+			return (float)value;
+		}
+		#endregion
 
 		unsafe static long ConvertValue(double value)
 		{
@@ -57,8 +106,5 @@ namespace MotionFramework.Utility
 			long* ptr = &value;
 			return *((double*)ptr);
 		}
-
-		public static implicit operator double(ObfuscateDouble value) { return value.Value; }
-		public static implicit operator ObfuscateDouble(double value) { return new ObfuscateDouble(value); }
 	}
 }

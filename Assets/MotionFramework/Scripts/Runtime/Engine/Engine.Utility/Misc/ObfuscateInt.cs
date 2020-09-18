@@ -9,7 +9,7 @@ using UnityEngine;
 namespace MotionFramework.Utility
 {
 	[Serializable]
-	public struct ObfuscateInt
+	public struct ObfuscateInt : IFormattable, IEquatable<ObfuscateInt>, IComparable<ObfuscateInt>, IComparable<int>, IComparable
 	{
 		private static int GlobalSeed = (int)DateTime.Now.Ticks;
 
@@ -24,7 +24,7 @@ namespace MotionFramework.Utility
 			_data = 0;
 			Value = value;
 		}
-		public int Value
+		internal int Value
 		{
 			get
 			{
@@ -37,16 +37,74 @@ namespace MotionFramework.Utility
 			}
 		}
 
-		public override string ToString()
-		{
-			return Value.ToString();
-		}
 		public override int GetHashCode()
 		{
 			return Value.GetHashCode();
 		}
+		public override string ToString()
+		{
+			return Value.ToString();
+		}
+		public override bool Equals(object obj)
+		{
+			return obj is ObfuscateInt && Equals((ObfuscateInt)obj);
+		}
 
-		public static implicit operator int(ObfuscateInt value) { return value.Value; }
-		public static implicit operator ObfuscateInt(int value) { return new ObfuscateInt(value); }
+		public string ToString(string format)
+		{
+			return Value.ToString(format);
+		}
+		public string ToString(IFormatProvider provider)
+		{
+			return Value.ToString(provider);
+		}
+		public string ToString(string format, IFormatProvider provider)
+		{
+			return Value.ToString(format, provider);
+		}
+
+		public bool Equals(ObfuscateInt obj)
+		{
+			return Value.Equals(obj.Value);
+		}
+		public int CompareTo(ObfuscateInt other)
+		{
+			return Value.CompareTo(other.Value);
+		}
+		public int CompareTo(int other)
+		{
+			return Value.CompareTo(other);
+		}
+		public int CompareTo(object obj)
+		{
+			return Value.CompareTo(obj);
+		}
+
+		#region 运算符重载
+		public static implicit operator int(ObfuscateInt value)
+		{
+			return value.Value;
+		}
+		public static implicit operator ObfuscateInt(int value)
+		{
+			return new ObfuscateInt(value);
+		}
+		public static implicit operator ObfuscateFloat(ObfuscateInt value)
+		{
+			return value.Value;
+		}
+		public static implicit operator ObfuscateDouble(ObfuscateInt value)
+		{
+			return value.Value;
+		}
+		public static ObfuscateInt operator ++(ObfuscateInt value)
+		{
+			return value.Value + 1;
+		}
+		public static ObfuscateInt operator --(ObfuscateInt value)
+		{
+			return value.Value - 1;
+		}
+		#endregion
 	}
 }
