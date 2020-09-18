@@ -124,13 +124,6 @@ namespace MotionFramework.Network
 		}
 
 		/// <summary>
-		/// 主线程内更新
-		/// </summary>
-		public void Update()
-		{
-		}
-
-		/// <summary>
 		/// 子线程内发送数据
 		/// </summary>
 		private void ThreadUpdate(object param)

@@ -22,7 +22,7 @@ namespace MotionFramework.Network
 		private TcpChannel _channel;
 		private readonly Type _packageCoderType;
 		private readonly int _packageBodyMaxSize;
-
+		private readonly MainThreadSyncContext _syncContext;
 
 		/// <summary>
 		/// 构造函数
@@ -33,6 +33,7 @@ namespace MotionFramework.Network
 		{
 			_packageCoderType = packageCoderType;
 			_packageBodyMaxSize = packageBodyMaxSize;
+			_syncContext = new MainThreadSyncContext();
 		}
 
 		/// <summary>
@@ -52,10 +53,7 @@ namespace MotionFramework.Network
 		/// </summary>
 		public void Update()
 		{
-			MainThreadSyncContext.Instance.Update();
-
-			if (_channel != null)
-				_channel.Update();
+			_syncContext.Update();
 		}
 
 
@@ -147,7 +145,7 @@ namespace MotionFramework.Network
 			switch (e.LastOperation)
 			{
 				case SocketAsyncOperation.Connect:
-					MainThreadSyncContext.Instance.Post(ProcessConnected, e);
+					_syncContext.Post(ProcessConnected, e);
 					break;
 				default:
 					throw new ArgumentException("The last operation completed on the socket was not a connect");
