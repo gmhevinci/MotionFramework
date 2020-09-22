@@ -58,7 +58,7 @@ namespace MotionFramework.Console
 
 			GUILayout.Space(space);
 			ConsoleGUI.Lable($"OS : {SystemInfo.operatingSystem}");
-			ConsoleGUI.Lable($"OS Memory : {SystemInfo.systemMemorySize / 1000}GB");
+			ConsoleGUI.Lable($"OS Memory : {SystemInfo.systemMemorySize / 1024f:f1}GB");
 			ConsoleGUI.Lable($"CPU : {SystemInfo.processorType}");
 			ConsoleGUI.Lable($"CPU Core : {SystemInfo.processorCount}");
 
@@ -71,7 +71,7 @@ namespace MotionFramework.Console
 			GUILayout.Space(space);
 			ConsoleGUI.Lable($"Graphics Device Name : {SystemInfo.graphicsDeviceName}");
 			ConsoleGUI.Lable($"Graphics Device Type : {SystemInfo.graphicsDeviceType}");
-			ConsoleGUI.Lable($"Graphics Memory : {SystemInfo.graphicsMemorySize / 1000}GB");
+			ConsoleGUI.Lable($"Graphics Memory : {SystemInfo.graphicsMemorySize / 1024f:f1}GB");
 			ConsoleGUI.Lable($"Graphics Shader Level : {SystemInfo.graphicsShaderLevel}");
 			ConsoleGUI.Lable($"Multi-threaded Rendering : {SystemInfo.graphicsMultiThreaded}");
 			ConsoleGUI.Lable($"Max Cubemap Size : {SystemInfo.maxCubemapSize}");
@@ -90,12 +90,12 @@ namespace MotionFramework.Console
 			ConsoleGUI.Lable($"Graphics Quality : {QualitySettings.names[QualitySettings.GetQualityLevel()]}");
 
 			GUILayout.Space(space);
-			ConsoleGUI.Lable($"Reserved Total Memory : {Profiler.GetTotalReservedMemoryLong() / 1000000}MB");
-			ConsoleGUI.Lable($"Allocated Graphics Memory : {Profiler.GetAllocatedMemoryForGraphicsDriver() / 1000000}MB");
-			ConsoleGUI.Lable($"Used Memory Pool : {Profiler.GetTotalAllocatedMemoryLong() / 1000000}MB");
-			ConsoleGUI.Lable($"Unused Memory Pool : {Profiler.GetTotalUnusedReservedMemoryLong() / 1000000}MB");
-			ConsoleGUI.Lable($"Total Mono Memory : {Profiler.GetMonoHeapSizeLong() / 1000000}MB");
-			ConsoleGUI.Lable($"Used Mono Memory : {Profiler.GetMonoUsedSizeLong() / 1000000}MB");
+			ConsoleGUI.Lable($"Reserved Total Memory : {Profiler.GetTotalReservedMemoryLong() / 1048576}MB");
+			ConsoleGUI.Lable($"Allocated Graphics Memory : {Profiler.GetAllocatedMemoryForGraphicsDriver() / 1048576}MB");
+			ConsoleGUI.Lable($"Used Memory Pool : {Profiler.GetTotalAllocatedMemoryLong() / 1048576}MB");
+			ConsoleGUI.Lable($"Unused Memory Pool : {Profiler.GetTotalUnusedReservedMemoryLong() / 1048576}MB");
+			ConsoleGUI.Lable($"Total Mono Memory : {Profiler.GetMonoHeapSizeLong() / 1048576}MB");
+			ConsoleGUI.Lable($"Used Mono Memory : {Profiler.GetMonoUsedSizeLong() / 1048576}MB");
 
 			GUILayout.Space(space);
 			ConsoleGUI.Lable($"Battery Level : {SystemInfo.batteryLevel}");
