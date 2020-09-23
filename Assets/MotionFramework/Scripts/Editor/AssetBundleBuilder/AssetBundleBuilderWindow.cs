@@ -156,12 +156,6 @@ namespace MotionFramework.Editor
 					{
 						EditorApplication.delayCall += RefreshStreammingFolder;
 					}
-
-					// 清空并拷贝所有补丁包到UnityManifest目录
-					if (GUILayout.Button("Copy Patch To UnityManifest", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
-					{
-						EditorApplication.delayCall += RefreshOutputMainFolder;
-					}
 				}
 			}
 		}
@@ -264,18 +258,6 @@ namespace MotionFramework.Editor
 
 			string outputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
 			AssetBundleBuilderHelper.CopyPackageToStreamingFolder(_assetBuilder.BuildTarget, outputRoot);
-		}
-
-		/// <summary>
-		/// 刷新输出目录
-		/// </summary>
-		private void RefreshOutputMainFolder()
-		{
-			string outputDirectory = _assetBuilder.OutputDirectory;
-			EditorTools.ClearFolder(outputDirectory);
-
-			string outputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
-			AssetBundleBuilderHelper.CopyPackageToUnityManifestFolder(_assetBuilder.BuildTarget, outputRoot);
 		}
 
 		#region 设置相关

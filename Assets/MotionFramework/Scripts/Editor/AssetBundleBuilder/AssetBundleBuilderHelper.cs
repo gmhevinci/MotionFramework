@@ -119,8 +119,8 @@ namespace MotionFramework.Editor
 				if (targetVersion >= 0 && element.Version > targetVersion)
 					continue;
 
-				string sourcePath = $"{outputRoot}/{buildTarget}/{element.Version}/{element.Name}";
-				string destPath = $"{Application.dataPath}/StreamingAssets/{element.Name}";
+				string sourcePath = $"{outputRoot}/{buildTarget}/{element.Version}/{element.MD5}";
+				string destPath = $"{Application.dataPath}/StreamingAssets/{element.MD5}";
 				Debug.Log($"拷贝版本文件到流目录：{destPath}");
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
@@ -133,30 +133,6 @@ namespace MotionFramework.Editor
 
 			// 刷新目录
 			AssetDatabase.Refresh();
-		}
-
-		/// <summary>
-		/// 复制补丁文件到输出目录
-		/// <param name="targetVersion">目标版本。如果版本为负值则拷贝所有版本</param>
-		/// </summary>
-		public static void CopyPackageToUnityManifestFolder(BuildTarget buildTarget, string outputRoot, int targetVersion = -1)
-		{
-			string parentPath = $"{outputRoot}/{buildTarget}";
-			string outputPath = $"{outputRoot}/{buildTarget}/{PatchDefine.UnityManifestFileName}";
-
-			// 获取所有补丁包版本列表
-			List<int> versionList = GetPackageVersionList(buildTarget, outputRoot);
-
-			// 拷贝资源
-			for (int i = 0; i < versionList.Count; i++)
-			{
-				if (targetVersion >= 0 && versionList[i] > targetVersion)
-					break;
-
-				string sourcePath = $"{parentPath}/{versionList[i]}";
-				Debug.Log($"拷贝版本文件到主目录：{sourcePath}");
-				EditorTools.CopyDirectory(sourcePath, outputPath);
-			}
 		}
 	}
 }

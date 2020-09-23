@@ -667,9 +667,9 @@ namespace MotionFramework.Editor
 				if (pair.Value.Version == BuildVersion)
 				{
 					string sourcePath = $"{OutputDirectory}/{pair.Key}";
-					string destPath = $"{packageDirectory}/{pair.Key}";
+					string destPath = $"{packageDirectory}/{pair.Value.MD5}";
 					EditorTools.CopyFile(sourcePath, destPath, true);
-					Log($"复制更新文件：{destPath}");
+					Log($"复制更新文件到补丁包：{sourcePath}");
 				}
 			}
 		}
