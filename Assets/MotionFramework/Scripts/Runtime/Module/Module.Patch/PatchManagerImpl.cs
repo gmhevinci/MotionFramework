@@ -272,7 +272,7 @@ namespace MotionFramework.Patch
 				{
 					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
 					{
-						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(appElement.MD5);
 						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, appLoadPath, string.Empty, appElement.Version, appElement.IsEncrypted);
 						return bundleInfo;
 					}
@@ -288,7 +288,7 @@ namespace MotionFramework.Patch
 				}
 				else
 				{
-					string remoteURL = GetWebDownloadURL(element.Version.ToString(), element.Name);
+					string remoteURL = GetWebDownloadURL(element.Version.ToString(), element.MD5);
 					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, remoteURL, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}

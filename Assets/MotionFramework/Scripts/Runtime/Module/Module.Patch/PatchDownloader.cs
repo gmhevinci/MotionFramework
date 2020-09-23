@@ -185,7 +185,7 @@ namespace MotionFramework.Patch
 		private WebFileRequest CreateDownloader(PatchElement element)
 		{
 			// 注意：资源版本号只用于确定下载路径
-			string url = _patcher.GetWebDownloadURL(element.Version.ToString(), element.Name);
+			string url = _patcher.GetWebDownloadURL(element.Version.ToString(), element.MD5);
 			string savePath = PatchHelper.MakeSandboxCacheFilePath(element.MD5);
 			FileUtility.CreateFileDirectory(savePath);
 

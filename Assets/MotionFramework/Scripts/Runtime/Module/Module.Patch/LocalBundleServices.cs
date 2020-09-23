@@ -80,7 +80,7 @@ namespace MotionFramework.Patch
 			if (_patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
 			{
 				// 直接从沙盒里加载
-				string localPath = AssetPathHelper.MakeStreamingLoadPath(manifestPath);
+				string localPath = AssetPathHelper.MakeStreamingLoadPath(element.MD5);
 				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.Version, element.IsEncrypted);
 				return bundleInfo;
 			}
