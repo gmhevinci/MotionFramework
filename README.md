@@ -27,8 +27,6 @@ C# && .Net4.x
 
 8. [有限状态机](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.AI.FSM.md) **(Engine.AI.FSM)** - 流程状态机是一种简化的有限状态机。通过流程状态机可以将复杂的业务逻辑拆分简化，例如：整个资源热更新流程可以拆分成多个独立的步骤。
 
-9. [寻路系统](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.AI.AStar.md) **(Engine.AI.AStar)** - A星寻路系统，支持2D网格，蜂窝网格，节点网格等结构。
-
 ## 管理器介绍
 游戏开发过程中常用的管理器
 

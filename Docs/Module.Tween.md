@@ -11,29 +11,14 @@ public void Start()
 }
 ```
 
-窗口打开动画
+链式编程
 ```C#
 public void PlayWindowOpenAnim()
 {
-  // 同时并行执行所有节点
-  var tween = ParallelNode.Allocate(
-    _animTrans.TweenScaleTo(0.8f, Vector3.one).SetEase(TweenEase.Bounce.EaseOut), //窗口放大
-    _animTrans.TweenAnglesTo(0.4f, new Vector3(0, 0, 720)) //窗口旋转
-  );
-  TweenManager.Instance.Play(tween);
-}
-```
-
-窗口关闭动画
-```C#
-public void PlayWindowCloseAnim()
-{
-  // 按顺序执行所有节点
-  var tween = SequenceNode.Allocate(
-    TimerNode.AllocateDelay(1f), //等待一秒
-    _animTrans.TweenScaleTo(0.5f, Vector3.zero).SetEase(TweenEase.Bounce.EaseOut), //窗口缩小
-    ExecuteNode.Allocate(() => { UITools.CloseWindow<MyWindow>(); }) //关闭窗口
-  );
+  ITweenChain tween = SequenceNode.Allocate();
+  tween.Delay(1f);
+  tween.Append(this.transform.TweenScaleTo(0.5f, Vector3.zero).SetEase(TweenEase.Bounce.EaseOut));
+  tween.Execute(() => { Debug.Log("Hello"); });
   TweenManager.Instance.Play(tween);
 }
 ```
