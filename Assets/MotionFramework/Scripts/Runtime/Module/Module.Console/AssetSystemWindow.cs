@@ -62,8 +62,8 @@ namespace MotionFramework.Console
 
 			GUILayout.BeginHorizontal();
 			{
-				GUILayout.Label("搜索关键字 : ", ConsoleGUI.LableStyle, GUILayout.Width(140));
-				_filterKey = GUILayout.TextField(_filterKey, ConsoleGUI.TextFieldStyle, GUILayout.Width(400));
+				GUILayout.Label("搜索关键字 : ", ConsoleGUI.LableStyle, GUILayout.Width(200));
+				_filterKey = GUILayout.TextField(_filterKey, ConsoleGUI.TextFieldStyle, GUILayout.Width(500));
 			}
 			GUILayout.EndHorizontal();
 

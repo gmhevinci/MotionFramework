@@ -19,6 +19,7 @@ namespace MotionFramework.Console
 		public static GUIStyle HorizontalScrollbarThumbStyle { private set; get; }
 		public static GUIStyle VerticalScrollbarStyle { private set; get; }
 		public static GUIStyle VerticalScrollbarThumbStyle { private set; get; }
+		public static GUIStyle XStyle { private set; get; }
 		public static GUIStyle ToolbarStyle { private set; get; }
 		public static GUIStyle ButtonStyle { private set; get; }
 		public static GUIStyle ToogleStyle1 { private set; get; }
@@ -63,6 +64,11 @@ namespace MotionFramework.Console
 				VerticalScrollbarThumbStyle = new GUIStyle(GUI.skin.verticalScrollbarThumb);
 				VerticalScrollbarThumbStyle.fixedWidth = (int)(30 * scale);
 
+				XStyle = new GUIStyle(GUI.skin.button);
+				XStyle.fontSize = (int)(38 * scale);
+				XStyle.fixedWidth = (int)(40 * scale);
+				XStyle.fixedHeight = (int)(40 * scale);
+
 				ToolbarStyle = new GUIStyle(GUI.skin.button);
 				ToolbarStyle.fontSize = (int)(28 * scale);
 				ToolbarStyle.fixedHeight = (int)(40 * scale);
@@ -100,8 +106,8 @@ namespace MotionFramework.Console
 			GUI.skin.horizontalScrollbarThumb = HorizontalScrollbarThumbStyle;
 			GUI.skin.verticalScrollbarThumb = VerticalScrollbarThumbStyle;
 
-			float scrollWidth = Screen.width;
-			float scrollHeight = Screen.height - DeveloperConsole.OffsetPixels - ToolbarStyle.fixedHeight -  offset - 10f;
+			float scrollWidth = Screen.safeArea.width - VerticalScrollbarStyle.fixedWidth;
+			float scrollHeight = Screen.safeArea.height - ToolbarStyle.fixedHeight * 2 - offset;
 			return GUILayout.BeginScrollView(pos, HorizontalScrollbarStyle, VerticalScrollbarStyle, GUILayout.Width(scrollWidth), GUILayout.Height(scrollHeight));
 		}
 		public static void EndScrollView()

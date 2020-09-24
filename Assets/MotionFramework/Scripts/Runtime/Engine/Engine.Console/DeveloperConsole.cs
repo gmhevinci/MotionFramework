@@ -39,15 +39,10 @@ namespace MotionFramework.Console
 		private readonly static List<WindowWrapper> _wrappers = new List<WindowWrapper>();
 
 		// GUI相关
-		private static bool _visibleToggle = false;
+		private static bool _visible = false;
 		private static int _showIndex = 0;
 		private static Texture _bgTexture;
 		private static string[] _toolbarTitles;
-
-		/// <summary>
-		/// 偏移像素
-		/// </summary>
-		public static float OffsetPixels { get; set; }
 
 		/// <summary>
 		/// 初始化控制台
@@ -95,7 +90,7 @@ namespace MotionFramework.Console
 			}
 			_toolbarTitles = titles.ToArray();
 		}
-		
+
 		/// <summary>
 		/// 绘制控制台
 		/// 注意：该接口必须在OnGUI函数内调用
@@ -105,27 +100,32 @@ namespace MotionFramework.Console
 			// 注意：GUI接口只能在OnGUI内部使用
 			ConsoleGUI.InitGlobalStyle();
 
-			// 整体偏移
-			if (OffsetPixels > 0)
-				GUILayout.Space(OffsetPixels);
+			float posX = Screen.safeArea.x;
+			float posY = Screen.height - Screen.safeArea.height - Screen.safeArea.y;
 
-			if(_visibleToggle == false)
+			if (_visible == false)
 			{
-				// 显示开关
-				if (GUILayout.Button("X", ConsoleGUI.ButtonStyle, GUILayout.Width(ConsoleGUI.ButtonStyle.fixedHeight)))
-					_visibleToggle = !_visibleToggle;
-				return;
+				// 显示按钮
+				if (GUI.Button(new Rect(posX + 10, posY + 10, ConsoleGUI.XStyle.fixedWidth, ConsoleGUI.XStyle.fixedHeight), "X", ConsoleGUI.XStyle))
+					_visible = true;
 			}
+			else
+			{
+				Rect windowRect = new Rect(posX, posY, Screen.safeArea.width, Screen.safeArea.height);
+				GUI.Window(0, windowRect, DrawWindow, string.Empty);
+			}
+		}
+		private static void DrawWindow(int windowID)
+		{
+			// 绘制背景
+			if (_visible && _bgTexture != null)
+				GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _bgTexture, ScaleMode.StretchToFill, true);
 
 			GUILayout.BeginHorizontal();
 			{
-				// 绘制背景
-				if (_visibleToggle && _bgTexture != null)
-					GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _bgTexture, ScaleMode.StretchToFill, true);
-
-				// 显示开关
+				// 隐藏按钮
 				if (GUILayout.Button("X", ConsoleGUI.ButtonStyle, GUILayout.Width(ConsoleGUI.ButtonStyle.fixedHeight)))
-					_visibleToggle = !_visibleToggle;
+					_visible = false;
 
 				// 绘制按钮栏
 				_showIndex = GUILayout.Toolbar(_showIndex, _toolbarTitles, ConsoleGUI.ToolbarStyle);
