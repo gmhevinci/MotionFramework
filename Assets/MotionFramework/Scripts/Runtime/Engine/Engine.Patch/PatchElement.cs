@@ -12,9 +12,9 @@ namespace MotionFramework.Patch
 	public class PatchElement
 	{
 		/// <summary>
-		/// 文件名称
+		/// 资源包名称
 		/// </summary>
-		public string Name;
+		public string BundleName;
 
 		/// <summary>
 		/// 文件MD5
@@ -47,18 +47,25 @@ namespace MotionFramework.Patch
 		public string[] Dependencies;
 
 		/// <summary>
+		/// 资源对象列表
+		/// </summary>
+		public string[] AssetPaths;
+
+		/// <summary>
 		/// DLC标签列表
 		/// </summary>
 		public string[] DLCLabels;
 
-		public PatchElement(string name, string md5, uint crc32, long sizeBytes, int version, bool isEncrypted, string[] dependencies, string[] dlcLabels)
+
+		public PatchElement(string bundleName, string md5, uint crc32, long sizeBytes, int version, bool isEncrypted, string[] assetPaths, string[] dependencies, string[] dlcLabels)
 		{
-			Name = name;
+			BundleName = bundleName;
 			MD5 = md5;
 			CRC32 = crc32;
 			SizeBytes = sizeBytes;
 			Version = version;
 			IsEncrypted = isEncrypted;
+			AssetPaths = assetPaths;
 			Dependencies = dependencies;
 			DLCLabels = dlcLabels;
 		}

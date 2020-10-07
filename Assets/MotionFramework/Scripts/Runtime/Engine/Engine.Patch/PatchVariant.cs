@@ -14,25 +14,25 @@ namespace MotionFramework.Patch
 	public class PatchVariant
 	{
 		/// <summary>
-		/// 文件名称
+		/// 资源包名称
 		/// </summary>
-		public string Name;
+		public string BundleName;
 
 		/// <summary>
 		/// 变体类型列表
 		/// </summary>
 		public List<string> Variants;
 
-		public PatchVariant(string name, List<string> variants)
+		public PatchVariant(string bundleName, List<string> variants)
 		{
-			Name = name;
+			BundleName = bundleName;
 			Variants = variants;
 		}
 
 		public override string ToString()
 		{
 			StringBuilder builder = new StringBuilder(100);
-			builder.Append(Name);
+			builder.Append(BundleName);
 			builder.Append(" = ");
 			if (Variants != null)
 			{

@@ -24,7 +24,7 @@ namespace MotionFramework.Patch
 		public int ResourceVersion;
 
 		/// <summary>
-		/// 资源列表
+		/// 元素列表
 		/// </summary>
 		public List<PatchElement> ElementList = new List<PatchElement>();
 
@@ -34,7 +34,7 @@ namespace MotionFramework.Patch
 		public List<PatchVariant> VariantList = new List<PatchVariant>();
 
 		/// <summary>
-		/// 资源集合
+		/// 元素集合
 		/// </summary>
 		[NonSerialized]
 		public readonly Dictionary<string, PatchElement> Elements = new Dictionary<string, PatchElement>();
@@ -45,21 +45,27 @@ namespace MotionFramework.Patch
 		[NonSerialized]
 		public readonly Dictionary<string, PatchVariant> Variants = new Dictionary<string, PatchVariant>();
 
+		/// <summary>
+		/// 资源映射集合
+		/// </summary>
+		[NonSerialized]
+		public readonly Dictionary<string, PatchElement> AssetsMap = new Dictionary<string, PatchElement>();
+
 
 		/// <summary>
 		/// 是否包含变体资源
 		/// </summary>
-		public bool HasVariant(string name)
+		public bool HasVariant(string bundleName)
 		{
-			return Variants.ContainsKey(name);
+			return Variants.ContainsKey(bundleName);
 		}
 
 		/// <summary>
 		/// 获取首个变体格式
 		/// </summary>
-		public string GetFirstVariant(string name)
+		public string GetFirstVariant(string bundleName)
 		{
-			if(Variants.TryGetValue(name, out PatchVariant value))
+			if(Variants.TryGetValue(bundleName, out PatchVariant value))
 			{
 				return value.Variants[0];
 			}
@@ -69,9 +75,9 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取资源依赖列表
 		/// </summary>
-		public string[] GetDirectDependencies(string name)
+		public string[] GetDirectDependencies(string bundleName)
 		{
-			if(Elements.TryGetValue(name, out PatchElement value))
+			if(Elements.TryGetValue(bundleName, out PatchElement value))
 			{
 				return value.Dependencies;
 			}
@@ -84,11 +90,26 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取资源依赖列表
 		/// </summary>
-		public string[] GetAllDependencies(string name)
+		public string[] GetAllDependencies(string bundleName)
 		{
 			throw new NotImplementedException();
 		}
-
+		
+		/// <summary>
+		/// 获取资源包名称
+		/// </summary>
+		public string GetAssetBundleName(string assetPath)
+		{
+			if (AssetsMap.TryGetValue(assetPath, out PatchElement value))
+			{
+				return value.BundleName;
+			}
+			else
+			{
+				MotionLog.Error($"Not found asset in patch manifest: {assetPath}");
+				return string.Empty;
+			}
+		}
 
 		/// <summary>
 		/// 序列化
@@ -105,14 +126,23 @@ namespace MotionFramework.Patch
 		public static PatchManifest Deserialize(string jsonData)
 		{
 			PatchManifest patchManifest = JsonUtility.FromJson<PatchManifest>(jsonData);
+
 			foreach (var element in patchManifest.ElementList)
 			{
-				patchManifest.Elements.Add(element.Name, element);
+				patchManifest.Elements.Add(element.BundleName, element);
+				foreach(var assetPath in element.AssetPaths)
+				{
+					if (patchManifest.AssetsMap.ContainsKey(assetPath))
+						throw new Exception($"Asset path have existed : {assetPath}");
+					patchManifest.AssetsMap.Add(assetPath, element);
+				}
 			}
+
 			foreach (var variant in patchManifest.VariantList)
 			{
-				patchManifest.Variants.Add(variant.Name, variant);
+				patchManifest.Variants.Add(variant.BundleName, variant);
 			}
+
 			return patchManifest;
 		}
 	}
