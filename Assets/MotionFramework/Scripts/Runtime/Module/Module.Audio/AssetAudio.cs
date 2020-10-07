@@ -13,9 +13,14 @@ namespace MotionFramework.Audio
 	/// </summary>
 	internal class AssetAudio
 	{
-		private AssetReference _assetRef;
 		private AssetOperationHandle _handle;
 		private System.Action<AudioClip> _userCallback;
+		private bool _isLoadAsset = false;
+
+		/// <summary>
+		/// 资源地址
+		/// </summary>
+		public string Location { private set; get; }
 
 		/// <summary>
 		/// 音频层级
@@ -30,26 +35,27 @@ namespace MotionFramework.Audio
 
 		public AssetAudio(string location, EAudioLayer audioLayer)
 		{
+			Location = location;
 			AudioLayer = audioLayer;
-			_assetRef = new AssetReference(location);
 		}
 		public void Load(System.Action<AudioClip> callback)
 		{
-			if (_userCallback != null)
+			if (_isLoadAsset)
 				return;
 
+			_isLoadAsset = true;
 			_userCallback = callback;
-			_handle = _assetRef.LoadAssetAsync<AudioClip>();
+			_handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>(Location);
 			_handle.Completed += Handle_Completed;
 		}
 		public void UnLoad()
 		{
-			if (_assetRef != null)
+			if(_isLoadAsset)
 			{
-				_assetRef.Release();
-				_assetRef = null;
+				_isLoadAsset = false;
+				_userCallback = null;
+				_handle.Release();
 			}
-			_userCallback = null;
 		}
 		private void Handle_Completed(AssetOperationHandle obj)
 		{
