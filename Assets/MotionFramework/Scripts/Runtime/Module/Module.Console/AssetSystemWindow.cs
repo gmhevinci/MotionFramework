@@ -98,11 +98,11 @@ namespace MotionFramework.Console
 				// 只搜索关键字
 				if (string.IsNullOrEmpty(_filterKey) == false)
 				{
-					if (loader.BundleInfo.ManifestPath.Contains(_filterKey) == false)
+					if (loader.BundleInfo.BundleName.Contains(_filterKey) == false)
 						continue;
 				}
 
-				string info = $"资源名称：{loader.BundleInfo.ManifestPath}  资源版本：{loader.BundleInfo.Version}  引用计数：{loader.RefCount}";
+				string info = $"资源名称：{loader.BundleInfo.BundleName}  资源版本：{loader.BundleInfo.Version}  引用计数：{loader.RefCount}";
 				InfoWrapper element = ReferencePool.Spawn<InfoWrapper>();
 				element.Info = info;
 				element.LoadState = loader.States;
