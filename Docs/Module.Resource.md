@@ -11,7 +11,7 @@ public IEnumerator Start()
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
 	createParam.LocationRoot = "Assets/GameRes";
-	createParam.SimulationOnEditor = true;
+	createParam.SimulationOnEditor = SimulationOnEditor;
 	createParam.BundleServices = bundleServices;
 	createParam.DecryptServices = null;
 	createParam.AutoReleaseInterval = 10;
@@ -25,12 +25,12 @@ public IEnumerator Start()
 {
 	// 直接使用本地资源服务接口
 	LocalBundleServices localBundleServices = new LocalBundleServices();
-	yield return localBundleServices.InitializeAsync();
+	yield return localBundleServices.InitializeAsync(SimulationOnEditor);
 
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
 	createParam.LocationRoot = "Assets/GameRes";
-	createParam.SimulationOnEditor = true;
+	createParam.SimulationOnEditor = SimulationOnEditor;
 	createParam.BundleServices = localBundleServices;
 	createParam.DecryptServices = null;
 	createParam.AutoReleaseInterval = 10;

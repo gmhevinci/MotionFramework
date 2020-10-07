@@ -1,5 +1,7 @@
 ### 资源系统 (Engine.Resource)
 
+这是一套类似于Unity自带的Resources系统。
+
 **编辑器下的模拟运行方式**  
 编辑器下的模拟运行方式，主要是使用UnityEditor.AssetDatabase加载资源，用来模拟和AssetBundle一样的运行效果。
 
@@ -14,11 +16,11 @@
 
 **资源加载 - 委托方式**  
 ````C#
-// 加载主资源对象，不用指定资源对象名称
+// 加载音频资源
 private void Start()
 {
-	AssetReference assetRef = new AssetReference("Audio/bgMusic");
-	assetRef.LoadAssetAsync<AudioClip>().Completed += Handle_Completed;
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>("Audio/bgMusic");
+	handle.Completed += Handle_Completed;
 }
 private void Handle_Completed(AssetOperationHandle obj)
 {
@@ -28,12 +30,14 @@ private void Handle_Completed(AssetOperationHandle obj)
 ````
 
 ````C#
-// 加载资源对象，指定资源对象名称
+// 加载纹理资源
 private void Start()
 {
-	AssetReference assetRef = new AssetReference("Texture/LoadingTextures");
-	assetRef.LoadAssetAsync<Texture>("bg1").Completed += Handle_Completed1;
-	assetRef.LoadAssetAsync<Texture>("bg2").Completed += Handle_Completed2;
+	AssetOperationHandle handle1 = ResourceManager.Instance.LoadAssetAsync<Texture>("Texture/LoadingTextures/bg1");
+	handle1.Completed += Handle_Completed1;
+
+	AssetOperationHandle handle2 = ResourceManager.Instance.LoadAssetAsync<Texture>("Texture/LoadingTextures/bg2")；
+	handle2.Completed += Handle_Completed2;
 }
 private void Handle_Completed1(AssetOperationHandle obj)
 {
@@ -56,13 +60,13 @@ private void Start()
 	param.IsAdditive = false;
 	param.ActivateOnLoad = true;
 
-	AssetReference assetRef = new AssetReference("Scene/Town");
-	assetRef.LoadAssetAsync<SceneInstance>(param).Completed += Handle_Completed1;
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<SceneInstance>("Scene/Login", param);
+	handle.Completed += Handle_Completed1;
 }
 private void Handle_Completed(AssetOperationHandle obj)
 {
-	if(obj.AssetObject == null) return;
-	SceneInstance instance = obj.AssetObject as SceneInstance;
+	if(obj.AssetScene == null) return;
+	SceneInstance instance = obj.AssetScene;
 	Debug.Log(instance.Scene.name);
 }
 ````
@@ -76,11 +80,9 @@ public void Start()
 }
 private IEnumerator AsyncLoad()
 {
-	AssetReference assetRef = new AssetReference("UITexture/bg1");
-	AssetOperationHandle handle = assetRef.LoadAssetAsync<Texture>();
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>("Audio/bgMusic");
 	yield return handle;
-	Texture bg = handle.AssetObject as Texture;
-	Debug.Log(bg.name);
+	AudioClip audioClip = handle.AssetObject as AudioClip;
 }
 ````
 
@@ -92,11 +94,9 @@ public async void Start()
 }
 private async Task AsyncLoad()
 {
-	AssetReference assetRef = new AssetReference("UITexture/bg1");
-	AssetOperationHandle handle = assetRef.LoadAssetAsync<Texture>();
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>("Audio/bgMusic");
 	await handle.Task;
-	Texture bg = handle.AssetObject as Texture;
-	Debug.Log(bg.name);
+	AudioClip audioClip = handle.AssetObject as AudioClip;
 }
 ````
 
@@ -104,12 +104,11 @@ private async Task AsyncLoad()
 ````C#
 public void Start()
 {
-	AssetReference assetRef = new AssetReference("UITexture/bg1");
-	assetRef.LoadAssetAsync<Texture>();
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<Texture>("Audio/bgMusic");
 
 	...
 
 	// 卸载资源
-	assetRef.Release();
+	handle.Release();
 }
 ````
