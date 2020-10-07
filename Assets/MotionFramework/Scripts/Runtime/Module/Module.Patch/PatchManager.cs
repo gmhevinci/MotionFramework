@@ -185,31 +185,36 @@ namespace MotionFramework.Patch
 		}
 
 		#region IBundleServices接口
-		bool IBundleServices.CheckContentIntegrity(string manifestPath)
+		bool IBundleServices.CheckContentIntegrity(string bundleName)
 		{
-			bool result = _patcher.CheckContentIntegrity(manifestPath);
+			bool result = _patcher.CheckContentIntegrity(bundleName);
 			if (result)
-				_patcher.CacheDownloadPatchFile(manifestPath);
+				_patcher.CacheDownloadPatchFile(bundleName);
 			return result;
 		}
-		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
+		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)
 		{
 			if (_variantCollector != null)
 			{
 				PatchManifest patchManifest = _patcher.GetPatchManifest();
-				manifestPath = _variantCollector.RemapVariantName(patchManifest, manifestPath);
+				bundleName = _variantCollector.RemapVariantName(patchManifest, bundleName);
 			}
-			return _patcher.GetAssetBundleInfo(manifestPath);
+			return _patcher.GetAssetBundleInfo(bundleName);
 		}
-		string[] IBundleServices.GetDirectDependencies(string manifestPath)
+		string IBundleServices.GetAssetBundleName(string assetPath)
 		{
 			PatchManifest patchManifest = _patcher.GetPatchManifest();
-			return patchManifest.GetDirectDependencies(manifestPath);
+			return patchManifest.GetAssetBundleName(assetPath);
 		}
-		string[] IBundleServices.GetAllDependencies(string manifestPath)
+		string[] IBundleServices.GetDirectDependencies(string bundleName)
 		{
 			PatchManifest patchManifest = _patcher.GetPatchManifest();
-			return patchManifest.GetAllDependencies(manifestPath);
+			return patchManifest.GetDirectDependencies(bundleName);
+		}
+		string[] IBundleServices.GetAllDependencies(string bundleName)
+		{
+			PatchManifest patchManifest = _patcher.GetPatchManifest();
+			return patchManifest.GetAllDependencies(bundleName);
 		}
 		#endregion
 	}

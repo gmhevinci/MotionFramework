@@ -13,7 +13,7 @@ namespace MotionFramework.Patch
 	internal class VariantCollector
 	{
 		private readonly Dictionary<string, string> _variantRuleCollection = new Dictionary<string, string>(1000);
-		private readonly Dictionary<string, string> _cacheFiles = new Dictionary<string, string>(1000);
+		private readonly Dictionary<string, string> _cacheNames = new Dictionary<string, string>(1000);
 
 		/// <summary>
 		/// 注册变体规则
@@ -61,33 +61,33 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// Remaps the asset bundle name to the target variant.
 		/// </summary>
-		public string RemapVariantName(PatchManifest patchManifest, string manifestPath)
+		public string RemapVariantName(PatchManifest patchManifest, string bundleName)
 		{
-			if (patchManifest.HasVariant(manifestPath))
+			if (patchManifest.HasVariant(bundleName))
 			{
-				string variant = patchManifest.GetFirstVariant(manifestPath);
-				return GetCachedVariantManifestPath(manifestPath, variant);
+				string variant = patchManifest.GetFirstVariant(bundleName);
+				return GetCachedVariantBundleName(bundleName, variant);
 			}
-			return manifestPath;
+			return bundleName;
 		}
 
 		/// <summary>
-		/// 获取缓存的变体清单路径
+		/// 获取缓存的变体资源包名称
 		/// </summary>
-		private string GetCachedVariantManifestPath(string manifestPath, string variant)
+		private string GetCachedVariantBundleName(string bundleName, string variant)
 		{
-			if (_cacheFiles.ContainsKey(manifestPath))
-				return _cacheFiles[manifestPath];
+			if (_cacheNames.ContainsKey(bundleName))
+				return _cacheNames[bundleName];
 
 			// 获取变体资源格式
-			string variantManifestPath = manifestPath;
+			string variantBundleName = bundleName;
 			if (_variantRuleCollection.ContainsKey(variant))
 			{
 				string extension = _variantRuleCollection[variant];
 				if (extension == VariantRule.DefaultTag)
 					extension = PatchDefine.AssetBundleDefaultVariant;
-				string filePathWithoutExtension = manifestPath.Remove(manifestPath.LastIndexOf("."));
-				variantManifestPath = StringFormat.Format("{0}.{1}", filePathWithoutExtension, extension);
+				string filePathWithoutExtension = bundleName.Remove(bundleName.LastIndexOf("."));
+				variantBundleName = StringFormat.Format("{0}.{1}", filePathWithoutExtension, extension);
 			}
 			else
 			{
@@ -95,8 +95,8 @@ namespace MotionFramework.Patch
 			}
 
 			// 添加到缓存列表
-			_cacheFiles.Add(manifestPath, variantManifestPath);
-			return variantManifestPath;
+			_cacheNames.Add(bundleName, variantBundleName);
+			return variantBundleName;
 		}
 	}
 }

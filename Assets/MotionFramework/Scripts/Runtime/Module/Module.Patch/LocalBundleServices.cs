@@ -68,36 +68,40 @@ namespace MotionFramework.Patch
 		}
 
 		#region IBundleServices接口
-		bool IBundleServices.CheckContentIntegrity(string manifestPath)
+		bool IBundleServices.CheckContentIntegrity(string bundleName)
 		{
 			throw new NotImplementedException();
 		}
-		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string manifestPath)
+		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)
 		{
 			if (_variantCollector != null)
-				manifestPath = _variantCollector.RemapVariantName(_patchManifest, manifestPath);
+				bundleName = _variantCollector.RemapVariantName(_patchManifest, bundleName);
 
-			if (_patchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			if (_patchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
 			{
 				// 直接从沙盒里加载
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(element.MD5);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, localPath, string.Empty, element.Version, element.IsEncrypted);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, string.Empty, element.Version, element.IsEncrypted);
 				return bundleInfo;
 			}
 			else
 			{
-				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, string.Empty);
+				MotionLog.Warning($"Not found element in patch manifest : {bundleName}");
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, string.Empty);
 				return bundleInfo;
 			}
 		}
-		string[] IBundleServices.GetDirectDependencies(string manifestPath)
+		string IBundleServices.GetAssetBundleName(string assetPath)
 		{
-			return _patchManifest.GetDirectDependencies(manifestPath);
+			return _patchManifest.GetAssetBundleName(assetPath);
 		}
-		string[] IBundleServices.GetAllDependencies(string manifestPath)
+		string[] IBundleServices.GetDirectDependencies(string bundleName)
 		{
-			return _patchManifest.GetAllDependencies(manifestPath);
+			return _patchManifest.GetDirectDependencies(bundleName);
+		}
+		string[] IBundleServices.GetAllDependencies(string bundleName)
+		{
+			return _patchManifest.GetAllDependencies(bundleName);
 		}
 		#endregion
 	}

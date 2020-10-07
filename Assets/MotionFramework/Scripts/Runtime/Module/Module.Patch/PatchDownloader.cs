@@ -128,7 +128,7 @@ namespace MotionFramework.Patch
 				// 验证下载文件完整性
 				if (_patcher.CheckContentIntegrity(element) == false)
 				{
-					MotionLog.Error($"Check download content integrity is failed : {element.Name}");
+					MotionLog.Error($"Check download content integrity is failed : {element.BundleName}");
 					loader.Dispose();
 					_loaders.RemoveAt(i);
 					_checkFailedList.Add(element);			
@@ -167,12 +167,12 @@ namespace MotionFramework.Patch
 				if (_loadFailedList.Count > 0)
 				{
 					DownloadStates = EDownloaderStates.Failed;
-					OnPatchFileDownloadFailedCallback?.Invoke(_loadFailedList[0].Name);
+					OnPatchFileDownloadFailedCallback?.Invoke(_loadFailedList[0].BundleName);
 				}
 				else if(_checkFailedList.Count > 0)
 				{
 					DownloadStates = EDownloaderStates.Failed;
-					OnPatchFileCheckFailedCallback?.Invoke(_checkFailedList[0].Name);			
+					OnPatchFileCheckFailedCallback?.Invoke(_checkFailedList[0].BundleName);			
 				}
 				else
 				{

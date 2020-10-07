@@ -263,17 +263,17 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取AssetBundle的加载信息
 		/// </summary>
-		public AssetBundleInfo GetAssetBundleInfo(string manifestPath)
+		public AssetBundleInfo GetAssetBundleInfo(string bundleName)
 		{
-			if (_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			if (_localPatchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
 			{
 				// 查询内置资源
-				if (_appPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement appElement))
+				if (_appPatchManifest.Elements.TryGetValue(bundleName, out PatchElement appElement))
 				{
 					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
 					{
 						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(appElement.MD5);
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, appLoadPath, string.Empty, appElement.Version, appElement.IsEncrypted);
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, appLoadPath, string.Empty, appElement.Version, appElement.IsEncrypted);
 						return bundleInfo;
 					}
 				}
@@ -283,20 +283,20 @@ namespace MotionFramework.Patch
 				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(element.MD5);
 				if (_cache.Contains(element.MD5))
 				{
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, string.Empty, element.Version, element.IsEncrypted);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, string.Empty, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}
 				else
 				{
 					string remoteURL = GetWebDownloadURL(element.Version.ToString(), element.MD5);
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, sandboxLoadPath, remoteURL, element.Version, element.IsEncrypted);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, remoteURL, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}
 			}
 			else
 			{
-				MotionLog.Warning($"Not found element in patch manifest : {manifestPath}");
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(manifestPath, string.Empty);
+				MotionLog.Warning($"Not found element in patch manifest : {bundleName}");
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, string.Empty);
 				return bundleInfo;
 			}
 		}
@@ -333,7 +333,7 @@ namespace MotionFramework.Patch
 				}
 
 				// 忽略内置资源
-				if (_appPatchManifest.Elements.TryGetValue(element.Name, out PatchElement appElement))
+				if (_appPatchManifest.Elements.TryGetValue(element.BundleName, out PatchElement appElement))
 				{
 					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
 						continue;
@@ -355,15 +355,15 @@ namespace MotionFramework.Patch
 		}
 
 		// 检测下载内容的完整性并缓存
-		public bool CheckContentIntegrity(string manifestPath)
+		public bool CheckContentIntegrity(string bundleName)
 		{
-			if (_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			if (_localPatchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
 			{
 				return CheckContentIntegrity(element.MD5, element.CRC32, element.SizeBytes);
 			}
 			else
 			{
-				MotionLog.Warning($"Not found check content file in local patch manifest : {manifestPath}");
+				MotionLog.Warning($"Not found check content file in local patch manifest : {bundleName}");
 				return false;
 			}
 		}
@@ -409,16 +409,16 @@ namespace MotionFramework.Patch
 			_cache.ResourceVersion = _localPatchManifest.ResourceVersion;
 			_cache.SaveCache();
 		}
-		public void CacheDownloadPatchFile(string manifestPath)
+		public void CacheDownloadPatchFile(string bundleName)
 		{
-			if (_localPatchManifest.Elements.TryGetValue(manifestPath, out PatchElement element))
+			if (_localPatchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
 			{
-				MotionLog.Log($"Cache download file : {element.Name} : {element.Version}");
+				MotionLog.Log($"Cache download file : {element.BundleName} : {element.Version}");
 				_cache.CacheDownloadPatchFile(element.MD5);
 			}
 			else
 			{
-				MotionLog.Warning($"Not found cache content file in local patch manifest : {manifestPath}");
+				MotionLog.Warning($"Not found cache content file in local patch manifest : {bundleName}");
 			}
 		}
 		public void CacheDownloadPatchFiles(List<PatchElement> downloadList)
@@ -426,7 +426,7 @@ namespace MotionFramework.Patch
 			List<string> hashList = new List<string>(downloadList.Count);
 			foreach(var element in downloadList)
 			{
-				MotionLog.Log($"Cache download file : {element.Name} : {element.Version}");
+				MotionLog.Log($"Cache download file : {element.BundleName} : {element.Version}");
 				hashList.Add(element.MD5);
 			}
 			_cache.CacheDownloadPatchFiles(hashList);
