@@ -9,20 +9,14 @@ namespace MotionFramework.Scene
 {
 	internal class AssetScene
 	{
-		private AssetReference _assetRef;
 		private AssetOperationHandle _handle;
 		private System.Action<SceneInstance> _userCallback;
+		private bool _isLoadScene = false;
 
 		/// <summary>
 		/// 场景地址
 		/// </summary>
-		public string Location
-		{
-			get
-			{
-				return _assetRef.Location;
-			}
-		}
+		public string Location { private set; get; }
 
 		/// <summary>
 		/// 场景加载进度（0-100）
@@ -49,11 +43,11 @@ namespace MotionFramework.Scene
 
 		public AssetScene(string location)
 		{
-			_assetRef = new AssetReference(location);
+			Location = location;
 		}
 		public void Load(bool isAdditive, bool activeOnLoad, System.Action<SceneInstance> callback)
 		{
-			if (_userCallback != null)
+			if (_isLoadScene)
 				return;
 
 			// 场景加载参数
@@ -61,24 +55,26 @@ namespace MotionFramework.Scene
 			param.IsAdditive = isAdditive;
 			param.ActivateOnLoad = activeOnLoad;
 
+			MotionLog.Log($"Begin to load scene : {Location}");
+			_isLoadScene = true;
 			_userCallback = callback;	
-			_handle = _assetRef.LoadAssetAsync<SceneInstance>(param);
+			_handle = ResourceManager.Instance.LoadAssetAsync<SceneInstance>(Location, param);
 			_handle.Completed += Handle_Completed;
 		}
 		public void UnLoad()
 		{
-			if (_assetRef != null)
+			if (_isLoadScene)
 			{
-				_assetRef.Release();
-				_assetRef = null;
+				_isLoadScene = false;
+				_userCallback = null;
+				_handle.Release();
 			}
-			_userCallback = null;
 		}
 
 		// 资源回调
 		private void Handle_Completed(AssetOperationHandle obj)
 		{
-			_userCallback?.Invoke(_handle.AssetObject as SceneInstance);
+			_userCallback?.Invoke(_handle.AssetScene);
 		}
 	}
 }
