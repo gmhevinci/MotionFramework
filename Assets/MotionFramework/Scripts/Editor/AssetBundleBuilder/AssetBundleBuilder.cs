@@ -144,7 +144,7 @@ namespace MotionFramework.Editor
 			// 1. 检测循环依赖
 			CheckCycleDepend(unityManifest);
 			// 2. 创建补丁文件
-			CreatePatchManifestFile(unityManifest, encryptList);
+			CreatePatchManifestFile(unityManifest, buildMap, encryptList);
 			// 3. 创建说明文件
 			CreateReadmeFile(unityManifest);
 			// 4. 复制更新文件
@@ -316,12 +316,13 @@ namespace MotionFramework.Editor
 			{
 				string extension = Path.GetExtension(folderName);
 				string label = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
-				assetInfo.AssetBundleLabel = label.Replace(extension, string.Empty);
+				assetInfo.AssetBundleLabel = EditorTools.GetRegularPath(label.Replace(extension, string.Empty));
 				assetInfo.AssetBundleVariant = extension.RemoveFirstChar();
 			}
 			else
 			{
-				assetInfo.AssetBundleLabel = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
+				string label = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
+				assetInfo.AssetBundleLabel = EditorTools.GetRegularPath(label);
 				assetInfo.AssetBundleVariant = PatchDefine.AssetBundleDefaultVariant;
 			}
 		}
@@ -474,13 +475,13 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 2. 创建补丁清单文件到输出目录
 		/// </summary>
-		private void CreatePatchManifestFile(AssetBundleManifest unityManifest, List<string> encryptList)
+		private void CreatePatchManifestFile(AssetBundleManifest unityManifest, List<AssetInfo> buildMap, List<string> encryptList)
 		{
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 
 			// 创建DLC管理器
 			DLCManager dlcManager = new DLCManager();
-			dlcManager.LoadAllDCL();
+			dlcManager.LoadAllDLC();
 
 			// 加载旧补丁清单
 			PatchManifest oldPatchManifest = LoadPatchManifestFile();
@@ -494,24 +495,25 @@ namespace MotionFramework.Editor
 			// 写入所有AssetBundle文件的信息
 			for (int i = 0; i < allAssetBundles.Length; i++)
 			{
-				string assetName = allAssetBundles[i];
-				string path = $"{OutputDirectory}/{assetName}";
+				string bundleName = allAssetBundles[i];
+				string path = $"{OutputDirectory}/{bundleName}";
 				string md5 = HashUtility.FileMD5(path);
 				uint crc32 = HashUtility.FileCRC32(path);
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = BuildVersion;
-				bool isEncrypted = encryptList.Contains(assetName);
-				string[] depends = unityManifest.GetDirectDependencies(assetName);
-				string[] dlcLabels = dlcManager.GetAssetBundleDLCLabels(assetName);
+				bool isEncrypted = encryptList.Contains(bundleName);
+				string[] assetPaths = GetBundleAssetPaths(buildMap, bundleName);
+				string[] depends = unityManifest.GetDirectDependencies(bundleName);
+				string[] dlcLabels = dlcManager.GetAssetBundleDLCLabels(bundleName);
 
 				// 注意：如果文件没有变化使用旧版本号
-				if (oldPatchManifest.Elements.TryGetValue(assetName, out PatchElement oldElement))
+				if (oldPatchManifest.Elements.TryGetValue(bundleName, out PatchElement oldElement))
 				{
 					if (oldElement.MD5 == md5)
 						version = oldElement.Version;
 				}
 
-				PatchElement newElement = new PatchElement(assetName, md5, crc32, sizeBytes, version, isEncrypted, depends, dlcLabels);
+				PatchElement newElement = new PatchElement(bundleName, md5, crc32, sizeBytes, version, isEncrypted, assetPaths, depends, dlcLabels);
 				newPatchManifest.ElementList.Add(newElement);
 			}
 
@@ -522,9 +524,9 @@ namespace MotionFramework.Editor
 				{
 					if (pair.Value.Count > 0)
 					{
-						string name = $"{pair.Key}.{ PatchDefine.AssetBundleDefaultVariant}";
+						string bundleName = $"{pair.Key}.{ PatchDefine.AssetBundleDefaultVariant}";
 						List<string> variants = pair.Value;
-						newPatchManifest.VariantList.Add(new PatchVariant(name, variants));
+						newPatchManifest.VariantList.Add(new PatchVariant(bundleName, variants));
 					}
 				}
 			}
@@ -534,13 +536,28 @@ namespace MotionFramework.Editor
 			Log($"创建补丁清单文件：{filePath}");
 			PatchManifest.Serialize(filePath, newPatchManifest);
 		}
+		private string[] GetBundleAssetPaths(List<AssetInfo> buildMap, string assetBundleLabel)
+		{
+			List<string> result = new List<string>();
+			for (int i = 0; i < buildMap.Count; i++)
+			{
+				AssetInfo assetInfo = buildMap[i];
+				string label = $"{assetInfo.AssetBundleLabel}.{assetInfo.AssetBundleVariant}".ToLower();
+				if(label == assetBundleLabel)
+				{
+					string assetPath = assetInfo.AssetPath.Remove(assetInfo.AssetPath.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
+					result.Add(assetPath.ToLower());
+				}
+			}
+			return result.ToArray();
+		}
 		private Dictionary<string, List<string>> GetVariantInfos(string[] allAssetBundles)
 		{
 			Dictionary<string, List<string>> dic = new Dictionary<string, List<string>>();
-			foreach (var assetName in allAssetBundles)
+			foreach (var assetBundleLabel in allAssetBundles)
 			{
-				string path = assetName.Remove(assetName.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
-				string extension = Path.GetExtension(assetName).Substring(1);
+				string path = assetBundleLabel.Remove(assetBundleLabel.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
+				string extension = Path.GetExtension(assetBundleLabel).Substring(1);
 
 				if (dic.ContainsKey(path) == false)
 					dic.Add(path, new List<string>());
@@ -600,7 +617,7 @@ namespace MotionFramework.Editor
 				{
 					if (element.Version == BuildVersion)
 					{
-						AppendData(content, element.Name);
+						AppendData(content, element.BundleName);
 					}
 				}
 
@@ -677,7 +694,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 从输出目录加载补丁清单文件
 		/// </summary>
-		private PatchManifest LoadPatchManifestFile( )
+		private PatchManifest LoadPatchManifestFile()
 		{
 			string filePath = $"{OutputDirectory}/{PatchDefine.PatchManifestFileName}";
 			if (File.Exists(filePath) == false)

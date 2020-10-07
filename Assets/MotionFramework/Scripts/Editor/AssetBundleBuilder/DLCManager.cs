@@ -16,7 +16,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 加载所有DLC文件
 		/// </summary>
-		public void LoadAllDCL()
+		public void LoadAllDLC()
 		{
 			string[] files = AssetBundleCollectorSettingData.GetDLCFiles();
 			for (int i = 0; i < files.Length; i++)
@@ -30,12 +30,12 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 获取AssetBundle的所有DLC标签
 		/// </summary>
-		public string[] GetAssetBundleDLCLabels(string manifestPath)
+		public string[] GetAssetBundleDLCLabels(string bundleName)
 		{
 			List<string> labels = new List<string>();
 			foreach (var dlc in _contents)
 			{
-				if (dlc.IsContains(manifestPath) == false)
+				if (dlc.IsContains(bundleName) == false)
 					continue;
 
 				if (string.IsNullOrEmpty(dlc.DefaultLabel) == false)
@@ -44,7 +44,7 @@ namespace MotionFramework.Editor
 						labels.Add(dlc.DefaultLabel);
 				}
 
-				string label = dlc.GetAssetBundleDLCLabel(manifestPath);
+				string label = dlc.GetAssetBundleDLCLabel(bundleName);
 				if (string.IsNullOrEmpty(label) == false)
 				{
 					if(labels.Contains(label) == false)

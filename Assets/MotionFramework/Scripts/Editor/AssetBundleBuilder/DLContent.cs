@@ -19,9 +19,9 @@ namespace MotionFramework.Editor
 		public class DLCElement
 		{
 			/// <summary>
-			/// 清单路径
+			/// 资源包名称
 			/// </summary>
-			public string ManifestPath;
+			public string BundleName;
 
 			/// <summary>
 			/// DLC标签
@@ -43,11 +43,11 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 检测是否包含
 		/// </summary>
-		public bool IsContains(string manifestPath)
+		public bool IsContains(string bundleName)
 		{
 			foreach (var element in Elements)
 			{
-				if (element.ManifestPath == manifestPath)
+				if (element.BundleName == bundleName)
 					return true;
 			}
 			return false;
@@ -60,7 +60,7 @@ namespace MotionFramework.Editor
 		{
 			foreach(var element in Elements)
 			{
-				if (element.ManifestPath == manifestPath)
+				if (element.BundleName == manifestPath)
 					return element.DLCLabel;
 			}
 			return string.Empty;
