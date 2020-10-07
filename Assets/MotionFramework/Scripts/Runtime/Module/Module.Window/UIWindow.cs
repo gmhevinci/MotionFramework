@@ -14,9 +14,13 @@ namespace MotionFramework.Window
 {
 	public abstract class UIWindow : IEnumerator
 	{
-		private AssetReference _assetRef;
 		private AssetOperationHandle _handle;
 		private System.Action<UIWindow> _prepareCallback;
+		private bool _isLoadAsset = false;
+
+		/// <summary>
+		/// 是否已经创建
+		/// </summary>
 		protected bool IsCreate { private set; get; } = false;
 
 		/// <summary>
@@ -98,18 +102,14 @@ namespace MotionFramework.Window
 		}
 		internal void InternalLoad(string location, System.Action<UIWindow> prepareCallback, System.Object userData)
 		{
-			if (_assetRef == null)
-			{
-				UserData = userData;
-				_prepareCallback = prepareCallback;
-				_assetRef = new AssetReference(location);
-				_handle = _assetRef.LoadAssetAsync<GameObject>();
-				_handle.Completed += Handle_Completed;
-			}
-			else
-			{
-				throw new System.NotImplementedException();
-			}
+			if (_isLoadAsset)
+				return;
+
+			UserData = userData;
+			_isLoadAsset = true;
+			_prepareCallback = prepareCallback;
+			_handle = ResourceManager.Instance.LoadAssetAsync<GameObject>(location);
+			_handle.Completed += Handle_Completed;
 		}
 		internal void InternalCreate()
 		{
@@ -142,11 +142,7 @@ namespace MotionFramework.Window
 			}
 
 			// 卸载面板资源
-			if (_assetRef != null)
-			{
-				_assetRef.Release();
-				_assetRef = null;
-			}
+			_handle.Release();		
 
 			// 移除所有缓存的事件监听
 			EventGrouper.RemoveAllListener();

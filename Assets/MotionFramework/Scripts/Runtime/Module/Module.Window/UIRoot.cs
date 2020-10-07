@@ -14,8 +14,8 @@ namespace MotionFramework.Window
 {
 	public abstract class UIRoot : IEnumerator
 	{
-		private AssetReference _assetRef;
 		private AssetOperationHandle _handle;
+		private bool _isLoadAsset = false;
 
 		/// <summary>
 		/// 实例化对象
@@ -45,12 +45,12 @@ namespace MotionFramework.Window
 
 		internal void InternalLoad(string location)
 		{
-			if (_assetRef == null)
-			{
-				_assetRef = new AssetReference(location);
-				_handle = _assetRef.LoadAssetAsync<GameObject>();
-				_handle.Completed += Handle_Completed;
-			}
+			if (_isLoadAsset)
+				return;
+
+			_isLoadAsset = true;
+			_handle = ResourceManager.Instance.LoadAssetAsync<GameObject>(location);
+			_handle.Completed += Handle_Completed;
 		}
 		internal void InternalDestroy()
 		{
@@ -60,11 +60,7 @@ namespace MotionFramework.Window
 				Go = null;
 			}
 
-			if (_assetRef != null)
-			{
-				_assetRef.Release();
-				_assetRef = null;
-			}
+			_handle.Release();
 		}
 		private void Handle_Completed(AssetOperationHandle obj)
 		{
