@@ -16,14 +16,13 @@ namespace MotionFramework.Pool
 		private readonly Queue<SpawnGameObject> _collector;
 		private readonly List<SpawnGameObject> _loadingSpawn = new List<SpawnGameObject>();
 		private readonly Transform _root;
-		private AssetReference _assetRef;
 		private AssetOperationHandle _handle;
 		private GameObject _cloneObject;
 
 		/// <summary>
-		/// 资源常驻不销毁
+		/// 资源定位地址
 		/// </summary>
-		public bool DontDestroy { private set; get; }
+		public string Location { private set; get; }
 
 		/// <summary>
 		/// 对象池容量
@@ -31,15 +30,9 @@ namespace MotionFramework.Pool
 		public int Capacity { private set; get; }
 
 		/// <summary>
-		/// 资源定位地址
+		/// 资源常驻不销毁
 		/// </summary>
-		public string Location
-		{
-			get
-			{
-				return _assetRef.Location;
-			}
-		}
+		public bool DontDestroy { private set; get; }
 
 		/// <summary>
 		/// 是否加载完毕
@@ -80,15 +73,15 @@ namespace MotionFramework.Pool
 		public GameObjectCollector(Transform root, string location, int capacity, bool dontDestroy)
 		{
 			_root = root;
+			Location = location;
 			Capacity = capacity;
-			DontDestroy = dontDestroy;
-			
+			DontDestroy = dontDestroy;	
+
 			// 创建缓存池
 			_collector = new Queue<SpawnGameObject>(capacity);
 
 			// 加载资源
-			_assetRef = new AssetReference(location);
-			_handle = _assetRef.LoadAssetAsync<GameObject>();
+			_handle = ResourceManager.Instance.LoadAssetAsync<GameObject>(location);
 			_handle.Completed += Handle_Completed;
 		}
 		private void Handle_Completed(AssetOperationHandle obj)
@@ -185,11 +178,11 @@ namespace MotionFramework.Pool
 		public void Destroy()
 		{
 			// 卸载资源对象
-			if (_assetRef != null)
-			{
-				_assetRef.Release();
-				_assetRef = null;
-			}
+			_handle.Release();
+
+			// 销毁克隆对象
+			if (_cloneObject != null)
+				GameObject.Destroy(_cloneObject);
 
 			// 销毁游戏对象
 			foreach (var item in _collector)
@@ -198,8 +191,9 @@ namespace MotionFramework.Pool
 					GameObject.Destroy(item.Go);
 			}
 			_collector.Clear();
-			_loadingSpawn.Clear();
 
+			// 清空加载列表
+			_loadingSpawn.Clear();
 			SpawnCount = 0;
 		}
 
