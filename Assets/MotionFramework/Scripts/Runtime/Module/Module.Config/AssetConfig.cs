@@ -26,8 +26,8 @@ namespace MotionFramework.Config
 	/// </summary>
 	public abstract class AssetConfig : IEnumerator
 	{
-		private AssetReference _assetRef;
 		private AssetOperationHandle _handle;
+		private bool _isLoadAsset = false;
 
 		/// <summary>
 		/// 配表数据集合
@@ -52,12 +52,12 @@ namespace MotionFramework.Config
 		/// <param name="callback"></param>
 		public void Load(string location)
 		{
-			if (_assetRef != null)
+			if (_isLoadAsset)
 				return;
 
+			_isLoadAsset = true;
 			Location = location;
-			_assetRef = new AssetReference(location);
-			_handle = _assetRef.LoadAssetAsync<TextAsset>();
+			_handle = ResourceManager.Instance.LoadAssetAsync<TextAsset>(location);
 			_handle.Completed += Handle_Completed;
 		}
 		private void Handle_Completed(AssetOperationHandle obj)
@@ -77,11 +77,7 @@ namespace MotionFramework.Config
 			}
 
 			// 注意：为了节省内存这里立即释放了资源
-			if (_assetRef != null)
-			{
-				_assetRef.Release();
-				_assetRef = null;
-			}
+			_handle.Release();
 
 			IsPrepare = true;
 			_userCallback?.Invoke(this);
