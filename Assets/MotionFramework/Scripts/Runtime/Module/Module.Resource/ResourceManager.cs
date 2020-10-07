@@ -4,6 +4,7 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Console;
@@ -73,7 +74,7 @@ namespace MotionFramework.Resource
 			// 自动释放零引用资源
 			if (_releaseTimer != null && _releaseTimer.Update(Time.unscaledDeltaTime))
 			{
-				AssetSystem.Release();
+				AssetSystem.UnloadUnusedAssets();
 			}
 		}
 		void IModule.OnGUI()
@@ -89,33 +90,67 @@ namespace MotionFramework.Resource
 		/// 资源回收
 		/// 卸载引用计数为零的资源
 		/// </summary>
-		public static void Release()
+		public static void UnloadUnusedAssets()
 		{
-			AssetSystem.Release();
+			AssetSystem.UnloadUnusedAssets();
 		}
 
 		/// <summary>
 		/// 强制回收所有资源
 		/// </summary>
-		public void ForceReleaseAll()
+		public void UnloadAllAssets()
 		{
-			AssetSystem.ForceReleaseAll();
+			AssetSystem.UnloadAllAssets();
 		}
-
+		
 		/// <summary>
 		/// 获取资源的信息
 		/// </summary>
-		public AssetBundleInfo GetAssetBundleInfo(string location, string variant = PatchDefine.AssetBundleDefaultVariant)
+		public AssetBundleInfo GetAssetBundleInfo(string location)
 		{
-			return AssetSystem.GetAssetBundleInfo(location, variant);
+			return AssetSystem.GetAssetBundleInfo(location);
 		}
 
 		/// <summary>
-		/// 获取当前所有正在使用的Bundle信息
+		/// 异步加载资源对象
 		/// </summary>
-		public static List<AssetBundleInfo> GetAllBundleInfos()
+		/// <param name="location">资源对象相对路径</param>
+		public AssetOperationHandle LoadAssetAsync<TObject>(string location)
 		{
-			return AssetSystem.GetAllBundleInfos();
+			return LoadInternal(location, typeof(TObject), null);
+		}
+		public AssetOperationHandle LoadAssetAsync(System.Type type, string location)
+		{
+			return LoadInternal(location, type, null);
+		}
+
+		/// <summary>
+		/// 异步加载资源对象
+		/// </summary>
+		/// <param name="location">资源对象相对路径</param>
+		/// <param name="param">资源加载参数</param>
+		public AssetOperationHandle LoadAssetAsync<TObject>(string location, IAssetParam param)
+		{
+			return LoadInternal(location, typeof(TObject), param);
+		}
+		public AssetOperationHandle LoadAssetAsync(System.Type type, string location, IAssetParam param)
+		{
+			return LoadInternal(location, type, param);
+		}
+
+		/// <summary>
+		/// 释放资源对象
+		/// </summary>
+		public void Release(AssetOperationHandle handle)
+		{
+			handle.Release();
+		}
+
+		private AssetOperationHandle LoadInternal(string location, System.Type assetType, IAssetParam param)
+		{
+			string assetName = Path.GetFileName(location);
+			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
+			return cacheLoader.LoadAssetAsync(assetName, assetType, param);
 		}
 	}
 }
