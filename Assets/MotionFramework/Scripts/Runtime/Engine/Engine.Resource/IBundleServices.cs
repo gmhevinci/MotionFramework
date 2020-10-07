@@ -11,21 +11,26 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 检测下载内容的完整性
 		/// </summary>
-		bool CheckContentIntegrity(string manifestPath);
+		bool CheckContentIntegrity(string bundleName);
 		
 		/// <summary>
 		/// 获取AssetBundle的信息
 		/// </summary>
-		AssetBundleInfo GetAssetBundleInfo(string manifestPath);
+		AssetBundleInfo GetAssetBundleInfo(string bundleName);
+
+		/// <summary>
+		/// 获取资源包名称
+		/// </summary>
+		string GetAssetBundleName(string assetPath);
 
 		/// <summary>
 		/// 获取AssetBundle的直接依赖列表
 		/// </summary>
-		string[] GetDirectDependencies(string manifestPath);
+		string[] GetDirectDependencies(string bundleName);
 
 		/// <summary>
 		/// 获取AssetBundle的所有依赖列表
 		/// </summary>
-		string[] GetAllDependencies(string manifestPath);
+		string[] GetAllDependencies(string bundleName);
 	}
 }

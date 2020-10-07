@@ -10,8 +10,6 @@ namespace MotionFramework.Resource
 {
 	internal static class AssetPathHelper
 	{
-		private static string _cachedLowerLocationRoot;
-
 		/// <summary>
 		/// 获取规范化的路径
 		/// </summary>
@@ -69,38 +67,18 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 将资源定位地址转换为清单路径
-		/// </summary>
-		public static string ConvertLocationToManifestPath(string location, string variant)
-		{
-			// 注意：在编辑器模式下，加载路径是大小写敏感的
-			if (_cachedLowerLocationRoot == null)
-			{
-				if (string.IsNullOrEmpty(AssetSystem.LocationRoot))
-					throw new System.Exception($"{nameof(AssetSystem.LocationRoot)} is null or empty.");
-				_cachedLowerLocationRoot = AssetSystem.LocationRoot.ToLower();
-			}
-
-			if (string.IsNullOrEmpty(variant))
-				throw new System.Exception($"Variant is null or empty: {location}");
-
-			return StringFormat.Format("{0}/{1}.{2}", _cachedLowerLocationRoot, location.ToLower(), variant.ToLower());
-		}
-
-		/// <summary>
 		/// 获取AssetDatabase的加载路径
 		/// </summary>
 		public static string FindDatabaseAssetPath(string location)
 		{
 #if UNITY_EDITOR
-			// 如果定位地址的资源是一个文件夹（代表这个文件夹内的所有资源在一个AssetBundle资源包里）
 			string path = $"{AssetSystem.LocationRoot}/{location}";
 			if (UnityEditor.AssetDatabase.IsValidFolder(path))
-				return path;
+				throw new System.Exception($"Asset path is folder : {path}");
 
 			string fileName = Path.GetFileName(path);
-			string folderPath = GetDirectory(path);
-			string assetPath = FindDatabaseAssetPath(folderPath, fileName);
+			string directory = GetDirectory(path);
+			string assetPath = FindDatabaseAssetPath(directory, fileName);
 			if (string.IsNullOrEmpty(assetPath))
 				return path;
 			return assetPath;
@@ -112,13 +90,13 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 获取AssetDatabase的加载路径
 		/// </summary>
-		public static string FindDatabaseAssetPath(string folderPath, string fileName)
+		public static string FindDatabaseAssetPath(string directory, string fileName)
 		{
 #if UNITY_EDITOR
 			// AssetDatabase加载资源需要提供文件后缀格式，然而资源定位地址并没有文件格式信息。
 			// 所以我们通过查找该文件所在文件夹内同名的首个文件来确定AssetDatabase的加载路径。
 			// 注意：AssetDatabase.FindAssets() 返回文件内包括递归文件夹内所有资源的GUID
-			string[] guids = UnityEditor.AssetDatabase.FindAssets(string.Empty, new[] { folderPath });
+			string[] guids = UnityEditor.AssetDatabase.FindAssets(string.Empty, new[] { directory });
 			for (int i = 0; i < guids.Length; i++)
 			{
 				string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]);	
@@ -126,8 +104,8 @@ namespace MotionFramework.Resource
 				if (UnityEditor.AssetDatabase.IsValidFolder(assetPath))
 					continue;
 
-				string directory = GetDirectory(assetPath);
-				if (directory != folderPath)
+				string assetDirectory = GetDirectory(assetPath);
+				if (assetDirectory != directory)
 					continue;
 
 				string assetName = Path.GetFileNameWithoutExtension(assetPath);

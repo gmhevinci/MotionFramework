@@ -22,14 +22,14 @@ namespace MotionFramework.Resource
 			: base(bundleInfo)
 		{
 			// 准备依赖列表
-			string[] dependencies = AssetSystem.BundleServices.GetDirectDependencies(bundleInfo.ManifestPath);
+			string[] dependencies = AssetSystem.BundleServices.GetDirectDependencies(bundleInfo.BundleName);
 			if (dependencies != null && dependencies.Length > 0)
 			{
-				foreach (string dpManifestPath in dependencies)
+				foreach (string dependBundleName in dependencies)
 				{
-					AssetBundleInfo dpBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dpManifestPath);
-					AssetLoaderBase dpLoader = AssetSystem.CreateLoaderInternal(dpBundleInfo);
-					_depends.Add(dpLoader);
+					AssetBundleInfo dependBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dependBundleName);
+					AssetLoaderBase dependLoader = AssetSystem.CreateLoaderInternal(dependBundleInfo);
+					_depends.Add(dependLoader);
 				}
 			}
 		}
@@ -79,9 +79,9 @@ namespace MotionFramework.Resource
 				else
 				{
 					// 校验文件完整性
-					if (AssetSystem.BundleServices.CheckContentIntegrity(BundleInfo.ManifestPath) == false)
+					if (AssetSystem.BundleServices.CheckContentIntegrity(BundleInfo.BundleName) == false)
 					{
-						MotionLog.Error($"Check download content integrity is failed : {BundleInfo.ManifestPath}");
+						MotionLog.Error($"Check download content integrity is failed : {BundleInfo.BundleName}");
 						States = ELoaderStates.Fail;
 					}
 					else
@@ -126,7 +126,7 @@ namespace MotionFramework.Resource
 				if (BundleInfo.IsEncrypted)
 				{
 					if (AssetSystem.DecryptServices == null)
-						throw new Exception($"{nameof(AssetBundleLoader)} need IDecryptServices : {BundleInfo.ManifestPath}");
+						throw new Exception($"{nameof(AssetBundleLoader)} need IDecryptServices : {BundleInfo.BundleName}");
 
 					EDecryptMethod decryptType = AssetSystem.DecryptServices.DecryptType;
 					if (decryptType == EDecryptMethod.GetDecryptOffset)
@@ -161,7 +161,7 @@ namespace MotionFramework.Resource
 				// Check error
 				if (CacheBundle == null)
 				{
-					MotionLog.Warning($"Failed to load assetBundle file : {BundleInfo.ManifestPath}");
+					MotionLog.Warning($"Failed to load assetBundle file : {BundleInfo.BundleName}");
 					States = ELoaderStates.Fail;
 				}
 				else
@@ -196,9 +196,9 @@ namespace MotionFramework.Resource
 
 			// Check fatal
 			if (RefCount > 0)
-				throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.ManifestPath}");
+				throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.BundleName}");
 			if (IsDone() == false)
-				throw new Exception($"Bundle file loader is not done : {BundleInfo.ManifestPath}");
+				throw new Exception($"Bundle file loader is not done : {BundleInfo.BundleName}");
 
 			if (_downloader != null)
 			{

@@ -40,16 +40,7 @@ namespace MotionFramework.Resource
 			// 1. 加载资源对象
 			if (States == EAssetStates.Loading)
 			{
-				string assetPath = _owner.BundleInfo.LocalPath;
-
-				// 注意：如果加载路径指向的是文件夹
-				if (UnityEditor.AssetDatabase.IsValidFolder(assetPath))
-				{
-					string folderPath = assetPath;
-					string fileName = AssetName;
-					assetPath = AssetPathHelper.FindDatabaseAssetPath(folderPath, fileName);
-				}
-
+				string assetPath = Owner.BundleInfo.LocalPath;
 				AssetObject = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, AssetType);
 				States = EAssetStates.Checking;
 			}
@@ -59,10 +50,13 @@ namespace MotionFramework.Resource
 			{
 				States = AssetObject == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load asset object : {_owner.BundleInfo.LocalPath} : {AssetName}");
+					MotionLog.Warning($"Failed to load asset object : {Owner.BundleInfo.LocalPath} : {AssetName}");
 				InvokeCompletion();
 			}
 #endif
+		}
+		public override void Destory()
+		{
 		}
 	}
 }

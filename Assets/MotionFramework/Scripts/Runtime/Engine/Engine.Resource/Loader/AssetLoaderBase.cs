@@ -34,7 +34,7 @@ namespace MotionFramework.Resource
 		public AssetLoaderBase(AssetBundleInfo bundleInfo)
 		{
 			BundleInfo = bundleInfo;
-			RefCount = 1;
+			RefCount = 0;
 			States = ELoaderStates.None;
 		}
 
@@ -80,6 +80,20 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsDestroy { private set; get; }
 
+		/// <summary>
+		/// 是否可以销毁
+		/// </summary>
+		public bool CanDestroy()
+		{
+			if (IsDone() == false)
+				return false;
+			
+			if(RefCount <= 0 && _providers.Count == 0)
+				return true;
+			else
+				return false;
+		}
+
 		#region Asset Provider
 		internal readonly List<IAssetProvider> _providers = new List<IAssetProvider>();
 
@@ -101,7 +115,7 @@ namespace MotionFramework.Resource
 					SceneInstanceParam sceneParam = param as SceneInstanceParam;
 					provider = new AssetSceneProvider(this, assetName, assetType, sceneParam);
 				}
-				else if(assetType == typeof(PackageInstance))
+				else if (assetType == typeof(PackageInstance))
 				{
 					throw new NotImplementedException(nameof(PackageInstance));
 				}
@@ -116,6 +130,9 @@ namespace MotionFramework.Resource
 				}
 				_providers.Add(provider);
 			}
+
+			// 引用计数增加
+			provider.Reference();
 			return provider.Handle;
 		}
 
@@ -153,9 +170,16 @@ namespace MotionFramework.Resource
 		/// </summary>
 		protected void UpdateAllProvider()
 		{
-			for (int i = 0; i < _providers.Count; i++)
+			for (int i = _providers.Count - 1; i >= 0; i--)
 			{
-				_providers[i].Update();
+				var provider = _providers[i];
+				provider.Update();
+
+				if (provider.IsDone && provider.RefCount <= 0)
+				{
+					provider.Destory();
+					_providers.RemoveAt(i);
+				}
 			}
 		}
 

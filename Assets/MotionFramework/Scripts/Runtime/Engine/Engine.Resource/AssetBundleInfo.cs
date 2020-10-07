@@ -9,9 +9,9 @@ namespace MotionFramework.Resource
 	public class AssetBundleInfo
 	{
 		/// <summary>
-		/// 清单路径
+		/// 资源包名称
 		/// </summary>
-		public string ManifestPath { private set; get; }
+		public string BundleName { private set; get; }
 
 		/// <summary>
 		/// 本地存储的路径
@@ -33,17 +33,17 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsEncrypted { private set; get; }
 
-		public AssetBundleInfo(string manifestPath, string localPath, string remoteURL, int version, bool isEncrypted)
+		public AssetBundleInfo(string bundleName, string localPath, string remoteURL, int version, bool isEncrypted)
 		{
-			ManifestPath = manifestPath;
+			BundleName = bundleName;
 			LocalPath = localPath;
 			RemoteURL = remoteURL;
 			Version = version;
 			IsEncrypted = isEncrypted;
 		}
-		public AssetBundleInfo(string manifestPath, string localPath)
+		public AssetBundleInfo(string bundleName, string localPath)
 		{
-			ManifestPath = manifestPath;
+			BundleName = bundleName;
 			LocalPath = localPath;
 			RemoteURL = string.Empty;
 			Version = 0;

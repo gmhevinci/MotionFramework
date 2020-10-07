@@ -90,15 +90,28 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 最终结果
+		/// 资源对象
 		/// </summary>
-		public System.Object AssetObject
+		public UnityEngine.Object AssetObject
 		{
 			get
 			{
 				if (IsValid == false)
 					return null;
 				return _provider.AssetObject;
+			}
+		}
+
+		/// <summary>
+		/// 资源场景
+		/// </summary>
+		public SceneInstance AssetScene
+		{
+			get
+			{
+				if (IsValid == false)
+					return null;
+				return _provider.AssetScene;
 			}
 		}
 
@@ -115,6 +128,17 @@ namespace MotionFramework.Resource
 					return null;
 				return UnityEngine.Object.Instantiate(_provider.AssetObject as GameObject);
 			}
+		}
+
+		/// <summary>
+		/// 释放资源句柄
+		/// </summary>
+		public void Release()
+		{
+			if (IsValid == false)
+				return;
+			_provider.Release();
+			_provider = null;
 		}
 
 		#region 异步操作相关

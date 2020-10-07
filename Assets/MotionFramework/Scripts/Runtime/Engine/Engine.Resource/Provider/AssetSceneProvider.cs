@@ -64,11 +64,14 @@ namespace MotionFramework.Resource
 				{
 					SceneInstance instance = new SceneInstance(_asyncOp);
 					instance.Scene = SceneManager.GetSceneByName(AssetName);
-					AssetObject = instance;
+					AssetScene = instance;
 					States = EAssetStates.Success;
 					InvokeCompletion();
 				}
 			}
+		}
+		public override void Destory()
+		{
 		}
 	}
 }

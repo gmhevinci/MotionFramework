@@ -12,7 +12,7 @@ namespace MotionFramework.Resource
 	/// </summary>
 	public class SceneInstance
 	{
-		private AsyncOperation _asyncOp;
+		private readonly AsyncOperation _asyncOp;
 
 		public SceneInstance(AsyncOperation op)
 		{

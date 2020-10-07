@@ -62,8 +62,17 @@ namespace MotionFramework.Resource
 				AssetObject = _cacheRequest.asset;
 				States = AssetObject == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load asset object : {AssetName} from bundle : {_loader.BundleInfo.ManifestPath}");
+					MotionLog.Warning($"Failed to load asset object : {AssetName} from bundle : {_loader.BundleInfo.BundleName}");
 				InvokeCompletion();
+			}
+		}
+		public override void Destory()
+		{
+			var assetObject = AssetObject as UnityEngine.Object;
+			if(assetObject != null)
+			{
+				if(assetObject is GameObject == false)
+					Resources.UnloadAsset(assetObject);
 			}
 		}
 	}

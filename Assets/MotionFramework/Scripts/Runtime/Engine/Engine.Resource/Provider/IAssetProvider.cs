@@ -24,12 +24,22 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 获取的资源对象
 		/// </summary>
-		System.Object AssetObject { get; }
+		UnityEngine.Object AssetObject { get; }
+
+		/// <summary>
+		/// 获取的场景对象
+		/// </summary>
+		SceneInstance AssetScene { get; }
 
 		/// <summary>
 		/// 当前的加载状态
 		/// </summary>
 		EAssetStates States { get; }
+
+		/// <summary>
+		/// 引用计数
+		/// </summary>
+		 int RefCount { get; }
 
 		/// <summary>
 		/// 资源操作句柄
@@ -60,6 +70,21 @@ namespace MotionFramework.Resource
 		/// 轮询更新方法
 		/// </summary>
 		void Update();
+
+		/// <summary>
+		/// 销毁资源对象
+		/// </summary>
+		void Destory();
+
+		/// <summary>
+		/// 引用计数递加
+		/// </summary>
+		void Reference();
+
+		/// <summary>
+		/// 引用计数递减
+		/// </summary>
+		void Release();
 
 		/// <summary>
 		/// 异步操作任务

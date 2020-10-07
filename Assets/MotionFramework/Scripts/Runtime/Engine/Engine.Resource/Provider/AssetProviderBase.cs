@@ -8,12 +8,14 @@ namespace MotionFramework.Resource
 {
 	internal abstract class AssetProviderBase : IAssetProvider
 	{
-		protected AssetLoaderBase _owner { private set; get; }
-
+		protected AssetLoaderBase Owner { private set; get; }
+		
 		public string AssetName { private set; get; }
 		public System.Type AssetType { private set; get; }
-		public System.Object AssetObject { protected set; get; }
+		public UnityEngine.Object AssetObject { protected set; get; }
+		public SceneInstance AssetScene { protected set; get; }
 		public EAssetStates States { protected set; get; }
+		public int RefCount { private set; get; }
 		public AssetOperationHandle Handle { private set; get; }
 		public System.Action<AssetOperationHandle> Callback { set; get; }
 		public bool IsDone
@@ -27,7 +29,7 @@ namespace MotionFramework.Resource
 		{
 			get
 			{
-				return _owner.IsDestroy == false;
+				return Owner.IsDestroy == false;
 			}
 		}
 		public virtual float Progress
@@ -41,17 +43,26 @@ namespace MotionFramework.Resource
 
 		public AssetProviderBase(AssetLoaderBase owner, string assetName, System.Type assetType)
 		{
-			_owner = owner;
+			Owner = owner;
 			AssetName = assetName;
 			AssetType = assetType;
 			States = EAssetStates.None;
 			Handle = new AssetOperationHandle(this);
 		}
 
-		/// <summary>
-		/// 轮询更新
-		/// </summary>
 		public abstract void Update();
+		public abstract void Destory();
+
+		public void Reference()
+		{
+			RefCount++;
+			Owner.Reference();
+		}
+		public void Release()
+		{
+			RefCount--;
+			Owner.Release();
+		}
 
 		/// <summary>
 		/// 异步操作任务
@@ -64,7 +75,7 @@ namespace MotionFramework.Resource
 				return System.Threading.Tasks.Task.Factory.StartNew(o =>
 				{
 					handle.WaitOne();
-					return AssetObject;
+					return AssetObject as object;
 				}, this);
 			}
 		}
