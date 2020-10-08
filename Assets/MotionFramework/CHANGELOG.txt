@@ -1,3 +1,14 @@
+v1.3.3 - 2020年10月8日
+该版本为预览版
+
+改进
+1. [56d986da8306334fc522649dd24f4fd53ff7fbdb][Console] 优化控制台显示区域以适应异形屏。
+2. [d1a313fb6dbb48d279b470a866c7b07ca9ac1a1c][Resource] 改进资源系统，现在的资源系统更类似于Unity自带的Resources系统。
+
+变更
+1. [5b34a9cf14793a1302e7565b31ba8335aa091624][Resource] 移除AssetReference.cs脚本，现在统一使用ResourceManager.LoadAssetAysnc接口。
+
+
 v1.3.2 - 2020年9月18日
 新增
 1. [ad9dda800b1b5dd8eb615c88ff4d4d657cb4c08a][Utility] 增加了加密的值类型，可以防止内存值修改。
