@@ -42,9 +42,9 @@ public static class AssetEncrypter
 ```
 
 **生成结果**  
-生成成功后会在输出目录下找到构建文件。  
+构建成功后会在输出目录下找到补丁文件夹（文件夹名称为本次构建时指定的资源版本号）。  
 ![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/AssetBundleBuilder2.png)   
-根据本次构建时填写的资源版本号生成的补丁文件夹。    
+补丁文件夹内包含补丁清单和补丁文件。   
 ![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/AssetBundleBuilder3.png)   
 
 **补丁清单**  
