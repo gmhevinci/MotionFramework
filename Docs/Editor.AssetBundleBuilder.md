@@ -42,8 +42,10 @@ public static class AssetEncrypter
 ```
 
 **生成结果**  
-生成成功后会在输出目录下找到新生成的补丁文件夹。  
-![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/AssetBundleBuilder2.png)
+生成成功后会在输出目录下找到构建文件。  
+![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/AssetBundleBuilder2.png)   
+根据本次构建时填写的资源版本号生成的补丁文件夹。    
+![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/AssetBundleBuilder3.png)   
 
 **补丁清单**  
 每次打包都会生成一个名为PatchManifest.bytes的补丁清单，补丁清单内包含了所有资源的信息，例如：名称，版本，大小，MD5
