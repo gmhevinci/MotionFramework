@@ -48,8 +48,6 @@ namespace MotionFramework.Config
 		/// <summary>
 		/// 加载表格
 		/// </summary>
-		/// <param name="location"></param>
-		/// <param name="callback"></param>
 		public void Load(string location)
 		{
 			if (_isLoadAsset)
