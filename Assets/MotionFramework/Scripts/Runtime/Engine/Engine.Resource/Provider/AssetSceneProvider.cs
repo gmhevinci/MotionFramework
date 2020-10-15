@@ -13,7 +13,7 @@ namespace MotionFramework.Resource
 	internal sealed class AssetSceneProvider : AssetProviderBase
 	{
 		private SceneInstanceParam _param;
-		private AsyncOperation _asyncOp;	
+		private AsyncOperation _asyncOp;
 		public override float Progress
 		{
 			get
@@ -72,6 +72,8 @@ namespace MotionFramework.Resource
 		}
 		public override void Destory()
 		{
+			if (_param.IsAdditive)
+				SceneManager.UnloadSceneAsync(AssetName);
 		}
 	}
 }
