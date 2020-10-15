@@ -73,9 +73,6 @@ namespace MotionFramework.Resource
 		{
 #if UNITY_EDITOR
 			string path = $"{AssetSystem.LocationRoot}/{location}";
-			if (UnityEditor.AssetDatabase.IsValidFolder(path))
-				throw new System.Exception($"Asset path is folder : {path}");
-
 			string fileName = Path.GetFileName(path);
 			string directory = GetDirectory(path);
 			string assetPath = FindDatabaseAssetPath(directory, fileName);
@@ -113,7 +110,9 @@ namespace MotionFramework.Resource
 					return assetPath;
 			}
 #endif
+
 			// 没有找到同名的资源文件
+			MotionLog.Warning($"Not found asset {fileName} in foder : {directory}");
 			return string.Empty;
 		}
 	}
