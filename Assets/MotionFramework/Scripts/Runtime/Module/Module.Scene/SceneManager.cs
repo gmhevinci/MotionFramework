@@ -52,7 +52,7 @@ namespace MotionFramework.Scene
 		}
 
 		/// <summary>
-		/// 在当前主场景的基础上加载附加场景
+		/// 在当前主场景上加载附加场景
 		/// </summary>
 		/// <param name="location">场景资源地址</param>
 		/// <param name="activeOnLoad">加载完成时是否激活场景</param>
@@ -69,6 +69,22 @@ namespace MotionFramework.Scene
 			AssetScene newScene = new AssetScene(location);
 			_additionScenes.Add(newScene);
 			newScene.Load(true, activeOnLoad, callback);
+		}
+
+		/// <summary>
+		/// 卸载当前主场景的附加场景
+		/// </summary>
+		/// <param name="location"></param>
+		public void UnLoadAdditionScene(string location)
+		{
+			for (int i = _additionScenes.Count - 1; i >= 0; i--)
+			{
+				if (_additionScenes[i].Location == location)
+				{
+					_additionScenes[i].UnLoad();
+					_additionScenes.RemoveAt(i);
+				}
+			}
 		}
 
 		/// <summary>
