@@ -15,12 +15,12 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// WEB服务器地址
 		/// </summary>
-		private readonly Dictionary<RuntimePlatform, string> _webServers = new Dictionary<RuntimePlatform, string>();
+		private readonly Dictionary<int, string> _webServers = new Dictionary<int, string>();
 
 		/// <summary>
 		/// CDN服务器地址
 		/// </summary>
-		private readonly Dictionary<RuntimePlatform, string> _cdnServers = new Dictionary<RuntimePlatform, string>();
+		private readonly Dictionary<int, string> _cdnServers = new Dictionary<int, string>();
 
 		/// <summary>
 		/// 默认的Web服务器地址
@@ -59,8 +59,8 @@ namespace MotionFramework.Patch
 			if (cdnServerIP.ToLower().StartsWith("http") == false)
 				cdnServerIP = $"http://{cdnServerIP}";
 
-			_webServers.Add(platform, webServerIP);
-			_cdnServers.Add(platform, cdnServerIP);
+			_webServers.Add((int)platform, webServerIP);
+			_cdnServers.Add((int)platform, cdnServerIP);
 		}
 
 		/// <summary>
@@ -68,19 +68,19 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public string GetPlatformWebServerIP(RuntimePlatform platform)
 		{
-			if(_webServers.TryGetValue(platform, out string value))
+			if (_webServers.TryGetValue((int)platform, out string value))
 			{
 				return value;
 			}
 			return DefaultWebServerIP;
 		}
-		
+
 		/// <summary>
 		/// 获取CDN服务器地址
 		/// </summary>
 		public string GetPlatformCDNServerIP(RuntimePlatform platform)
 		{
-			if (_cdnServers.TryGetValue(platform, out string value))
+			if (_cdnServers.TryGetValue((int)platform, out string value))
 			{
 				return value;
 			}
