@@ -52,6 +52,11 @@ namespace MotionFramework.Resource
 		System.Action<AssetOperationHandle> Callback { set; get; }
 
 		/// <summary>
+		/// 是否已经销毁
+		/// </summary>
+		bool IsDestroyed { get; }
+
+		/// <summary>
 		/// 是否完毕（成功或失败）
 		/// </summary>
 		bool IsDone { get; }
@@ -85,6 +90,11 @@ namespace MotionFramework.Resource
 		/// 引用计数递减
 		/// </summary>
 		void Release();
+
+		/// <summary>
+		/// 是否可以销毁
+		/// </summary>
+		bool CanDestroy();
 
 		/// <summary>
 		/// 异步操作任务

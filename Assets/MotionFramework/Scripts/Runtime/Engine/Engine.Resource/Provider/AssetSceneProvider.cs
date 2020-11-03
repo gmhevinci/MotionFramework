@@ -72,6 +72,8 @@ namespace MotionFramework.Resource
 		}
 		public override void Destory()
 		{
+			base.Destory();
+
 			if (_param.IsAdditive)
 				SceneManager.UnloadSceneAsync(AssetName);
 		}

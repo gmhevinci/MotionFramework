@@ -9,7 +9,7 @@ namespace MotionFramework.Resource
 	internal abstract class AssetProviderBase : IAssetProvider
 	{
 		protected AssetLoaderBase Owner { private set; get; }
-		
+
 		public string AssetName { private set; get; }
 		public System.Type AssetType { private set; get; }
 		public UnityEngine.Object AssetObject { protected set; get; }
@@ -18,6 +18,7 @@ namespace MotionFramework.Resource
 		public int RefCount { private set; get; }
 		public AssetOperationHandle Handle { private set; get; }
 		public System.Action<AssetOperationHandle> Callback { set; get; }
+		public bool IsDestroyed { private set; get; } = false;
 		public bool IsDone
 		{
 			get
@@ -29,7 +30,8 @@ namespace MotionFramework.Resource
 		{
 			get
 			{
-				return Owner.IsDestroy == false;
+				//注意：当AssetBundle被强制卸载后，所有AssetProvider失效
+				return IsDestroyed == false && Owner.IsDestroyed == false;
 			}
 		}
 		public virtual float Progress
@@ -49,9 +51,12 @@ namespace MotionFramework.Resource
 			States = EAssetStates.None;
 			Handle = new AssetOperationHandle(this);
 		}
-
+		
 		public abstract void Update();
-		public abstract void Destory();
+		public virtual void Destory()
+		{
+			IsDestroyed = true;
+		}
 
 		public void Reference()
 		{
@@ -60,8 +65,18 @@ namespace MotionFramework.Resource
 		}
 		public void Release()
 		{
+			if (RefCount <= 0)
+				throw new System.Exception("Cannot decrement reference count, AssetProvider reference is already zero.");
+
 			RefCount--;
 			Owner.Release();
+		}
+		public bool CanDestroy()
+		{
+			if (IsDone == false)
+				return false;
+
+			return RefCount <= 0;
 		}
 
 		/// <summary>

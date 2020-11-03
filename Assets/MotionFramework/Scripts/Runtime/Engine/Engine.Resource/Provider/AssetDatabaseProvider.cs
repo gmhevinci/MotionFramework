@@ -55,8 +55,5 @@ namespace MotionFramework.Resource
 			}
 #endif
 		}
-		public override void Destory()
-		{
-		}
 	}
 }

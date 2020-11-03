@@ -28,7 +28,12 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 是否为场景加载器
 		/// </summary>
-		public bool IsSceneLoader = false;
+		public bool IsSceneLoader { private set; get; } = false;
+
+		/// <summary>
+		/// 是否已经销毁
+		/// </summary>
+		public bool IsDestroyed { private set; get; } = false;
 
 
 		public AssetLoaderBase(AssetBundleInfo bundleInfo)
@@ -64,7 +69,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public virtual void Destroy(bool force)
 		{
-			IsDestroy = true;
+			IsDestroyed = true;
 		}
 
 		/// <summary>
@@ -74,11 +79,6 @@ namespace MotionFramework.Resource
 		{
 			return States == ELoaderStates.Success || States == ELoaderStates.Fail;
 		}
-
-		/// <summary>
-		/// 是否已经销毁
-		/// </summary>
-		public bool IsDestroy { private set; get; }
 
 		/// <summary>
 		/// 是否可以销毁
@@ -175,7 +175,8 @@ namespace MotionFramework.Resource
 				var provider = _providers[i];
 				provider.Update();
 
-				if (provider.IsDone && provider.RefCount <= 0)
+				// 检测是否可以销毁
+				if (provider.CanDestroy())
 				{
 					provider.Destory();
 					_providers.RemoveAt(i);

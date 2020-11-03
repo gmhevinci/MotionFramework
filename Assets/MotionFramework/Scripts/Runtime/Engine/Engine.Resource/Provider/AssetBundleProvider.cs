@@ -68,6 +68,8 @@ namespace MotionFramework.Resource
 		}
 		public override void Destory()
 		{
+			base.Destory();
+
 			var assetObject = AssetObject as UnityEngine.Object;
 			if(assetObject != null)
 			{
