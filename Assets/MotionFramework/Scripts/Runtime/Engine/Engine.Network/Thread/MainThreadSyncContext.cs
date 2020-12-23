@@ -14,7 +14,7 @@ namespace MotionFramework.Network
 	/// 同步其它线程里的回调到主线程里
 	/// 注意：Unity3D中需要设置Scripting Runtime Version为.NET4.6
 	/// </summary>
-	internal sealed class MainThreadSyncContext : SynchronizationContext
+	public sealed class MainThreadSyncContext : SynchronizationContext
 	{
 		/// <summary>
 		/// 同步队列

@@ -41,7 +41,7 @@ namespace MotionFramework.Network
 		/// </summary>
 		public void Dispose()
 		{
-			if(_channel != null)
+			if (_channel != null)
 			{
 				_channel.Dispose();
 				_channel = null;
@@ -54,6 +54,9 @@ namespace MotionFramework.Network
 		public void Update()
 		{
 			_syncContext.Update();
+
+			if (_channel != null)
+				_channel.Update();
 		}
 
 
@@ -62,7 +65,7 @@ namespace MotionFramework.Network
 		/// </summary>
 		public void SendPackage(System.Object packet)
 		{
-			if(_channel != null)
+			if (_channel != null)
 				_channel.SendPackage(packet);
 		}
 
@@ -128,7 +131,7 @@ namespace MotionFramework.Network
 
 				// 创建频道
 				_channel = new TcpChannel();
-				_channel.InitChannel(e.ConnectSocket, _packageCoderType, _packageBodyMaxSize);
+				_channel.InitChannel(_syncContext, e.ConnectSocket, _packageCoderType, _packageBodyMaxSize);
 			}
 			else
 			{

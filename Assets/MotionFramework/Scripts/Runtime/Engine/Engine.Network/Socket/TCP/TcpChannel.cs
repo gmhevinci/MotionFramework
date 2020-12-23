@@ -23,27 +23,34 @@ namespace MotionFramework.Network
 		private readonly List<System.Object> _decodeTempList = new List<object>(100);
 
 		private int _packageMaxSize;
-		private byte[] _tempBuffer;
+		private byte[] _receiveBuffer;
 		private ByteBuffer _sendBuffer;
-		private ByteBuffer _receiveBuffer;
+		private ByteBuffer _decodeBuffer;
 		private NetworkPackageCoder _packageCoder;
+		private bool _isSending = false;
+		private bool _isReceiving = false;
 
 		/// <summary>
 		/// 通信Socket
 		/// </summary>
 		private Socket _socket;
 
+		/// <summary>
+		/// 同步上下文
+		/// </summary>
+		private MainThreadSyncContext _context;
 
 		/// <summary>
 		/// 初始化频道
 		/// </summary>
-		public void InitChannel(Socket socket, Type packageCoderType, int packageBodyMaxSize)
+		public void InitChannel(MainThreadSyncContext context, Socket socket, Type packageCoderType, int packageBodyMaxSize)
 		{
 			if (packageCoderType == null)
 				throw new System.ArgumentException($"packageCoderType is null.");
 			if (packageBodyMaxSize <= 0)
 				throw new System.ArgumentException($"packageMaxSize is invalid : {packageBodyMaxSize}");
 
+			_context = context;
 			_socket = socket;
 			_socket.NoDelay = true;
 
@@ -57,26 +64,16 @@ namespace MotionFramework.Network
 			int byteBufferSize = _packageMaxSize * 4;
 			int tempBufferSize = _packageMaxSize * 2;
 			_sendBuffer = new ByteBuffer(byteBufferSize);
-			_receiveBuffer = new ByteBuffer(byteBufferSize);
-			_tempBuffer = new byte[tempBufferSize];
+			_decodeBuffer = new ByteBuffer(byteBufferSize);
+			_receiveBuffer = new byte[tempBufferSize];
 
 			// 创建IOCP接收类
 			_receiveArgs.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-			_receiveArgs.SetBuffer(_tempBuffer, 0, _tempBuffer.Length);
+			_receiveArgs.SetBuffer(_receiveBuffer, 0, _receiveBuffer.Length);
 
 			// 创建IOCP发送类
 			_sendArgs.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
 			_sendArgs.SetBuffer(_sendBuffer.GetBuffer(), 0, _sendBuffer.Capacity);
-
-			// 请求操作
-			bool willRaiseEvent = _socket.ReceiveAsync(_receiveArgs);
-			if (!willRaiseEvent)
-			{
-				ProcessReceive(_receiveArgs);
-			}
-
-			// 发送线程
-			ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadUpdate));
 		}
 
 		/// <summary>
@@ -107,7 +104,10 @@ namespace MotionFramework.Network
 				_decodeTempList.Clear();
 
 				_sendBuffer.Clear();
-				_receiveBuffer.Clear();
+				_decodeBuffer.Clear();
+
+				_isSending = false;
+				_isReceiving = false;
 			}
 			catch (Exception)
 			{
@@ -124,52 +124,63 @@ namespace MotionFramework.Network
 		}
 
 		/// <summary>
-		/// 子线程内发送数据
+		/// 主线程内更新
 		/// </summary>
-		private void ThreadUpdate(object param)
+		public void Update()
 		{
-			while (true)
+			if (_socket == null || _socket.Connected == false)
+				return;
+
+			// 接收数据
+			UpdateReceiving();
+
+			// 发送数据
+			UpdateSending();
+		}
+		private void UpdateReceiving()
+		{
+			if (_isReceiving == false)
 			{
-				if (_socket == null || _socket.Connected == false)
-					return;
+				_isReceiving = true;
 
-				if (_sendQueue.Count == 0)
+				// 请求操作
+				bool willRaiseEvent = _socket.ReceiveAsync(_receiveArgs);
+				if (!willRaiseEvent)
 				{
-					Thread.Sleep(10);
-				}
-
-				lock (_sendQueue)
-				{
-					SendInternal();
+					ProcessReceive(_receiveArgs);
 				}
 			}
 		}
-		private void SendInternal()
+		private void UpdateSending()
 		{
-			// 清空缓存
-			_sendBuffer.Clear();
-
-			// 合并数据一起发送
-			while (_sendQueue.Count > 0)
+			if (_isSending == false && _sendQueue.Count > 0)
 			{
-				// 如果不够写入一个最大的消息包
-				if (_sendBuffer.WriteableBytes < _packageMaxSize)
-					break;
+				_isSending = true;
 
-				// 数据压码
-				System.Object packet = _sendQueue.Dequeue();
-				_packageCoder.Encode(_sendBuffer, packet);
-			}
+				// 清空缓存
+				_sendBuffer.Clear();
 
-			// 请求操作
-			_sendArgs.SetBuffer(0, _sendBuffer.ReadableBytes);
-			bool willRaiseEvent = _socket.SendAsync(_sendArgs);
-			if (!willRaiseEvent)
-			{
-				ProcessSend(_sendArgs);
+				// 合并数据一起发送
+				while (_sendQueue.Count > 0)
+				{
+					// 如果不够写入一个最大的消息包
+					if (_sendBuffer.WriteableBytes < _packageMaxSize)
+						break;
+
+					// 数据压码
+					System.Object packet = _sendQueue.Dequeue();
+					_packageCoder.Encode(_sendBuffer, packet);
+				}
+
+				// 请求操作
+				_sendArgs.SetBuffer(0, _sendBuffer.ReadableBytes);
+				bool willRaiseEvent = _socket.SendAsync(_sendArgs);
+				if (!willRaiseEvent)
+				{
+					ProcessSend(_sendArgs);
+				}
 			}
 		}
-
 
 		/// <summary>
 		/// 发送网络包
@@ -206,10 +217,10 @@ namespace MotionFramework.Network
 			switch (e.LastOperation)
 			{
 				case SocketAsyncOperation.Receive:
-					ProcessReceive(e);
+					_context.Post(ProcessReceive, e);
 					break;
 				case SocketAsyncOperation.Send:
-					ProcessSend(e);
+					_context.Post(ProcessSend, e);
 					break;
 				default:
 					throw new ArgumentException("The last operation completed on the socket was not a receive or send");
@@ -227,18 +238,18 @@ namespace MotionFramework.Network
 			if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
 			{
 				// 如果数据写穿
-				if (_receiveBuffer.IsWriteable(e.BytesTransferred) == false)
+				if (_decodeBuffer.IsWriteable(e.BytesTransferred) == false)
 				{
 					HandleError(true, "The channel fatal error");
 					return;
 				}
 
 				// 拷贝数据
-				_receiveBuffer.WriteBytes(e.Buffer, 0, e.BytesTransferred);
+				_decodeBuffer.WriteBytes(e.Buffer, 0, e.BytesTransferred);
 
 				// 数据解码
 				_decodeTempList.Clear();
-				_packageCoder.Decode(_receiveBuffer, _decodeTempList);
+				_packageCoder.Decode(_decodeBuffer, _decodeTempList);
 				lock (_receiveQueue)
 				{
 					for (int i = 0; i < _decodeTempList.Count; i++)
@@ -248,7 +259,7 @@ namespace MotionFramework.Network
 				}
 
 				// 为接收下一段数据，投递接收请求
-				e.SetBuffer(0, _tempBuffer.Length);
+				e.SetBuffer(0, _receiveBuffer.Length);
 				bool willRaiseEvent = _socket.ReceiveAsync(e);
 				if (!willRaiseEvent)
 				{
@@ -269,6 +280,7 @@ namespace MotionFramework.Network
 			SocketAsyncEventArgs e = obj as SocketAsyncEventArgs;
 			if (e.SocketError == SocketError.Success)
 			{
+				_isSending = false;
 			}
 			else
 			{
