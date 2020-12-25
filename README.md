@@ -75,7 +75,7 @@ C# && .Net4.x
 ![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/icon3.jpg)  
 
 ## 贡献者
-[何冠峰](https://github.com/gmhevinci) [任志勇](https://github.com/renruoyu1989) [ZensYue](https://github.com/ZensYue)  
+[何冠峰](https://github.com/gmhevinci) [任志勇](https://github.com/renruoyu1989) [ZensYue](https://github.com/ZensYue) [徐烜](https://github.com/mayaxu)  
 
 ## 声明
 我们将会一直维护该框架，提交的Issue会在一天内回复并开始解决，欢迎加入社区QQ群：654986302
