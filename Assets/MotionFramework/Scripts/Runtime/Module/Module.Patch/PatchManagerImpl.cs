@@ -63,7 +63,7 @@ namespace MotionFramework.Patch
 		private PatchManifest _localPatchManifest;
 		private PatchCache _cache;
 
-		// 补丁下载器		
+		// 补丁下载器
 		public PatchDownloader InternalDownloader { private set; get; }
 
 
@@ -85,9 +85,9 @@ namespace MotionFramework.Patch
 		{
 			get
 			{
-				if (_cache == null)
+				if (_localPatchManifest == null)
 					return -1;
-				return _cache.ResourceVersion;
+				return _localPatchManifest.ResourceVersion;
 			}
 		}
 
@@ -120,19 +120,19 @@ namespace MotionFramework.Patch
 				// 如果是首次打开，记录APP版本号
 				if (PatchHelper.CheckSandboxCacheFileExist() == false)
 				{
-					_cache.CacheVersion = Application.version;
+					_cache.CacheAppVersion = Application.version;
 					_cache.SaveCache();
 				}
 				else
 				{
 					// 每次启动时比对APP版本号是否一致	
-					if (_cache.CacheVersion != Application.version)
+					if (_cache.CacheAppVersion != Application.version)
 					{
-						MotionLog.Warning($"Cache is dirty ! Cache version is {_cache.CacheVersion}, APP version is {Application.version}");
+						MotionLog.Warning($"Cache is dirty ! Cache version is {_cache.CacheAppVersion}, APP version is {Application.version}");
 						ClearCache();
 
 						// 重新写入最新的APP版本号
-						_cache.CacheVersion = Application.version;
+						_cache.CacheAppVersion = Application.version;
 						_cache.SaveCache();
 					}
 				}
@@ -158,13 +158,6 @@ namespace MotionFramework.Patch
 				string jsonData = downloader.GetText();
 				_appPatchManifest = PatchManifest.Deserialize(jsonData);
 				downloader.Dispose();
-
-				// 保存资源版本号
-				if (_cache.ResourceVersion == PatchCache.DEFAULT_VERSION)
-				{
-					_cache.ResourceVersion = _appPatchManifest.ResourceVersion;
-					_cache.SaveCache();
-				}
 			}
 
 			// 加载沙盒内的补丁清单
@@ -194,6 +187,7 @@ namespace MotionFramework.Patch
 			_procedure.AddNode(new FsmGetDonwloadList(this));
 			_procedure.AddNode(new FsmDownloadWebFiles(this));
 			_procedure.AddNode(new FsmDownloadOver(this));
+			_procedure.AddNode(new FsmPatchDone());
 			_procedure.Run();
 		}
 
@@ -404,11 +398,6 @@ namespace MotionFramework.Patch
 		}
 
 		// 缓存系统相关
-		public void CacheLocalResourceVersion()
-		{
-			_cache.ResourceVersion = _localPatchManifest.ResourceVersion;
-			_cache.SaveCache();
-		}
 		public void CacheDownloadPatchFile(string bundleName)
 		{
 			if (_localPatchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
@@ -458,10 +447,12 @@ namespace MotionFramework.Patch
 		{
 			return _localPatchManifest;
 		}
-		public void SaveRemotePatchManifest(string content)
+		public void ParseRemotePatchManifest(string content)
 		{
 			_localPatchManifest = PatchManifest.Deserialize(content);
-
+		}
+		public void SaveRemotePatchManifest()
+		{
 			// 注意：这里会覆盖掉沙盒内的补丁清单文件
 			MotionLog.Log("Save remote patch manifest.");
 			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);

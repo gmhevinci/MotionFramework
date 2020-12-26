@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2019-2020 何冠峰
+// Copyright©2020-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -9,21 +9,17 @@ using MotionFramework.AI;
 
 namespace MotionFramework.Patch
 {
-	internal class FsmDownloadOver : IFsmNode
+	internal class FsmPatchDone: IFsmNode
 	{
-		private readonly PatchManagerImpl _patcher;
 		public string Name { private set; get; }
 
-		public FsmDownloadOver(PatchManagerImpl patcher)
+		public FsmPatchDone()
 		{
-			_patcher = patcher;
-			Name = EPatchStates.DownloadOver.ToString();
+			Name = EPatchStates.PatchDone.ToString();
 		}
 		void IFsmNode.OnEnter()
-		{	
-			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.DownloadOver);
-			_patcher.SaveRemotePatchManifest();
-			_patcher.SwitchNext();
+		{
+			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.PatchDone);
 		}
 		void IFsmNode.OnUpdate()
 		{

@@ -76,7 +76,7 @@ namespace MotionFramework.Patch
 			if (newResourceVersion == oldResourceVersion)
 			{
 				MotionLog.Log($"Resource version is not change.");
-				_patcher.Switch(EPatchStates.DownloadOver.ToString());
+				_patcher.Switch(EPatchStates.PatchDone.ToString());
 			}
 			else
 			{

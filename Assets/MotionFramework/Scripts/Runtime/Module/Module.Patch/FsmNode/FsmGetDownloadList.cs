@@ -42,6 +42,7 @@ namespace MotionFramework.Patch
 			// 如果下载列表为空
 			if (downloadList.Count == 0)
 			{
+				MotionLog.Log("Not found update web files.");
 				_patcher.Switch(EPatchStates.DownloadOver.ToString());
 			}
 			else

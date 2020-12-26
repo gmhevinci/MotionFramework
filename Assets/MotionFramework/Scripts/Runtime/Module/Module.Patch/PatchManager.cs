@@ -125,7 +125,7 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public bool IsFinish()
 		{
-			return _patcher.CurrentStates == EPatchStates.DownloadOver.ToString();
+			return _patcher.CurrentStates == EPatchStates.PatchDone.ToString();
 		}
 
 		/// <summary>

@@ -15,17 +15,10 @@ namespace MotionFramework.Patch
 	[Serializable]
 	public class PatchCache
 	{
-		public const int DEFAULT_VERSION = -1;
-
 		/// <summary>
-		/// 缓存版本
+		/// 缓存的APP内置版本
 		/// </summary>
-		public string CacheVersion = string.Empty;
-
-		/// <summary>
-		/// 资源版本
-		/// </summary>
-		public int ResourceVersion = DEFAULT_VERSION;
+		public string CacheAppVersion = string.Empty;
 
 		/// <summary>
 		/// 缓存文件的哈希列表
@@ -88,8 +81,7 @@ namespace MotionFramework.Patch
 		public void ClearCache()
 		{
 			MotionLog.Warning("Clear cache and remove all sandbox files.");
-			CacheVersion = string.Empty;
-			ResourceVersion = DEFAULT_VERSION;
+			CacheAppVersion = string.Empty;
 			CachedFileHashList.Clear();
 			PatchHelper.ClearSandbox();
 		}

@@ -53,8 +53,8 @@ namespace MotionFramework.Patch
 				yield break;
 			}
 			
-			// 保存补丁清单到本地
-			_patcher.SaveRemotePatchManifest(download.GetText());
+			// 解析远端下载的补丁清单
+			_patcher.ParseRemotePatchManifest(download.GetText());
 			download.Dispose();
 			_patcher.SwitchNext();
 		}

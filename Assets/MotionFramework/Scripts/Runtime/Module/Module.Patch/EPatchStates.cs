@@ -27,7 +27,7 @@ namespace MotionFramework.Patch
 		GetDonwloadList,
 
 		/// <summary>
-		/// 下载网络文件到沙盒
+		/// 下载网络文件
 		/// </summary>
 		DownloadWebFiles,
 
@@ -35,5 +35,10 @@ namespace MotionFramework.Patch
 		/// 下载结束
 		/// </summary>
 		DownloadOver,
+
+		/// <summary>
+		/// 补丁流程完毕
+		/// </summary>
+		PatchDone,
 	}
 }

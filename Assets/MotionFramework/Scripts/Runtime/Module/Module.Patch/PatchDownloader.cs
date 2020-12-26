@@ -64,7 +64,6 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 是否完毕，无论成功或失败
 		/// </summary>
-		/// <returns></returns>
 		public bool IsDone()
 		{
 			return DownloadStates == EDownloaderStates.Failed || DownloadStates == EDownloaderStates.Succeed || DownloadStates == EDownloaderStates.Forbid;

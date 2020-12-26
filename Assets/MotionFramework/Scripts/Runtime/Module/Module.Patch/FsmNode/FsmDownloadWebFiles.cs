@@ -50,8 +50,6 @@ namespace MotionFramework.Patch
 			if (downloader.DownloadStates != EDownloaderStates.Succeed)
 				yield break;
 
-			// 缓存本地资源版本号
-			_patcher.CacheLocalResourceVersion();
 			_patcher.SwitchNext();
 		}
 	}
