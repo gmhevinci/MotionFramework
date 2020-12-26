@@ -35,6 +35,11 @@ namespace MotionFramework.Resource
 			public bool SimulationOnEditor;
 
 			/// <summary>
+			/// 运行时的最大加载个数
+			/// </summary>
+			public int RuntimeMaxLoadingCount = int.MaxValue;
+
+			/// <summary>
 			/// AssetBundle服务接口
 			/// </summary>
 			public IBundleServices BundleServices;
@@ -60,7 +65,8 @@ namespace MotionFramework.Resource
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
 
 			// 初始化资源系统
-			AssetSystem.Initialize(createParam.LocationRoot, createParam.SimulationOnEditor, createParam.BundleServices, createParam.DecryptServices);
+			AssetSystem.Initialize(createParam.LocationRoot, createParam.SimulationOnEditor, createParam.RuntimeMaxLoadingCount, 
+				createParam.BundleServices, createParam.DecryptServices);
 
 			// 创建间隔计时器
 			if (createParam.AutoReleaseInterval > 0)

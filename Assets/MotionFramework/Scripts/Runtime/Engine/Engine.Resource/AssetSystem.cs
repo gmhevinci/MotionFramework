@@ -32,6 +32,11 @@ namespace MotionFramework.Resource
 		public static bool SimulationOnEditor { private set; get; }
 
 		/// <summary>
+		/// 运行时的最大加载个数
+		/// </summary>
+		public static int RuntimeMaxLoadingCount { private set; get; }
+
+		/// <summary>
 		/// AssetBundle服务接口
 		/// </summary>
 		public static IBundleServices BundleServices { private set; get; }
@@ -45,13 +50,21 @@ namespace MotionFramework.Resource
 		/// 初始化资源系统
 		/// 注意：在使用AssetSystem之前需要初始化
 		/// </summary>
-		public static void Initialize(string locationRoot, bool simulationOnEditor, IBundleServices bundleServices, IDecryptServices decryptServices)
+		public static void Initialize(string locationRoot, bool simulationOnEditor, int runtimeMaxLoadingCount, IBundleServices bundleServices, IDecryptServices decryptServices)
 		{
 			if (_isInitialize == false)
 			{
 				_isInitialize = true;
+
+				if (runtimeMaxLoadingCount < 3)
+				{
+					runtimeMaxLoadingCount = 3;
+					MotionLog.Warning("AssetSystem RuntimeMaxLoadingCount minimum is 3");
+				}
+
 				LocationRoot = AssetPathHelper.GetRegularPath(locationRoot);
 				SimulationOnEditor = simulationOnEditor;
+				RuntimeMaxLoadingCount = runtimeMaxLoadingCount;
 				BundleServices = bundleServices;
 				DecryptServices = decryptServices;
 			}
@@ -66,12 +79,27 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static void UpdatePoll()
 		{
+			// 更新所有加载器
+			int loadingCount = 0;
 			for (int i = 0; i < _loaders.Count; i++)
 			{
-				_loaders[i].Update();
+				var loader = _loaders[i];
+				if (loader.IsSceneLoader)
+				{
+					loader.Update();
+				}
+				else
+				{
+					if (loadingCount < RuntimeMaxLoadingCount)
+						loader.Update();
+
+					if (loader.IsDone() == false)
+						loadingCount++;
+				}
 			}
 
-			UpdateScene();
+			// 实时销毁场景
+			UpdateDestroyScene();
 		}
 
 		/// <summary>
@@ -117,7 +145,7 @@ namespace MotionFramework.Resource
 			AssetLoaderBase loader = TryGetLoader(bundleInfo.BundleName);
 			if (loader != null)
 				return loader;
-			
+
 			// 创建加载器
 			if (SimulationOnEditor)
 				loader = new AssetDatabaseLoader(bundleInfo);
@@ -130,10 +158,10 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 更新场景
+		/// 实时销毁场景
 		/// 注意：因为场景比较特殊，需要立刻回收
 		/// </summary>
-		private static void UpdateScene()
+		private static void UpdateDestroyScene()
 		{
 			for (int i = _loaders.Count - 1; i >= 0; i--)
 			{
@@ -162,7 +190,7 @@ namespace MotionFramework.Resource
 				}
 			}
 		}
-		
+
 		/// <summary>
 		/// 强制回收所有资源
 		/// </summary>
@@ -178,7 +206,7 @@ namespace MotionFramework.Resource
 			// 释放所有资源
 			Resources.UnloadUnusedAssets();
 		}
-		
+
 		/// <summary>
 		/// 从列表里获取加载器
 		/// </summary>
