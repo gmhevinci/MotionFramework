@@ -1,3 +1,4 @@
+--------------------------------------------------------------------------------------
 v1.4.0 - 2020年12月27日
 新增
 [ec26a15] 新增基于Playable的动画系统。
@@ -11,160 +12,170 @@ v1.4.0 - 2020年12月27日
 [8116ac2] 修复了版本回退后不能返回到最新版本的问题。
 
 
+--------------------------------------------------------------------------------------
 v1.3.3 - 2020年10月8日
 该版本为预览版
 
 改进
-1. [56d986da8306334fc522649dd24f4fd53ff7fbdb][Console] 优化控制台显示区域以适应异形屏。
-2. [d1a313fb6dbb48d279b470a866c7b07ca9ac1a1c][Resource] 改进资源系统，现在的资源系统更类似于Unity自带的Resources系统。
+[56d986d] 优化控制台显示区域以适应异形屏。
+[d1a313f] 资源系统改进后更类似于Unity自带的Resources系统。
 
 变更
-1. [5b34a9cf14793a1302e7565b31ba8335aa091624][Resource] 移除AssetReference.cs脚本，现在统一使用ResourceManager.LoadAssetAysnc接口。
+[5b34a9c] 移除AssetReference.cs脚本，现在统一使用ResourceManager.LoadAssetAysnc接口。
 
 
+--------------------------------------------------------------------------------------
 v1.3.2 - 2020年9月18日
 新增
-1. [ad9dda800b1b5dd8eb615c88ff4d4d657cb4c08a][Utility] 增加了加密的值类型，可以防止内存值修改。
+[ad9dda8] 增加了加密的值类型，可以防止内存值修改。
 
 改进
-1. [29804a5119ad94ab6a4b23c685304ac41ebae0e8][Patch] 文件合法性校验增加CRC32方法
-2. [699c86428807a96b918c351729447eb3cd198180][Tween] 编码上增强了对程序链的支持
-3. [6fb0d6052a83624fb05d17a810836a7c5e37369a][Network] 优化了网络系统，协议的解码和编码放在了线程内处理。
-4. [f1ae1a9e302e376d9b2907553866a5078af6ab67][Editor] AssetBundleBuilder增加了对循环依赖的检测。
-5. [372741d923dc49632db2d7084394a5360db9d732][Console] 优化了控制台的滑动条，现在更容易触摸。
+[29804a5] 补丁系统的文件合法性校验增加了CRC32方法。
+[699c864] 补间系统的编码上增强了对程序链的支持。
+[f1ae1a9] AssetBundleBuilder增加了对循环依赖的检测。
+[372741d] 优化了控制台的滑动条，现在更容易触摸。
 
 修复
-1. [05298ab55ab48703b7a419f2e94ff83f126fd52f][Resource] 修复了引用计数一个非常隐秘的BUG。
-2. [5764a369419e0dc82f3ab7fde24a306eb384440f][Window] 修复了屏幕安全区不正常的问题。
+[05298ab] 修复了资源系统的引用计数一个非常隐秘的BUG。
+[5764a36] 修复了窗口模块的屏幕安全区不正常的问题。
 
 变更
-1. [0c61281c4a5ec68d5e60f3480ab4d3178d0545f3][Patch] ECheckLevel 重命名为 EVerifyLevel
+[0c61281] ECheckLevel重命名为EVerifyLevel
 
 
+--------------------------------------------------------------------------------------
 v1.3.1 - 2020年8月8日
 为了支持DLC，补丁系统整体做了优化和调整。
 
 改进
-1. [c2df1b1] [Tween] 增加了组ID概念，方便统一终止补间动画。
-2. [e6d89b3] [AssetBundleCollector] 增加了自定义收集功能。
-3. [feba649] [AssetBundleCollector] 增加了DLC打包功能。
-4. [b12cd13] [Resource] 增加了静默下载功能。
-5. [10b7d29] [Patch] 增加了DLC下载功能，支持游戏启动下载DLC，支持游戏运行时边玩边下DLC。
-6. [66b132d] [Tween] 增加了TweenChain接口，方便简化代码。
-7. [428a258] [AssetBundleBuilder] 增加了清空材质球冗余属性的按钮，可以清除材质球旧的依赖图片。
+[c2df1b1] 补间系统增加了组ID概念，方便统一终止补间动画。
+[e6d89b3] AssetBundleCollector增加了自定义收集功能。
+[feba649] AssetBundleCollector增加了DLC打包功能。
+[b12cd13] 资源系统增加了静默下载功能。
+[10b7d29] 补丁系统增加了DLC下载功能，支持游戏启动下载DLC，支持游戏运行时边玩边下DLC。
+[66b132d] 补间系统增加了TweenChain接口，方便简化代码。
+[428a258] AssetBundleBuilder增加了清空材质球冗余属性的按钮，可以清除材质球旧的依赖图片。
 
 变更
-1. [b8de030] [Patch] PatchManifest文件改为了JSON格式。
-2. [663c5a7] [ParticleProfiler] 移除了ParticleProfiler窗体。
+[b8de030] PatchManifest文件改为了JSON格式。
+[663c5a7] 移除了ParticleProfiler窗体。
 
 
+--------------------------------------------------------------------------------------
 v1.3.0 - 2020年7月12日
 新增
-1. [95c1a6c] 新增轻量化的补间系统
+[95c1a6c] 新增轻量化的补间系统
 
 改进
-1. [4e52835] [Utility] Timer类简化为了一个核心类。
-2. [a836716][Window] 异形屏适配更加灵活
-3. [fddc94d][Console] 控制台窗口提供了一个适配异形屏的接口
-4. [7ac8215][Window] 窗口系统移除了常驻窗口的概念并重新优化了逻辑结构
-5. [581486b][Pool] 增加了异步创建对象池
-6. [f758110][Console] 控制台新增了时间缩放控制按钮
+[4e52835] Timer类简化为了一个核心类。
+[a836716] 窗口系统的异形屏适配更加灵活。
+[fddc94d] 控制台窗口提供了一个适配异形屏的接口。
+[7ac8215] 窗口系统移除了常驻窗口的概念并重新优化了逻辑结构。
+[581486b] 增加了异步创建对象池。
+[f758110] 控制台系统新增了时间缩放控制按钮。
 
 修复
-1. [4b4c3c2] [Resource] 修复在编辑器下模拟运行查找到重名文件的问题
-2. [4e1301a][AssetImporter] 修复了第一次打开窗口，导入器下拉框为空的问题
+[4b4c3c2] 修复了资源系统在编辑器下模拟运行查找到重名文件的问题。
+[4e1301a] AssetImporter修复了第一次打开窗口，导入器下拉框为空的问题。
 
 变更
-1. [01a952d][Resource] 移除了同步加载接口，新增了获取加载路径的接口
-2. [c46cff7][AI] Procedure类重名为ProcedureFsm
+[01a952d] 资源系统移除了同步加载接口，新增了获取加载路径的接口。
+[c46cff7] 状态机Procedure类重名为ProcedureFsm。
 
 
+--------------------------------------------------------------------------------------
 v1.2.1 - 2020年6月26日
 改进
-1. [38f4f18] [Window] 添加异形屏支持接口
-2. [32b0f65] [Config] 添加反射服务接口，方便接入ILRuntime库
-3. [f82ea38] [Window] 添加反射服务接口，方便接入ILRuntime库
+[38f4f18] 窗口系统添加了异形屏支持接口。
+[32b0f65] 配表系统添加反射服务接口，方便接入ILRuntime库。
+[f82ea38] 窗口系统添加反射服务接口，方便接入ILRuntime库。
 
 修复
-1. [9104a1e] [Window] 修复一个异常
-2. [8292e94] [AssetImporter] 修复音频文件Normalize属性没有复制
+[9104a1e] 窗口系统修复一个异常。
+[8292e94] AssetImporter修复音频文件Normalize属性没有复制。
 
 
+--------------------------------------------------------------------------------------
 v1.2.0 - 2020年6月21日
 新增
-1. [Window] 新加窗口系统，默认支持UGUI
+新加窗口系统，默认支持UGUI
 
 改进
-1. [dadba8b] [Patch] 改进了补丁系统，优化了整个流程。
-2. [dadba8b] [Patch] 变种文件现在扩展更加方便。
-3. [3b03d02] [Patch] PatchManifest文件现在为二进制文件
-4. [645da05] [Utility] 优化了程序集工具类
-5. [0d7e36f] [Config] 改进了配备管理器的加载接口，移除了通过反射收集配表类型的代码。
-
-修复
-1. [24cd78f] [Console] 修复游戏对象池模块未创建时，打开控制台的游戏对象池窗口时报错的问题。
+[dadba8b] 改进了补丁系统，优化了整个流程。
+[dadba8b] 补丁系统的变种文件现在扩展更加方便。
+[3b03d02] 补丁系统的PatchManifest文件现在为二进制文件。
+[645da05] 优化了程序集工具类。
+[0d7e36f] 改进了配备管理器的加载接口，移除了通过反射收集配表类型的代码。
 
 变更
-1. [c1550c6] [AssetBundleCollector] 移除LabelByFileName和LabelByFolderName
-2. [c135a60] [Console] 现在控制台需要独立初始化和绘制
+[c1550c6] AssetBundleCollector移除LabelByFileName和LabelByFolderName
+[c135a60] 现在控制台需要独立初始化和绘制。
+
+修复
+[24cd78f] 修复游戏对象池模块未创建时，打开控制台的游戏对象池窗口时报错的问题。
 
 
+--------------------------------------------------------------------------------------
 v1.1.2 - 2020年6月7日
 改进
-1. [e30374c] [Patch] 现在和WEB服务器通信的数据格式改为更加灵活的JSON格式
-2. [ae16c86] [Network] 针对IL2CPP做了代码优化
-3. [72380ea] [Resource] 针对IL2CPP做了代码优化
-4. [7c4a204] [Config] 增加批量加载表格的协程接口
-5. [be28685] [Resource] 增加了非泛型加载接口
+[e30374c] 补丁系统现在和WEB服务器通信的数据格式改为更加灵活的JSON格式。
+[ae16c86] 网络系统针对IL2CPP做了代码优化。
+[72380ea] 资源系统针对IL2CPP做了代码优化。
+[7c4a204] 配表系统增加了批量加载表格的协程接口。
+[be28685] 资源系统增加了非泛型加载接口。
 
 变更
-1. [7c4a204] [Config] ConfigManager加载配表现在需要传入Location地址
+[7c4a204] 配表管理器加载配表现在需要传入Location地址。
 
 
+--------------------------------------------------------------------------------------
 v1.1.1 - 2020年5月31日
 改进
-1. [c619ea4] [Network] 将客户端网络逻辑从TcpServer.cs内迁移到TcpClient.cs
-2. [b1ee720] [Patch] 新增用于单机游戏的Bundle文件服务类 : LocalBundleServices.cs
-3. [671430a] [Core] 简化MotionEngine初始化并接管日志和控制台初始化
-4. [44ff2cd] [Patch] 开发者现在可以选择文件校验方式：文件大小或文件MD5
+[c619ea4] 网络系统将客户端网络逻辑从TcpServer.cs内迁移到TcpClient.cs
+[b1ee720] 补丁系统新增用于单机游戏的Bundle文件服务类 : LocalBundleServices.cs
+[671430a] 简化MotionEngine初始化并接管日志和控制台初始化。
+[44ff2cd] 补丁系统开发者现在可以选择文件校验方式：文件大小或文件MD5
 
 修复
-1. [873bb7d] [Patch] 修复游戏版本解析错误
+[873bb7d] 修复了补丁系统的游戏版本解析错误。
 
 变更
-1. [c619ea4] [Network] 移除NetworkDefine.cs
-2. [44ff2cd] [Patch] PatchManifest.cs内文件大小单位由KB改为Byte
+[c619ea4] 移除NetworkDefine.cs
+[44ff2cd] PatchManifest.cs内文件大小单位由KB改为Byte
 
 
+--------------------------------------------------------------------------------------
 v1.1.0 - 2020年4月7日
 新增
-1. [AI] 新加简单的神经网络库
+新加简单的神经网络库
 
 改进
-1. [AssetBundleBuilder] 改进打包流程
-2. [AssetImporter] 默认导入器再导入精灵图片时忽略九宫格信息
-3. [Console] 输出的错误日志加入堆栈信息
+AssetBundleBuilder改进打包流程。
+AssetImporter默认导入器再导入精灵图片时忽略九宫格信息。
+控制台的输出的错误日志加入堆栈信息。
 
 修复
-1. [Resource] 修复带后缀格式的资源路径加载报错的问题
-2. [Resource] 修复快速切换场景时卡住加载的问题
+资源系统修复了带后缀格式的资源路径加载报错的问题。
+资源系统修复了快速切换场景时卡住加载的问题。
 
 变更
-1. 移除BuildAssetBundle.cs
+移除BuildAssetBundle.cs
 
 
+--------------------------------------------------------------------------------------
 v1.0.1 - 2020年3月4日
 改进
-1. [Config] 配表加载支持协程等待
-2. [Pool] 改进游戏对象池
-3. [Event] 事件管理器增加EventGroup类
-4. [Network] 增加本地模拟接收网络包接口
+配表系统的加载支持协程等待。
+改进了游戏对象池。
+事件系统增加EventGroup类。
+网络系统增加了本地模拟接收网络包接口。
 
 变更
-1. [Network] NetworkPackage.cs 重命名为 DefaultNetworkPackage.cs
-2. [Network] DefaultPackageCoder.cs 重命名为 DefaultNetworkPackageCoder.cs
-3. [AI] AStar.cs 重命名为 AStarPathFinding.cs
+NetworkPackage.cs重命名为DefaultNetworkPackage.cs
+DefaultPackageCoder.cs重命名为DefaultNetworkPackageCoder.cs
+AStar.cs重命名为AStarPathFinding.cs
 
 
+--------------------------------------------------------------------------------------
 v1.0.0 - 2020年1月18日
 正式版发布
