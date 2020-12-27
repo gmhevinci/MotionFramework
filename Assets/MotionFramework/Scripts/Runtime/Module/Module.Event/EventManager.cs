@@ -43,6 +43,14 @@ namespace MotionFramework.Event
 		public void AddListener(System.Type eventType, System.Action<IEventMessage> listener)
 		{
 			int eventId = eventType.GetHashCode();
+			AddListener(eventId, listener);
+		}
+
+		/// <summary>
+		/// 添加监听
+		/// </summary>
+		public void AddListener(int eventId, System.Action<IEventMessage> listener)
+		{
 			if (_listeners.ContainsKey(eventId) == false)
 				_listeners.Add(eventId, new List<Action<IEventMessage>>());
 			if (_listeners[eventId].Contains(listener) == false)
@@ -63,6 +71,14 @@ namespace MotionFramework.Event
 		public void RemoveListener(System.Type eventType, System.Action<IEventMessage> listener)
 		{
 			int eventId = eventType.GetHashCode();
+			RemoveListener(eventId, listener);
+		}
+
+		/// <summary>
+		/// 移除监听
+		/// </summary>
+		public void RemoveListener(int eventId, System.Action<IEventMessage> listener)
+		{
 			if (_listeners.ContainsKey(eventId))
 			{
 				if (_listeners[eventId].Contains(listener))
@@ -76,6 +92,14 @@ namespace MotionFramework.Event
 		public void SendMessage(IEventMessage message)
 		{
 			int eventId = message.GetType().GetHashCode();
+			SendMessage(eventId, message);
+		}
+
+		/// <summary>
+		/// 广播事件
+		/// </summary>
+		public void SendMessage(int eventId, IEventMessage message)
+		{
 			if (_listeners.ContainsKey(eventId) == false)
 				return;
 
