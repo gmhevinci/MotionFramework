@@ -73,12 +73,12 @@ namespace MotionFramework.Window
 		/// <summary>
 		/// 窗口深度值
 		/// </summary>
-		public abstract int Depth { get; internal set; }
+		public abstract int Depth { get; set; }
 
 		/// <summary>
 		/// 窗口可见性
 		/// </summary>
-		public abstract bool Visible { get; internal set; }
+		public abstract bool Visible { get; set; }
 
 
 		public void Init(string name, int layer, bool fullScreen)

@@ -32,7 +32,7 @@ public abstract class CanvasWindow : UIWindow
 				return 0;
 		}
 
-		internal set
+		set
 		{
 			if (_canvas != null)
 			{
@@ -74,7 +74,7 @@ public abstract class CanvasWindow : UIWindow
 				return false;
 		}
 
-		internal set
+		set
 		{
 			if (_canvas != null)
 			{
