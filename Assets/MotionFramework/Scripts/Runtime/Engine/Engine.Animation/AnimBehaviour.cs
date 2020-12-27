@@ -74,7 +74,7 @@ public class AnimBehaviour : MonoBehaviour
 		_animPlayable.Create(_animator);
 
 		// 添加列表动作
-		for(int i=0; i< _animations.Length; i++)
+		for (int i = 0; i < _animations.Length; i++)
 		{
 			var wrapper = _animations[i];
 			if (wrapper == null || wrapper.Clip == null)
@@ -91,7 +91,7 @@ public class AnimBehaviour : MonoBehaviour
 		if (PlayAutomatically)
 		{
 			var wrapper = GetDefaultWrapper();
-			_animPlayable.Play(wrapper.Clip.name, 0.25f);
+			Play(wrapper.Clip.name);
 		}
 	}
 	public void OnDisable()
@@ -106,6 +106,47 @@ public class AnimBehaviour : MonoBehaviour
 	{
 		_animPlayable.Update(Time.deltaTime);
 	}
+
+	/// <summary>
+	/// 获取动画状态
+	/// </summary>
+	public AnimState GetState(string name)
+	{
+		return _animPlayable.GetAnimState(name);
+	}
+
+	/// <summary>
+	/// 动画是否在播放中
+	/// </summary>
+	public bool IsPlaying(string name)
+	{
+		return _animPlayable.IsPlaying(name);
+	}
+
+	/// <summary>
+	/// 是否包含动画片段
+	/// </summary>
+	public bool IsContains(string name)
+	{
+		return _animPlayable.IsContains(name);
+	}
+
+	/// <summary>
+	/// 播放动画
+	/// </summary>
+	public void Play(string name, float fadeLength = 0.25f)
+	{
+		_animPlayable.Play(name, fadeLength);
+	}
+
+	/// <summary>
+	/// 停止动画
+	/// </summary>
+	public void Stop(string name)
+	{
+		_animPlayable.Stop(name);
+	}
+
 
 	private AnimationWrapper GetDefaultWrapper()
 	{

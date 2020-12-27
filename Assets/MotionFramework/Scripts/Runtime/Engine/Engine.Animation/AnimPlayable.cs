@@ -55,9 +55,6 @@ namespace MotionFramework.Animation
 			_graph.Stop();
 		}
 
-		/// <summary>
-		/// 动画是否在播放中
-		/// </summary>
 		public bool IsPlaying(string name)
 		{
 			AnimState state = GetAnimState(name);
@@ -66,11 +63,7 @@ namespace MotionFramework.Animation
 
 			return state.IsConnect && state.States == EAnimStates.Playing;
 		}
-
-		/// <summary>
-		/// 播放动画
-		/// </summary>
-		public void Play(string name, float fadeDuration = 0.25f)
+		public void Play(string name, float fadeLength)
 		{
 			var animState = GetAnimState(name);
 			if (animState == null)
@@ -89,13 +82,9 @@ namespace MotionFramework.Animation
 				animMixer.Connect(_mixerRoot, animMixer.Layer);
 			}
 
-			animMixer.StartFade(1f, fadeDuration);
-			animMixer.Play(animState, fadeDuration);
+			animMixer.StartFade(1f, fadeLength);
+			animMixer.Play(animState, fadeLength);
 		}
-
-		/// <summary>
-		/// 停止动画
-		/// </summary>
 		public void Stop(string name)
 		{
 			var animState = GetAnimState(name);
@@ -114,10 +103,6 @@ namespace MotionFramework.Animation
 
 			animMixer.Stop(animState.Name);
 		}
-
-		/// <summary>
-		/// 添加动画片段
-		/// </summary>
 		public bool AddAnimation(string name, AnimationClip clip, int layer = 0)
 		{
 			if (string.IsNullOrEmpty(name))
@@ -137,10 +122,6 @@ namespace MotionFramework.Animation
 			_states.Add(stateNode);
 			return true;
 		}
-
-		/// <summary>
-		/// 移除动画片段
-		/// </summary>
 		public bool RemoveAnimation(string name)
 		{
 			if (IsContains(name) == false)
@@ -158,8 +139,7 @@ namespace MotionFramework.Animation
 			_states.Remove(animState);
 			return true;
 		}
-
-		private AnimState GetAnimState(string name)
+		public AnimState GetAnimState(string name)
 		{
 			for (int i = 0; i < _states.Count; i++)
 			{
@@ -168,6 +148,16 @@ namespace MotionFramework.Animation
 			}
 			return null;
 		}
+		public bool IsContains(string name)
+		{
+			for (int i = 0; i < _states.Count; i++)
+			{
+				if (_states[i].Name == name)
+					return true;
+			}
+			return false;
+		}
+
 		private AnimMixer GetAnimMixer(int layer)
 		{
 			for (int i = 0; i < _mixers.Count; i++)
@@ -196,15 +186,6 @@ namespace MotionFramework.Animation
 			var animMixer = new AnimMixer(_graph, layer);
 			_mixers.Add(animMixer);
 			return animMixer;
-		}
-		private bool IsContains(string name)
-		{
-			for (int i = 0; i < _states.Count; i++)
-			{
-				if (_states[i].Name == name)
-					return true;
-			}
-			return false;
 		}
 	}
 }
