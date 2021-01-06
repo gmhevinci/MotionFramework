@@ -298,8 +298,9 @@ namespace MotionFramework.Editor
 			if (AssetDatabase.IsValidFolder(assetPath))
 				return false;
 
+			// 注意：忽略编辑器下的类型资源
 			Type type = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-			if (type.Assembly.GetName().Name == "UnityEditor")
+			if (type == typeof(LightingDataAsset))
 				return false;
 
 			string ext = System.IO.Path.GetExtension(assetPath);
@@ -547,7 +548,7 @@ namespace MotionFramework.Editor
 			{
 				AssetInfo assetInfo = buildMap[i];
 				string label = $"{assetInfo.AssetBundleLabel}.{assetInfo.AssetBundleVariant}".ToLower();
-				if(label == assetBundleLabel)
+				if (label == assetBundleLabel)
 				{
 					string assetPath = assetInfo.AssetPath.Remove(assetInfo.AssetPath.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
 					result.Add(assetPath.ToLower());
