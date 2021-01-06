@@ -298,6 +298,10 @@ namespace MotionFramework.Editor
 			if (AssetDatabase.IsValidFolder(assetPath))
 				return false;
 
+			Type type = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+			if (type.Assembly.GetName().Name == "UnityEditor")
+				return false;
+
 			string ext = System.IO.Path.GetExtension(assetPath);
 			if (ext == "" || ext == ".dll" || ext == ".cs" || ext == ".js" || ext == ".boo" || ext == ".meta")
 				return false;
