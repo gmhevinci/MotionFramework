@@ -182,19 +182,15 @@ namespace MotionFramework.Editor
 			// 获取所有资源列表
 			int checkCount = 0;
 			int invalidCount = 0;
-			string[] guids = AssetDatabase.FindAssets(string.Empty, collectDirectorys.ToArray());
+			string[] guids = AssetDatabase.FindAssets($"t:{EAssetSearchType.Prefab}", collectDirectorys.ToArray());
 			foreach (string guid in guids)
 			{
 				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-				string ext = System.IO.Path.GetExtension(assetPath);
-				if (ext == $".{EAssetFileExtension.prefab}")
+				UnityEngine.Object prefab = AssetDatabase.LoadAssetAtPath(assetPath, typeof(UnityEngine.Object));
+				if (prefab == null)
 				{
-					UnityEngine.Object prefab = AssetDatabase.LoadAssetAtPath(assetPath, typeof(UnityEngine.Object));
-					if (prefab == null)
-					{
-						invalidCount++;
-						Debug.LogError($"[Build] 发现损坏预制件：{assetPath}");
-					}
+					invalidCount++;
+					Debug.LogError($"[Build] 发现损坏预制件：{assetPath}");
 				}
 
 				// 进度条相关
@@ -220,20 +216,16 @@ namespace MotionFramework.Editor
 			// 获取所有资源列表
 			int checkCount = 0;
 			int removedCount = 0;
-			string[] guids = AssetDatabase.FindAssets(string.Empty, collectDirectorys.ToArray());
+			string[] guids = AssetDatabase.FindAssets($"t:{EAssetSearchType.Material}", collectDirectorys.ToArray());
 			foreach (string guid in guids)
 			{
 				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-				string ext = System.IO.Path.GetExtension(assetPath);
-				if (ext == $".{EAssetFileExtension.mat}")
+				Material mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+				bool removed = EditorTools.ClearMaterialUnusedProperty(mat);
+				if (removed)
 				{
-					Material mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-					bool removed = EditorTools.ClearMaterialUnusedProperty(mat);
-					if (removed)
-					{
-						removedCount++;
-						Debug.LogWarning($"[Build] 材质球已被处理：{assetPath}");
-					}
+					removedCount++;
+					Debug.LogWarning($"[Build] 材质球已被处理：{assetPath}");
 				}
 
 				// 进度条相关

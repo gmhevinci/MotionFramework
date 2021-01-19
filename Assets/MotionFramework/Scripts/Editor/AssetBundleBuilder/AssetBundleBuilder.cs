@@ -136,8 +136,6 @@ namespace MotionFramework.Editor
 			if (unityManifest == null)
 				throw new Exception("[BuildPatch] 构建过程中发生错误！");
 
-			// 视频单独打包
-			PackVideo(buildMap);
 			// 加密资源文件
 			List<string> encryptList = EncryptFiles(unityManifest);
 
@@ -329,33 +327,6 @@ namespace MotionFramework.Editor
 				string label = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
 				assetInfo.AssetBundleLabel = EditorTools.GetRegularPath(label);
 				assetInfo.AssetBundleVariant = PatchDefine.AssetBundleDefaultVariant;
-			}
-		}
-		#endregion
-
-		#region 视频相关
-		private void PackVideo(List<AssetInfo> buildMap)
-		{
-			// 注意：在Unity2018.4截止的版本里，安卓还不支持压缩的视频Bundle
-			if (BuildTarget == BuildTarget.Android)
-			{
-				Log($"开始视频单独打包（安卓平台）");
-				for (int i = 0; i < buildMap.Count; i++)
-				{
-					AssetInfo assetInfo = buildMap[i];
-					if (assetInfo.IsVideoAsset)
-					{
-						BuildAssetBundleOptions opt = BuildAssetBundleOptions.None;
-						opt |= BuildAssetBundleOptions.DeterministicAssetBundle;
-						opt |= BuildAssetBundleOptions.StrictMode;
-						opt |= BuildAssetBundleOptions.UncompressedAssetBundle;
-						var videoObj = AssetDatabase.LoadAssetAtPath<UnityEngine.Video.VideoClip>(assetInfo.AssetPath);
-						string outPath = OutputDirectory + "/" + assetInfo.AssetBundleLabel.ToLower();
-						bool result = BuildPipeline.BuildAssetBundle(videoObj, new[] { videoObj }, outPath, opt, BuildTarget);
-						if (result == false)
-							throw new Exception($"视频单独打包失败：{assetInfo.AssetPath}");
-					}
-				}
 			}
 		}
 		#endregion
