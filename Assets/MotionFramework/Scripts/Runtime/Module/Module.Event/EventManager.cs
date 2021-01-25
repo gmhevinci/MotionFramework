@@ -104,7 +104,7 @@ namespace MotionFramework.Event
 				return;
 
 			List<Action<IEventMessage>> listeners = _listeners[eventId];
-			for (int i = 0; i < listeners.Count; i++)
+			for (int i = listeners.Count - 1; i >= 0; i--)
 			{
 				listeners[i].Invoke(message);
 			}
