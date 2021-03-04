@@ -56,6 +56,11 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private Vector2 _scrollPos = Vector2.zero;
 
+		/// <summary>
+		/// 递归检测
+		/// </summary>
+		private bool _recursive = true;
+
 
 		private void OnGUI()
 		{
@@ -81,6 +86,9 @@ namespace MotionFramework.Editor
 				if (spriteObject != null)
 					_searchObject = spriteObject;
 			}
+
+			// 递归检测
+			_recursive = EditorGUILayout.Toggle("递归检测", _recursive);
 
 			// 执行搜索
 			EditorGUILayout.Space();
@@ -119,10 +127,14 @@ namespace MotionFramework.Editor
 				string HeaderName = value.ToString();
 				if (value == EAssetFileExtension.prefab)
 					HeaderName = "预制体";
+				else if (value == EAssetFileExtension.unity)
+					HeaderName = "场景";
 				else if (value == EAssetFileExtension.fbx)
 					HeaderName = "模型";
-				else if (value == EAssetFileExtension.cs)
-					HeaderName = "脚本";
+				else if (value == EAssetFileExtension.anim)
+					HeaderName = "动画";
+				else if (value == EAssetFileExtension.controller)
+					HeaderName = "控制器";
 				else if (value == EAssetFileExtension.png || value == EAssetFileExtension.jpg)
 					HeaderName = "图片";
 				else if (value == EAssetFileExtension.mat)
@@ -131,10 +143,8 @@ namespace MotionFramework.Editor
 					HeaderName = "着色器";
 				else if (value == EAssetFileExtension.ttf)
 					HeaderName = "字体";
-				else if (value == EAssetFileExtension.anim)
-					HeaderName = "动画";
-				else if (value == EAssetFileExtension.unity)
-					HeaderName = "场景";
+				else if (value == EAssetFileExtension.cs)
+					HeaderName = "脚本";
 				else
 					throw new NotImplementedException(value.ToString());
 
@@ -211,9 +221,11 @@ namespace MotionFramework.Editor
 			foreach (string guid in allGuids)
 			{
 				string path = AssetDatabase.GUIDToAssetPath(guid);
-				string[] dpends = AssetDatabase.GetDependencies(path, false);
+				string[] dpends = AssetDatabase.GetDependencies(path, _recursive);
 				foreach (string name in dpends)
 				{
+					if (name.Equals(path))
+						continue;
 					if (name.Equals(searchAssetPath))
 					{
 						foreach (EAssetFileExtension value in Enum.GetValues(typeof(EAssetFileExtension)))

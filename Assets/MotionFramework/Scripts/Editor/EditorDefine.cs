@@ -30,6 +30,7 @@ namespace MotionFramework.Editor
 	public enum EAssetSearchType
 	{
 		All,
+		RuntimeAnimatorController,
 		AnimationClip,
 		AudioClip,
 		AudioMixer,
@@ -56,6 +57,7 @@ namespace MotionFramework.Editor
 		unity, //场景
 		fbx, //模型
 		anim, //动画
+		controller, //控制器
 		png, //图片
 		jpg, //图片
 		mat, //材质球
