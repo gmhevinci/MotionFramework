@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Animations;
 
-namespace MotionFramework.Animation
+namespace MotionFramework.Experimental.Animation
 {
 	public sealed class AnimMixer : AnimNode
 	{

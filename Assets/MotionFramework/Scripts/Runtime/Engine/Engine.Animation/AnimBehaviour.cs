@@ -7,7 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using MotionFramework.Animation;
+using MotionFramework.Experimental.Animation;
 
 [RequireComponent(typeof(Animator))]
 public class AnimBehaviour : MonoBehaviour

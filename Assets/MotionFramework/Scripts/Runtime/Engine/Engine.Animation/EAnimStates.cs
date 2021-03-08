@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MotionFramework.Animation
+namespace MotionFramework.Experimental.Animation
 {
 	public enum EAnimStates
 	{
