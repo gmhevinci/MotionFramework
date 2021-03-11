@@ -65,7 +65,7 @@ namespace MotionFramework.Resource
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
 
 			// 初始化资源系统
-			AssetSystem.Initialize(createParam.LocationRoot, createParam.SimulationOnEditor, createParam.RuntimeMaxLoadingCount, 
+			AssetSystem.Initialize(createParam.LocationRoot, createParam.SimulationOnEditor, createParam.RuntimeMaxLoadingCount,
 				createParam.BundleServices, createParam.DecryptServices);
 
 			// 创建间隔计时器
@@ -108,13 +108,26 @@ namespace MotionFramework.Resource
 		{
 			AssetSystem.UnloadAllAssets();
 		}
-		
+
 		/// <summary>
 		/// 获取资源的信息
 		/// </summary>
 		public AssetBundleInfo GetAssetBundleInfo(string location)
 		{
 			return AssetSystem.GetAssetBundleInfo(location);
+		}
+
+		/// <summary>
+		/// 同步加载资源对象
+		/// </summary>
+		/// <param name="location">资源对象相对路径</param>
+		public AssetOperationHandle LoadAssetSync<TObject>(string location) where TObject : class
+		{
+			return LoadInternalSync(location, typeof(TObject), null);
+		}
+		public AssetOperationHandle LoadAssetSync(System.Type type, string location)
+		{
+			return LoadInternalSync(location, type, null);
 		}
 
 		/// <summary>
@@ -157,6 +170,14 @@ namespace MotionFramework.Resource
 			string assetName = Path.GetFileName(location);
 			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
 			return cacheLoader.LoadAssetAsync(assetName, assetType, param);
+		}
+		private AssetOperationHandle LoadInternalSync(string location, System.Type assetType, IAssetParam param)
+		{
+			string assetName = Path.GetFileName(location);
+			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
+			var handle = cacheLoader.LoadAssetAsync(assetName, assetType, param);
+			cacheLoader.ForceSyncLoad();
+			return handle;
 		}
 	}
 }

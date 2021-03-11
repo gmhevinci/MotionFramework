@@ -34,5 +34,28 @@ namespace MotionFramework.Resource
 				States = ELoaderStates.Success;
 #endif
 		}
+		public override void ForceSyncLoad()
+		{
+#if UNITY_EDITOR
+			if (IsSceneLoader)
+				return;
+
+			int frame = 1000;
+			while (true)
+			{
+				// 保险机制
+				frame--;
+				if (frame == 0)
+					throw new Exception($"Should never get here ! {BundleInfo.BundleName} = {States}");
+
+				// 更新加载流程
+				Update();
+
+				// 完成后退出
+				if (IsDone())
+					break;
+			}
+#endif
+		}
 	}
 }

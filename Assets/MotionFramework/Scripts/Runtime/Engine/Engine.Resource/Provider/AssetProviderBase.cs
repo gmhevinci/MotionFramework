@@ -57,6 +57,9 @@ namespace MotionFramework.Resource
 		{
 			IsDestroyed = true;
 		}
+		public virtual void ForceSyncLoad()
+		{
+		}
 
 		public void Reference()
 		{

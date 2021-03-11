@@ -75,9 +75,12 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 是否完毕（无论成功失败）
 		/// </summary>
-		public virtual bool IsDone()
+		public bool IsDone()
 		{
-			return States == ELoaderStates.Success || States == ELoaderStates.Fail;
+			if (States == ELoaderStates.Success || States == ELoaderStates.Fail)
+				return CheckAllProviderIsDone();
+			else
+				return false;
 		}
 
 		/// <summary>
@@ -87,12 +90,17 @@ namespace MotionFramework.Resource
 		{
 			if (IsDone() == false)
 				return false;
-			
-			if(RefCount <= 0 && _providers.Count == 0)
+
+			if (RefCount <= 0 && _providers.Count == 0)
 				return true;
 			else
 				return false;
 		}
+
+		/// <summary>
+		/// 强制同步加载资源
+		/// </summary>
+		public abstract void ForceSyncLoad();
 
 		#region Asset Provider
 		internal readonly List<IAssetProvider> _providers = new List<IAssetProvider>();

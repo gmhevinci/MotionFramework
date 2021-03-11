@@ -77,5 +77,13 @@ namespace MotionFramework.Resource
 					Resources.UnloadAsset(assetObject);
 			}
 		}
+		public override void ForceSyncLoad()
+		{
+			// 强制挂起主线程
+			if(States == EAssetStates.Checking)
+			{
+				AssetObject = _cacheRequest.asset;
+			}
+		}
 	}
 }

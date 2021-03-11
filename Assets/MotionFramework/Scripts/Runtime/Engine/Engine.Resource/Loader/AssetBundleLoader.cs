@@ -214,12 +214,52 @@ namespace MotionFramework.Resource
 
 			_depends.Clear();
 		}
-		public override bool IsDone()
+		public override void ForceSyncLoad()
 		{
-			if (base.IsDone() == false)
-				return false;
+			if (IsSceneLoader)
+				return;
 
-			return CheckAllProviderIsDone();
+			int frame = 1000;
+			while (true)
+			{
+				// 保险机制
+				// 注意：如果需要从WEB端下载资源，可能会触发保险机制！
+				frame--;
+				if (frame == 0)
+					throw new Exception($"Should never get here ! {BundleInfo.BundleName} = {States}");
+
+				// 更新加载流程
+				Update();
+
+				// 强制加载依赖文件
+				if (States == ELoaderStates.CheckDepends)
+				{
+					foreach (var dpLoader in _depends)
+					{
+						dpLoader.ForceSyncLoad();
+					}
+				}
+
+				// 挂起主线程
+				if (States == ELoaderStates.CheckFile)
+				{
+					CacheBundle = _cacheRequest.assetBundle;
+				}
+
+				// 强制加载资源对象
+				if (States == ELoaderStates.Success || States == ELoaderStates.Fail)
+				{
+					for (int i = 0; i < _providers.Count; i++)
+					{
+						var provider = _providers[i] as AssetProviderBase;
+						provider.ForceSyncLoad();
+					}
+				}
+
+				// 完成后退出
+				if (IsDone())
+					break;
+			}
 		}
 	}
 }
