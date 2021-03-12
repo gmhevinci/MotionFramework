@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -112,13 +112,17 @@ namespace MotionFramework.Editor
 		{
 			Debug.Log("------------------------------OnPostAssetBuild------------------------------");
 
-			// 准备工作
-			List<AssetBundleBuild> buildInfoList = new List<AssetBundleBuild>();
+			// 检测工作
+			if (AssetBundleCollectorSettingData.GetCollecterCount() == 0)
+				throw new Exception("[BuildPatch] 配置的资源收集路径为空！");
+
+			// 准备工作	
 			List<AssetInfo> buildMap = GetBuildMap();
 			if (buildMap.Count == 0)
 				throw new Exception("[BuildPatch] 构建列表不能为空");
 
 			Log($"构建列表里总共有{buildMap.Count}个资源需要构建");
+			List<AssetBundleBuild> buildInfoList = new List<AssetBundleBuild>(buildMap.Count);
 			for (int i = 0; i < buildMap.Count; i++)
 			{
 				AssetInfo assetInfo = buildMap[i];
@@ -199,47 +203,32 @@ namespace MotionFramework.Editor
 		private List<AssetInfo> GetBuildMap()
 		{
 			int progressBarCount = 0;
-			Dictionary<string, AssetInfo> allAsset = new Dictionary<string, AssetInfo>();
+			Dictionary<string, AssetInfo> buildMap = new Dictionary<string, AssetInfo>();
 
-			// 获取所有的收集路径
-			List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
-			if (collectDirectorys.Count == 0)
-				throw new Exception("[BuildPatch] 配置的资源收集路径为空");
+			// 获取要收集的资源
+			List<string> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
-			// 获取所有资源
-			string[] guids = AssetDatabase.FindAssets(string.Empty, collectDirectorys.ToArray());
-			foreach (string guid in guids)
+			// 进行依赖分析
+			foreach (string mainAssetPath in allCollectAssets)
 			{
-				string mainAssetPath = AssetDatabase.GUIDToAssetPath(guid);
-				if (AssetBundleCollectorSettingData.IsIgnoreAsset(mainAssetPath))
-					continue;
-				if (ValidateAsset(mainAssetPath) == false)
-					continue;
-
 				List<AssetInfo> depends = GetDependencies(mainAssetPath);
 				for (int i = 0; i < depends.Count; i++)
 				{
 					AssetInfo assetInfo = depends[i];
-					if (allAsset.ContainsKey(assetInfo.AssetPath))
-					{
-						allAsset[assetInfo.AssetPath].DependCount++;
-					}
+					if (buildMap.ContainsKey(assetInfo.AssetPath))
+						buildMap[assetInfo.AssetPath].DependCount++;
 					else
-					{
-						allAsset.Add(assetInfo.AssetPath, assetInfo);
-					}
+						buildMap.Add(assetInfo.AssetPath, assetInfo);
 				}
-
-				// 进度条
 				progressBarCount++;
-				EditorUtility.DisplayProgressBar("进度", $"依赖文件分析：{progressBarCount}/{guids.Length}", (float)progressBarCount / guids.Length);
+				EditorUtility.DisplayProgressBar("进度", $"依赖文件分析：{progressBarCount}/{allCollectAssets.Count}", (float)progressBarCount / allCollectAssets.Count);
 			}
 			EditorUtility.ClearProgressBar();
 			progressBarCount = 0;
 
 			// 移除零依赖的资源
 			List<string> removeList = new List<string>();
-			foreach (KeyValuePair<string, AssetInfo> pair in allAsset)
+			foreach (KeyValuePair<string, AssetInfo> pair in buildMap)
 			{
 				if (pair.Value.IsCollectAsset)
 					continue;
@@ -248,22 +237,23 @@ namespace MotionFramework.Editor
 			}
 			for (int i = 0; i < removeList.Count; i++)
 			{
-				allAsset.Remove(removeList[i]);
+				buildMap.Remove(removeList[i]);
 			}
 
 			// 设置资源标签
-			foreach (KeyValuePair<string, AssetInfo> pair in allAsset)
+			foreach (KeyValuePair<string, AssetInfo> pair in buildMap)
 			{
-				SetAssetBundleLabelAndVariant(pair.Value);
-
-				// 进度条
+				var assetInfo = pair.Value;
+				var labelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
+				assetInfo.AssetBundleLabel = labelAndVariant.BundleLabel;
+				assetInfo.AssetBundleVariant = labelAndVariant.BundleVariant;
 				progressBarCount++;
-				EditorUtility.DisplayProgressBar("进度", $"设置资源标签：{progressBarCount}/{allAsset.Count}", (float)progressBarCount / allAsset.Count);
+				EditorUtility.DisplayProgressBar("进度", $"设置资源标签：{progressBarCount}/{buildMap.Count}", (float)progressBarCount / buildMap.Count);
 			}
 			EditorUtility.ClearProgressBar();
 
 			// 返回结果
-			return allAsset.Values.ToList();
+			return buildMap.Values.ToList();
 		}
 
 		/// <summary>
@@ -276,58 +266,13 @@ namespace MotionFramework.Editor
 			string[] dependArray = AssetDatabase.GetDependencies(assetPath, true);
 			foreach (string dependPath in dependArray)
 			{
-				if (ValidateAsset(dependPath))
+				if (AssetBundleCollectorSettingData.ValidateAsset(dependPath))
 				{
 					AssetInfo assetInfo = new AssetInfo(dependPath);
 					depends.Add(assetInfo);
 				}
 			}
 			return depends;
-		}
-
-		/// <summary>
-		/// 检测资源是否有效
-		/// </summary>
-		private bool ValidateAsset(string assetPath)
-		{
-			if (!assetPath.StartsWith("Assets/"))
-				return false;
-
-			if (AssetDatabase.IsValidFolder(assetPath))
-				return false;
-
-			// 注意：忽略编辑器下的类型资源
-			Type type = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-			if (type == typeof(LightingDataAsset))
-				return false;
-
-			string ext = System.IO.Path.GetExtension(assetPath);
-			if (ext == "" || ext == ".dll" || ext == ".cs" || ext == ".js" || ext == ".boo" || ext == ".meta")
-				return false;
-
-			return true;
-		}
-
-		/// <summary>
-		/// 设置资源的标签和变种
-		/// </summary>
-		private void SetAssetBundleLabelAndVariant(AssetInfo assetInfo)
-		{
-			// 如果资源所在文件夹的名称包含后缀符号，则为变体资源
-			string folderName = Path.GetDirectoryName(assetInfo.AssetPath); // "Assets/Texture.HD/background.jpg" --> "Assets/Texture.HD"
-			if (Path.HasExtension(folderName))
-			{
-				string extension = Path.GetExtension(folderName);
-				string label = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
-				assetInfo.AssetBundleLabel = EditorTools.GetRegularPath(label.Replace(extension, string.Empty));
-				assetInfo.AssetBundleVariant = extension.RemoveFirstChar();
-			}
-			else
-			{
-				string label = AssetBundleCollectorSettingData.GetAssetBundleLabel(assetInfo.AssetPath);
-				assetInfo.AssetBundleLabel = EditorTools.GetRegularPath(label);
-				assetInfo.AssetBundleVariant = PatchDefine.AssetBundleDefaultVariant;
-			}
 		}
 		#endregion
 
@@ -568,7 +513,7 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector wrapper = AssetBundleCollectorSettingData.Setting.Collectors[i];
-				AppendData(content, $"Directory : {wrapper.CollectDirectory} || CollectRule : {wrapper.CollectRule} || CollectorName : {wrapper.CollectorName}");
+				AppendData(content, $"Directory : {wrapper.CollectDirectory} | {wrapper.LabelClassName} | {wrapper.FilterClassName}");
 			}
 
 			AppendData(content, "");
@@ -654,6 +599,7 @@ namespace MotionFramework.Editor
 			}
 
 			// 复制所有更新文件
+			int progressBarCount = 0;
 			PatchManifest patchFile = LoadPatchManifestFile();
 			foreach (var pair in patchFile.Elements)
 			{
@@ -663,8 +609,12 @@ namespace MotionFramework.Editor
 					string destPath = $"{packageDirectory}/{pair.Value.MD5}";
 					EditorTools.CopyFile(sourcePath, destPath, true);
 					Log($"复制更新文件到补丁包：{sourcePath}");
+
+					progressBarCount++;
+					EditorUtility.DisplayProgressBar("进度", $"拷贝更新文件 : {sourcePath}", (float)progressBarCount / patchFile.Elements.Count);
 				}
 			}
+			EditorUtility.ClearProgressBar();
 		}
 
 		/// <summary>
