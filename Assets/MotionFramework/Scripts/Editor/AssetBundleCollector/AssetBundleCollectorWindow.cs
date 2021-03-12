@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2019-2020 何冠峰
+// Copyright©2019-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -30,33 +30,52 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private string _lastOpenFolderPath = "Assets/";
 
-		/// <summary>
-		/// 资源处理器类列表
-		/// </summary>
-		private string[] _collectorClassArray = null;
+		private string[] _labelClassArray = null;
+		private string[] _filterClassArray = null;
 
 		// 初始化相关
 		private bool _isInit = false;
 		private void Init()
 		{
-			List<string> names = AssetBundleCollectorSettingData.GetCollectorNames();
-			_collectorClassArray = names.ToArray();
+			List<string> labelClassNames = AssetBundleCollectorSettingData.GetLabelClassNames();
+			_labelClassArray = labelClassNames.ToArray();
+
+			List<string> filterClassNames = AssetBundleCollectorSettingData.GetFilterClassNames();
+			_filterClassArray = filterClassNames.ToArray();
 		}
-		private int NameToIndex(string name)
+		private int LabelClassNameToIndex(string name)
 		{
-			for (int i = 0; i < _collectorClassArray.Length; i++)
+			for (int i = 0; i < _labelClassArray.Length; i++)
 			{
-				if (_collectorClassArray[i] == name)
+				if (_labelClassArray[i] == name)
 					return i;
 			}
 			return 0;
 		}
-		private string IndexToName(int index)
+		private string IndexToLabelClassName(int index)
 		{
-			for (int i = 0; i < _collectorClassArray.Length; i++)
+			for (int i = 0; i < _labelClassArray.Length; i++)
 			{
 				if (i == index)
-					return _collectorClassArray[i];
+					return _labelClassArray[i];
+			}
+			return string.Empty;
+		}		
+		private int FilterClassNameToIndex(string name)
+		{
+			for (int i = 0; i < _filterClassArray.Length; i++)
+			{
+				if (_filterClassArray[i] == name)
+					return i;
+			}
+			return 0;
+		}
+		private string IndexToFilterClassName(int index)
+		{
+			for (int i = 0; i < _filterClassArray.Length; i++)
+			{
+				if (i == index)
+					return _filterClassArray[i];
 			}
 			return string.Empty;
 		}
@@ -69,38 +88,46 @@ namespace MotionFramework.Editor
 				Init();
 			}
 
-			OnDrawElement();
+			OnDrawCollector();
 			OnDrawDLC();
 		}
 
-		private void OnDrawElement()
+		private void OnDrawCollector()
 		{
 			// 列表显示
 			EditorGUILayout.Space();
-			EditorGUILayout.LabelField($"Collector");
+			EditorGUILayout.LabelField($"[ Collector ]");
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
-				string directory = AssetBundleCollectorSettingData.Setting.Collectors[i].CollectDirectory;
-				AssetBundleCollectorSetting.ECollectRule packRule = AssetBundleCollectorSettingData.Setting.Collectors[i].CollectRule;
-				string collectorName = AssetBundleCollectorSettingData.Setting.Collectors[i].CollectorName;
+				var collector = AssetBundleCollectorSettingData.Setting.Collectors[i];
+				string directory = collector.CollectDirectory;
+				string labelClassName = collector.LabelClassName;
+				string filterClassName = collector.FilterClassName;
 
 				EditorGUILayout.BeginHorizontal();
 				{
 					EditorGUILayout.LabelField(directory);
 
-					AssetBundleCollectorSetting.ECollectRule newPackRule = (AssetBundleCollectorSetting.ECollectRule)EditorGUILayout.EnumPopup(packRule, GUILayout.MaxWidth(150));
-					if (newPackRule != packRule)
+					// 标签类
 					{
-						packRule = newPackRule;
-						AssetBundleCollectorSettingData.ModifyCollector(directory, packRule, collectorName);
+						int index = LabelClassNameToIndex(labelClassName);
+						int newIndex = EditorGUILayout.Popup(index, _labelClassArray, GUILayout.MaxWidth(150));
+						if (newIndex != index)
+						{
+							labelClassName = IndexToLabelClassName(newIndex);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, labelClassName, filterClassName);
+						}
 					}
 
-					int index = NameToIndex(collectorName);
-					int newIndex = EditorGUILayout.Popup(index, _collectorClassArray, GUILayout.MaxWidth(150));
-					if (newIndex != index)
+					// 过滤类
 					{
-						string newCollectorName = IndexToName(newIndex);
-						AssetBundleCollectorSettingData.ModifyCollector(directory, packRule, newCollectorName);
+						int index = FilterClassNameToIndex(filterClassName);
+						int newIndex = EditorGUILayout.Popup(index, _filterClassArray, GUILayout.MaxWidth(150));
+						if (newIndex != index)
+						{
+							filterClassName = IndexToFilterClassName(newIndex);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, labelClassName, filterClassName);
+						}
 					}
 
 					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
@@ -127,7 +154,7 @@ namespace MotionFramework.Editor
 		{
 			// 列表显示
 			EditorGUILayout.Space();
-			EditorGUILayout.LabelField($"DLC");
+			EditorGUILayout.LabelField($"[ DLC ]");
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.DLCFiles.Count; i++)
 			{
 				string filePath = AssetBundleCollectorSettingData.Setting.DLCFiles[i];

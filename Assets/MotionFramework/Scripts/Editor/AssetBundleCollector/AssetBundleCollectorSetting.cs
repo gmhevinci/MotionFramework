@@ -13,20 +13,6 @@ namespace MotionFramework.Editor
 	public class AssetBundleCollectorSetting : ScriptableObject
 	{
 		[Serializable]
-		public enum ECollectRule
-		{
-			/// <summary>
-			/// 收集该文件夹
-			/// </summary>
-			Collect,
-
-			/// <summary>
-			/// 忽略该文件夹
-			/// </summary>
-			Ignore,
-		}
-
-		[Serializable]
 		public class Collector
 		{
 			/// <summary>
@@ -35,14 +21,14 @@ namespace MotionFramework.Editor
 			public string CollectDirectory = string.Empty;
 
 			/// <summary>
-			/// 收集规则
+			/// 标签的类名
 			/// </summary>
-			public ECollectRule CollectRule = ECollectRule.Collect;
+			public string LabelClassName = string.Empty;
 
 			/// <summary>
-			/// 收集器的类名
+			/// 过滤器的类名
 			/// </summary>
-			public string CollectorName = string.Empty;
+			public string FilterClassName = string.Empty;
 		}
 
 		/// <summary>

@@ -6,7 +6,7 @@
 
 namespace MotionFramework.Editor
 {
-	public interface IAssetCollector
+	public interface IBundleLabel
 	{
 		/// <summary>
 		/// 获取资源的打包标签
