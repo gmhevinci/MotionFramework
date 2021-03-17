@@ -142,12 +142,18 @@ namespace MotionFramework.Editor
 		// 收集器相关
 		public static void AddCollector(string directory)
 		{
+			// 末尾添加路径分隔符号
+			if (directory.EndsWith("/") == false)
+				directory = $"{directory}/";
+
 			// 检测收集器路径冲突
 			if (CheckConflict(directory))
 				return;
 
 			AssetBundleCollectorSetting.Collector element = new AssetBundleCollectorSetting.Collector();
 			element.CollectDirectory = directory;
+			element.LabelClassName = nameof(LabelByFilePath);
+			element.FilterClassName = nameof(SearchAll);
 			Setting.Collectors.Add(element);
 			SaveFile();
 		}
@@ -196,14 +202,15 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				var wrapper = Setting.Collectors[i];
-				if (directory.StartsWith(wrapper.CollectDirectory))
+				string compareDirectory = wrapper.CollectDirectory;
+				if (directory.StartsWith(compareDirectory))
 				{
-					Debug.LogError($"New asset collector \"{directory}\" conflict with \"{wrapper.CollectDirectory}\"");
+					Debug.LogError($"New asset collector \"{directory}\" conflict with \"{compareDirectory}\"");
 					return true;
 				}
-				if (wrapper.CollectDirectory.StartsWith(directory))
+				if (compareDirectory.StartsWith(directory))
 				{
-					Debug.LogError($"New asset collector {directory} conflict with {wrapper.CollectDirectory}");
+					Debug.LogError($"New asset collector {directory} conflict with {compareDirectory}");
 					return true;
 				}
 			}
@@ -274,7 +281,8 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
-				string[] guids = AssetDatabase.FindAssets(string.Empty, new string[] { collector.CollectDirectory });
+				string collectDirectory = collector.CollectDirectory.TrimEnd('/'); //注意：AssetDatabase不支持末尾带分隔符的文件夹路径
+				string[] guids = AssetDatabase.FindAssets(string.Empty, new string[] { collectDirectory });
 				foreach (string guid in guids)
 				{
 					string assetPath = AssetDatabase.GUIDToAssetPath(guid);
