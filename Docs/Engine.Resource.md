@@ -34,9 +34,9 @@ private void Handle_Completed(AssetOperationHandle handle)
 private void Start()
 {
 	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<Texture>("Texture/LoadingTextures/bg");
-	handle.Completed += Handle_Completed1;
+	handle.Completed += Handle_Completed;
 }
-private void Handle_Completed1(AssetOperationHandle handle)
+private void Handle_Completed(AssetOperationHandle handle)
 {
 	if(handle.AssetObject == null) return;
 	Texture tex = handle.AssetObject as Texture;
@@ -48,7 +48,7 @@ private void Handle_Completed1(AssetOperationHandle handle)
 private void Start()
 {
 	AssetOperationHandle handle = ResourceManager.Instance.LoadSubAssetsAsync<Sprite>("UITexture/Login");
-	handle.Completed += Handle_Completed1;
+	handle.Completed += Handle_Completed;
 }
 private void Handle_Completed(AssetOperationHandle handle)
 {
@@ -70,7 +70,7 @@ private void Start()
 	param.ActivateOnLoad = true;
 
 	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<SceneInstance>("Scene/Login", param);
-	handle.Completed += Handle_Completed1;
+	handle.Completed += Handle_Completed;
 }
 private void Handle_Completed(AssetOperationHandle handle)
 {

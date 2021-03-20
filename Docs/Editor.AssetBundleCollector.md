@@ -4,27 +4,38 @@
 
 **界面说明**  
 不同项目对资源的处理及打包规则都有所不同，我们可以通过以下几项设置来定制化自己的打包规则。  
-1. Collect : 收集文件夹内资源进行打包（包括所有子文件夹）
-2. Ignore : 忽略文件夹内资源不参与打包（包括所有子文件夹）
-3. Label By File Path : AssetBundle标签按照文件路径设置
-4. Label By Folder Path : AssetBundle标签按照文件所在的文件夹路径设置 
+1. Label By File Path : AssetBundle标签按照文件路径设置
+2. Label By Folder Path : AssetBundle标签按照文件所在的文件夹路径设置 
 
 注意：LabelByFolder会将文件夹内所有资源打在一个AssetBundle文件里。
 
 **自定义打包规则**   
 如果内置的打包规则已经不能满足需求，那么我们可以轻松实现自定义打包规则
 ```C#
+using UnityEngine;
+using UnityEditor;
 using MotionFramework.Editor;
 
-public class MyAssetCollector : IAssetCollector
+public class LabelByCustom : IBundleLabel
 {
 	/// <summary>
 	/// 获取资源的打包标签
 	/// </summary>
-	public string GetAssetBundleLabel(string assetPath)
+	string IBundleLabel.GetAssetBundleLabel(string assetPath)
 	{
 		// Your code in here
 		throw new System.NotImplementedException();
+	}
+}
+
+public class SearchSprite : ISearchFilter
+{
+	bool ISearchFilter.FilterAsset(string assetPath)
+	{
+		if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(Sprite))
+			return true;
+		else
+			return false;
 	}
 }
 ```
