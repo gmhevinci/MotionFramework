@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2021 何冠峰
+// Copyright©2021-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class AssetBundleProvider : AssetProviderBase
+	internal sealed class AssetBundleSubProvider : AssetProviderBase
 	{
 		private AssetBundleLoader _loader;
 		private AssetBundleRequest _cacheRequest;
@@ -23,7 +23,7 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetBundleProvider(AssetLoaderBase owner, string assetName, System.Type assetType)
+		public AssetBundleSubProvider(AssetLoaderBase owner, string assetName, System.Type assetType)
 			: base(owner, assetName, assetType)
 		{
 			_loader = owner as AssetBundleLoader;
@@ -48,9 +48,9 @@ namespace MotionFramework.Resource
 			if (States == EAssetStates.Loading)
 			{
 				if (AssetType == null)
-					_cacheRequest = _loader.CacheBundle.LoadAssetAsync(AssetName);
+					_cacheRequest = _loader.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName);
 				else
-					_cacheRequest = _loader.CacheBundle.LoadAssetAsync(AssetName, AssetType);
+					_cacheRequest = _loader.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName, AssetType);
 				States = EAssetStates.Checking;
 			}
 
@@ -59,8 +59,8 @@ namespace MotionFramework.Resource
 			{
 				if (_cacheRequest.isDone == false)
 					return;
-				AssetObject = _cacheRequest.asset;
-				States = AssetObject == null ? EAssetStates.Fail : EAssetStates.Success;
+				AllAssets = _cacheRequest.allAssets;
+				States = AllAssets == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
 					MotionLog.Warning($"Failed to load asset object : {AssetName} from bundle : {_loader.BundleInfo.BundleName}");
 				InvokeCompletion();
@@ -70,18 +70,21 @@ namespace MotionFramework.Resource
 		{
 			base.Destory();
 
-			if(AssetObject != null)
+			if (AllAssets != null)
 			{
-				if(AssetObject is GameObject == false)
-					Resources.UnloadAsset(AssetObject);
+				foreach (var assetObject in AllAssets)
+				{
+					if (assetObject is GameObject == false)
+						Resources.UnloadAsset(assetObject);
+				}
 			}
 		}
 		public override void ForceSyncLoad()
 		{
 			// 强制挂起主线程
-			if(States == EAssetStates.Checking)
+			if (States == EAssetStates.Checking)
 			{
-				AssetObject = _cacheRequest.asset;
+				AllAssets = _cacheRequest.allAssets;
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections.Generic;
@@ -106,36 +106,65 @@ namespace MotionFramework.Resource
 		internal readonly List<IAssetProvider> _providers = new List<IAssetProvider>();
 
 		/// <summary>
-		/// 加载资源对象
+		/// 异步加载场景
+		/// </summary>
+		/// <param name="sceneName">场景名称</param>
+		public AssetOperationHandle LoadSceneAsync(string sceneName, SceneInstanceParam instanceParam)
+		{
+			IAssetProvider provider = TryGetProvider(sceneName);
+			if (provider == null)
+			{
+				IsSceneLoader = true;
+				provider = new AssetSceneProvider(this, sceneName, instanceParam);
+				_providers.Add(provider);
+			}
+
+			// 引用计数增加
+			provider.Reference();
+			return provider.Handle;
+		}
+
+		/// <summary>
+		/// 异步加载资源对象
 		/// </summary>
 		/// <param name="assetName">资源名称</param>
 		/// <param name="assetType">资源类型</param>
 		/// <param name="param">附加参数</param>
-		/// <returns></returns>
-		public AssetOperationHandle LoadAssetAsync(string assetName, System.Type assetType, IAssetParam param)
+		public AssetOperationHandle LoadAssetAsync(string assetName, System.Type assetType)
 		{
 			IAssetProvider provider = TryGetProvider(assetName);
 			if (provider == null)
 			{
-				if (assetType == typeof(SceneInstance))
-				{
-					IsSceneLoader = true;
-					SceneInstanceParam sceneParam = param as SceneInstanceParam;
-					provider = new AssetSceneProvider(this, assetName, assetType, sceneParam);
-				}
-				else if (assetType == typeof(PackageInstance))
-				{
-					throw new NotImplementedException(nameof(PackageInstance));
-				}
+				if (this is AssetBundleLoader)
+					provider = new AssetBundleProvider(this, assetName, assetType);
+				else if (this is AssetDatabaseLoader)
+					provider = new AssetDatabaseProvider(this, assetName, assetType);
 				else
-				{
-					if (this is AssetBundleLoader)
-						provider = new AssetBundleProvider(this, assetName, assetType);
-					else if (this is AssetDatabaseLoader)
-						provider = new AssetDatabaseProvider(this, assetName, assetType);
-					else
-						throw new NotImplementedException($"{this.GetType()}");
-				}
+					throw new NotImplementedException($"{this.GetType()}");
+				_providers.Add(provider);
+			}
+
+			// 引用计数增加
+			provider.Reference();
+			return provider.Handle;
+		}
+
+		/// <summary>
+		/// 异步加载所有子资源对象
+		/// </summary>
+		/// <param name="assetName">资源名称</param>
+		/// <param name="assetType">资源类型</param>
+		public AssetOperationHandle LoadSubAssetsAsync(string assetName, System.Type assetType)
+		{
+			IAssetProvider provider = TryGetProvider(assetName);
+			if (provider == null)
+			{
+				if (this is AssetBundleLoader)
+					provider = new AssetBundleSubProvider(this, assetName, assetType);
+				else if (this is AssetDatabaseLoader)
+					provider = new AssetDatabaseSubProvider(this, assetName, assetType);
+				else
+					throw new NotImplementedException($"{this.GetType()}");
 				_providers.Add(provider);
 			}
 

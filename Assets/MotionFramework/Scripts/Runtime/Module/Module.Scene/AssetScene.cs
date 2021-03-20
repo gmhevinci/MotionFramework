@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using MotionFramework.Resource;
@@ -51,14 +51,16 @@ namespace MotionFramework.Scene
 				return;
 
 			// 场景加载参数
-			SceneInstanceParam param = new SceneInstanceParam();
-			param.IsAdditive = isAdditive;
-			param.ActivateOnLoad = activeOnLoad;
+			SceneInstanceParam param = new SceneInstanceParam
+			{
+				IsAdditive = isAdditive,
+				ActivateOnLoad = activeOnLoad
+			};
 
 			MotionLog.Log($"Begin to load scene : {Location}");
 			_isLoadScene = true;
 			_userCallback = callback;	
-			_handle = ResourceManager.Instance.LoadAssetAsync<SceneInstance>(Location, param);
+			_handle = ResourceManager.Instance.LoadSceneAsync(Location, param);
 			_handle.Completed += Handle_Completed;
 		}
 		public void UnLoad()
@@ -74,7 +76,7 @@ namespace MotionFramework.Scene
 		// 资源回调
 		private void Handle_Completed(AssetOperationHandle obj)
 		{
-			_userCallback?.Invoke(_handle.AssetScene);
+			_userCallback?.Invoke(_handle.AssetInstance as SceneInstance);
 		}
 	}
 }

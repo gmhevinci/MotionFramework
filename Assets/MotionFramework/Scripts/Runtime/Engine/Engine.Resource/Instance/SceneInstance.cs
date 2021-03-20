@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using UnityEngine;
@@ -10,7 +10,7 @@ namespace MotionFramework.Resource
 	/// <summary>
 	/// 扩展的场景实例对象
 	/// </summary>
-	public class SceneInstance
+	public class SceneInstance : IAssetInstance
 	{
 		private readonly AsyncOperation _asyncOp;
 
@@ -35,7 +35,7 @@ namespace MotionFramework.Resource
 	}
 
 	/// <summary>
-	/// 加载场景实体对象需要提供的参数类
+	/// 加载场景实例对象需要提供的参数类
 	/// </summary>
 	public class SceneInstanceParam : IAssetParam
 	{

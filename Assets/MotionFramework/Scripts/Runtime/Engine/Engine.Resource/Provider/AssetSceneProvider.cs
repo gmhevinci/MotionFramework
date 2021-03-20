@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -24,8 +24,8 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetSceneProvider(AssetLoaderBase owner, string assetName, System.Type assetType, SceneInstanceParam param)
-			: base(owner, assetName, assetType)
+		public AssetSceneProvider(AssetLoaderBase owner, string assetName, SceneInstanceParam param)
+			: base(owner, assetName, null)
 		{
 			_param = param;
 		}
@@ -64,7 +64,7 @@ namespace MotionFramework.Resource
 				{
 					SceneInstance instance = new SceneInstance(_asyncOp);
 					instance.Scene = SceneManager.GetSceneByName(AssetName);
-					AssetScene = instance;
+					AssetInstance = instance;
 					States = EAssetStates.Success;
 					InvokeCompletion();
 				}

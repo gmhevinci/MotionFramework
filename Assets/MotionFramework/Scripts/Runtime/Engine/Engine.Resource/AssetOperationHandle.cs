@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -103,18 +103,31 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 资源场景
+		/// 资源对象集合
 		/// </summary>
-		public SceneInstance AssetScene
+		public UnityEngine.Object[] AllAssets
 		{
 			get
 			{
 				if (IsValid == false)
 					return null;
-				return _provider.AssetScene;
+				return _provider.AllAssets;
 			}
 		}
 
+		/// <summary>
+		/// 扩展的实例对象
+		/// </summary>
+		public IAssetInstance AssetInstance
+		{
+			get
+			{
+				if (IsValid == false)
+					return null;
+				return _provider.AssetInstance;
+			}
+		}
+		
 		/// <summary>
 		/// 初始化的游戏对象（只限于请求的资源对象类型为GameObject）
 		/// </summary>

@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2021 何冠峰
+// Copyright©2021-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class AssetDatabaseProvider : AssetProviderBase
+	internal sealed class AssetDatabaseSubProvider : AssetProviderBase
 	{
 		public override float Progress
 		{
@@ -22,7 +22,7 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetDatabaseProvider(AssetLoaderBase owner, string assetName, System.Type assetType)
+		public AssetDatabaseSubProvider(AssetLoaderBase owner, string assetName, System.Type assetType)
 			: base(owner, assetName, assetType)
 		{
 		}
@@ -41,16 +41,23 @@ namespace MotionFramework.Resource
 			if (States == EAssetStates.Loading)
 			{
 				string assetPath = Owner.BundleInfo.LocalPath;
-				AssetObject = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, AssetType);
+				var findAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(assetPath);
+				List<UnityEngine.Object> result = new List<Object>(findAssets.Length);
+				foreach (var findObj in findAssets)
+				{
+					if (findObj.GetType() == AssetType)
+						result.Add(findObj);
+				}
+				AllAssets = result.ToArray();
 				States = EAssetStates.Checking;
 			}
 
 			// 2. 检测加载结果
 			if (States == EAssetStates.Checking)
 			{
-				States = AssetObject == null ? EAssetStates.Fail : EAssetStates.Success;
+				States = AllAssets == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load asset object : {Owner.BundleInfo.LocalPath} : {AssetName}");
+					MotionLog.Warning($"Failed to load all asset object : {Owner.BundleInfo.LocalPath}");
 				InvokeCompletion();
 			}
 #endif

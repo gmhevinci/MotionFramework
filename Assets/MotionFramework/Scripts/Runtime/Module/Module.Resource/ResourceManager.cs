@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -118,16 +118,50 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
+		/// 释放资源对象
+		/// </summary>
+		public void Release(AssetOperationHandle handle)
+		{
+			handle.Release();
+		}
+
+
+		/// <summary>
 		/// 同步加载资源对象
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
 		public AssetOperationHandle LoadAssetSync<TObject>(string location) where TObject : class
 		{
-			return LoadInternalSync(location, typeof(TObject), null);
+			return LoadAssetInternal(location, typeof(TObject), true);
 		}
 		public AssetOperationHandle LoadAssetSync(System.Type type, string location)
 		{
-			return LoadInternalSync(location, type, null);
+			return LoadAssetInternal(location, type, true);
+		}
+
+		/// <summary>
+		/// 同步加载子资源对象集合
+		/// </summary>
+		/// <param name="location">资源对象相对路径</param>
+		public AssetOperationHandle LoadSubAssetsSync<TObject>(string location)
+		{
+			return LoadSubAssetsInternal(location, typeof(TObject), true);
+		}
+		public AssetOperationHandle LoadSubAssetsSync(System.Type type, string location)
+		{
+			return LoadSubAssetsInternal(location, type, true);
+		}
+
+
+		/// <summary>
+		/// 异步加载场景
+		/// </summary>
+		public AssetOperationHandle LoadSceneAsync(string location, SceneInstanceParam instanceParam)
+		{
+			string sceneName = Path.GetFileName(location);
+			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
+			var handle = cacheLoader.LoadSceneAsync(sceneName, instanceParam);
+			return handle;
 		}
 
 		/// <summary>
@@ -136,47 +170,43 @@ namespace MotionFramework.Resource
 		/// <param name="location">资源对象相对路径</param>
 		public AssetOperationHandle LoadAssetAsync<TObject>(string location)
 		{
-			return LoadInternal(location, typeof(TObject), null);
+			return LoadAssetInternal(location, typeof(TObject), false);
 		}
 		public AssetOperationHandle LoadAssetAsync(System.Type type, string location)
 		{
-			return LoadInternal(location, type, null);
+			return LoadAssetInternal(location, type, false);
 		}
 
 		/// <summary>
-		/// 异步加载资源对象
+		/// 异步加载子资源对象集合
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
-		/// <param name="param">资源加载参数</param>
-		public AssetOperationHandle LoadAssetAsync<TObject>(string location, IAssetParam param)
+		public AssetOperationHandle LoadSubAssetsAsync<TObject>(string location)
 		{
-			return LoadInternal(location, typeof(TObject), param);
+			return LoadSubAssetsInternal(location, typeof(TObject), false);
 		}
-		public AssetOperationHandle LoadAssetAsync(System.Type type, string location, IAssetParam param)
+		public AssetOperationHandle LoadSubAssetsAsync(System.Type type, string location)
 		{
-			return LoadInternal(location, type, param);
-		}
-
-		/// <summary>
-		/// 释放资源对象
-		/// </summary>
-		public void Release(AssetOperationHandle handle)
-		{
-			handle.Release();
+			return LoadSubAssetsInternal(location, type, false);
 		}
 
-		private AssetOperationHandle LoadInternal(string location, System.Type assetType, IAssetParam param)
+
+		private AssetOperationHandle LoadAssetInternal(string location, System.Type assetType, bool forceSyncLoad)
 		{
 			string assetName = Path.GetFileName(location);
 			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
-			return cacheLoader.LoadAssetAsync(assetName, assetType, param);
+			var handle = cacheLoader.LoadAssetAsync(assetName, assetType);
+			if (forceSyncLoad)
+				cacheLoader.ForceSyncLoad();
+			return handle;
 		}
-		private AssetOperationHandle LoadInternalSync(string location, System.Type assetType, IAssetParam param)
+		private AssetOperationHandle LoadSubAssetsInternal(string location, System.Type assetType, bool forceSyncLoad)
 		{
 			string assetName = Path.GetFileName(location);
 			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
-			var handle = cacheLoader.LoadAssetAsync(assetName, assetType, param);
-			cacheLoader.ForceSyncLoad();
+			var handle = cacheLoader.LoadSubAssetsAsync(assetName, assetType);
+			if (forceSyncLoad)
+				cacheLoader.ForceSyncLoad();
 			return handle;
 		}
 	}

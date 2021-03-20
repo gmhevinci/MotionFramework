@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 
@@ -27,9 +27,14 @@ namespace MotionFramework.Resource
 		UnityEngine.Object AssetObject { get; }
 
 		/// <summary>
-		/// 获取的场景对象
+		/// 获取的资源对象集合
 		/// </summary>
-		SceneInstance AssetScene { get; }
+		UnityEngine.Object[] AllAssets { get; }
+
+		/// <summary>
+		/// 扩展的实例对象
+		/// </summary>
+		IAssetInstance AssetInstance { get; }
 
 		/// <summary>
 		/// 当前的加载状态

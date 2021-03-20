@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 
@@ -13,7 +13,8 @@ namespace MotionFramework.Resource
 		public string AssetName { private set; get; }
 		public System.Type AssetType { private set; get; }
 		public UnityEngine.Object AssetObject { protected set; get; }
-		public SceneInstance AssetScene { protected set; get; }
+		public UnityEngine.Object[] AllAssets { protected set; get; }
+		public IAssetInstance AssetInstance { protected set; get; }
 		public EAssetStates States { protected set; get; }
 		public int RefCount { private set; get; }
 		public AssetOperationHandle Handle { private set; get; }
@@ -41,7 +42,7 @@ namespace MotionFramework.Resource
 				return 0;
 			}
 		}
-
+		
 
 		public AssetProviderBase(AssetLoaderBase owner, string assetName, System.Type assetType)
 		{
