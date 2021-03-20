@@ -22,10 +22,10 @@ private void Start()
 	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>("Audio/bgMusic");
 	handle.Completed += Handle_Completed;
 }
-private void Handle_Completed(AssetOperationHandle obj)
+private void Handle_Completed(AssetOperationHandle handle)
 {
-	if(obj.AssetObject == null) return;
-	AudioClip audioClip = obj.AssetObject as AudioClip;
+	if(handle.AssetObject == null) return;
+	AudioClip audioClip = handle.AssetObject as AudioClip;
 }
 ````
 
@@ -33,21 +33,30 @@ private void Handle_Completed(AssetOperationHandle obj)
 // 加载纹理资源
 private void Start()
 {
-	AssetOperationHandle handle1 = ResourceManager.Instance.LoadAssetAsync<Texture>("Texture/LoadingTextures/bg1");
-	handle1.Completed += Handle_Completed1;
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<Texture>("Texture/LoadingTextures/bg");
+	handle.Completed += Handle_Completed1;
+}
+private void Handle_Completed1(AssetOperationHandle handle)
+{
+	if(handle.AssetObject == null) return;
+	Texture tex = handle.AssetObject as Texture;
+}
+````
 
-	AssetOperationHandle handle2 = ResourceManager.Instance.LoadAssetAsync<Texture>("Texture/LoadingTextures/bg2")；
-	handle2.Completed += Handle_Completed2;
-}
-private void Handle_Completed1(AssetOperationHandle obj)
+````C#
+// 加载精灵图集
+private void Start()
 {
-	if(obj.AssetObject == null) return;
-	Texture tex = obj.AssetObject as Texture;
+	AssetOperationHandle handle = ResourceManager.Instance.LoadSubAssetsAsync<Sprite>("UITexture/Login");
+	handle.Completed += Handle_Completed1;
 }
-private void Handle_Completed2(AssetOperationHandle obj)
+private void Handle_Completed(AssetOperationHandle handle)
 {
-	if(obj.AssetObject == null) return;
-	Texture tex = obj.AssetObject as Texture;
+	if(handle.AllAssets == null) return;
+	foreach (var asset in handle.AllAssets)
+	{
+		Debug.Log(asset.name);
+	}
 }
 ````
 
@@ -63,10 +72,9 @@ private void Start()
 	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<SceneInstance>("Scene/Login", param);
 	handle.Completed += Handle_Completed1;
 }
-private void Handle_Completed(AssetOperationHandle obj)
+private void Handle_Completed(AssetOperationHandle handle)
 {
-	if(obj.AssetScene == null) return;
-	SceneInstance instance = obj.AssetScene;
+	SceneInstance instance = handle.AssetInstance as SceneInstance;
 	Debug.Log(instance.Scene.name);
 }
 ````
