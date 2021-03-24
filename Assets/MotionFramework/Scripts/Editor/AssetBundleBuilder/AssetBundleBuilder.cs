@@ -422,10 +422,14 @@ namespace MotionFramework.Editor
 				uint crc32 = HashUtility.FileCRC32(path);
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = BuildVersion;
-				bool isEncrypted = encryptList.Contains(bundleName);
 				string[] assetPaths = GetBundleAssetPaths(buildMap, bundleName);
 				string[] depends = unityManifest.GetDirectDependencies(bundleName);
 				string[] dlcLabels = dlcManager.GetAssetBundleDLCLabels(bundleName);
+
+				// 创建标记位
+				bool isEncrypted = encryptList.Contains(bundleName);
+				bool isCollected = IsCollectBundle(buildMap, bundleName);
+				int flags = PatchElement.CreateFlags(isEncrypted, isCollected);
 
 				// 注意：如果文件没有变化使用旧版本号
 				if (oldPatchManifest.Elements.TryGetValue(bundleName, out PatchElement oldElement))
@@ -434,7 +438,7 @@ namespace MotionFramework.Editor
 						version = oldElement.Version;
 				}
 
-				PatchElement newElement = new PatchElement(bundleName, md5, crc32, sizeBytes, version, isEncrypted, assetPaths, depends, dlcLabels);
+				PatchElement newElement = new PatchElement(bundleName, md5, crc32, sizeBytes, version, flags, assetPaths, depends, dlcLabels);
 				newPatchManifest.ElementList.Add(newElement);
 			}
 
@@ -466,8 +470,8 @@ namespace MotionFramework.Editor
 				string label = $"{assetInfo.AssetBundleLabel}.{assetInfo.AssetBundleVariant}".ToLower();
 				if (label == assetBundleLabel)
 				{
-					string assetPath = assetInfo.AssetPath.Remove(assetInfo.AssetPath.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
-					result.Add(assetPath.ToLower());
+					//string assetPath = assetInfo.AssetPath.Remove(assetInfo.AssetPath.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
+					result.Add(assetInfo.AssetPath.ToLower());
 				}
 			}
 			return result.ToArray();
@@ -487,6 +491,20 @@ namespace MotionFramework.Editor
 					dic[path].Add(extension);
 			}
 			return dic;
+		}
+		private bool IsCollectBundle(List<AssetInfo> buildMap, string assetBundleLabel)
+		{
+			for (int i = 0; i < buildMap.Count; i++)
+			{
+				AssetInfo assetInfo = buildMap[i];
+				string label = $"{assetInfo.AssetBundleLabel}.{assetInfo.AssetBundleVariant}".ToLower();
+				if (label == assetBundleLabel)
+				{
+					if (assetInfo.IsCollectAsset)
+						return true;
+				}
+			}
+			return false;
 		}
 
 		/// <summary>
@@ -601,17 +619,17 @@ namespace MotionFramework.Editor
 			// 复制所有更新文件
 			int progressBarCount = 0;
 			PatchManifest patchFile = LoadPatchManifestFile();
-			foreach (var pair in patchFile.Elements)
+			foreach (var element in patchFile.ElementList)
 			{
-				if (pair.Value.Version == BuildVersion)
+				if (element.Version == BuildVersion)
 				{
-					string sourcePath = $"{OutputDirectory}/{pair.Key}";
-					string destPath = $"{packageDirectory}/{pair.Value.MD5}";
+					string sourcePath = $"{OutputDirectory}/{element.BundleName}";
+					string destPath = $"{packageDirectory}/{element.MD5}";
 					EditorTools.CopyFile(sourcePath, destPath, true);
 					Log($"复制更新文件到补丁包：{sourcePath}");
 
 					progressBarCount++;
-					EditorUtility.DisplayProgressBar("进度", $"拷贝更新文件 : {sourcePath}", (float)progressBarCount / patchFile.Elements.Count);
+					EditorUtility.DisplayProgressBar("进度", $"拷贝更新文件 : {sourcePath}", (float)progressBarCount / patchFile.ElementList.Count);
 				}
 			}
 			EditorUtility.ClearProgressBar();
