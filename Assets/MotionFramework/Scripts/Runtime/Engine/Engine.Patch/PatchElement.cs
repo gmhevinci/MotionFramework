@@ -1,10 +1,11 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
 using System.Linq;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Patch
 {
@@ -37,9 +38,9 @@ namespace MotionFramework.Patch
 		public int Version;
 
 		/// <summary>
-		/// 是否为加密文件
+		/// 标记位
 		/// </summary>
-		public bool IsEncrypted;
+		public int Flags;
 
 		/// <summary>
 		/// 依赖列表
@@ -56,15 +57,27 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public string[] DLCLabels;
 
+		/// <summary>
+		/// 是否为加密文件
+		/// </summary>
+		[NonSerialized]
+		public bool IsEncrypted;
 
-		public PatchElement(string bundleName, string md5, uint crc32, long sizeBytes, int version, bool isEncrypted, string[] assetPaths, string[] dependencies, string[] dlcLabels)
+		/// <summary>
+		/// 是否为收集文件
+		/// </summary>
+		[NonSerialized]
+		public bool IsCollected;
+
+
+		public PatchElement(string bundleName, string md5, uint crc32, long sizeBytes, int version, int flags, string[] assetPaths, string[] dependencies, string[] dlcLabels)
 		{
 			BundleName = bundleName;
 			MD5 = md5;
 			CRC32 = crc32;
 			SizeBytes = sizeBytes;
 			Version = version;
-			IsEncrypted = isEncrypted;
+			Flags = flags;
 			AssetPaths = assetPaths;
 			Dependencies = dependencies;
 			DLCLabels = dlcLabels;
@@ -101,6 +114,30 @@ namespace MotionFramework.Patch
 					return true;
 			}
 			return false;
+		}
+
+
+		/// <summary>
+		/// 创建标记位
+		/// </summary>
+		/// <param name="isEncrypted">是否为加密文件</param>
+		/// <param name="isCollected">是否为收集文件</param>
+		public static int CreateFlags(bool isEncrypted, bool isCollected)
+		{
+			BitMask32 flags = new BitMask32(0);
+			if (isEncrypted) flags.Open(0);
+			if (isCollected) flags.Open(1);
+			return flags;
+		}
+
+		/// <summary>
+		/// 解析标记位
+		/// </summary>
+		public static void ParseFlags(int flags, out bool isEncrypted, out bool isCollected)
+		{
+			BitMask32 value = flags;
+			isEncrypted = value.Test(0);
+			isCollected = value.Test(1);
 		}
 	}
 }
