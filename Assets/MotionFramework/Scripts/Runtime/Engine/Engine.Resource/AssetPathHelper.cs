@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.IO;
@@ -72,12 +72,15 @@ namespace MotionFramework.Resource
 		public static string FindDatabaseAssetPath(string location)
 		{
 #if UNITY_EDITOR
-			string path = $"{AssetSystem.LocationRoot}/{location}";
-			string fileName = Path.GetFileName(path);
-			string directory = GetDirectory(path);
+			string filePath = $"{AssetSystem.LocationRoot}/{location}";
+			if (Path.HasExtension(location))
+				return filePath;
+
+			string fileName = Path.GetFileName(filePath);
+			string directory = GetDirectory(filePath);
 			string assetPath = FindDatabaseAssetPath(directory, fileName);
 			if (string.IsNullOrEmpty(assetPath))
-				return path;
+				return filePath;
 			return assetPath;
 #else
 			return string.Empty;
@@ -87,7 +90,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 获取AssetDatabase的加载路径
 		/// </summary>
-		public static string FindDatabaseAssetPath(string directory, string fileName)
+		private static string FindDatabaseAssetPath(string directory, string fileName)
 		{
 #if UNITY_EDITOR
 			// AssetDatabase加载资源需要提供文件后缀格式，然而资源定位地址并没有文件格式信息。
@@ -96,7 +99,7 @@ namespace MotionFramework.Resource
 			string[] guids = UnityEditor.AssetDatabase.FindAssets(string.Empty, new[] { directory });
 			for (int i = 0; i < guids.Length; i++)
 			{
-				string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]);	
+				string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]);
 
 				if (UnityEditor.AssetDatabase.IsValidFolder(assetPath))
 					continue;
