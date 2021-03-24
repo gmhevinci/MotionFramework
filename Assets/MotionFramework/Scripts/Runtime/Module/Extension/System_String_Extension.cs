@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 
@@ -26,6 +26,16 @@ namespace System
 			if (string.IsNullOrEmpty(str))
 				return str;
 			return str.Substring(0, str.Length - 1);
+		}
+
+		/// <summary>
+		/// 移除后缀名
+		/// </summary>
+		public static string RemoveExtension(this System.String str)
+		{
+			if (string.IsNullOrEmpty(str))
+				return str;
+			return str.Remove(str.LastIndexOf("."));
 		}
 	}
 }
