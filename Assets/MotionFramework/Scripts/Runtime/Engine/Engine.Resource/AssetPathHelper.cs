@@ -73,7 +73,7 @@ namespace MotionFramework.Resource
 		{
 #if UNITY_EDITOR
 			string filePath = $"{AssetSystem.LocationRoot}/{location}";
-			if (Path.HasExtension(location))
+			if (File.Exists(filePath))
 				return filePath;
 
 			string fileName = Path.GetFileName(filePath);
