@@ -93,7 +93,7 @@ private void Handle_Completed(AssetOperationHandle handle)
 // 协程加载方式
 public void Start()
 {
-	 AppEngine.Instance.StartCoroutine(AsyncLoad());
+	 MotionEngine.StartCoroutine(AsyncLoad());
 }
 private IEnumerator AsyncLoad()
 {
