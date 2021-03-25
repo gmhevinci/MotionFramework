@@ -14,32 +14,41 @@
 **文件解密服务器接口**  
 如果AssetBundle文件被加密，那么我们需要提供实现了IDecryptServices接口的对象。
 
+**加载路径的匹配方式**  
+````C#
+// 不带扩展名的模糊匹配
+ResourceManager.Instance.LoadAssetAsync<Texture>("UITexture/Bcakground");
+
+// 带扩展名的精准匹配
+ResourceManager.Instance.LoadAssetAsync<Texture>("UITexture/Bcakground.png");
+````
+
 **资源加载 - 委托方式**  
 ````C#
-// 加载音频资源
+// 加载预制体
 private void Start()
 {
-	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>("Audio/bgMusic");
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>("Model/Monster");
 	handle.Completed += Handle_Completed;
 }
 private void Handle_Completed(AssetOperationHandle handle)
 {
 	if(handle.AssetObject == null) return;
-	AudioClip audioClip = handle.AssetObject as AudioClip;
+	GameObject monsterObject = handle.InstantiateObject;
 }
 ````
 
 ````C#
-// 加载纹理资源
+// 加载图片
 private void Start()
 {
-	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<Texture>("Texture/LoadingTextures/bg");
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<Texture>("UITexture/Bcakground");
 	handle.Completed += Handle_Completed;
 }
 private void Handle_Completed(AssetOperationHandle handle)
 {
 	if(handle.AssetObject == null) return;
-	Texture tex = handle.AssetObject as Texture;
+	Texture bgTexture = handle.AssetObject as Texture;
 }
 ````
 
@@ -47,7 +56,7 @@ private void Handle_Completed(AssetOperationHandle handle)
 // 加载精灵图集
 private void Start()
 {
-	AssetOperationHandle handle = ResourceManager.Instance.LoadSubAssetsAsync<Sprite>("UITexture/Login");
+	AssetOperationHandle handle = ResourceManager.Instance.LoadSubAssetsAsync<Sprite>("UISprite/Common");
 	handle.Completed += Handle_Completed;
 }
 private void Handle_Completed(AssetOperationHandle handle)
