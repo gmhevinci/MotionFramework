@@ -28,7 +28,7 @@ ResourceManager.Instance.LoadAssetAsync<Texture>("UITexture/Bcakground.png");
 // 加载预制体
 private void Start()
 {
-	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>("Model/Monster");
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<GameObject>("Model/Monster");
 	handle.Completed += Handle_Completed;
 }
 private void Handle_Completed(AssetOperationHandle handle)
@@ -64,7 +64,7 @@ private void Handle_Completed(AssetOperationHandle handle)
 	if(handle.AllAssets == null) return;
 	foreach (var asset in handle.AllAssets)
 	{
-		Debug.Log(asset.name);
+		Debug.Log($"Sprite name is {asset.name}");
 	}
 }
 ````
@@ -78,7 +78,7 @@ private void Start()
 	param.IsAdditive = false;
 	param.ActivateOnLoad = true;
 
-	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<SceneInstance>("Scene/Login", param);
+	AssetOperationHandle handle = ResourceManager.Instance.LoadSceneAsync("Scene/Login", param);
 	handle.Completed += Handle_Completed;
 }
 private void Handle_Completed(AssetOperationHandle handle)
@@ -121,7 +121,7 @@ private async Task AsyncLoad()
 ````C#
 public void Start()
 {
-	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<Texture>("Audio/bgMusic");
+	AssetOperationHandle handle = ResourceManager.Instance.LoadAssetAsync<AudioClip>("Audio/bgMusic");
 
 	...
 
