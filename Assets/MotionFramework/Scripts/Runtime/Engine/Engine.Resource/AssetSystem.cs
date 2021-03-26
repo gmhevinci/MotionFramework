@@ -125,7 +125,7 @@ namespace MotionFramework.Resource
 				if (BundleServices == null)
 					throw new Exception($"{nameof(BundleServices)} is null. Use {nameof(AssetSystem.Initialize)}");
 
-				string assetPath = $"{LocationRoot}/{location}".ToLower();
+				string assetPath = AssetPathHelper.CombineAssetPath(false, LocationRoot, location);
 				string bundleName = BundleServices.GetAssetBundleName(assetPath);
 				return BundleServices.GetAssetBundleInfo(bundleName);
 			}

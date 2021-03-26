@@ -67,12 +67,33 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
+		/// 合并资源路径
+		/// </summary>
+		internal static string CombineAssetPath(bool simulationOnEditor, string root, string location)
+		{
+			if (simulationOnEditor)
+			{
+				if (string.IsNullOrEmpty(root))
+					return location;
+				else
+					return $"{root}/{location}";
+			}
+			else
+			{
+				if (string.IsNullOrEmpty(root))
+					return location.ToLower();
+				else
+					return $"{root}/{location}".ToLower();
+			}
+		}
+
+		/// <summary>
 		/// 获取AssetDatabase的加载路径
 		/// </summary>
-		public static string FindDatabaseAssetPath(string location)
+		internal static string FindDatabaseAssetPath(string location)
 		{
 #if UNITY_EDITOR
-			string filePath = $"{AssetSystem.LocationRoot}/{location}";
+			string filePath = CombineAssetPath(true, AssetSystem.LocationRoot, location);
 			if (File.Exists(filePath))
 				return filePath;
 
