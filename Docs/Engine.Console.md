@@ -30,9 +30,6 @@ using MotionFramework.Console;
 [ConsoleAttribute("窗口标题", 201)]
 public class CustomDebugWindow : IConsoleWindow
 {
-	void IConsoleWindow.OnStart()
-	{
-	}
 	void IConsoleWindow.OnGUI()
 	{
 		ConsoleGUI.Lable("在这里编写GUI代码");

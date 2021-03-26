@@ -9,7 +9,6 @@ Build Output : 打包完成后的输出路径（在工程目录下）。该路�
 Force Rebuild : 强制重建会删除当前平台下所有的补丁包文件
 
 Compression : Assetbundle的压缩格式
-Append Hash : 生成的AssetBundle文件名称添加Hash信息
 Disable Write Type Tree : 禁止写入TypeTree，建议不勾选
 Ignore Type Tree Chanages : 忽略TypeTree变化，建议勾选
 ```
