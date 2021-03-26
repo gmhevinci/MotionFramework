@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2020-2021 巴黎雨季 何冠峰
+// Copyright©2020-2021 张飞涛 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using UnityEngine;
