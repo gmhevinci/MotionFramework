@@ -32,6 +32,16 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
+		/// 是否收集全路径的着色器
+		/// </summary>
+		public bool IsCollectAllShaders = false;
+
+		/// <summary>
+		/// 收集的着色器Bundle名称
+		/// </summary>
+		public string ShadersBundleName = "shaders";
+		
+		/// <summary>
 		/// 收集列表
 		/// </summary>
 		public List<Collector> Collectors = new List<Collector>();

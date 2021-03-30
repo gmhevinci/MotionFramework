@@ -94,6 +94,22 @@ namespace MotionFramework.Editor
 
 		private void OnDrawCollector()
 		{
+			// 着色器选项
+			EditorGUILayout.Space();
+			bool isCollectAllShader = EditorGUILayout.Toggle("收集所有着色器", AssetBundleCollectorSettingData.Setting.IsCollectAllShaders);
+			if(isCollectAllShader != AssetBundleCollectorSettingData.Setting.IsCollectAllShaders)
+			{
+				AssetBundleCollectorSettingData.ModifyShader(isCollectAllShader, AssetBundleCollectorSettingData.Setting.ShadersBundleName);
+			}
+			if(isCollectAllShader)
+			{
+				string shadersBundleName = EditorGUILayout.TextField("AssetBundle名称", AssetBundleCollectorSettingData.Setting.ShadersBundleName);
+				if(shadersBundleName != AssetBundleCollectorSettingData.Setting.ShadersBundleName)
+				{
+					AssetBundleCollectorSettingData.ModifyShader(isCollectAllShader, shadersBundleName);
+				}
+			}
+
 			// 列表显示
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField($"[ Collector ]");

@@ -80,7 +80,7 @@ namespace MotionFramework.Editor
 				Debug.Log($"Load {nameof(AssetBundleCollectorSetting)}.asset ok");
 			}
 
-			// 收集器类型
+			// IBundleLabel类型
 			{
 				// 清空缓存集合
 				_cacheLabelTypes.Clear();
@@ -102,7 +102,7 @@ namespace MotionFramework.Editor
 				}
 			}
 
-			// 过滤器类型
+			// ISearchFilter类型
 			{
 				// 清空缓存集合
 				_cacheFilterTypes.Clear();
@@ -137,6 +137,16 @@ namespace MotionFramework.Editor
 				EditorUtility.SetDirty(Setting);
 				AssetDatabase.SaveAssets();
 			}
+		}
+
+		// 着色器相关
+		public static void ModifyShader(bool isCollectAllShaders, string shadersBundleName)
+		{
+			if (string.IsNullOrEmpty(shadersBundleName))
+				return;
+			Setting.IsCollectAllShaders = isCollectAllShaders;
+			Setting.ShadersBundleName = shadersBundleName;
+			SaveFile();
 		}
 
 		// 收集器相关
@@ -329,8 +339,14 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 是否收集该资源
 		/// </summary>
-		public static bool IsCollectAsset(string assetPath)
+		public static bool IsCollectAsset(string assetPath, System.Type assetType)
 		{
+			if(Setting.IsCollectAllShaders)
+			{
+				if (assetType == typeof(UnityEngine.Shader))
+					return true;
+			}
+
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector wrapper = Setting.Collectors[i];
@@ -348,9 +364,22 @@ namespace MotionFramework.Editor
 			public string BundleLabel;
 			public string BundleVariant;
 		}
-		public static BundleLabelAndVariant GetBundleLabelAndVariant(string assetPath)
+		public static BundleLabelAndVariant GetBundleLabelAndVariant(string assetPath, System.Type assetType)
 		{
 			string label;
+
+			// 如果收集全路径着色器		
+			if (Setting.IsCollectAllShaders)
+			{
+				if(assetType == typeof(UnityEngine.Shader))
+				{
+					label = Setting.ShadersBundleName;
+					BundleLabelAndVariant result = new BundleLabelAndVariant();
+					result.BundleLabel = EditorTools.GetRegularPath(label);
+					result.BundleVariant = PatchDefine.AssetBundleDefaultVariant;
+					return result;
+				}
+			}
 
 			// 获取收集器
 			AssetBundleCollectorSetting.Collector findWrapper = null;
@@ -418,7 +447,7 @@ namespace MotionFramework.Editor
 			}
 			else
 			{
-				throw new Exception($"资源收集器类型无效：{className}");
+				throw new Exception($"{nameof(IBundleLabel)}类型无效：{className}");
 			}
 		}
 		private static ISearchFilter GetSearchFilterInstance(string className)
@@ -435,7 +464,7 @@ namespace MotionFramework.Editor
 			}
 			else
 			{
-				throw new Exception($"资源过滤器类型无效：{className}");
+				throw new Exception($"{nameof(ISearchFilter)}类型无效：{className}");
 			}
 		}
 	}

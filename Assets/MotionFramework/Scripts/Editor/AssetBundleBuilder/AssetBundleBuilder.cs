@@ -244,7 +244,7 @@ namespace MotionFramework.Editor
 			foreach (KeyValuePair<string, AssetInfo> pair in buildMap)
 			{
 				var assetInfo = pair.Value;
-				var labelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
+				var labelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath, assetInfo.AssetType);
 				assetInfo.AssetBundleLabel = labelAndVariant.BundleLabel;
 				assetInfo.AssetBundleVariant = labelAndVariant.BundleVariant;
 				progressBarCount++;
@@ -277,6 +277,22 @@ namespace MotionFramework.Editor
 		#endregion
 
 		#region 文件加密
+		private IAssetEncrypter _encrypter = null;
+		private void InitAssetEncrypter()
+		{
+			var types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetEncrypter));
+			if (types.Count == 0)
+				return;
+			if (types.Count != 1)
+			{
+				Debug.LogError($"Found more {nameof(IAssetEncrypter)} types. We only support one.");
+				return;
+			}
+
+			Log($"创建加密类 : {types[0].FullName}");
+			_encrypter = (IAssetEncrypter)Activator.CreateInstance(types[0]);
+		}
+
 		private List<string> EncryptFiles(AssetBundleManifest unityManifest)
 		{
 			// 初始化加密器
@@ -286,7 +302,7 @@ namespace MotionFramework.Editor
 			List<string> encryptList = new List<string>();
 
 			// 如果没有设置加密类
-			if (_encrypterType == null)
+			if (_encrypter == null)
 				return encryptList;
 
 			Log($"开始加密资源文件");
@@ -295,7 +311,7 @@ namespace MotionFramework.Editor
 			foreach (string assetName in allAssetBundles)
 			{
 				string filePath = $"{OutputDirectory}/{assetName}";
-				if (InvokeCheckMethod(filePath))
+				if (_encrypter.Check(filePath))
 				{
 					encryptList.Add(assetName);
 
@@ -303,7 +319,7 @@ namespace MotionFramework.Editor
 					byte[] fileData = File.ReadAllBytes(filePath);
 					if (EditorTools.CheckBundleFileValid(fileData))
 					{
-						byte[] bytes = InvokeEncryptMethod(fileData);
+						byte[] bytes = _encrypter.Encrypt(fileData);
 						File.WriteAllBytes(filePath, bytes);
 						Log($"文件加密完成：{filePath}");
 					}
@@ -316,33 +332,6 @@ namespace MotionFramework.Editor
 			EditorUtility.ClearProgressBar();
 
 			return encryptList;
-		}
-
-		// 资源加密类名为：AssetEncrypter.cs
-		// 检测方法为：public static bool Check(string filePath) { }
-		// 加密方法为：public static byte[] Encrypt(byte[] fileData) { }
-		private Type _encrypterType = null;
-		private void InitAssetEncrypter()
-		{
-			var assembly = AssemblyUtility.GetAssembly(AssemblyUtility.UnityDefaultAssemblyEditorName);
-			if (assembly != null)
-			{
-				_encrypterType = assembly.GetType("AssetEncrypter");
-				if (_encrypterType != null)
-				{
-					Log($"发现加密类 : {_encrypterType.FullName}");
-				}
-			}
-		}
-		private bool InvokeCheckMethod(string filePath)
-		{
-			var method = _encrypterType.GetMethod("Check", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
-			return (bool)method.Invoke(this, new object[] { filePath });
-		}
-		private byte[] InvokeEncryptMethod(byte[] fileData)
-		{
-			var method = _encrypterType.GetMethod("Encrypt", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
-			return (byte[])method.Invoke(this, new object[] { fileData });
 		}
 		#endregion
 

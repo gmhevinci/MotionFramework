@@ -13,9 +13,8 @@ namespace MotionFramework.Editor
 	public class AssetInfo
 	{
 		public string AssetPath { private set; get; }
+		public System.Type AssetType { private set; get; }
 		public bool IsCollectAsset { private set; get; }
-		public bool IsSceneAsset { private set; get; }
-		public bool IsVideoAsset { private set; get; }
 
 		/// <summary>
 		/// 被依赖次数
@@ -34,10 +33,9 @@ namespace MotionFramework.Editor
 
 		public AssetInfo(string assetPath)
 		{
-			AssetPath = assetPath;
-			IsCollectAsset = AssetBundleCollectorSettingData.IsCollectAsset(assetPath);
-			IsSceneAsset = AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(SceneAsset);
-			IsVideoAsset = AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(UnityEngine.Video.VideoClip);
+			AssetPath = assetPath;			
+			AssetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+			IsCollectAsset = AssetBundleCollectorSettingData.IsCollectAsset(assetPath, AssetType);
 		}
 	}
 }
