@@ -1,11 +1,12 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Networking;
+using UnityEngine;
 
 namespace MotionFramework.Network
 {
@@ -24,18 +25,17 @@ namespace MotionFramework.Network
 		/// 异步操作句柄
 		/// </summary>
 		protected UnityWebRequestAsyncOperation AsyncOperationHandle;
-
-
+	
 		/// <summary>
 		/// 下载路径
 		/// </summary>
 		public string URL { private set; get; }
 
 		/// <summary>
-		/// 下载超时（单位：秒）
-		/// 默认30秒
+		/// 下载超时, 默认60秒（单位：秒）
+		/// 注意：在连续时间段内无新增下载数据及判定为超时
 		/// </summary>
-		public int Timeout { set; get; } = 30;
+		public int Timeout { set; get; } = 60;
 
 		/// <summary>
 		/// 下载进度（0-100f）
@@ -67,6 +67,10 @@ namespace MotionFramework.Network
 		/// 用户数据
 		/// </summary>
 		public object UserData { set; get; }
+
+		// 下载超时相关
+		private float _latestDownloadRealtime = -1;
+		private float _latestDownloadBytes = -1;
 
 
 		public WebRequestBase(string url)
@@ -100,8 +104,12 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 是否完毕（无论成功失败）
 		/// </summary>
-		public bool IsDone()
+		/// <param name="checkTimeout">是否检测超时</param>
+		public bool IsDone(bool checkTimeout = true)
 		{
+			if(checkTimeout)
+				CheckTimeout();
+
 			if (AsyncOperationHandle == null)
 				return false;
 			return AsyncOperationHandle.isDone;
@@ -115,6 +123,25 @@ namespace MotionFramework.Network
 			return CacheRequest.isNetworkError || CacheRequest.isHttpError;
 		}
 
+		/// <summary>
+		/// 检测是否超时
+		/// </summary>
+		private void CheckTimeout()
+		{
+			if (CacheRequest == null || AsyncOperationHandle == null)
+				return;
+
+			if(_latestDownloadBytes != DownloadedBytes)
+			{
+				_latestDownloadBytes = DownloadedBytes;
+				_latestDownloadRealtime = Time.realtimeSinceStartup;
+			}
+			if ((Time.realtimeSinceStartup - _latestDownloadRealtime) > Timeout)
+			{
+				MotionLog.Warning($"Web request timeout : {URL}");
+				CacheRequest.Abort();
+			}
+		}
 
 		#region 异步相关
 		bool IEnumerator.MoveNext()

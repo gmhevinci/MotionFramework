@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -25,7 +25,6 @@ namespace MotionFramework.Network
 			DownloadHandlerBuffer handler = new DownloadHandlerBuffer();
 			CacheRequest.downloadHandler = handler;
 			CacheRequest.disposeDownloadHandlerOnDispose = true;
-			CacheRequest.timeout = Timeout;
 			AsyncOperationHandle = CacheRequest.SendWebRequest();
 		}
 		public override void ReportError()
@@ -36,14 +35,14 @@ namespace MotionFramework.Network
 
 		public byte[] GetData()
 		{
-			if (IsDone() && HasError() == false)
+			if (IsDone(false) && HasError() == false)
 				return CacheRequest.downloadHandler.data;
 			else
 				return null;
 		}
 		public string GetText()
 		{
-			if (IsDone() && HasError() == false)
+			if (IsDone(false) && HasError() == false)
 				return CacheRequest.downloadHandler.text;
 			else
 				return null;
