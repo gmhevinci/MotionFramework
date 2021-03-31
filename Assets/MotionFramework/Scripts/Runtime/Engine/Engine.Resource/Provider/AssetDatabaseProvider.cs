@@ -55,5 +55,15 @@ namespace MotionFramework.Resource
 			}
 #endif
 		}
+		public override void Destory()
+		{
+			base.Destory();
+
+			if (AssetObject != null)
+			{
+				if (AssetObject is GameObject == false)
+					Resources.UnloadAsset(AssetObject);
+			}
+		}
 	}
 }
