@@ -244,9 +244,9 @@ namespace MotionFramework.Editor
 			foreach (KeyValuePair<string, AssetInfo> pair in buildMap)
 			{
 				var assetInfo = pair.Value;
-				var labelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath, assetInfo.AssetType);
-				assetInfo.AssetBundleLabel = labelAndVariant.BundleLabel;
-				assetInfo.AssetBundleVariant = labelAndVariant.BundleVariant;
+				var bundleBuildInfo = AssetBundleCollectorSettingData.GetBundleBuildInfo(assetInfo.AssetPath, assetInfo.AssetType);
+				assetInfo.AssetBundleLabel = bundleBuildInfo.BundleLabel;
+				assetInfo.AssetBundleVariant = bundleBuildInfo.BundleVariant;
 				progressBarCount++;
 				EditorUtility.DisplayProgressBar("进度", $"设置资源标签：{progressBarCount}/{buildMap.Count}", (float)progressBarCount / buildMap.Count);
 			}
@@ -450,16 +450,14 @@ namespace MotionFramework.Editor
 			Log($"创建补丁清单文件：{filePath}");
 			PatchManifest.Serialize(filePath, newPatchManifest);
 		}
-		private string[] GetBundleAssetPaths(List<AssetInfo> buildMap, string assetBundleLabel)
+		private string[] GetBundleAssetPaths(List<AssetInfo> buildMap, string bundleName)
 		{
 			List<string> result = new List<string>();
 			for (int i = 0; i < buildMap.Count; i++)
 			{
 				AssetInfo assetInfo = buildMap[i];
-				string label = $"{assetInfo.AssetBundleLabel}.{assetInfo.AssetBundleVariant}".ToLower();
-				if (label == assetBundleLabel)
+				if (assetInfo.GetAssetBundleFullName() == bundleName)
 				{
-					//string assetPath = assetInfo.AssetPath.Remove(assetInfo.AssetPath.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
 					result.Add(assetInfo.AssetPath.ToLower());
 				}
 			}
@@ -470,7 +468,10 @@ namespace MotionFramework.Editor
 			Dictionary<string, List<string>> dic = new Dictionary<string, List<string>>();
 			foreach (var assetBundleLabel in allAssetBundles)
 			{
-				string path = assetBundleLabel.Remove(assetBundleLabel.LastIndexOf(".")); // "assets/config/test.unity3d" --> "assets/config/test"
+				if (Path.HasExtension(assetBundleLabel) == false)
+					continue;
+
+				string path = assetBundleLabel.RemoveExtension();
 				string extension = Path.GetExtension(assetBundleLabel).Substring(1);
 
 				if (dic.ContainsKey(path) == false)
@@ -481,13 +482,12 @@ namespace MotionFramework.Editor
 			}
 			return dic;
 		}
-		private bool IsCollectBundle(List<AssetInfo> buildMap, string assetBundleLabel)
+		private bool IsCollectBundle(List<AssetInfo> buildMap, string bundleName)
 		{
 			for (int i = 0; i < buildMap.Count; i++)
 			{
 				AssetInfo assetInfo = buildMap[i];
-				string label = $"{assetInfo.AssetBundleLabel}.{assetInfo.AssetBundleVariant}".ToLower();
-				if (label == assetBundleLabel)
+				if (assetInfo.GetAssetBundleFullName() == bundleName)
 				{
 					if (assetInfo.IsCollectAsset)
 						return true;
@@ -520,7 +520,7 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector wrapper = AssetBundleCollectorSettingData.Setting.Collectors[i];
-				AppendData(content, $"Directory : {wrapper.CollectDirectory} | {wrapper.LabelClassName} | {wrapper.FilterClassName}");
+				AppendData(content, $"Directory : {wrapper.CollectDirectory} | {wrapper.BundleLabelClassName} | {wrapper.SearchFilterClassName}");
 			}
 
 			AppendData(content, "");

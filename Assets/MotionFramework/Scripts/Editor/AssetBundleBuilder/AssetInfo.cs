@@ -31,9 +31,20 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public string AssetBundleVariant = null;
 
+		/// <summary>
+		/// 获取AssetBundle的完整名称（包含后缀名）
+		/// </summary>
+		public string GetAssetBundleFullName()
+		{
+			if (string.IsNullOrEmpty(AssetBundleVariant))
+				return AssetBundleLabel.ToLower();
+			else
+				return $"{AssetBundleLabel}.{AssetBundleVariant}".ToLower();
+		}
+
 		public AssetInfo(string assetPath)
 		{
-			AssetPath = assetPath;			
+			AssetPath = assetPath;
 			AssetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
 			IsCollectAsset = AssetBundleCollectorSettingData.IsCollectAsset(assetPath, AssetType);
 		}
