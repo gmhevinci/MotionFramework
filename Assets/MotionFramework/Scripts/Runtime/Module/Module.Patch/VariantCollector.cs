@@ -86,7 +86,7 @@ namespace MotionFramework.Patch
 				string extension = _variantRuleCollection[variant];
 				if (extension == VariantRule.DefaultTag)
 					extension = PatchDefine.AssetBundleDefaultVariant;
-				string filePathWithoutExtension = bundleName.Remove(bundleName.LastIndexOf("."));
+				string filePathWithoutExtension = bundleName.RemoveExtension();
 				variantBundleName = StringFormat.Format("{0}.{1}", filePathWithoutExtension, extension);
 			}
 			else
