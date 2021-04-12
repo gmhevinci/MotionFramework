@@ -640,11 +640,11 @@ namespace MotionFramework.Editor
 		// BOOL
 		public static void PlayerSetBool(string key, bool value)
 		{
-			PlayerPrefs.SetInt(key, value ? 1 : 0);
+			EditorPrefs.SetInt(key, value ? 1 : 0);
 		}
 		public static bool PlayerGetBool(string key, bool defaultValue)
 		{
-			int result = PlayerPrefs.GetInt(key, defaultValue ? 1 : 0);
+			int result = EditorPrefs.GetInt(key, defaultValue ? 1 : 0);
 			return result != 0;
 		}
 
@@ -652,11 +652,11 @@ namespace MotionFramework.Editor
 		public static void PlayerSetEnum<T>(string key, T value)
 		{
 			string enumName = value.ToString();
-			PlayerPrefs.SetString(key, enumName);
+			EditorPrefs.SetString(key, enumName);
 		}
 		public static T PlayerGetEnum<T>(string key, T defaultValue)
 		{
-			string enumName = PlayerPrefs.GetString(key, defaultValue.ToString());
+			string enumName = EditorPrefs.GetString(key, defaultValue.ToString());
 			return StringConvert.NameToEnum<T>(enumName);
 		}
 		#endregion
