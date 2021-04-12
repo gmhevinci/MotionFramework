@@ -530,14 +530,6 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 去除路径里的文件格式
-		/// </summary>
-		public static string RemovePathSuffix(string path)
-		{
-			return path.Remove(path.LastIndexOf("."));
-		}
-
-		/// <summary>
 		/// 转换文件的绝对路径为Unity资源路径
 		/// 例如 D:\\YourPorject\\Assets\\Works\\file.txt 替换为 Assets/Works/file.txt
 		/// </summary>
