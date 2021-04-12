@@ -15,8 +15,7 @@ namespace MotionFramework.Editor
 	{
 		string IBundleLabel.GetAssetBundleLabel(string assetPath)
 		{
-			// 例如："Assets/Config/test.txt" --> "Assets/Config/test"
-			return assetPath.Remove(assetPath.LastIndexOf("."));
+			return assetPath.RemoveExtension();
 		}
 	}
 
@@ -28,8 +27,7 @@ namespace MotionFramework.Editor
 	{
 		string IBundleLabel.GetAssetBundleLabel(string assetPath)
 		{
-			// 例如："Assets/Config/test.txt" --> "Assets/Config"
-			return Path.GetDirectoryName(assetPath);
+			return Path.GetDirectoryName(assetPath); //"Assets/Config/test.txt" --> "Assets/Config"
 		}
 	}
 }

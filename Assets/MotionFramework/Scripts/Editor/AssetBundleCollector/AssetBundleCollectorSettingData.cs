@@ -16,11 +16,11 @@ namespace MotionFramework.Editor
 {
 	public static class AssetBundleCollectorSettingData
 	{
-		private static readonly Dictionary<string, System.Type> _cacheLabelTypes = new Dictionary<string, System.Type>();
-		private static readonly Dictionary<string, IBundleLabel> _cacheLabelInstance = new Dictionary<string, IBundleLabel>();
+		private static readonly Dictionary<string, System.Type> _cacheBundleLabelTypes = new Dictionary<string, System.Type>();
+		private static readonly Dictionary<string, IBundleLabel> _cacheBundleLabelInstance = new Dictionary<string, IBundleLabel>();
 
-		private static readonly Dictionary<string, System.Type> _cacheFilterTypes = new Dictionary<string, System.Type>();
-		private static readonly Dictionary<string, ISearchFilter> _cacheFilterInstance = new Dictionary<string, ISearchFilter>();
+		private static readonly Dictionary<string, System.Type> _cacheSearchFilterTypes = new Dictionary<string, System.Type>();
+		private static readonly Dictionary<string, ISearchFilter> _cacheSearchFilterInstance = new Dictionary<string, ISearchFilter>();
 
 
 		private static AssetBundleCollectorSetting _setting = null;
@@ -34,25 +34,25 @@ namespace MotionFramework.Editor
 			}
 		}
 
-		public static List<string> GetLabelClassNames()
+		public static List<string> GetBundleLabelClassNames()
 		{
 			if (_setting == null)
 				LoadSettingData();
 
 			List<string> names = new List<string>();
-			foreach (var pair in _cacheLabelTypes)
+			foreach (var pair in _cacheBundleLabelTypes)
 			{
 				names.Add(pair.Key);
 			}
 			return names;
 		}
-		public static List<string> GetFilterClassNames()
+		public static List<string> GetSearchFilterClassNames()
 		{
 			if (_setting == null)
 				LoadSettingData();
 
 			List<string> names = new List<string>();
-			foreach (var pair in _cacheFilterTypes)
+			foreach (var pair in _cacheSearchFilterTypes)
 			{
 				names.Add(pair.Key);
 			}
@@ -80,11 +80,11 @@ namespace MotionFramework.Editor
 				Debug.Log($"Load {nameof(AssetBundleCollectorSetting)}.asset ok");
 			}
 
-			// IBundleLabel类型
+			// IBundleLabel
 			{
 				// 清空缓存集合
-				_cacheLabelTypes.Clear();
-				_cacheLabelInstance.Clear();
+				_cacheBundleLabelTypes.Clear();
+				_cacheBundleLabelInstance.Clear();
 
 				// 获取所有类型
 				List<Type> types = new List<Type>(100)
@@ -97,16 +97,16 @@ namespace MotionFramework.Editor
 				for (int i = 0; i < types.Count; i++)
 				{
 					Type type = types[i];
-					if (_cacheLabelTypes.ContainsKey(type.Name) == false)
-						_cacheLabelTypes.Add(type.Name, type);
+					if (_cacheBundleLabelTypes.ContainsKey(type.Name) == false)
+						_cacheBundleLabelTypes.Add(type.Name, type);
 				}
 			}
 
-			// ISearchFilter类型
+			// ISearchFilter
 			{
 				// 清空缓存集合
-				_cacheFilterTypes.Clear();
-				_cacheFilterInstance.Clear();
+				_cacheSearchFilterTypes.Clear();
+				_cacheSearchFilterInstance.Clear();
 
 				// 获取所有类型
 				List<Type> types = new List<Type>(100)
@@ -121,8 +121,8 @@ namespace MotionFramework.Editor
 				for (int i = 0; i < types.Count; i++)
 				{
 					Type type = types[i];
-					if (_cacheFilterTypes.ContainsKey(type.Name) == false)
-						_cacheFilterTypes.Add(type.Name, type);
+					if (_cacheSearchFilterTypes.ContainsKey(type.Name) == false)
+						_cacheSearchFilterTypes.Add(type.Name, type);
 				}
 			}
 		}
@@ -162,8 +162,8 @@ namespace MotionFramework.Editor
 
 			AssetBundleCollectorSetting.Collector element = new AssetBundleCollectorSetting.Collector();
 			element.CollectDirectory = directory;
-			element.LabelClassName = nameof(LabelByFilePath);
-			element.FilterClassName = nameof(SearchAll);
+			element.BundleLabelClassName = nameof(LabelByFilePath);
+			element.SearchFilterClassName = nameof(SearchAll);
 			Setting.Collectors.Add(element);
 			SaveFile();
 		}
@@ -179,14 +179,14 @@ namespace MotionFramework.Editor
 			}
 			SaveFile();
 		}
-		public static void ModifyCollector(string directory, string labelClassName, string filterClassName)
+		public static void ModifyCollector(string directory, string bundleLabelClassName, string searchFilterClassName)
 		{
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				if (Setting.Collectors[i].CollectDirectory == directory)
 				{
-					Setting.Collectors[i].LabelClassName = labelClassName;
-					Setting.Collectors[i].FilterClassName = filterClassName;
+					Setting.Collectors[i].BundleLabelClassName = bundleLabelClassName;
+					Setting.Collectors[i].SearchFilterClassName = searchFilterClassName;
 					break;
 				}
 			}
@@ -298,7 +298,7 @@ namespace MotionFramework.Editor
 					string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 					if (ValidateAsset(assetPath) == false)
 						continue;
-					if (FilterAsset(assetPath, collector.FilterClassName) == false)
+					if (FilterAsset(assetPath, collector.SearchFilterClassName) == false)
 						continue;
 					if (result.Contains(assetPath) == false)
 						result.Add(assetPath);
@@ -341,7 +341,7 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public static bool IsCollectAsset(string assetPath, System.Type assetType)
 		{
-			if(Setting.IsCollectAllShaders)
+			if (Setting.IsCollectAllShaders)
 			{
 				if (assetType == typeof(UnityEngine.Shader))
 					return true;
@@ -357,27 +357,16 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 获取资源的打包标签和变种
+		/// 获取资源的打包信息
 		/// </summary>
-		public struct BundleLabelAndVariant
+		public static BundleBuildInfo GetBundleBuildInfo(string assetPath, System.Type assetType)
 		{
-			public string BundleLabel;
-			public string BundleVariant;
-		}
-		public static BundleLabelAndVariant GetBundleLabelAndVariant(string assetPath, System.Type assetType)
-		{
-			string label;
-
 			// 如果收集全路径着色器		
 			if (Setting.IsCollectAllShaders)
 			{
-				if(assetType == typeof(UnityEngine.Shader))
+				if (assetType == typeof(UnityEngine.Shader))
 				{
-					label = Setting.ShadersBundleName;
-					BundleLabelAndVariant result = new BundleLabelAndVariant();
-					result.BundleLabel = EditorTools.GetRegularPath(label);
-					result.BundleVariant = PatchDefine.AssetBundleDefaultVariant;
-					return result;
+					return new BundleBuildInfo(Setting.ShadersBundleName, PatchDefine.AssetBundleDefaultVariant);
 				}
 			}
 
@@ -393,35 +382,33 @@ namespace MotionFramework.Editor
 				}
 			}
 
+			string label;
+
 			// 如果没有找到收集器
 			if (findWrapper == null)
 			{
-				IBundleLabel defaultLabel = new LabelByFilePath();
-				label = defaultLabel.GetAssetBundleLabel(assetPath);
+				IBundleLabel defaultLabelInstance = new LabelByFilePath();
+				label = defaultLabelInstance.GetAssetBundleLabel(assetPath);
 			}
 			else
 			{
 				// 根据规则设置获取标签名称
-				IBundleLabel bundleLabel = GetCollectorInstance(findWrapper.LabelClassName);
-				label = bundleLabel.GetAssetBundleLabel(assetPath);
+				IBundleLabel bundleLabelInstance = GetBundleLabelInstance(findWrapper.BundleLabelClassName);
+				label = bundleLabelInstance.GetAssetBundleLabel(assetPath);
 			}
 
 			// 注意：如果资源所在文件夹的名称包含后缀符号，则为变体资源
-			string folderName = Path.GetDirectoryName(assetPath); // "Assets/Texture.HD/background.jpg" --> "Assets/Texture.HD"
-			if (Path.HasExtension(folderName))
+			string assetDirectory = Path.GetDirectoryName(assetPath); // "Assets/Texture.HD/background.jpg" --> "Assets/Texture.HD"
+			if (Path.HasExtension(assetDirectory))
 			{
-				string extension = Path.GetExtension(folderName);
-				BundleLabelAndVariant result = new BundleLabelAndVariant();
-				result.BundleLabel = EditorTools.GetRegularPath(label.Replace(extension, string.Empty));
-				result.BundleVariant = extension.RemoveFirstChar();
-				return result;
+				string extension = Path.GetExtension(assetDirectory);
+				label = label.Replace(extension, string.Empty);
+				string variant = extension.RemoveFirstChar();
+				return new BundleBuildInfo(label, variant);
 			}
 			else
 			{
-				BundleLabelAndVariant result = new BundleLabelAndVariant();
-				result.BundleLabel = EditorTools.GetRegularPath(label);
-				result.BundleVariant = PatchDefine.AssetBundleDefaultVariant;
-				return result;
+				return new BundleBuildInfo(label, PatchDefine.AssetBundleDefaultVariant);
 			}
 		}
 
@@ -433,16 +420,16 @@ namespace MotionFramework.Editor
 			return Setting.DLCFiles.ToArray();
 		}
 
-		private static IBundleLabel GetCollectorInstance(string className)
+		private static IBundleLabel GetBundleLabelInstance(string className)
 		{
-			if (_cacheLabelInstance.TryGetValue(className, out IBundleLabel instance))
+			if (_cacheBundleLabelInstance.TryGetValue(className, out IBundleLabel instance))
 				return instance;
 
 			// 如果不存在创建类的实例
-			if (_cacheLabelTypes.TryGetValue(className, out Type type))
+			if (_cacheBundleLabelTypes.TryGetValue(className, out Type type))
 			{
 				instance = (IBundleLabel)Activator.CreateInstance(type);
-				_cacheLabelInstance.Add(className, instance);
+				_cacheBundleLabelInstance.Add(className, instance);
 				return instance;
 			}
 			else
@@ -452,14 +439,14 @@ namespace MotionFramework.Editor
 		}
 		private static ISearchFilter GetSearchFilterInstance(string className)
 		{
-			if (_cacheFilterInstance.TryGetValue(className, out ISearchFilter instance))
+			if (_cacheSearchFilterInstance.TryGetValue(className, out ISearchFilter instance))
 				return instance;
 
 			// 如果不存在创建类的实例
-			if (_cacheFilterTypes.TryGetValue(className, out Type type))
+			if (_cacheSearchFilterTypes.TryGetValue(className, out Type type))
 			{
 				instance = (ISearchFilter)Activator.CreateInstance(type);
-				_cacheFilterInstance.Add(className, instance);
+				_cacheSearchFilterInstance.Add(className, instance);
 				return instance;
 			}
 			else

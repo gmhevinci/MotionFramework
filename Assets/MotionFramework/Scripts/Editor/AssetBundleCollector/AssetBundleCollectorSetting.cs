@@ -15,20 +15,9 @@ namespace MotionFramework.Editor
 		[Serializable]
 		public class Collector
 		{
-			/// <summary>
-			/// 收集路径
-			/// </summary>
 			public string CollectDirectory = string.Empty;
-
-			/// <summary>
-			/// 标签的类名
-			/// </summary>
-			public string LabelClassName = string.Empty;
-
-			/// <summary>
-			/// 过滤器的类名
-			/// </summary>
-			public string FilterClassName = string.Empty;
+			public string BundleLabelClassName = string.Empty;
+			public string SearchFilterClassName = string.Empty;
 		}
 
 		/// <summary>

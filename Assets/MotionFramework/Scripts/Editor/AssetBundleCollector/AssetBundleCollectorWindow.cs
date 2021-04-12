@@ -30,52 +30,52 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private string _lastOpenFolderPath = "Assets/";
 
-		private string[] _labelClassArray = null;
-		private string[] _filterClassArray = null;
+		private string[] _bundleLabelClassArray = null;
+		private string[] _searchFilterClassArray = null;
 
 		// 初始化相关
 		private bool _isInit = false;
 		private void Init()
 		{
-			List<string> labelClassNames = AssetBundleCollectorSettingData.GetLabelClassNames();
-			_labelClassArray = labelClassNames.ToArray();
+			List<string> bundleLablelClassNames = AssetBundleCollectorSettingData.GetBundleLabelClassNames();
+			_bundleLabelClassArray = bundleLablelClassNames.ToArray();
 
-			List<string> filterClassNames = AssetBundleCollectorSettingData.GetFilterClassNames();
-			_filterClassArray = filterClassNames.ToArray();
+			List<string> searchFilterClassNames = AssetBundleCollectorSettingData.GetSearchFilterClassNames();
+			_searchFilterClassArray = searchFilterClassNames.ToArray();
 		}
-		private int LabelClassNameToIndex(string name)
+		private int BundleLabelClassNameToIndex(string name)
 		{
-			for (int i = 0; i < _labelClassArray.Length; i++)
+			for (int i = 0; i < _bundleLabelClassArray.Length; i++)
 			{
-				if (_labelClassArray[i] == name)
+				if (_bundleLabelClassArray[i] == name)
 					return i;
 			}
 			return 0;
 		}
-		private string IndexToLabelClassName(int index)
+		private string IndexToBundleLabelClassName(int index)
 		{
-			for (int i = 0; i < _labelClassArray.Length; i++)
+			for (int i = 0; i < _bundleLabelClassArray.Length; i++)
 			{
 				if (i == index)
-					return _labelClassArray[i];
+					return _bundleLabelClassArray[i];
 			}
 			return string.Empty;
-		}		
-		private int FilterClassNameToIndex(string name)
+		}
+		private int SearchFilterClassNameToIndex(string name)
 		{
-			for (int i = 0; i < _filterClassArray.Length; i++)
+			for (int i = 0; i < _searchFilterClassArray.Length; i++)
 			{
-				if (_filterClassArray[i] == name)
+				if (_searchFilterClassArray[i] == name)
 					return i;
 			}
 			return 0;
 		}
-		private string IndexToFilterClassName(int index)
+		private string IndexToSearchFilterClassName(int index)
 		{
-			for (int i = 0; i < _filterClassArray.Length; i++)
+			for (int i = 0; i < _searchFilterClassArray.Length; i++)
 			{
 				if (i == index)
-					return _filterClassArray[i];
+					return _searchFilterClassArray[i];
 			}
 			return string.Empty;
 		}
@@ -91,20 +91,19 @@ namespace MotionFramework.Editor
 			OnDrawCollector();
 			OnDrawDLC();
 		}
-
 		private void OnDrawCollector()
 		{
 			// 着色器选项
 			EditorGUILayout.Space();
 			bool isCollectAllShader = EditorGUILayout.Toggle("收集所有着色器", AssetBundleCollectorSettingData.Setting.IsCollectAllShaders);
-			if(isCollectAllShader != AssetBundleCollectorSettingData.Setting.IsCollectAllShaders)
+			if (isCollectAllShader != AssetBundleCollectorSettingData.Setting.IsCollectAllShaders)
 			{
 				AssetBundleCollectorSettingData.ModifyShader(isCollectAllShader, AssetBundleCollectorSettingData.Setting.ShadersBundleName);
 			}
-			if(isCollectAllShader)
+			if (isCollectAllShader)
 			{
 				string shadersBundleName = EditorGUILayout.TextField("AssetBundle名称", AssetBundleCollectorSettingData.Setting.ShadersBundleName);
-				if(shadersBundleName != AssetBundleCollectorSettingData.Setting.ShadersBundleName)
+				if (shadersBundleName != AssetBundleCollectorSettingData.Setting.ShadersBundleName)
 				{
 					AssetBundleCollectorSettingData.ModifyShader(isCollectAllShader, shadersBundleName);
 				}
@@ -117,32 +116,32 @@ namespace MotionFramework.Editor
 			{
 				var collector = AssetBundleCollectorSettingData.Setting.Collectors[i];
 				string directory = collector.CollectDirectory;
-				string labelClassName = collector.LabelClassName;
-				string filterClassName = collector.FilterClassName;
+				string bundleLabelClassName = collector.BundleLabelClassName;
+				string searchFilterClassName = collector.SearchFilterClassName;
 
 				EditorGUILayout.BeginHorizontal();
 				{
 					EditorGUILayout.LabelField(directory);
 
-					// 标签类
+					// IBundleLabel
 					{
-						int index = LabelClassNameToIndex(labelClassName);
-						int newIndex = EditorGUILayout.Popup(index, _labelClassArray, GUILayout.MaxWidth(150));
+						int index = BundleLabelClassNameToIndex(bundleLabelClassName);
+						int newIndex = EditorGUILayout.Popup(index, _bundleLabelClassArray, GUILayout.MaxWidth(200));
 						if (newIndex != index)
 						{
-							labelClassName = IndexToLabelClassName(newIndex);
-							AssetBundleCollectorSettingData.ModifyCollector(directory, labelClassName, filterClassName);
+							bundleLabelClassName = IndexToBundleLabelClassName(newIndex);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, bundleLabelClassName, searchFilterClassName);
 						}
 					}
 
-					// 过滤类
+					// ISearchFilter
 					{
-						int index = FilterClassNameToIndex(filterClassName);
-						int newIndex = EditorGUILayout.Popup(index, _filterClassArray, GUILayout.MaxWidth(150));
+						int index = SearchFilterClassNameToIndex(searchFilterClassName);
+						int newIndex = EditorGUILayout.Popup(index, _searchFilterClassArray, GUILayout.MaxWidth(150));
 						if (newIndex != index)
 						{
-							filterClassName = IndexToFilterClassName(newIndex);
-							AssetBundleCollectorSettingData.ModifyCollector(directory, labelClassName, filterClassName);
+							searchFilterClassName = IndexToSearchFilterClassName(newIndex);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, bundleLabelClassName, searchFilterClassName);
 						}
 					}
 
