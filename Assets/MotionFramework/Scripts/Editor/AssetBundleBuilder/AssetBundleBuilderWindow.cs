@@ -26,22 +26,33 @@ namespace MotionFramework.Editor
 			_thisInstance.Show();
 		}
 
+		// 构建参数
+		public int BuildVersion;
+		public BuildTarget BuildTarget;
+
+		// 构建选项
+		public ECompressOption CompressOption = ECompressOption.Uncompressed;
+		public bool IsForceRebuild = false;
+		public bool IsAppendHash = false;
+		public bool IsDisableWriteTypeTree = false;
+		public bool IsIgnoreTypeTreeChanges = false;
+
 		// GUI相关
+		private bool _isInit = false;
 		private GUIStyle _centerStyle;
 		private GUIStyle _leftStyle;
 		private bool _showSettingFoldout = true;
 		private bool _showToolsFoldout = true;
 
-		/// <summary>
-		/// 构建器
-		/// </summary>
-		private AssetBundleBuilder _assetBuilder = null;
+		// 构建器
+		private readonly AssetBundleBuilder _assetBuilder = new AssetBundleBuilder();
 
 
 		private void InitInternal()
 		{
-			if (_assetBuilder != null)
+			if (_isInit)
 				return;
+			_isInit = true;
 
 			// GUI相关
 			_centerStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
@@ -49,14 +60,13 @@ namespace MotionFramework.Editor
 			_leftStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
 			_leftStyle.alignment = TextAnchor.MiddleLeft;
 
-			// 创建资源打包器
+			// 构建参数
 			var appVersion = new Version(Application.version);
-			var buildVersion = appVersion.Revision;
-			var buildTarget = EditorUserBuildSettings.activeBuildTarget;
-			_assetBuilder = new AssetBundleBuilder(buildTarget, buildVersion);
+			BuildVersion = appVersion.Revision;
+			BuildTarget = EditorUserBuildSettings.activeBuildTarget;
 
 			// 读取配置
-			LoadSettingsFromPlayerPrefs(_assetBuilder);
+			LoadSettingsFromPlayerPrefs();
 		}
 		private void OnGUI()
 		{
@@ -68,14 +78,16 @@ namespace MotionFramework.Editor
 			EditorGUILayout.Space();
 
 			// 构建版本
-			_assetBuilder.BuildVersion = EditorGUILayout.IntField("Build Version", _assetBuilder.BuildVersion, GUILayout.MaxWidth(250));
+			BuildVersion = EditorGUILayout.IntField("Build Version", BuildVersion, GUILayout.MaxWidth(250));
 
 			// 输出路径
-			EditorGUILayout.LabelField("Build Output", _assetBuilder.OutputDirectory);
+			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
+			string outputDirectory = AssetBundleBuilder.MakeOutputDirectory(defaultOutputRoot, BuildTarget);
+			EditorGUILayout.LabelField("Build Output", outputDirectory);
 
 			// 构建选项
 			EditorGUILayout.Space();
-			_assetBuilder.IsForceRebuild = GUILayout.Toggle(_assetBuilder.IsForceRebuild, "Froce Rebuild", GUILayout.MaxWidth(120));
+			IsForceRebuild = GUILayout.Toggle(IsForceRebuild, "Froce Rebuild", GUILayout.MaxWidth(120));
 
 			// 高级选项
 			using (new EditorGUI.DisabledScope(false))
@@ -86,10 +98,10 @@ namespace MotionFramework.Editor
 				{
 					int indent = EditorGUI.indentLevel;
 					EditorGUI.indentLevel = 1;
-					_assetBuilder.CompressOption = (AssetBundleBuilder.ECompressOption)EditorGUILayout.EnumPopup("Compression", _assetBuilder.CompressOption);
-					_assetBuilder.IsAppendHash = EditorGUILayout.ToggleLeft("Append Hash", _assetBuilder.IsAppendHash, GUILayout.MaxWidth(120));
-					_assetBuilder.IsDisableWriteTypeTree = EditorGUILayout.ToggleLeft("Disable Write Type Tree", _assetBuilder.IsDisableWriteTypeTree, GUILayout.MaxWidth(200));
-					_assetBuilder.IsIgnoreTypeTreeChanges = EditorGUILayout.ToggleLeft("Ignore Type Tree Changes", _assetBuilder.IsIgnoreTypeTreeChanges, GUILayout.MaxWidth(200));
+					CompressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", CompressOption);
+					IsAppendHash = EditorGUILayout.ToggleLeft("Append Hash", IsAppendHash, GUILayout.MaxWidth(120));
+					IsDisableWriteTypeTree = EditorGUILayout.ToggleLeft("Disable Write Type Tree", IsDisableWriteTypeTree, GUILayout.MaxWidth(200));
+					IsIgnoreTypeTreeChanges = EditorGUILayout.ToggleLeft("Ignore Type Tree Changes", IsIgnoreTypeTreeChanges, GUILayout.MaxWidth(200));
 					EditorGUI.indentLevel = indent;
 				}
 			}
@@ -100,7 +112,7 @@ namespace MotionFramework.Editor
 			{
 				string title;
 				string content;
-				if (_assetBuilder.IsForceRebuild)
+				if (IsForceRebuild)
 				{
 					title = "警告";
 					content = "确定开始强制构建吗，这样会删除所有已有构建的文件";
@@ -116,7 +128,7 @@ namespace MotionFramework.Editor
 					EditorTools.ClearUnityConsole();
 
 					// 存储配置
-					SaveSettingsToPlayerPrefs(_assetBuilder);
+					SaveSettingsToPlayerPrefs();
 
 					EditorApplication.delayCall += ExecuteBuild;
 				}
@@ -165,8 +177,10 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void ExecuteBuild()
 		{
-			_assetBuilder.PreAssetBuild();
-			_assetBuilder.PostAssetBuild();
+			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
+			_assetBuilder.SetBuildParameters(defaultOutputRoot, BuildTarget, BuildVersion);
+			_assetBuilder.SetBuildOptions(CompressOption, IsForceRebuild, IsAppendHash, IsDisableWriteTypeTree, IsIgnoreTypeTreeChanges);
+			_assetBuilder.Run();
 		}
 
 		/// <summary>
@@ -249,7 +263,7 @@ namespace MotionFramework.Editor
 			EditorTools.ClearFolder(streamingDirectory);
 
 			string outputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
-			AssetBundleBuilderHelper.CopyPackageToStreamingFolder(_assetBuilder.BuildTarget, outputRoot);
+			AssetBundleBuilderHelper.CopyPackageToStreamingFolder(BuildTarget, outputRoot);
 		}
 
 		#region 设置相关
@@ -263,25 +277,25 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 存储配置
 		/// </summary>
-		private static void SaveSettingsToPlayerPrefs(AssetBundleBuilder builder)
+		private void SaveSettingsToPlayerPrefs()
 		{
-			EditorTools.PlayerSetEnum<AssetBundleBuilder.ECompressOption>(StrEditorCompressOption, builder.CompressOption);
-			EditorTools.PlayerSetBool(StrEditorIsForceRebuild, builder.IsForceRebuild);
-			EditorTools.PlayerSetBool(StrEditorIsAppendHash, builder.IsAppendHash);
-			EditorTools.PlayerSetBool(StrEditorIsDisableWriteTypeTree, builder.IsDisableWriteTypeTree);
-			EditorTools.PlayerSetBool(StrEditorIsIgnoreTypeTreeChanges, builder.IsIgnoreTypeTreeChanges);
+			EditorTools.PlayerSetEnum<ECompressOption>(StrEditorCompressOption, CompressOption);
+			EditorTools.PlayerSetBool(StrEditorIsForceRebuild, IsForceRebuild);
+			EditorTools.PlayerSetBool(StrEditorIsAppendHash, IsAppendHash);
+			EditorTools.PlayerSetBool(StrEditorIsDisableWriteTypeTree, IsDisableWriteTypeTree);
+			EditorTools.PlayerSetBool(StrEditorIsIgnoreTypeTreeChanges, IsIgnoreTypeTreeChanges);
 		}
 
 		/// <summary>
 		/// 读取配置
 		/// </summary>
-		private static void LoadSettingsFromPlayerPrefs(AssetBundleBuilder builder)
+		private void LoadSettingsFromPlayerPrefs()
 		{
-			builder.CompressOption = EditorTools.PlayerGetEnum<AssetBundleBuilder.ECompressOption>(StrEditorCompressOption, AssetBundleBuilder.ECompressOption.Uncompressed);
-			builder.IsForceRebuild = EditorTools.PlayerGetBool(StrEditorIsForceRebuild, false);
-			builder.IsAppendHash = EditorTools.PlayerGetBool(StrEditorIsAppendHash, false);
-			builder.IsDisableWriteTypeTree = EditorTools.PlayerGetBool(StrEditorIsDisableWriteTypeTree, false);
-			builder.IsIgnoreTypeTreeChanges = EditorTools.PlayerGetBool(StrEditorIsIgnoreTypeTreeChanges, false);
+			CompressOption = EditorTools.PlayerGetEnum<ECompressOption>(StrEditorCompressOption, ECompressOption.Uncompressed);
+			IsForceRebuild = EditorTools.PlayerGetBool(StrEditorIsForceRebuild, false);
+			IsAppendHash = EditorTools.PlayerGetBool(StrEditorIsAppendHash, false);
+			IsDisableWriteTypeTree = EditorTools.PlayerGetBool(StrEditorIsDisableWriteTypeTree, false);
+			IsIgnoreTypeTreeChanges = EditorTools.PlayerGetBool(StrEditorIsIgnoreTypeTreeChanges, false);
 		}
 		#endregion
 	}
