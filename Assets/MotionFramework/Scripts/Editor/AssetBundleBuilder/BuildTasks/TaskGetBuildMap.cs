@@ -16,7 +16,6 @@ namespace MotionFramework.Editor
 		public class BuildMapContext : IContextObject
 		{
 			public List<AssetInfo> BuildList;
-			public AssetBundleBuild[] Builds;
 		}
 
 		void IBuildTask.Run(BuildContext context)
@@ -26,20 +25,8 @@ namespace MotionFramework.Editor
 				throw new Exception("构建列表不能为空");
 
 			BuildLogger.Log($"构建列表里总共有{buildMap.Count}个资源需要构建");
-			List<AssetBundleBuild> builds = new List<AssetBundleBuild>(buildMap.Count);
-			for (int i = 0; i < buildMap.Count; i++)
-			{
-				AssetInfo assetInfo = buildMap[i];
-				AssetBundleBuild buildInfo = new AssetBundleBuild();
-				buildInfo.assetBundleName = assetInfo.AssetBundleLabel;
-				buildInfo.assetBundleVariant = assetInfo.AssetBundleVariant;
-				buildInfo.assetNames = new string[] { assetInfo.AssetPath };
-				builds.Add(buildInfo);
-			}
-
 			BuildMapContext buildMapContext = new BuildMapContext();
 			buildMapContext.BuildList = buildMap;
-			buildMapContext.Builds = builds.ToArray();
 			context.SetContextObject(buildMapContext);
 		}
 
@@ -90,9 +77,9 @@ namespace MotionFramework.Editor
 			foreach (KeyValuePair<string, AssetInfo> pair in buildMap)
 			{
 				var assetInfo = pair.Value;
-				var bundleBuildInfo = AssetBundleCollectorSettingData.GetBundleBuildInfo(assetInfo.AssetPath, assetInfo.AssetType);
-				assetInfo.AssetBundleLabel = bundleBuildInfo.BundleLabel;
-				assetInfo.AssetBundleVariant = bundleBuildInfo.BundleVariant;
+				var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath, assetInfo.AssetType);
+				assetInfo.AssetBundleLabel = bundleLabelAndVariant.BundleLabel;
+				assetInfo.AssetBundleVariant = bundleLabelAndVariant.BundleVariant;
 				progressBarCount++;
 				EditorUtility.DisplayProgressBar("进度", $"设置资源标签：{progressBarCount}/{buildMap.Count}", (float)progressBarCount / buildMap.Count);
 			}

@@ -32,6 +32,18 @@ namespace MotionFramework.Editor
 		public string AssetBundleVariant = null;
 
 		/// <summary>
+		/// 创建AssetBundleBuild类
+		/// </summary>
+		public AssetBundleBuild CreateAssetBundleBuild()
+		{
+			AssetBundleBuild build = new AssetBundleBuild();
+			build.assetBundleName = AssetBundleLabel;
+			build.assetBundleVariant = AssetBundleVariant;
+			build.assetNames = new string[] { AssetPath };
+			return build;
+		}
+
+		/// <summary>
 		/// 获取AssetBundle的完整名称（包含后缀名）
 		/// </summary>
 		public string GetAssetBundleFullName()
