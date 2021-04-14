@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -125,7 +125,7 @@ namespace MotionFramework.Resource
 				if (BundleServices == null)
 					throw new Exception($"{nameof(BundleServices)} is null. Use {nameof(AssetSystem.Initialize)}");
 
-				string assetPath = AssetPathHelper.CombineAssetPath(false, LocationRoot, location);
+				string assetPath = AssetPathHelper.CombineAssetPath(LocationRoot, location);
 				string bundleName = BundleServices.GetAssetBundleName(assetPath);
 				return BundleServices.GetAssetBundleInfo(bundleName);
 			}
