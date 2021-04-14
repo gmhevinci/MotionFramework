@@ -25,16 +25,9 @@ namespace MotionFramework.Editor
 			var buildOptions = context.GetContextObject<AssetBundleBuilder.BuildOptionsContext>();
 			var buildMap = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
 
-			List<AssetBundleBuild> builds = new List<AssetBundleBuild>(buildMap.BuildList.Count);
-			for (int i = 0; i < buildMap.BuildList.Count; i++)
-			{
-				AssetInfo assetInfo = buildMap.BuildList[i];
-				builds.Add(assetInfo.CreateAssetBundleBuild());
-			}
-
 			BuildLogger.Log($"开始构建......");
 			BuildAssetBundleOptions opt = MakeBuildOptions(buildOptions);
-			AssetBundleManifest manifest = BuildPipeline.BuildAssetBundles(buildParameters.OutputDirectory, builds.ToArray(), opt, buildParameters.BuildTarget);
+			AssetBundleManifest manifest = BuildPipeline.BuildAssetBundles(buildParameters.OutputDirectory, buildMap.GetPipelineBuilds(), opt, buildParameters.BuildTarget);
 			if (manifest == null)
 				throw new Exception("构建过程中发生错误！");
 

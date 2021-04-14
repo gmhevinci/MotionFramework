@@ -25,13 +25,13 @@ namespace MotionFramework.Editor
 			var unityManifestContext = context.GetContextObject<TaskBuilding.UnityManifestContext>();
 			var encryptionContext = context.GetContextObject<TaskEncryption.EncryptionContext>();
 			var buildMapContext = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
-			CreatePatchManifestFile(buildParameters, unityManifestContext.Manifest, buildMapContext.BuildList, encryptionContext.EncryptList);
+			CreatePatchManifestFile(buildParameters, buildMapContext, unityManifestContext.Manifest, encryptionContext.EncryptList);
 		}
 
 		/// <summary>
 		/// 创建补丁清单文件到输出目录
 		/// </summary>
-		private void CreatePatchManifestFile(AssetBundleBuilder.BuildParametersContext buildParameters, AssetBundleManifest unityManifest, List<AssetInfo> buildList, List<string> encryptList)
+		private void CreatePatchManifestFile(AssetBundleBuilder.BuildParametersContext buildParameters, TaskGetBuildMap.BuildMapContext buildMapContext, AssetBundleManifest unityManifest, List<string> encryptList)
 		{
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 
@@ -57,13 +57,13 @@ namespace MotionFramework.Editor
 				uint crc32 = HashUtility.FileCRC32(path);
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = buildParameters.BuildVersion;
-				string[] assetPaths = GetBundleAssetPaths(buildList, bundleName);
+				string[] assetPaths = buildMapContext.GetAssetPaths(bundleName);
 				string[] depends = unityManifest.GetDirectDependencies(bundleName);
 				string[] dlcLabels = dlcManager.GetAssetBundleDLCLabels(bundleName);
 
 				// 创建标记位
 				bool isEncrypted = encryptList.Contains(bundleName);
-				bool isCollected = IsCollectBundle(buildList, bundleName);
+				bool isCollected = buildMapContext.IsCollectBundle(bundleName);
 				int flags = PatchElement.CreateFlags(isEncrypted, isCollected);
 
 				// 注意：如果文件没有变化使用旧版本号
@@ -96,19 +96,10 @@ namespace MotionFramework.Editor
 			BuildLogger.Log($"创建补丁清单文件：{filePath}");
 			PatchManifest.Serialize(filePath, newPatchManifest);
 		}
-		private string[] GetBundleAssetPaths(List<AssetInfo> buildList, string assetBundleName)
-		{
-			List<string> result = new List<string>();
-			for (int i = 0; i < buildList.Count; i++)
-			{
-				AssetInfo assetInfo = buildList[i];
-				if (assetInfo.GetAssetBundleFullName() == assetBundleName)
-				{
-					result.Add(assetInfo.AssetPath.ToLower());
-				}
-			}
-			return result.ToArray();
-		}
+		
+		/// <summary>
+		/// 获取所有变种信息
+		/// </summary>
 		private Dictionary<string, List<string>> GetVariantInfos(string[] allAssetBundles)
 		{
 			Dictionary<string, List<string>> dic = new Dictionary<string, List<string>>();
@@ -127,19 +118,6 @@ namespace MotionFramework.Editor
 					dic[path].Add(extension);
 			}
 			return dic;
-		}
-		private bool IsCollectBundle(List<AssetInfo> buildList, string bundleName)
-		{
-			for (int i = 0; i < buildList.Count; i++)
-			{
-				AssetInfo assetInfo = buildList[i];
-				if (assetInfo.GetAssetBundleFullName() == bundleName)
-				{
-					if (assetInfo.IsCollectAsset)
-						return true;
-				}
-			}
-			return false;
 		}
 	}
 }
