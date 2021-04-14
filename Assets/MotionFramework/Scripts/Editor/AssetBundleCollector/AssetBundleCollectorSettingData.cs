@@ -16,6 +16,18 @@ namespace MotionFramework.Editor
 {
 	public static class AssetBundleCollectorSettingData
 	{
+		public struct BundleLabelAndVariant
+		{
+			public string BundleLabel { private set; get; }
+			public string BundleVariant { private set; get; }
+
+			public BundleLabelAndVariant(string label, string variant)
+			{
+				BundleLabel = EditorTools.GetRegularPath(label);
+				BundleVariant = variant;
+			}
+		}
+
 		private static readonly Dictionary<string, System.Type> _cacheBundleLabelTypes = new Dictionary<string, System.Type>();
 		private static readonly Dictionary<string, IBundleLabel> _cacheBundleLabelInstance = new Dictionary<string, IBundleLabel>();
 
@@ -359,14 +371,14 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 获取资源的打包信息
 		/// </summary>
-		public static BundleBuildInfo GetBundleBuildInfo(string assetPath, System.Type assetType)
+		public static BundleLabelAndVariant GetBundleLabelAndVariant(string assetPath, System.Type assetType)
 		{
 			// 如果收集全路径着色器		
 			if (Setting.IsCollectAllShaders)
 			{
 				if (assetType == typeof(UnityEngine.Shader))
 				{
-					return new BundleBuildInfo(Setting.ShadersBundleName, PatchDefine.AssetBundleDefaultVariant);
+					return new BundleLabelAndVariant(Setting.ShadersBundleName, PatchDefine.AssetBundleDefaultVariant);
 				}
 			}
 
@@ -404,11 +416,11 @@ namespace MotionFramework.Editor
 				string extension = Path.GetExtension(assetDirectory);
 				label = label.Replace(extension, string.Empty);
 				string variant = extension.RemoveFirstChar();
-				return new BundleBuildInfo(label, variant);
+				return new BundleLabelAndVariant(label, variant);
 			}
 			else
 			{
-				return new BundleBuildInfo(label, PatchDefine.AssetBundleDefaultVariant);
+				return new BundleLabelAndVariant(label, PatchDefine.AssetBundleDefaultVariant);
 			}
 		}
 
