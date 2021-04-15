@@ -38,6 +38,12 @@ namespace MotionFramework.Editor
 			{
 				if (Directory.Exists(CollectDirectory) == false)
 					throw new Exception($"Not found directory : {CollectDirectory}");
+
+				if (string.IsNullOrEmpty(BundleLabelClassName))
+					throw new Exception($"{CollectDirectory} {nameof(BundleLabelClassName)} is invalid. Check config file use : {XmlLabelClassName}");
+				if (string.IsNullOrEmpty(SearchFilterClassName))
+					throw new Exception($"{CollectDirectory} {nameof(SearchFilterClassName)} is invalid. Check config file use : {XmlFilterClassName}");
+
 				if (AssetBundleCollectorSettingData.HasBundleLabelClassName(BundleLabelClassName) == false)
 					throw new Exception($"Not found BundleLabelClassName : {BundleLabelClassName}");
 				if (AssetBundleCollectorSettingData.HasSearchFilterClassName(SearchFilterClassName) == false)
