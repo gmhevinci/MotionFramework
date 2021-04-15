@@ -70,6 +70,24 @@ namespace MotionFramework.Editor
 			}
 			return names;
 		}
+		public static bool HasBundleLabelClassName(string className)
+		{
+			foreach (var pair in _cacheBundleLabelTypes)
+			{
+				if (pair.Key == className)
+					return true;
+			}
+			return false;
+		}
+		public static bool HasSearchFilterClassName(string className)
+		{
+			foreach (var pair in _cacheSearchFilterTypes)
+			{
+				if (pair.Key == className)
+					return true;
+			}
+			return false;
+		}
 
 		/// <summary>
 		/// 加载配置文件
@@ -162,6 +180,11 @@ namespace MotionFramework.Editor
 		}
 
 		// 收集器相关
+		public static void ClearAllCollector()
+		{
+			Setting.Collectors.Clear();
+			SaveFile();
+		}
 		public static void AddCollector(string directory)
 		{
 			// 末尾添加路径分隔符号
