@@ -10,7 +10,7 @@ using UnityEditor;
 
 namespace MotionFramework.Editor
 {
-	public class BundleBuildInfo
+	public class BundleInfo
 	{
 		/// <summary>
 		/// AssetBundle完整名称
@@ -38,11 +38,11 @@ namespace MotionFramework.Editor
 		public readonly List<AssetInfo> Assets = new List<AssetInfo>();
 
 
-		public BundleBuildInfo(string bundleLabel, string bundleVariant)
+		public BundleInfo(string bundleLabel, string bundleVariant)
 		{
 			AssetBundleLabel = bundleLabel;
 			AssetBundleVariant = bundleVariant;
-			AssetBundleFullName = AssetInfo.MakeAssetBundleFullName(bundleLabel, bundleVariant);
+			AssetBundleFullName = AssetBundleBuilderHelper.MakeAssetBundleFullName(bundleLabel, bundleVariant);
 		}
 
 		/// <summary>

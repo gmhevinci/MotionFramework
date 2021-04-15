@@ -15,22 +15,22 @@ namespace MotionFramework.Editor
 	{
 		public class BuildMapContext : IContextObject
 		{
-			public readonly List<BundleBuildInfo> BuildInfos = new List<BundleBuildInfo>();
+			public readonly List<BundleInfo> BundleInfos = new List<BundleInfo>();
 
 			/// <summary>
 			/// 添加一个打包资源
 			/// </summary>
 			public void PackAsset(AssetInfo assetInfo)
 			{
-				if (TryGetBundleBuildInfo(assetInfo.GetAssetBundleFullName(), out BundleBuildInfo buildInfo))
+				if (TryGetBundleInfo(assetInfo.GetAssetBundleFullName(), out BundleInfo bundleInfo))
 				{
-					buildInfo.PackAsset(assetInfo);
+					bundleInfo.PackAsset(assetInfo);
 				}
 				else
 				{
-					BundleBuildInfo newBuildInfo = new BundleBuildInfo(assetInfo.AssetBundleLabel, assetInfo.AssetBundleVariant);
-					newBuildInfo.PackAsset(assetInfo);
-					BuildInfos.Add(newBuildInfo);
+					BundleInfo newBundleInfo = new BundleInfo(assetInfo.AssetBundleLabel, assetInfo.AssetBundleVariant);
+					newBundleInfo.PackAsset(assetInfo);
+					BundleInfos.Add(newBundleInfo);
 				}
 			}
 
@@ -39,10 +39,10 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public List<AssetInfo> GetAllAssets()
 			{
-				List<AssetInfo> result = new List<AssetInfo>(BuildInfos.Count);
-				foreach (var buildInfo in BuildInfos)
+				List<AssetInfo> result = new List<AssetInfo>(BundleInfos.Count);
+				foreach (var bundleInfo in BundleInfos)
 				{
-					result.AddRange(buildInfo.Assets);
+					result.AddRange(bundleInfo.Assets);
 				}
 				return result;
 			}
@@ -52,11 +52,11 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public UnityEditor.AssetBundleBuild[] GetPipelineBuilds()
 			{
-				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BuildInfos.Count);
-				for (int i = 0; i < BuildInfos.Count; i++)
+				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BundleInfos.Count);
+				for (int i = 0; i < BundleInfos.Count; i++)
 				{
-					BundleBuildInfo buildInfo = BuildInfos[i];
-					builds.Add(buildInfo.CreateAssetBundleBuild());
+					BundleInfo bundleInfo = BundleInfos[i];
+					builds.Add(bundleInfo.CreateAssetBundleBuild());
 				}
 				return builds.ToArray();
 			}
@@ -66,11 +66,11 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public bool IsCollectBundle(string bundleFullName)
 			{
-				if (TryGetBundleBuildInfo(bundleFullName, out BundleBuildInfo buildInfo))
+				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
 				{
-					return buildInfo.IsCollectBundle;
+					return bundleInfo.IsCollectBundle;
 				}
-				throw new Exception($"Not found {nameof(BundleBuildInfo)} : {bundleFullName}");
+				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
 			}
 
 			/// <summary>
@@ -78,20 +78,20 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public string[] GetAssetPaths(string bundleFullName)
 			{
-				if (TryGetBundleBuildInfo(bundleFullName, out BundleBuildInfo buildInfo))
+				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
 				{
-					return buildInfo.GetAssetPaths();
+					return bundleInfo.GetAssetPaths();
 				}
-				throw new Exception($"Not found {nameof(BundleBuildInfo)} : {bundleFullName}");
+				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
 			}
 
-			private bool TryGetBundleBuildInfo(string bundleFullName, out BundleBuildInfo result)
+			private bool TryGetBundleInfo(string bundleFullName, out BundleInfo result)
 			{
-				foreach (var buildInfo in BuildInfos)
+				foreach (var bundleInfo in BundleInfos)
 				{
-					if (buildInfo.AssetBundleFullName == bundleFullName)
+					if (bundleInfo.AssetBundleFullName == bundleFullName)
 					{
-						result = buildInfo;
+						result = bundleInfo;
 						return true;
 					}
 				}
