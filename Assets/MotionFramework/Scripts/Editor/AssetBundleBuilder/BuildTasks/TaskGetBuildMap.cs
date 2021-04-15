@@ -53,9 +53,8 @@ namespace MotionFramework.Editor
 			public UnityEditor.AssetBundleBuild[] GetPipelineBuilds()
 			{
 				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BundleInfos.Count);
-				for (int i = 0; i < BundleInfos.Count; i++)
+				foreach(var bundleInfo in BundleInfos)
 				{
-					BundleInfo bundleInfo = BundleInfos[i];
 					builds.Add(bundleInfo.CreateAssetBundleBuild());
 				}
 				return builds.ToArray();

@@ -47,6 +47,11 @@ namespace MotionFramework.Editor
 			AppendData(content, $"构建时间：{DateTime.Now}");
 
 			AppendData(content, "");
+			AppendData(content, $"--着色器--");
+			AppendData(content, $"IsCollectAllShaders：{AssetBundleCollectorSettingData.Setting.IsCollectAllShaders}");
+			AppendData(content, $"ShadersBundleName：{AssetBundleCollectorSettingData.Setting.ShadersBundleName}");
+
+			AppendData(content, "");
 			AppendData(content, $"--配置信息--");
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
@@ -57,9 +62,9 @@ namespace MotionFramework.Editor
 			AppendData(content, "");
 			AppendData(content, $"--构建参数--");
 			AppendData(content, $"CompressOption：{buildOptions.CompressOption}");
-			AppendData(content, $"ForceRebuild：{buildOptions.IsForceRebuild}");
-			AppendData(content, $"DisableWriteTypeTree：{buildOptions.IsDisableWriteTypeTree}");
-			AppendData(content, $"IgnoreTypeTreeChanges：{buildOptions.IsIgnoreTypeTreeChanges}");
+			AppendData(content, $"IsForceRebuild：{buildOptions.IsForceRebuild}");
+			AppendData(content, $"IsDisableWriteTypeTree：{buildOptions.IsDisableWriteTypeTree}");
+			AppendData(content, $"IsIgnoreTypeTreeChanges：{buildOptions.IsIgnoreTypeTreeChanges}");
 
 			AppendData(content, "");
 			AppendData(content, $"--构建清单--");
