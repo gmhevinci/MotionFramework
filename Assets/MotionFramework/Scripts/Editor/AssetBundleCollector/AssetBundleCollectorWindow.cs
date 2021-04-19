@@ -32,6 +32,7 @@ namespace MotionFramework.Editor
 
 		private string[] _bundleLabelClassArray = null;
 		private string[] _searchFilterClassArray = null;
+		private Vector2 _scrollPos = Vector2.zero;
 
 		// 初始化相关
 		private bool _isInit = false;
@@ -112,6 +113,7 @@ namespace MotionFramework.Editor
 			// 列表显示
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField($"[ Collector ]");
+			_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
 				var collector = AssetBundleCollectorSettingData.Setting.Collectors[i];
@@ -153,6 +155,7 @@ namespace MotionFramework.Editor
 				}
 				EditorGUILayout.EndHorizontal();
 			}
+			EditorGUILayout.EndScrollView();
 
 			// 添加按钮
 			if (GUILayout.Button("+"))
