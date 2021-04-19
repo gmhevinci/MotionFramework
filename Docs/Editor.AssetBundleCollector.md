@@ -9,6 +9,10 @@
 
 注意：LabelByFolder会将文件夹内所有资源打在一个AssetBundle文件里。
 
+**导入配置表**   
+点击Import Config按钮可以导入外部的XML配置表，配置表规范如下图：
+![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/AssetBundleCollector2.png)
+
 **自定义打包规则**   
 如果内置的打包规则已经不能满足需求，那么我们可以轻松实现自定义打包规则
 ```C#
