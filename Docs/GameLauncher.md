@@ -9,6 +9,7 @@ using UnityEngine;
 
 // 添加游戏开发中常用的游戏模块的命名空间
 using MotionFramework;
+using MotionFramework.Console;
 using MotionFramework.Event;
 using MotionFramework.Resource;
 using MotionFramework.Config;
