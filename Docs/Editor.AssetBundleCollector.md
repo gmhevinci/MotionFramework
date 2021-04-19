@@ -11,7 +11,22 @@
 
 **导入配置表**   
 点击Import Config按钮可以导入外部的XML配置表，配置表规范如下图：
-![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/AssetBundleCollector2.png)
+```xml
+<root>
+	
+	<!--注释-->
+	<Collect Directory="Assets/GameRes/Lua/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
+	<Collect Directory="Assets/GameRes/UIAtlas/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
+	<Collect Directory="Assets/GameRes/UIPanel/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
+	<Collect Directory="Assets/GameRes/UITexture/Foods/" LabelClassName="LabelByFolderPath" FilterClassName="SearchAll"/>
+	<Collect Directory="Assets/GameRes/UITexture/Background/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
+	<Collect Directory="Assets/GameRes/Entity/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
+
+	<!--精灵-->
+	<Collect Directory="Assets/GameArt/Panel/Sprite/" LabelClassName="LabelByFolderPath" FilterClassName="SearchAll"/>
+	
+</root>
+```
 
 **自定义打包规则**   
 如果内置的打包规则已经不能满足需求，那么我们可以轻松实现自定义打包规则
