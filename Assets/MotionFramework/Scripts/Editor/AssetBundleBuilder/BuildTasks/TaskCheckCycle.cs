@@ -24,6 +24,7 @@ namespace MotionFramework.Editor
 
 		private void CheckCycleDepend(AssetBundleManifest unityManifest)
 		{
+			bool isFoundCycleDepend = false;
 			List<string> visited = new List<string>(100);
 			List<string> stack = new List<string>(100);
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
@@ -36,13 +37,17 @@ namespace MotionFramework.Editor
 				// 深度优先搜索检测有向图有无环路算法
 				if (CheckCycle(unityManifest, element, visited, stack))
 				{
+					isFoundCycleDepend = true;
+					Debug.LogError($"Found cycle assetbundle : {element}");
 					foreach (var ele in stack)
 					{
-						UnityEngine.Debug.LogWarning(ele);
+						Debug.LogWarning(ele);
 					}
-					throw new Exception($"Found cycle assetbundle : {element}");
 				}
 			}
+
+			if (isFoundCycleDepend)
+				throw new Exception("Found cycle assetbundle, Please fix the error first.");
 		}
 		private bool CheckCycle(AssetBundleManifest unityManifest, string element, List<string> visited, List<string> stack)
 		{

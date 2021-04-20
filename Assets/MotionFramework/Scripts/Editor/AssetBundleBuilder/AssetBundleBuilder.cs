@@ -108,15 +108,18 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public void Run()
 		{
-			List<IBuildTask> pipeline = new List<IBuildTask>();
-			pipeline.Add(new TaskPrepare());
-			pipeline.Add(new TaskGetBuildMap());
-			pipeline.Add(new TaskBuilding());
-			pipeline.Add(new TaskEncryption()); //加密资源文件
-			pipeline.Add(new TaskCheckCycle()); //检测循环依赖
-			pipeline.Add(new TaskCreatePatchManifest()); //创建补丁文件
-			pipeline.Add(new TaskCreateReadme()); //创建说明文件
-			pipeline.Add(new TaskCopyUpdateFiles()); //复制更新文件
+			_buildContext.ClearAllContext();
+			List<IBuildTask> pipeline = new List<IBuildTask>
+			{
+				new TaskPrepare(), //前期准备工作
+				new TaskGetBuildMap(), //获取构建列表
+				new TaskBuilding(), //开始构建
+				new TaskEncryption(), //加密资源文件
+				new TaskCheckCycle(), //检测循环依赖
+				new TaskCreatePatchManifest(), //创建补丁文件
+				new TaskCreateReadme(), //创建说明文件
+				new TaskCopyUpdateFiles() //复制更新文件
+			};
 			BuildRunner.Run(pipeline, _buildContext);
 		}
 
