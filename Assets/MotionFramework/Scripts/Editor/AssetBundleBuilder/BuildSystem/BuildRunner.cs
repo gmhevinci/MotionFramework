@@ -30,8 +30,6 @@ namespace MotionFramework.Editor
 					throw new Exception($"Build task {task.GetType().Name} failed : {e}");
 				}
 			}
-
-			BuildLogger.Log($"构建完成！");
 		}
 	}
 }

@@ -121,6 +121,7 @@ namespace MotionFramework.Editor
 				new TaskCopyUpdateFiles() //复制更新文件
 			};
 			BuildRunner.Run(pipeline, _buildContext);
+			BuildLogger.Log($"构建完成！");
 		}
 
 		/// <summary>
