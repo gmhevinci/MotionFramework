@@ -46,17 +46,15 @@ namespace MotionFramework.Editor
 			{
 				// 删除平台总目录
 				string platformDirectory = $"{buildParameters.OutputRoot}/{buildParameters.BuildTarget}";
-				if (Directory.Exists(platformDirectory))
+				if (EditorTools.DeleteDirectory(platformDirectory))
 				{
-					Directory.Delete(platformDirectory, true);
 					BuildLogger.Log($"删除平台总目录：{platformDirectory}");
 				}
 			}
 
 			// 如果输出目录不存在
-			if (Directory.Exists(buildParameters.OutputDirectory) == false)
+			if(EditorTools.CreateDirectory(buildParameters.OutputDirectory))
 			{
-				Directory.CreateDirectory(buildParameters.OutputDirectory);
 				BuildLogger.Log($"创建输出目录：{buildParameters.OutputDirectory}");
 			}
 		}
