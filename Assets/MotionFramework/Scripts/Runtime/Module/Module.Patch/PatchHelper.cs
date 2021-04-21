@@ -19,7 +19,8 @@ namespace MotionFramework.Patch
 		public static void ClearSandbox()
 		{
 			string directoryPath = AssetPathHelper.MakePersistentLoadPath(string.Empty);
-			Directory.Delete(directoryPath, true);
+			if(Directory.Exists(directoryPath))
+				Directory.Delete(directoryPath, true);
 		}
 
 		/// <summary>
