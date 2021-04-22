@@ -185,7 +185,7 @@ namespace MotionFramework.Editor
 			Setting.Collectors.Clear();
 			SaveFile();
 		}
-		public static void AddCollector(string directory)
+		public static void AddCollector(string directory, string bundleLabelClassName, string searchFilterClassName, bool saveFile = true)
 		{
 			// 末尾添加路径分隔符号
 			if (directory.EndsWith("/") == false)
@@ -197,10 +197,12 @@ namespace MotionFramework.Editor
 
 			AssetBundleCollectorSetting.Collector element = new AssetBundleCollectorSetting.Collector();
 			element.CollectDirectory = directory;
-			element.BundleLabelClassName = nameof(LabelByFilePath);
-			element.SearchFilterClassName = nameof(SearchAll);
+			element.BundleLabelClassName = bundleLabelClassName;
+			element.SearchFilterClassName = searchFilterClassName;
 			Setting.Collectors.Add(element);
-			SaveFile();
+
+			if(saveFile)
+				SaveFile();
 		}
 		public static void RemoveCollector(string directory)
 		{

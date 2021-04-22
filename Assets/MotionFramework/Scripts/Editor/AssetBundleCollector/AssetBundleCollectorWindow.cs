@@ -164,7 +164,9 @@ namespace MotionFramework.Editor
 				if (resultPath != null)
 				{
 					_lastOpenFolderPath = EditorTools.AbsolutePathToAssetPath(resultPath);
-					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath);
+					string bundleLabelClassName = nameof(LabelByFilePath);
+					string searchFilterClassName = nameof(SearchAll);
+					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath, bundleLabelClassName, searchFilterClassName);
 				}
 			}
 
@@ -174,7 +176,7 @@ namespace MotionFramework.Editor
 				string resultPath = EditorTools.OpenFilePath("Select Folder", _lastOpenFolderPath);
 				if (resultPath != null)
 				{
-					ConfigFileImporter.ImportXmlConfig(resultPath);
+					CollectorConfigImporter.ImportXmlConfig(resultPath);
 				}
 			}
 		}
