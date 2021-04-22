@@ -27,6 +27,7 @@ namespace MotionFramework
 		private static readonly List<ModuleWrapper> _coms = new List<ModuleWrapper>(100);
 		private static MonoBehaviour _behaviour;	
 		private static bool _isDirty = false;
+		private static long _frame = 0;
 
 		/// <summary>
 		/// 初始化框架
@@ -44,6 +45,21 @@ namespace MotionFramework
 			// 注册日志回调
 			if (logCallback != null)
 				MotionLog.RegisterCallback(logCallback);
+
+			behaviour.StartCoroutine(CheckFrame());
+		}
+
+		/// <summary>
+		/// 检测MotionEngine更新方法
+		/// </summary>
+		private static IEnumerator CheckFrame()
+		{
+			var wait = new WaitForSeconds(1f);
+			yield return wait;
+
+			// 说明：初始化之后，如果忘记更新MotionEngine，这里会抛出异常
+			if (_frame == 0)
+				throw new Exception($"Please call update method : MotionEngine.Update");	
 		}
 
 		/// <summary>
@@ -51,6 +67,8 @@ namespace MotionFramework
 		/// </summary>
 		public static void Update()
 		{
+			_frame++;
+
 			// 如果有新模块需要重新排序
 			if (_isDirty)
 			{
