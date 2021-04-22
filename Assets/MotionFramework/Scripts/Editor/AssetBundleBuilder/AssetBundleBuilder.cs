@@ -19,6 +19,41 @@ namespace MotionFramework.Editor
 	public class AssetBundleBuilder
 	{
 		/// <summary>
+		/// 构建参数
+		/// </summary>
+		public struct BuildParameters
+		{
+			/// <summary>
+			/// 输出目录根路径
+			/// </summary>
+			public string OutputRoot;
+
+			/// <summary>
+			/// 构建平台
+			/// </summary>
+			public BuildTarget BuildTarget;
+
+			/// <summary>
+			/// 构建版本
+			/// </summary>
+			public int BuildVersion;
+
+			/// <summary>
+			/// 压缩选项
+			/// </summary>
+			public ECompressOption CompressOption;
+
+			/// <summary>
+			/// 是否强制重新构建整个项目，如果为FALSE则是增量打包
+			/// </summary>
+			public bool IsForceRebuild;
+
+			public bool IsAppendHash;
+			public bool IsDisableWriteTypeTree;
+			public bool IsIgnoreTypeTreeChanges;
+		}
+
+		/// <summary>
 		/// 构建选项
 		/// </summary>
 		public class BuildOptionsContext : IContextObject
@@ -48,7 +83,7 @@ namespace MotionFramework.Editor
 			/// <summary>
 			/// 构建的平台
 			/// </summary>
-			public BuildTarget BuildTarget { private set; get; } 
+			public BuildTarget BuildTarget { private set; get; }
 
 			/// <summary>
 			/// 构建的资源版本号
@@ -72,43 +107,30 @@ namespace MotionFramework.Editor
 			}
 		}
 
+
 		private readonly BuildContext _buildContext = new BuildContext();
-
-
-		/// <summary>
-		/// 设置打包参数
-		/// </summary>
-		/// <param name="buildTarget">构建平台</param>
-		/// <param name="buildVersion">构建版本</param>
-		public void SetBuildParameters(string outputRoot, BuildTarget buildTarget, int buildVersion)
-		{
-			BuildParametersContext buildParametersContext = new BuildParametersContext(outputRoot, buildTarget, buildVersion);
-			_buildContext.SetContextObject(buildParametersContext);
-		}
-
-		/// <summary>
-		/// 设置打包选项
-		/// </summary>
-		/// <param name="compressOption">压缩选项</param>
-		/// <param name="isForceRebuild">是否强制重新构建整个项目，如果为FALSE则是增量打包</param>
-		public void SetBuildOptions(ECompressOption compressOption, bool isForceRebuild, bool isAppendHash, 
-			bool isDisableWriteTypeTree, bool isIgnoreTypeTreeChanges)
-		{
-			BuildOptionsContext buildOptionsContext = new BuildOptionsContext();
-			buildOptionsContext.CompressOption = compressOption;
-			buildOptionsContext.IsForceRebuild = isForceRebuild;
-			buildOptionsContext.IsAppendHash = isAppendHash;
-			buildOptionsContext.IsDisableWriteTypeTree = isDisableWriteTypeTree;
-			buildOptionsContext.IsIgnoreTypeTreeChanges = isIgnoreTypeTreeChanges;
-			_buildContext.SetContextObject(buildOptionsContext);
-		}
 
 		/// <summary>
 		/// 开始构建
 		/// </summary>
-		public void Run()
+		public void Run(BuildParameters buildParameters)
 		{
+			// 清空旧数据
 			_buildContext.ClearAllContext();
+
+			// 构建参数
+			BuildParametersContext buildParametersContext = new BuildParametersContext(buildParameters.OutputRoot, buildParameters.BuildTarget, buildParameters.BuildVersion);
+			_buildContext.SetContextObject(buildParametersContext);
+
+			// 构建选项
+			BuildOptionsContext buildOptionsContext = new BuildOptionsContext();
+			buildOptionsContext.CompressOption = buildParameters.CompressOption;
+			buildOptionsContext.IsForceRebuild = buildParameters.IsForceRebuild;
+			buildOptionsContext.IsAppendHash = buildParameters.IsAppendHash;
+			buildOptionsContext.IsDisableWriteTypeTree = buildParameters.IsDisableWriteTypeTree;
+			buildOptionsContext.IsIgnoreTypeTreeChanges = buildParameters.IsIgnoreTypeTreeChanges;
+			_buildContext.SetContextObject(buildOptionsContext);
+
 			List<IBuildTask> pipeline = new List<IBuildTask>
 			{
 				new TaskPrepare(), //前期准备工作

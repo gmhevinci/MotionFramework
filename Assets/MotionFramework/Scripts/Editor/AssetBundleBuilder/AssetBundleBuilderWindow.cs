@@ -178,9 +178,16 @@ namespace MotionFramework.Editor
 		private void ExecuteBuild()
 		{
 			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
-			_assetBuilder.SetBuildParameters(defaultOutputRoot, BuildTarget, BuildVersion);
-			_assetBuilder.SetBuildOptions(CompressOption, IsForceRebuild, IsAppendHash, IsDisableWriteTypeTree, IsIgnoreTypeTreeChanges);
-			_assetBuilder.Run();
+			AssetBundleBuilder.BuildParameters buildParameters = new AssetBundleBuilder.BuildParameters();
+			buildParameters.OutputRoot = defaultOutputRoot;
+			buildParameters.BuildTarget = BuildTarget;
+			buildParameters.BuildVersion = BuildVersion;
+			buildParameters.CompressOption = CompressOption;
+			buildParameters.IsForceRebuild = IsForceRebuild;
+			buildParameters.IsAppendHash = IsAppendHash;
+			buildParameters.IsDisableWriteTypeTree = IsDisableWriteTypeTree;
+			buildParameters.IsIgnoreTypeTreeChanges = IsIgnoreTypeTreeChanges;
+			_assetBuilder.Run(buildParameters);
 		}
 
 		/// <summary>
