@@ -11,8 +11,14 @@ namespace MotionFramework.Patch
 	/// </summary>
 	public enum EVerifyLevel
 	{
+		/// <summary>
+		/// 验证文件大小
+		/// </summary>
 		Size,
-		MD5,
-		CRC32,
+
+		/// <summary>
+		/// 验证文件哈希值
+		/// </summary>
+		Hash,
 	}
 }

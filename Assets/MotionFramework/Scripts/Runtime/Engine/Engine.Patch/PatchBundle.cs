@@ -18,14 +18,9 @@ namespace MotionFramework.Patch
 		public string BundleName;
 
 		/// <summary>
-		/// 文件MD5
+		/// 文件哈希值
 		/// </summary>
-		public string MD5;
-
-		/// <summary>
-		/// 文件校验码
-		/// </summary>
-		public uint CRC32;
+		public string Hash;
 
 		/// <summary>
 		/// 文件大小
@@ -71,11 +66,10 @@ namespace MotionFramework.Patch
 		public string[] Depends;
 
 
-		public PatchBundle(string bundleName, string md5, uint crc32, long sizeBytes, int version, int flags, string[] collectAssets, string[] depends, string[] dlcLabels)
+		public PatchBundle(string bundleName, string hash, long sizeBytes, int version, int flags, string[] collectAssets, string[] depends, string[] dlcLabels)
 		{
 			BundleName = bundleName;
-			MD5 = md5;
-			CRC32 = crc32;
+			Hash = hash;
 			SizeBytes = sizeBytes;
 			Version = version;
 			Flags = flags;

@@ -264,9 +264,9 @@ namespace MotionFramework.Patch
 				// 查询内置资源
 				if (_appPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle appElement))
 				{
-					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
+					if (appElement.IsDLC() == false && appElement.Hash == element.Hash)
 					{
-						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(appElement.MD5);
+						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(appElement.Hash);
 						AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, appLoadPath, string.Empty, appElement.Version, appElement.IsEncrypted);
 						return bundleInfo;
 					}
@@ -274,15 +274,15 @@ namespace MotionFramework.Patch
 
 				// 查询缓存资源
 				// 注意：如果沙盒内缓存文件不存在，那么将会从服务器下载
-				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(element.MD5);
-				if (_cache.Contains(element.MD5))
+				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(element.Hash);
+				if (_cache.Contains(element.Hash))
 				{
 					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, string.Empty, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}
 				else
 				{
-					string remoteURL = GetWebDownloadURL(element.Version.ToString(), element.MD5);
+					string remoteURL = GetWebDownloadURL(element.Version.ToString(), element.Hash);
 					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, remoteURL, element.Version, element.IsEncrypted);
 					return bundleInfo;
 				}
@@ -314,7 +314,7 @@ namespace MotionFramework.Patch
 			foreach (var patchBundle in _localPatchManifest.BundleList)
 			{
 				// 忽略缓存资源
-				if (_cache.Contains(patchBundle.MD5))
+				if (_cache.Contains(patchBundle.Hash))
 					continue;
 
 				// 查询DLC资源
@@ -329,7 +329,7 @@ namespace MotionFramework.Patch
 				// 忽略内置资源
 				if (_appPatchManifest.Bundles.TryGetValue(patchBundle.BundleName, out PatchBundle appElement))
 				{
-					if (appElement.IsDLC() == false && appElement.MD5 == patchBundle.MD5)
+					if (appElement.IsDLC() == false && appElement.Hash == patchBundle.Hash)
 						continue;
 				}
 
@@ -353,7 +353,7 @@ namespace MotionFramework.Patch
 		{
 			if (_localPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle element))
 			{
-				return CheckContentIntegrity(element.MD5, element.CRC32, element.SizeBytes);
+				return CheckContentIntegrity(element);
 			}
 			else
 			{
@@ -363,11 +363,11 @@ namespace MotionFramework.Patch
 		}
 		public bool CheckContentIntegrity(PatchBundle element)
 		{
-			return CheckContentIntegrity(element.MD5, element.CRC32, element.SizeBytes);
+			return CheckContentIntegrity(element.Hash, element.SizeBytes);
 		}
-		private bool CheckContentIntegrity(string md5, uint crc32, long size)
+		private bool CheckContentIntegrity(string hash, long size)
 		{
-			string filePath = PatchHelper.MakeSandboxCacheFilePath(md5);
+			string filePath = PatchHelper.MakeSandboxCacheFilePath(hash);
 			if (File.Exists(filePath) == false)
 				return false;
 
@@ -375,26 +375,34 @@ namespace MotionFramework.Patch
 			if (_verifyLevel == EVerifyLevel.Size)
 			{
 				long fileSize = FileUtility.GetFileSize(filePath);
-				if (fileSize == size)
-					return true;
+				return fileSize == size;
 			}
-			else if (_verifyLevel == EVerifyLevel.MD5)
+			else if (_verifyLevel == EVerifyLevel.Hash)
 			{
-				string fileHash = HashUtility.FileMD5(filePath);
-				if (fileHash == md5)
-					return true;
-			}
-			else if(_verifyLevel == EVerifyLevel.CRC32)
-			{
-				uint fileHash = HashUtility.FileCRC32(filePath);
-				if (fileHash == crc32)
-					return true;
+				return CheckFileHash(filePath, hash);
 			}
 			else
 			{
 				throw new NotImplementedException(_verifyLevel.ToString());
 			}
-			return false;
+		}
+		private bool CheckFileHash(string filePath, string hash)
+		{
+			PatchManifest patchManifest = GetPatchManifest();
+			if (patchManifest.HashType == EHashType.MD5)
+			{
+				string fileHash = HashUtility.FileMD5(filePath);
+				return fileHash == hash;
+			}
+			else if (patchManifest.HashType == EHashType.CRC32)
+			{
+				string fileHash = HashUtility.FileCRC32(filePath).ToString();
+				return fileHash == hash;
+			}
+			else
+			{
+				throw new NotImplementedException(patchManifest.HashType.ToString());
+			}
 		}
 
 		// 缓存系统相关
@@ -403,7 +411,7 @@ namespace MotionFramework.Patch
 			if (_localPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle element))
 			{
 				MotionLog.Log($"Cache download file : {element.BundleName} : {element.Version}");
-				_cache.CacheDownloadPatchFile(element.MD5);
+				_cache.CacheDownloadPatchFile(element.Hash);
 			}
 			else
 			{
@@ -416,7 +424,7 @@ namespace MotionFramework.Patch
 			foreach(var element in downloadList)
 			{
 				MotionLog.Log($"Cache download file : {element.BundleName} : {element.Version}");
-				hashList.Add(element.MD5);
+				hashList.Add(element.Hash);
 			}
 			_cache.CacheDownloadPatchFiles(hashList);
 		}

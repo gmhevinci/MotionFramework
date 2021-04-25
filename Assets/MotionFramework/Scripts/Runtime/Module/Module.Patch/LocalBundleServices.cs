@@ -79,7 +79,7 @@ namespace MotionFramework.Patch
 
 			if (_patchManifest.Bundles.TryGetValue(bundleName, out PatchBundle element))
 			{
-				string localPath = AssetPathHelper.MakeStreamingLoadPath(element.MD5);
+				string localPath = AssetPathHelper.MakeStreamingLoadPath(element.Hash);
 				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, string.Empty, element.Version, element.IsEncrypted);
 				return bundleInfo;
 			}

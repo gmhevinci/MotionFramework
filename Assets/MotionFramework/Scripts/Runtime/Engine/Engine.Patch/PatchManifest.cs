@@ -24,6 +24,11 @@ namespace MotionFramework.Patch
 		public int ResourceVersion;
 
 		/// <summary>
+		/// 验证资源包的哈希类型
+		/// </summary>
+		public EHashType HashType;
+
+		/// <summary>
 		/// 资源包列表
 		/// </summary>
 		public List<PatchBundle> BundleList = new List<PatchBundle>();
