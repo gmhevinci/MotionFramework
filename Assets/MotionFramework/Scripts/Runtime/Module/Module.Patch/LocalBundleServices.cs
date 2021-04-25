@@ -77,7 +77,7 @@ namespace MotionFramework.Patch
 			if (_variantCollector != null)
 				bundleName = _variantCollector.RemapVariantName(_patchManifest, bundleName);
 
-			if (_patchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
+			if (_patchManifest.Bundles.TryGetValue(bundleName, out PatchBundle element))
 			{
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(element.MD5);
 				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, string.Empty, element.Version, element.IsEncrypted);

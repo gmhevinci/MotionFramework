@@ -10,7 +10,7 @@ using MotionFramework.Utility;
 namespace MotionFramework.Patch
 {
 	[Serializable]
-	public class PatchElement
+	public class PatchBundle
 	{
 		/// <summary>
 		/// 资源包名称
@@ -43,19 +43,20 @@ namespace MotionFramework.Patch
 		public int Flags;
 
 		/// <summary>
-		/// 依赖列表
+		/// 收集的资源列表
 		/// </summary>
-		public string[] Dependencies;
+		public string[] CollectAssets;
 
 		/// <summary>
-		/// 资源对象列表
+		/// 依赖的资源包ID列表
 		/// </summary>
-		public string[] AssetPaths;
+		public int[] DependIDs;
 
 		/// <summary>
 		/// DLC标签列表
 		/// </summary>
 		public string[] DLCLabels;
+
 
 		/// <summary>
 		/// 是否为加密文件
@@ -64,13 +65,13 @@ namespace MotionFramework.Patch
 		public bool IsEncrypted;
 
 		/// <summary>
-		/// 是否为收集文件
+		/// 依赖的资源包名称列表
 		/// </summary>
 		[NonSerialized]
-		public bool IsCollected;
+		public string[] Depends;
 
 
-		public PatchElement(string bundleName, string md5, uint crc32, long sizeBytes, int version, int flags, string[] assetPaths, string[] dependencies, string[] dlcLabels)
+		public PatchBundle(string bundleName, string md5, uint crc32, long sizeBytes, int version, int flags, string[] collectAssets, string[] depends, string[] dlcLabels)
 		{
 			BundleName = bundleName;
 			MD5 = md5;
@@ -78,8 +79,8 @@ namespace MotionFramework.Patch
 			SizeBytes = sizeBytes;
 			Version = version;
 			Flags = flags;
-			AssetPaths = assetPaths;
-			Dependencies = dependencies;
+			CollectAssets = collectAssets;
+			Depends = depends;
 			DLCLabels = dlcLabels;
 		}
 
@@ -121,23 +122,20 @@ namespace MotionFramework.Patch
 		/// 创建标记位
 		/// </summary>
 		/// <param name="isEncrypted">是否为加密文件</param>
-		/// <param name="isCollected">是否为收集文件</param>
-		public static int CreateFlags(bool isEncrypted, bool isCollected)
+		public static int CreateFlags(bool isEncrypted)
 		{
 			BitMask32 flags = new BitMask32(0);
 			if (isEncrypted) flags.Open(0);
-			if (isCollected) flags.Open(1);
 			return flags;
 		}
 
 		/// <summary>
 		/// 解析标记位
 		/// </summary>
-		public static void ParseFlags(int flags, out bool isEncrypted, out bool isCollected)
+		public static void ParseFlags(int flags, out bool isEncrypted)
 		{
 			BitMask32 value = flags;
 			isEncrypted = value.Test(0);
-			isCollected = value.Test(1);
 		}
 	}
 }

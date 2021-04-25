@@ -24,34 +24,35 @@ namespace MotionFramework.Patch
 		public int ResourceVersion;
 
 		/// <summary>
-		/// 元素列表
+		/// 资源包列表
 		/// </summary>
-		public List<PatchElement> ElementList = new List<PatchElement>();
+		public List<PatchBundle> BundleList = new List<PatchBundle>();
 
 		/// <summary>
 		/// 变体列表
 		/// </summary>
 		public List<PatchVariant> VariantList = new List<PatchVariant>();
 
+
 		/// <summary>
-		/// 元素集合（提供AssetBundle名称获取PatchElement）
+		/// 资源包集合（提供AssetBundle名称获取PatchBundle）
 		/// </summary>
 		[NonSerialized]
-		public readonly Dictionary<string, PatchElement> Elements = new Dictionary<string, PatchElement>();
+		public readonly Dictionary<string, PatchBundle> Bundles = new Dictionary<string, PatchBundle>();
 
 		/// <summary>
 		/// 变体集合（提供AssetBundle名称获取PatchVariant）
 		/// </summary>
 		[NonSerialized]
-		public readonly Dictionary<string, PatchVariant> Variants = new Dictionary<string, PatchVariant>();
+		private readonly Dictionary<string, PatchVariant> Variants = new Dictionary<string, PatchVariant>();
 
 		/// <summary>
-		/// 资源映射集合（提供AssetPath获取PatchElement）
+		/// 资源映射集合（提供AssetPath获取PatchBundle）
 		/// </summary>
 		[NonSerialized]
-		public readonly Dictionary<string, PatchElement> AssetsMap = new Dictionary<string, PatchElement>();
+		private readonly Dictionary<string, PatchBundle> AssetsMapping = new Dictionary<string, PatchBundle>();
 
-
+		
 		/// <summary>
 		/// 是否包含变体资源
 		/// </summary>
@@ -77,9 +78,9 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public string[] GetDirectDependencies(string bundleName)
 		{
-			if (Elements.TryGetValue(bundleName, out PatchElement value))
+			if (Bundles.TryGetValue(bundleName, out PatchBundle value))
 			{
-				return value.Dependencies;
+				return value.Depends;
 			}
 			else
 			{
@@ -100,24 +101,51 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public string GetAssetBundleName(string assetPath)
 		{
-			if (AssetsMap.TryGetValue(assetPath, out PatchElement value))
+			if (AssetsMapping.TryGetValue(assetPath, out PatchBundle value))
 			{
 				return value.BundleName;
 			}
 			else
 			{
-				MotionLog.Error($"Not found asset in patch manifest: {assetPath}");
+				MotionLog.Error($"Not found asset in patch manifest : {assetPath}");
 				return string.Empty;
 			}
 		}
 
+
 		/// <summary>
 		/// 序列化
 		/// </summary>
-		public static void Serialize(string savePath, PatchManifest obj)
+		public static void Serialize(string savePath, PatchManifest patchManifest)
 		{
-			string json = JsonUtility.ToJson(obj);
+			// 构建依赖关系
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				patchBundle.DependIDs = GetPatchDpendIDs(patchManifest, patchBundle);
+			}
+
+			string json = JsonUtility.ToJson(patchManifest);
 			FileUtility.CreateFile(savePath, json);
+		}
+		private static int[] GetPatchDpendIDs(PatchManifest patchManifest, PatchBundle patchBundle)
+		{
+			List<int> result = new List<int>();
+			foreach (var bundleName in patchBundle.Depends)
+			{
+				int dependID = GetPatchDependID(patchManifest, bundleName);
+				result.Add(dependID);
+			}
+			return result.ToArray();
+		}
+		private static int GetPatchDependID(PatchManifest patchManifest, string bundleName)
+		{
+			for (int i = 0; i < patchManifest.BundleList.Count; i++)
+			{
+				var patchBundle = patchManifest.BundleList[i];
+				if (patchBundle.BundleName == bundleName)
+					return i;
+			}
+			throw new Exception($"Not found bundle {bundleName}");
 		}
 
 		/// <summary>
@@ -127,47 +155,68 @@ namespace MotionFramework.Patch
 		{
 			PatchManifest patchManifest = JsonUtility.FromJson<PatchManifest>(jsonData);
 
-			// 解析元素列表
-			foreach (var element in patchManifest.ElementList)
+			// 构建资源包集合
+			foreach (var patchBundle in patchManifest.BundleList)
 			{
+				patchManifest.Bundles.Add(patchBundle.BundleName, patchBundle);
+
 				// 解析标记位
-				PatchElement.ParseFlags(element.Flags, out element.IsEncrypted, out element.IsCollected);
+				PatchBundle.ParseFlags(patchBundle.Flags, out patchBundle.IsEncrypted);
 
-				// 元素集合
-				patchManifest.Elements.Add(element.BundleName, element);
+				// 解析依赖列表
+				patchBundle.Depends = GetDepends(patchManifest, patchBundle);
 
-				// 注意：直接跳过非收集文件，因为这些文件不需要代码加载
-				if (element.IsCollected == false)
-					continue;
-
-				// 资源映射集合
-				foreach (var assetPath in element.AssetPaths)
-				{
-					// 添加原始路径
-					// 注意：我们不允许原始路径存在重名
-					if (patchManifest.AssetsMap.ContainsKey(assetPath))
-						throw new Exception($"Asset path have existed : {assetPath}");
-					patchManifest.AssetsMap.Add(assetPath, element);
-
-					// 添加去掉后缀名的路径
-					if (Path.HasExtension(assetPath))
-					{
-						string assetPathWithoutExtension = assetPath.RemoveExtension();
-						if (patchManifest.AssetsMap.ContainsKey(assetPathWithoutExtension))
-							MotionLog.Warning($"Asset path have existed : {assetPathWithoutExtension}");
-						else
-							patchManifest.AssetsMap.Add(assetPathWithoutExtension, element);
-					}
-				}
+				// 构建资源映射集合
+				UpdateAssetMap(patchManifest, patchBundle);
 			}
 
-			// 解析变种列表
+			// 构建变种集合
 			foreach (var variant in patchManifest.VariantList)
 			{
 				patchManifest.Variants.Add(variant.BundleName, variant);
 			}
 
 			return patchManifest;
+		}
+		private static string[] GetDepends(PatchManifest patchManifest, PatchBundle patchBundle)
+		{
+			List<string> result = new List<string>(patchBundle.DependIDs.Length);
+			foreach (var dependID in patchBundle.DependIDs)
+			{
+				if (dependID >= 0 && dependID < patchManifest.BundleList.Count)
+				{
+					var dependPatchBundle = patchManifest.BundleList[dependID];
+					result.Add(dependPatchBundle.BundleName);
+				}
+				else
+				{
+					throw new Exception($"Invalid depend id : {dependID} : {patchBundle.BundleName}");
+				}
+			}
+			return result.ToArray();
+		}
+		private static void UpdateAssetMap(PatchManifest patchManifest, PatchBundle patchBundle)
+		{
+			// 构建主动收集的资源路径和资源包之间的映射关系。
+			// 注意：这里面不包括依赖的非主动收集资源。
+			foreach (var assetPath in patchBundle.CollectAssets)
+			{
+				// 添加原始路径
+				// 注意：我们不允许原始路径存在重名
+				if (patchManifest.AssetsMapping.ContainsKey(assetPath))
+					throw new Exception($"Asset path have existed : {assetPath}");
+				patchManifest.AssetsMapping.Add(assetPath, patchBundle);
+
+				// 添加去掉后缀名的路径
+				if (Path.HasExtension(assetPath))
+				{
+					string assetPathWithoutExtension = assetPath.RemoveExtension();
+					if (patchManifest.AssetsMapping.ContainsKey(assetPathWithoutExtension))
+						MotionLog.Warning($"Asset path have existed : {assetPathWithoutExtension}");
+					else
+						patchManifest.AssetsMapping.Add(assetPathWithoutExtension, patchBundle);
+				}
+			}
 		}
 	}
 }

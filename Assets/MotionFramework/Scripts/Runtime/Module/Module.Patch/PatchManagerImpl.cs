@@ -259,10 +259,10 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public AssetBundleInfo GetAssetBundleInfo(string bundleName)
 		{
-			if (_localPatchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
+			if (_localPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle element))
 			{
 				// 查询内置资源
-				if (_appPatchManifest.Elements.TryGetValue(bundleName, out PatchElement appElement))
+				if (_appPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle appElement))
 				{
 					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
 					{
@@ -298,7 +298,7 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取启动游戏时的下载列表
 		/// </summary>
-		public List<PatchElement> GetAutoPatchDownloadList()
+		public List<PatchBundle> GetAutoPatchDownloadList()
 		{
 			return GetPatchDownloadList(_autoDownloadDLC);
 		}
@@ -306,34 +306,34 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取补丁下载列表
 		/// </summary>
-		public List<PatchElement> GetPatchDownloadList(string[] dlcLabels)
+		public List<PatchBundle> GetPatchDownloadList(string[] dlcLabels)
 		{
-			List<PatchElement> downloadList = new List<PatchElement>(1000);
+			List<PatchBundle> downloadList = new List<PatchBundle>(1000);
 
 			// 准备下载列表
-			foreach (var element in _localPatchManifest.ElementList)
+			foreach (var patchBundle in _localPatchManifest.BundleList)
 			{
 				// 忽略缓存资源
-				if (_cache.Contains(element.MD5))
+				if (_cache.Contains(patchBundle.MD5))
 					continue;
 
 				// 查询DLC资源
-				if (element.IsDLC())
+				if (patchBundle.IsDLC())
 				{
 					if (dlcLabels == null)
 						continue;
-					if (element.HasDLCLabel(dlcLabels) == false)
+					if (patchBundle.HasDLCLabel(dlcLabels) == false)
 						continue;
 				}
 
 				// 忽略内置资源
-				if (_appPatchManifest.Elements.TryGetValue(element.BundleName, out PatchElement appElement))
+				if (_appPatchManifest.Bundles.TryGetValue(patchBundle.BundleName, out PatchBundle appElement))
 				{
-					if (appElement.IsDLC() == false && appElement.MD5 == element.MD5)
+					if (appElement.IsDLC() == false && appElement.MD5 == patchBundle.MD5)
 						continue;
 				}
 
-				downloadList.Add(element);
+				downloadList.Add(patchBundle);
 			}
 
 			return CacheAndFilterDownloadList(downloadList);
@@ -342,7 +342,7 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 创建内置的加载器
 		/// </summary>
-		public void CreateInternalDownloader(List<PatchElement> downloadList)
+		public void CreateInternalDownloader(List<PatchBundle> downloadList)
 		{
 			MotionLog.Log("Create internal patch downloader.");
 			InternalDownloader = new PatchDownloader(this, downloadList, _maxNumberOnLoad);
@@ -351,7 +351,7 @@ namespace MotionFramework.Patch
 		// 检测下载内容的完整性并缓存
 		public bool CheckContentIntegrity(string bundleName)
 		{
-			if (_localPatchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
+			if (_localPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle element))
 			{
 				return CheckContentIntegrity(element.MD5, element.CRC32, element.SizeBytes);
 			}
@@ -361,7 +361,7 @@ namespace MotionFramework.Patch
 				return false;
 			}
 		}
-		public bool CheckContentIntegrity(PatchElement element)
+		public bool CheckContentIntegrity(PatchBundle element)
 		{
 			return CheckContentIntegrity(element.MD5, element.CRC32, element.SizeBytes);
 		}
@@ -400,7 +400,7 @@ namespace MotionFramework.Patch
 		// 缓存系统相关
 		public void CacheDownloadPatchFile(string bundleName)
 		{
-			if (_localPatchManifest.Elements.TryGetValue(bundleName, out PatchElement element))
+			if (_localPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle element))
 			{
 				MotionLog.Log($"Cache download file : {element.BundleName} : {element.Version}");
 				_cache.CacheDownloadPatchFile(element.MD5);
@@ -410,7 +410,7 @@ namespace MotionFramework.Patch
 				MotionLog.Warning($"Not found cache content file in local patch manifest : {bundleName}");
 			}
 		}
-		public void CacheDownloadPatchFiles(List<PatchElement> downloadList)
+		public void CacheDownloadPatchFiles(List<PatchBundle> downloadList)
 		{
 			List<string> hashList = new List<string>(downloadList.Count);
 			foreach(var element in downloadList)
@@ -420,11 +420,11 @@ namespace MotionFramework.Patch
 			}
 			_cache.CacheDownloadPatchFiles(hashList);
 		}
-		private List<PatchElement> CacheAndFilterDownloadList(List<PatchElement> downloadList)
+		private List<PatchBundle> CacheAndFilterDownloadList(List<PatchBundle> downloadList)
 		{
 			// 检测文件是否已经下载完毕
 			// 注意：如果玩家在加载过程中强制退出，下次再进入的时候跳过已经加载的文件
-			List<PatchElement> cacheList = new List<PatchElement>();
+			List<PatchBundle> cacheList = new List<PatchBundle>();
 			for (int i = downloadList.Count - 1; i >= 0; i--)
 			{
 				var element = downloadList[i];

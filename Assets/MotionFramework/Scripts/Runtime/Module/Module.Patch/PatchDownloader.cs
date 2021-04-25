@@ -25,10 +25,10 @@ namespace MotionFramework.Patch
 
 		private readonly PatchManagerImpl _patcher;
 		private readonly int _maxNumberOnLoad;
-		private readonly List<PatchElement> _downloadList;
-		private readonly List<PatchElement> _succeedList = new List<PatchElement>();
-		private readonly List<PatchElement> _loadFailedList = new List<PatchElement>();
-		private readonly List<PatchElement> _checkFailedList = new List<PatchElement>();
+		private readonly List<PatchBundle> _downloadList;
+		private readonly List<PatchBundle> _succeedList = new List<PatchBundle>();
+		private readonly List<PatchBundle> _loadFailedList = new List<PatchBundle>();
+		private readonly List<PatchBundle> _checkFailedList = new List<PatchBundle>();
 		private readonly List<WebFileRequest> _loaders = new List<WebFileRequest>();
 
 		// 数据相关
@@ -47,7 +47,7 @@ namespace MotionFramework.Patch
 		private PatchDownloader()
 		{
 		}
-		internal PatchDownloader(PatchManagerImpl patcher, List<PatchElement> downloadList, int maxNumberOnLoad)
+		internal PatchDownloader(PatchManagerImpl patcher, List<PatchBundle> downloadList, int maxNumberOnLoad)
 		{
 			_patcher = patcher;
 			_downloadList = downloadList;
@@ -112,7 +112,7 @@ namespace MotionFramework.Patch
 				if (loader.IsDone() == false)
 					continue;
 
-				PatchElement element = loader.UserData as PatchElement;
+				PatchBundle element = loader.UserData as PatchBundle;
 
 				// 检测是否下载失败
 				if (loader.HasError())
@@ -181,7 +181,7 @@ namespace MotionFramework.Patch
 			}
 		}
 
-		private WebFileRequest CreateDownloader(PatchElement element)
+		private WebFileRequest CreateDownloader(PatchBundle element)
 		{
 			// 注意：资源版本号只用于确定下载路径
 			string url = _patcher.GetWebDownloadURL(element.Version.ToString(), element.MD5);
