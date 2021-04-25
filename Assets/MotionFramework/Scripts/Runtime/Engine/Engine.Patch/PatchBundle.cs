@@ -23,7 +23,12 @@ namespace MotionFramework.Patch
 		public string Hash;
 
 		/// <summary>
-		/// 文件大小
+		/// 文件校验码
+		/// </summary>
+		public string CRC;
+
+		/// <summary>
+		/// 文件大小（字节数）
 		/// </summary>
 		public long SizeBytes;
 
@@ -66,10 +71,11 @@ namespace MotionFramework.Patch
 		public string[] Depends;
 
 
-		public PatchBundle(string bundleName, string hash, long sizeBytes, int version, int flags, string[] collectAssets, string[] depends, string[] dlcLabels)
+		public PatchBundle(string bundleName, string hash, string crc, long sizeBytes, int version, int flags, string[] collectAssets, string[] depends, string[] dlcLabels)
 		{
 			BundleName = bundleName;
 			Hash = hash;
+			CRC = crc;
 			SizeBytes = sizeBytes;
 			Version = version;
 			Flags = flags;

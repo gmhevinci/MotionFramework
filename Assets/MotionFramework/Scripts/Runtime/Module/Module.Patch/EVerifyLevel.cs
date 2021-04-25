@@ -17,8 +17,8 @@ namespace MotionFramework.Patch
 		Size,
 
 		/// <summary>
-		/// 验证文件哈希值
+		/// 验证文件校验码
 		/// </summary>
-		Hash,
+		CRC,
 	}
 }

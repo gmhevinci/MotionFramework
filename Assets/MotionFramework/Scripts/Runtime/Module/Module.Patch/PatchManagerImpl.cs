@@ -363,9 +363,9 @@ namespace MotionFramework.Patch
 		}
 		public bool CheckContentIntegrity(PatchBundle element)
 		{
-			return CheckContentIntegrity(element.Hash, element.SizeBytes);
+			return CheckContentIntegrity(element.Hash, element.CRC, element.SizeBytes);
 		}
-		private bool CheckContentIntegrity(string hash, long size)
+		private bool CheckContentIntegrity(string hash, string crc, long size)
 		{
 			string filePath = PatchHelper.MakeSandboxCacheFilePath(hash);
 			if (File.Exists(filePath) == false)
@@ -377,31 +377,14 @@ namespace MotionFramework.Patch
 				long fileSize = FileUtility.GetFileSize(filePath);
 				return fileSize == size;
 			}
-			else if (_verifyLevel == EVerifyLevel.Hash)
+			else if (_verifyLevel == EVerifyLevel.CRC)
 			{
-				return CheckFileHash(filePath, hash);
+				string fileCRC = HashUtility.FileCRC32(filePath);
+				return fileCRC == crc;
 			}
 			else
 			{
 				throw new NotImplementedException(_verifyLevel.ToString());
-			}
-		}
-		private bool CheckFileHash(string filePath, string hash)
-		{
-			PatchManifest patchManifest = GetPatchManifest();
-			if (patchManifest.HashType == EHashType.MD5)
-			{
-				string fileHash = HashUtility.FileMD5(filePath);
-				return fileHash == hash;
-			}
-			else if (patchManifest.HashType == EHashType.CRC32)
-			{
-				string fileHash = HashUtility.FileCRC32(filePath).ToString();
-				return fileHash == hash;
-			}
-			else
-			{
-				throw new NotImplementedException(patchManifest.HashType.ToString());
 			}
 		}
 
