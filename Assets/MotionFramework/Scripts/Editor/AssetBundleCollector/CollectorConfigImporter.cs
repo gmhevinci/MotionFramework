@@ -17,20 +17,20 @@ namespace MotionFramework.Editor
 		private class CollectWrapper
 		{
 			public string CollectDirectory;
-			public string BundleLabelClassName;
-			public string SearchFilterClassName;
-			public CollectWrapper(string directory, string labelClassName, string filterClassName)
+			public string PackRuleClassName;
+			public string FilterRuleClassName;
+			public CollectWrapper(string directory, string packRuleClassName, string filterRuleClassName)
 			{
 				CollectDirectory = directory;
-				BundleLabelClassName = labelClassName;
-				SearchFilterClassName = filterClassName;
+				PackRuleClassName = packRuleClassName;
+				FilterRuleClassName = filterRuleClassName;
 			}
 		}
 
-		public const string XmlTag = "Collect";
+		public const string XmlTag = "Collector";
 		public const string XmlDirectory = "Directory";
-		public const string XmlLabelClassName = "LabelClassName";
-		public const string XmlFilterClassName = "FilterClassName";
+		public const string XmlPackRuleClassName = "PackRuleClass";
+		public const string XmlFilterRuleClassName = "FilterRuleClass";
 
 		public static void ImportXmlConfig(string filePath)
 		{
@@ -53,21 +53,21 @@ namespace MotionFramework.Editor
 			{
 				XmlElement collect = node as XmlElement;
 				string directory = collect.GetAttribute(XmlDirectory);
-				string labelClassName = collect.GetAttribute(XmlLabelClassName);
-				string filterClassName = collect.GetAttribute(XmlFilterClassName);
+				string packRuleClassName = collect.GetAttribute(XmlPackRuleClassName);
+				string filterRuleClassName = collect.GetAttribute(XmlFilterRuleClassName);
 
 				if (Directory.Exists(directory) == false)
 					throw new Exception($"Not found directory : {directory}");
-				if (string.IsNullOrEmpty(labelClassName))
-					throw new Exception($"Not found attribute {XmlLabelClassName} in collector : {directory}");
-				if (string.IsNullOrEmpty(filterClassName))
-					throw new Exception($"Not found attribute {XmlFilterClassName} in collector : {directory}");
-				if (AssetBundleCollectorSettingData.HasBundleLabelClassName(labelClassName) == false)
-					throw new Exception($"Not found BundleLabelClassName : {labelClassName}");
-				if (AssetBundleCollectorSettingData.HasSearchFilterClassName(filterClassName) == false)
-					throw new Exception($"Not found SearchFilterClassName : {filterClassName}");
+				if (string.IsNullOrEmpty(packRuleClassName))
+					throw new Exception($"Not found attribute {XmlPackRuleClassName} in collector : {directory}");
+				if (string.IsNullOrEmpty(filterRuleClassName))
+					throw new Exception($"Not found attribute {XmlFilterRuleClassName} in collector : {directory}");
+				if (AssetBundleCollectorSettingData.HasPackRuleClassName(packRuleClassName) == false)
+					throw new Exception($"Invalid {nameof(IPackRule)} class type : {packRuleClassName}");
+				if (AssetBundleCollectorSettingData.HasFilterRuleClassName(filterRuleClassName) == false)
+					throw new Exception($"Invalid {nameof(IFilterRule)} class type : {filterRuleClassName}");
 
-				var collectWrapper = new CollectWrapper(directory, labelClassName, filterClassName);
+				var collectWrapper = new CollectWrapper(directory, packRuleClassName, filterRuleClassName);
 				wrappers.Add(collectWrapper);
 			}
 
@@ -75,7 +75,7 @@ namespace MotionFramework.Editor
 			AssetBundleCollectorSettingData.ClearAllCollector();
 			foreach (var wrapper in wrappers)
 			{
-				AssetBundleCollectorSettingData.AddCollector(wrapper.CollectDirectory, wrapper.BundleLabelClassName, wrapper.SearchFilterClassName, false);
+				AssetBundleCollectorSettingData.AddCollector(wrapper.CollectDirectory, wrapper.PackRuleClassName, wrapper.FilterRuleClassName, false);
 			}
 			AssetBundleCollectorSettingData.SaveFile();
 			Debug.Log($"导入配置完毕，一共导入{wrappers.Count}个收集器。");

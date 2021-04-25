@@ -16,8 +16,8 @@ namespace MotionFramework.Editor
 		public class Collector
 		{
 			public string CollectDirectory = string.Empty;
-			public string BundleLabelClassName = string.Empty;
-			public string SearchFilterClassName = string.Empty;
+			public string PackRuleClassName = string.Empty;
+			public string FilterRuleClassName = string.Empty;
 		}
 
 		/// <summary>

@@ -6,7 +6,10 @@
 
 namespace MotionFramework.Editor
 {
-	public interface IBundleLabel
+	/// <summary>
+	/// 资源打包规则接口
+	/// </summary>
+	public interface IPackRule
 	{
 		/// <summary>
 		/// 获取资源的打包标签

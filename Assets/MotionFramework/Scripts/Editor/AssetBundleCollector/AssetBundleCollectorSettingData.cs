@@ -28,11 +28,11 @@ namespace MotionFramework.Editor
 			}
 		}
 
-		private static readonly Dictionary<string, System.Type> _cacheBundleLabelTypes = new Dictionary<string, System.Type>();
-		private static readonly Dictionary<string, IBundleLabel> _cacheBundleLabelInstance = new Dictionary<string, IBundleLabel>();
+		private static readonly Dictionary<string, System.Type> _cachePackRuleTypes = new Dictionary<string, System.Type>();
+		private static readonly Dictionary<string, IPackRule> _cachePackRuleInstance = new Dictionary<string, IPackRule>();
 
-		private static readonly Dictionary<string, System.Type> _cacheSearchFilterTypes = new Dictionary<string, System.Type>();
-		private static readonly Dictionary<string, ISearchFilter> _cacheSearchFilterInstance = new Dictionary<string, ISearchFilter>();
+		private static readonly Dictionary<string, System.Type> _cacheFilterRuleTypes = new Dictionary<string, System.Type>();
+		private static readonly Dictionary<string, IFilterRule> _cacheFilterRuleInstance = new Dictionary<string, IFilterRule>();
 
 
 		private static AssetBundleCollectorSetting _setting = null;
@@ -46,42 +46,42 @@ namespace MotionFramework.Editor
 			}
 		}
 
-		public static List<string> GetBundleLabelClassNames()
+		public static List<string> GetPackRuleClassNames()
 		{
 			if (_setting == null)
 				LoadSettingData();
 
 			List<string> names = new List<string>();
-			foreach (var pair in _cacheBundleLabelTypes)
+			foreach (var pair in _cachePackRuleTypes)
 			{
 				names.Add(pair.Key);
 			}
 			return names;
 		}
-		public static List<string> GetSearchFilterClassNames()
+		public static List<string> GetFilterRuleClassNames()
 		{
 			if (_setting == null)
 				LoadSettingData();
 
 			List<string> names = new List<string>();
-			foreach (var pair in _cacheSearchFilterTypes)
+			foreach (var pair in _cacheFilterRuleTypes)
 			{
 				names.Add(pair.Key);
 			}
 			return names;
 		}
-		public static bool HasBundleLabelClassName(string className)
+		public static bool HasPackRuleClassName(string className)
 		{
-			foreach (var pair in _cacheBundleLabelTypes)
+			foreach (var pair in _cachePackRuleTypes)
 			{
 				if (pair.Key == className)
 					return true;
 			}
 			return false;
 		}
-		public static bool HasSearchFilterClassName(string className)
+		public static bool HasFilterRuleClassName(string className)
 		{
-			foreach (var pair in _cacheSearchFilterTypes)
+			foreach (var pair in _cacheFilterRuleTypes)
 			{
 				if (pair.Key == className)
 					return true;
@@ -110,49 +110,49 @@ namespace MotionFramework.Editor
 				Debug.Log($"Load {nameof(AssetBundleCollectorSetting)}.asset ok");
 			}
 
-			// IBundleLabel
+			// IPackRule
 			{
 				// 清空缓存集合
-				_cacheBundleLabelTypes.Clear();
-				_cacheBundleLabelInstance.Clear();
+				_cachePackRuleTypes.Clear();
+				_cachePackRuleInstance.Clear();
 
 				// 获取所有类型
 				List<Type> types = new List<Type>(100)
 				{
-					typeof(LabelByFilePath),
-					typeof(LabelByFolderPath)
+					typeof(PackExplicit),
+					typeof(PackDirectory)
 				};
-				var customTypes = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IBundleLabel));
+				var customTypes = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IPackRule));
 				types.AddRange(customTypes);
 				for (int i = 0; i < types.Count; i++)
 				{
 					Type type = types[i];
-					if (_cacheBundleLabelTypes.ContainsKey(type.Name) == false)
-						_cacheBundleLabelTypes.Add(type.Name, type);
+					if (_cachePackRuleTypes.ContainsKey(type.Name) == false)
+						_cachePackRuleTypes.Add(type.Name, type);
 				}
 			}
 
-			// ISearchFilter
+			// IFilterRule
 			{
 				// 清空缓存集合
-				_cacheSearchFilterTypes.Clear();
-				_cacheSearchFilterInstance.Clear();
+				_cacheFilterRuleTypes.Clear();
+				_cacheFilterRuleInstance.Clear();
 
 				// 获取所有类型
 				List<Type> types = new List<Type>(100)
 				{
-					typeof(SearchAll),
-					typeof(SearchScene),
-					typeof(SearchPrefab),
-					typeof(SearchSprite)
+					typeof(CollectAll),
+					typeof(CollectScene),
+					typeof(CollectPrefab),
+					typeof(CollectSprite)
 				};
-				var customTypes = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(ISearchFilter));
+				var customTypes = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IFilterRule));
 				types.AddRange(customTypes);
 				for (int i = 0; i < types.Count; i++)
 				{
 					Type type = types[i];
-					if (_cacheSearchFilterTypes.ContainsKey(type.Name) == false)
-						_cacheSearchFilterTypes.Add(type.Name, type);
+					if (_cacheFilterRuleTypes.ContainsKey(type.Name) == false)
+						_cacheFilterRuleTypes.Add(type.Name, type);
 				}
 			}
 		}
@@ -185,7 +185,7 @@ namespace MotionFramework.Editor
 			Setting.Collectors.Clear();
 			SaveFile();
 		}
-		public static void AddCollector(string directory, string bundleLabelClassName, string searchFilterClassName, bool saveFile = true)
+		public static void AddCollector(string directory, string packRuleClassName, string filterRuleClassName, bool saveFile = true)
 		{
 			// 末尾添加路径分隔符号
 			if (directory.EndsWith("/") == false)
@@ -197,8 +197,8 @@ namespace MotionFramework.Editor
 
 			AssetBundleCollectorSetting.Collector element = new AssetBundleCollectorSetting.Collector();
 			element.CollectDirectory = directory;
-			element.BundleLabelClassName = bundleLabelClassName;
-			element.SearchFilterClassName = searchFilterClassName;
+			element.PackRuleClassName = packRuleClassName;
+			element.FilterRuleClassName = filterRuleClassName;
 			Setting.Collectors.Add(element);
 
 			if(saveFile)
@@ -216,14 +216,14 @@ namespace MotionFramework.Editor
 			}
 			SaveFile();
 		}
-		public static void ModifyCollector(string directory, string bundleLabelClassName, string searchFilterClassName)
+		public static void ModifyCollector(string directory, string packRuleClassName, string filterRuleClassName)
 		{
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				if (Setting.Collectors[i].CollectDirectory == directory)
 				{
-					Setting.Collectors[i].BundleLabelClassName = bundleLabelClassName;
-					Setting.Collectors[i].SearchFilterClassName = searchFilterClassName;
+					Setting.Collectors[i].PackRuleClassName = packRuleClassName;
+					Setting.Collectors[i].FilterRuleClassName = filterRuleClassName;
 					break;
 				}
 			}
@@ -335,9 +335,9 @@ namespace MotionFramework.Editor
 				foreach (string guid in guids)
 				{
 					string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-					if (ValidateAsset(assetPath) == false)
+					if (IsValidateAsset(assetPath) == false)
 						continue;
-					if (SearchAsset(assetPath, collector.SearchFilterClassName) == false)
+					if (IsCollectAsset(assetPath, collector.FilterRuleClassName) == false)
 						continue;
 					if (result.Contains(assetPath) == false)
 						result.Add(assetPath);
@@ -345,7 +345,7 @@ namespace MotionFramework.Editor
 			}
 			return result;
 		}
-		private static bool SearchAsset(string assetPath, string filterClassName)
+		private static bool IsCollectAsset(string assetPath, string filterRuleClassName)
 		{
 			if (Setting.IsCollectAllShaders)
 			{
@@ -355,14 +355,14 @@ namespace MotionFramework.Editor
 			}
 
 			// 根据规则设置获取标签名称
-			ISearchFilter filter = GetSearchFilterInstance(filterClassName);
-			return filter.FilterAsset(assetPath);
+			IFilterRule filterRuleInstance = GetFilterRuleInstance(filterRuleClassName);
+			return filterRuleInstance.IsCollectAsset(assetPath);
 		}
 
 		/// <summary>
 		/// 检测资源是否有效
 		/// </summary>
-		public static bool ValidateAsset(string assetPath)
+		public static bool IsValidateAsset(string assetPath)
 		{
 			if (!assetPath.StartsWith("Assets/"))
 				return false;
@@ -397,13 +397,13 @@ namespace MotionFramework.Editor
 			}
 
 			// 获取收集器
-			AssetBundleCollectorSetting.Collector findWrapper = null;
+			AssetBundleCollectorSetting.Collector findCollector = null;
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
-				AssetBundleCollectorSetting.Collector wrapper = Setting.Collectors[i];
-				if (assetPath.StartsWith(wrapper.CollectDirectory))
+				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
+				if (assetPath.StartsWith(collector.CollectDirectory))
 				{
-					findWrapper = wrapper;
+					findCollector = collector;
 					break;
 				}
 			}
@@ -411,16 +411,16 @@ namespace MotionFramework.Editor
 			string bundleLabel;
 
 			// 如果没有找到收集器
-			if (findWrapper == null)
+			if (findCollector == null)
 			{
-				IBundleLabel defaultLabelInstance = new LabelByFilePath();
-				bundleLabel = defaultLabelInstance.GetAssetBundleLabel(assetPath);
+				IPackRule defaultInstance = new PackExplicit();
+				bundleLabel = defaultInstance.GetAssetBundleLabel(assetPath);
 			}
 			else
 			{
 				// 根据规则设置获取标签名称
-				IBundleLabel bundleLabelInstance = GetBundleLabelInstance(findWrapper.BundleLabelClassName);
-				bundleLabel = bundleLabelInstance.GetAssetBundleLabel(assetPath);
+				IPackRule getInstance = GetPackRuleInstance(findCollector.PackRuleClassName);
+				bundleLabel = getInstance.GetAssetBundleLabel(assetPath);
 			}
 
 			// 注意：如果资源所在文件夹的名称包含后缀符号，则为变体资源
@@ -446,38 +446,38 @@ namespace MotionFramework.Editor
 			return Setting.DLCFiles.ToArray();
 		}
 
-		private static IBundleLabel GetBundleLabelInstance(string className)
+		private static IPackRule GetPackRuleInstance(string className)
 		{
-			if (_cacheBundleLabelInstance.TryGetValue(className, out IBundleLabel instance))
+			if (_cachePackRuleInstance.TryGetValue(className, out IPackRule instance))
 				return instance;
 
 			// 如果不存在创建类的实例
-			if (_cacheBundleLabelTypes.TryGetValue(className, out Type type))
+			if (_cachePackRuleTypes.TryGetValue(className, out Type type))
 			{
-				instance = (IBundleLabel)Activator.CreateInstance(type);
-				_cacheBundleLabelInstance.Add(className, instance);
+				instance = (IPackRule)Activator.CreateInstance(type);
+				_cachePackRuleInstance.Add(className, instance);
 				return instance;
 			}
 			else
 			{
-				throw new Exception($"{nameof(IBundleLabel)}类型无效：{className}");
+				throw new Exception($"{nameof(IPackRule)}类型无效：{className}");
 			}
 		}
-		private static ISearchFilter GetSearchFilterInstance(string className)
+		private static IFilterRule GetFilterRuleInstance(string className)
 		{
-			if (_cacheSearchFilterInstance.TryGetValue(className, out ISearchFilter instance))
+			if (_cacheFilterRuleInstance.TryGetValue(className, out IFilterRule instance))
 				return instance;
 
 			// 如果不存在创建类的实例
-			if (_cacheSearchFilterTypes.TryGetValue(className, out Type type))
+			if (_cacheFilterRuleTypes.TryGetValue(className, out Type type))
 			{
-				instance = (ISearchFilter)Activator.CreateInstance(type);
-				_cacheSearchFilterInstance.Add(className, instance);
+				instance = (IFilterRule)Activator.CreateInstance(type);
+				_cacheFilterRuleInstance.Add(className, instance);
 				return instance;
 			}
 			else
 			{
-				throw new Exception($"{nameof(ISearchFilter)}类型无效：{className}");
+				throw new Exception($"{nameof(IFilterRule)}类型无效：{className}");
 			}
 		}
 	}

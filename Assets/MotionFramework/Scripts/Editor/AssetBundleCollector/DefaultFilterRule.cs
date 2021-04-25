@@ -9,33 +9,45 @@ using System.IO;
 
 namespace MotionFramework.Editor
 {
-	public class SearchAll : ISearchFilter
+	/// <summary>
+	/// 收集所有资源
+	/// </summary>
+	public class CollectAll : IFilterRule
 	{
-		public bool FilterAsset(string assetPath)
+		public bool IsCollectAsset(string assetPath)
 		{
 			return true;
 		}
 	}
 
-	public class SearchScene : ISearchFilter
+	/// <summary>
+	/// 只收集场景
+	/// </summary>
+	public class CollectScene : IFilterRule
 	{
-		public bool FilterAsset(string assetPath)
+		public bool IsCollectAsset(string assetPath)
 		{
 			return Path.GetExtension(assetPath) == ".unity";
 		}
 	}
 	
-	public class SearchPrefab : ISearchFilter
+	/// <summary>
+	/// 只收集预制体
+	/// </summary>
+	public class CollectPrefab : IFilterRule
 	{
-		public bool FilterAsset(string assetPath)
+		public bool IsCollectAsset(string assetPath)
 		{
 			return Path.GetExtension(assetPath) == ".prefab";
 		}
 	}
 
-	public class SearchSprite : ISearchFilter
+	/// <summary>
+	/// 只收集精灵类型的资源
+	/// </summary>
+	public class CollectSprite : IFilterRule
 	{
-		public bool FilterAsset(string assetPath)
+		public bool IsCollectAsset(string assetPath)
 		{
 			if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(Sprite))
 				return true;

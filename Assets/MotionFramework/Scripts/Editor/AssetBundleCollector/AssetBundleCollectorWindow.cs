@@ -30,53 +30,53 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private string _lastOpenFolderPath = "Assets/";
 
-		private string[] _bundleLabelClassArray = null;
-		private string[] _searchFilterClassArray = null;
+		private string[] _packRuleClassArray = null;
+		private string[] _filterRuleClassArray = null;
 		private Vector2 _scrollPos = Vector2.zero;
 
 		// 初始化相关
 		private bool _isInit = false;
 		private void Init()
 		{
-			List<string> bundleLablelClassNames = AssetBundleCollectorSettingData.GetBundleLabelClassNames();
-			_bundleLabelClassArray = bundleLablelClassNames.ToArray();
+			List<string> packRuleClassNames = AssetBundleCollectorSettingData.GetPackRuleClassNames();
+			_packRuleClassArray = packRuleClassNames.ToArray();
 
-			List<string> searchFilterClassNames = AssetBundleCollectorSettingData.GetSearchFilterClassNames();
-			_searchFilterClassArray = searchFilterClassNames.ToArray();
+			List<string> filterRuleClassNames = AssetBundleCollectorSettingData.GetFilterRuleClassNames();
+			_filterRuleClassArray = filterRuleClassNames.ToArray();
 		}
-		private int BundleLabelClassNameToIndex(string name)
+		private int PackRuleClassNameToIndex(string name)
 		{
-			for (int i = 0; i < _bundleLabelClassArray.Length; i++)
+			for (int i = 0; i < _packRuleClassArray.Length; i++)
 			{
-				if (_bundleLabelClassArray[i] == name)
+				if (_packRuleClassArray[i] == name)
 					return i;
 			}
 			return 0;
 		}
-		private string IndexToBundleLabelClassName(int index)
+		private string IndexToPackRuleClassName(int index)
 		{
-			for (int i = 0; i < _bundleLabelClassArray.Length; i++)
+			for (int i = 0; i < _packRuleClassArray.Length; i++)
 			{
 				if (i == index)
-					return _bundleLabelClassArray[i];
+					return _packRuleClassArray[i];
 			}
 			return string.Empty;
 		}
-		private int SearchFilterClassNameToIndex(string name)
+		private int FilterRuleClassNameToIndex(string name)
 		{
-			for (int i = 0; i < _searchFilterClassArray.Length; i++)
+			for (int i = 0; i < _filterRuleClassArray.Length; i++)
 			{
-				if (_searchFilterClassArray[i] == name)
+				if (_filterRuleClassArray[i] == name)
 					return i;
 			}
 			return 0;
 		}
-		private string IndexToSearchFilterClassName(int index)
+		private string IndexToFilterRuleClassName(int index)
 		{
-			for (int i = 0; i < _searchFilterClassArray.Length; i++)
+			for (int i = 0; i < _filterRuleClassArray.Length; i++)
 			{
 				if (i == index)
-					return _searchFilterClassArray[i];
+					return _filterRuleClassArray[i];
 			}
 			return string.Empty;
 		}
@@ -118,32 +118,32 @@ namespace MotionFramework.Editor
 			{
 				var collector = AssetBundleCollectorSettingData.Setting.Collectors[i];
 				string directory = collector.CollectDirectory;
-				string bundleLabelClassName = collector.BundleLabelClassName;
-				string searchFilterClassName = collector.SearchFilterClassName;
+				string packRuleClassName = collector.PackRuleClassName;
+				string filterRuleClassName = collector.FilterRuleClassName;
 
 				EditorGUILayout.BeginHorizontal();
 				{
 					EditorGUILayout.LabelField(directory);
 
-					// IBundleLabel
+					// IPackRule
 					{
-						int index = BundleLabelClassNameToIndex(bundleLabelClassName);
-						int newIndex = EditorGUILayout.Popup(index, _bundleLabelClassArray, GUILayout.MaxWidth(200));
+						int index = PackRuleClassNameToIndex(packRuleClassName);
+						int newIndex = EditorGUILayout.Popup(index, _packRuleClassArray, GUILayout.MaxWidth(200));
 						if (newIndex != index)
 						{
-							bundleLabelClassName = IndexToBundleLabelClassName(newIndex);
-							AssetBundleCollectorSettingData.ModifyCollector(directory, bundleLabelClassName, searchFilterClassName);
+							packRuleClassName = IndexToPackRuleClassName(newIndex);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName);
 						}
 					}
 
-					// ISearchFilter
+					// IFilterRule
 					{
-						int index = SearchFilterClassNameToIndex(searchFilterClassName);
-						int newIndex = EditorGUILayout.Popup(index, _searchFilterClassArray, GUILayout.MaxWidth(150));
+						int index = FilterRuleClassNameToIndex(filterRuleClassName);
+						int newIndex = EditorGUILayout.Popup(index, _filterRuleClassArray, GUILayout.MaxWidth(150));
 						if (newIndex != index)
 						{
-							searchFilterClassName = IndexToSearchFilterClassName(newIndex);
-							AssetBundleCollectorSettingData.ModifyCollector(directory, bundleLabelClassName, searchFilterClassName);
+							filterRuleClassName = IndexToFilterRuleClassName(newIndex);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName);
 						}
 					}
 
@@ -164,9 +164,9 @@ namespace MotionFramework.Editor
 				if (resultPath != null)
 				{
 					_lastOpenFolderPath = EditorTools.AbsolutePathToAssetPath(resultPath);
-					string bundleLabelClassName = nameof(LabelByFilePath);
-					string searchFilterClassName = nameof(SearchAll);
-					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath, bundleLabelClassName, searchFilterClassName);
+					string defaultPackRuleClassName = nameof(PackExplicit);
+					string defaultFilterRuleClassName = nameof(CollectAll);
+					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath, defaultPackRuleClassName, defaultFilterRuleClassName);
 				}
 			}
 

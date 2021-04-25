@@ -6,13 +6,16 @@
 
 namespace MotionFramework.Editor
 {
-	public interface ISearchFilter
+	/// <summary>
+	/// 资源过滤规则接口
+	/// </summary>
+	public interface IFilterRule
 	{
 		/// <summary>
-		/// 资源过滤
+		/// 是否为收集资源
 		/// </summary>
 		/// <param name="assetPath">资源路径</param>
 		/// <returns>如果收集该资源返回TRUE</returns>
-		bool FilterAsset(string assetPath);
+		bool IsCollectAsset(string assetPath);
 	}
 }
