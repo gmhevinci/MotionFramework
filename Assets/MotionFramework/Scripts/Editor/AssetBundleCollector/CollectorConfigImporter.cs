@@ -49,6 +49,8 @@ namespace MotionFramework.Editor
 			// 解析文件
 			XmlElement root = xml.DocumentElement;
 			XmlNodeList nodeList = root.GetElementsByTagName(XmlTag);
+			if (nodeList.Count == 0)
+				throw new Exception($"Not found any {XmlTag}");
 			foreach (XmlNode node in nodeList)
 			{
 				XmlElement collect = node as XmlElement;
