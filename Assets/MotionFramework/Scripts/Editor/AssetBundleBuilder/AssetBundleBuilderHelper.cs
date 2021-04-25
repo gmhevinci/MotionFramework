@@ -131,8 +131,8 @@ namespace MotionFramework.Editor
 				if (targetVersion >= 0 && patchBundle.Version > targetVersion)
 					continue;
 
-				string sourcePath = $"{outputRoot}/{buildTarget}/{patchBundle.Version}/{patchBundle.MD5}";
-				string destPath = $"{Application.dataPath}/StreamingAssets/{patchBundle.MD5}";
+				string sourcePath = $"{outputRoot}/{buildTarget}/{patchBundle.Version}/{patchBundle.Hash}";
+				string destPath = $"{Application.dataPath}/StreamingAssets/{patchBundle.Hash}";
 				Debug.Log($"拷贝版本文件到流目录：{destPath}");
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}

@@ -70,7 +70,7 @@ namespace MotionFramework.Editor
 				if (patchBundle.Version == buildParameters.BuildVersion)
 				{
 					string sourcePath = $"{buildParameters.OutputDirectory}/{patchBundle.BundleName}";
-					string destPath = $"{packageDirectory}/{patchBundle.MD5}";
+					string destPath = $"{packageDirectory}/{patchBundle.Hash}";
 					EditorTools.CopyFile(sourcePath, destPath, true);
 					BuildLogger.Log($"复制更新文件到补丁包：{sourcePath}");
 

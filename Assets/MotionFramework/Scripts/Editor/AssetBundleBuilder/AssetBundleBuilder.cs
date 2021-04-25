@@ -3,12 +3,10 @@
 // Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System;
-using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using MotionFramework.Patch;
@@ -21,7 +19,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 构建参数
 		/// </summary>
-		public struct BuildParameters
+		public class BuildParameters
 		{
 			/// <summary>
 			/// 输出目录根路径
@@ -39,6 +37,12 @@ namespace MotionFramework.Editor
 			public int BuildVersion;
 
 			/// <summary>
+			/// 验证资源包的哈希类型
+			/// </summary>
+			public EHashType HashType;
+
+			#region 构建选项
+			/// <summary>
 			/// 压缩选项
 			/// </summary>
 			public ECompressOption CompressOption;
@@ -48,9 +52,11 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public bool IsForceRebuild;
 
-			public bool IsAppendHash;
-			public bool IsDisableWriteTypeTree;
-			public bool IsIgnoreTypeTreeChanges;
+			// 高级选项
+			public bool IsAppendHash = false;
+			public bool IsDisableWriteTypeTree = false;
+			public bool IsIgnoreTypeTreeChanges = true;
+			#endregion
 		}
 
 		/// <summary>
@@ -76,11 +82,6 @@ namespace MotionFramework.Editor
 			public string OutputRoot { private set; get; }
 
 			/// <summary>
-			/// 最终的输出目录
-			/// </summary>
-			public string OutputDirectory { private set; get; }
-
-			/// <summary>
 			/// 构建的平台
 			/// </summary>
 			public BuildTarget BuildTarget { private set; get; }
@@ -90,11 +91,22 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public int BuildVersion { private set; get; }
 
-			public BuildParametersContext(string outputRoot, BuildTarget buildTarget, int buildVersion)
+			/// <summary>
+			/// 用于验证资源包的哈希类型
+			/// </summary>
+			public EHashType HashType { private set; get; }
+
+			/// <summary>
+			/// 最终的输出目录
+			/// </summary>
+			public string OutputDirectory { private set; get; }
+
+			public BuildParametersContext(string outputRoot, BuildTarget buildTarget, int buildVersion, EHashType hashType)
 			{
 				OutputRoot = outputRoot;
 				BuildTarget = buildTarget;
 				BuildVersion = buildVersion;
+				HashType = hashType;
 				OutputDirectory = MakeOutputDirectory(outputRoot, buildTarget);
 			}
 
@@ -119,11 +131,11 @@ namespace MotionFramework.Editor
 			_buildContext.ClearAllContext();
 
 			// 构建参数
-			BuildParametersContext buildParametersContext = new BuildParametersContext(buildParameters.OutputRoot, buildParameters.BuildTarget, buildParameters.BuildVersion);
+			var buildParametersContext = new BuildParametersContext(buildParameters.OutputRoot, buildParameters.BuildTarget, buildParameters.BuildVersion, buildParameters.HashType);
 			_buildContext.SetContextObject(buildParametersContext);
 
 			// 构建选项
-			BuildOptionsContext buildOptionsContext = new BuildOptionsContext();
+			var buildOptionsContext = new BuildOptionsContext();
 			buildOptionsContext.CompressOption = buildParameters.CompressOption;
 			buildOptionsContext.IsForceRebuild = buildParameters.IsForceRebuild;
 			buildOptionsContext.IsAppendHash = buildParameters.IsAppendHash;

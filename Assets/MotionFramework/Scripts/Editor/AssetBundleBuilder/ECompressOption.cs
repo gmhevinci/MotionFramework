@@ -12,7 +12,7 @@ namespace MotionFramework.Editor
 	public enum ECompressOption
 	{
 		Uncompressed = 0,
-		StandardCompressionLZMA,
-		ChunkBasedCompressionLZ4,
+		LZMA,
+		LZ4,
 	}
 }

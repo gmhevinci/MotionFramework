@@ -49,7 +49,7 @@ namespace MotionFramework.Editor
 
 			if (buildOptions.CompressOption == ECompressOption.Uncompressed)
 				opt |= BuildAssetBundleOptions.UncompressedAssetBundle;
-			else if (buildOptions.CompressOption == ECompressOption.ChunkBasedCompressionLZ4)
+			else if (buildOptions.CompressOption == ECompressOption.LZ4)
 				opt |= BuildAssetBundleOptions.ChunkBasedCompression;
 
 			if (buildOptions.IsForceRebuild)

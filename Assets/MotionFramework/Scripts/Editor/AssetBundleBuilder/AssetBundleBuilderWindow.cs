@@ -29,19 +29,16 @@ namespace MotionFramework.Editor
 		// 构建参数
 		public int BuildVersion;
 		public BuildTarget BuildTarget;
+		public EHashType HashType;
 
 		// 构建选项
 		public ECompressOption CompressOption = ECompressOption.Uncompressed;
 		public bool IsForceRebuild = false;
-		public bool IsAppendHash = false;
-		public bool IsDisableWriteTypeTree = false;
-		public bool IsIgnoreTypeTreeChanges = false;
 
 		// GUI相关
 		private bool _isInit = false;
 		private GUIStyle _centerStyle;
 		private GUIStyle _leftStyle;
-		private bool _showSettingFoldout = true;
 		private bool _showToolsFoldout = true;
 
 		// 构建器
@@ -77,34 +74,15 @@ namespace MotionFramework.Editor
 			EditorGUILayout.LabelField("Build setup", _centerStyle);
 			EditorGUILayout.Space();
 
-			// 构建版本
-			BuildVersion = EditorGUILayout.IntField("Build Version", BuildVersion, GUILayout.MaxWidth(250));
-
 			// 输出路径
 			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
 			string outputDirectory = AssetBundleBuilder.MakeOutputDirectory(defaultOutputRoot, BuildTarget);
 			EditorGUILayout.LabelField("Build Output", outputDirectory);
 
-			// 构建选项
-			EditorGUILayout.Space();
+			BuildVersion = EditorGUILayout.IntField("Build Version", BuildVersion, GUILayout.MaxWidth(250));
+			HashType = (EHashType)EditorGUILayout.EnumPopup("HashType", HashType, GUILayout.MaxWidth(250));
+			CompressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", CompressOption, GUILayout.MaxWidth(250));
 			IsForceRebuild = GUILayout.Toggle(IsForceRebuild, "Froce Rebuild", GUILayout.MaxWidth(120));
-
-			// 高级选项
-			using (new EditorGUI.DisabledScope(false))
-			{
-				EditorGUILayout.Space();
-				_showSettingFoldout = EditorGUILayout.Foldout(_showSettingFoldout, "Advanced Settings");
-				if (_showSettingFoldout)
-				{
-					int indent = EditorGUI.indentLevel;
-					EditorGUI.indentLevel = 1;
-					CompressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", CompressOption);
-					IsAppendHash = EditorGUILayout.ToggleLeft("Append Hash", IsAppendHash, GUILayout.MaxWidth(120));
-					IsDisableWriteTypeTree = EditorGUILayout.ToggleLeft("Disable Write Type Tree", IsDisableWriteTypeTree, GUILayout.MaxWidth(200));
-					IsIgnoreTypeTreeChanges = EditorGUILayout.ToggleLeft("Ignore Type Tree Changes", IsIgnoreTypeTreeChanges, GUILayout.MaxWidth(200));
-					EditorGUI.indentLevel = indent;
-				}
-			}
 
 			// 构建按钮
 			EditorGUILayout.Space();
@@ -182,11 +160,9 @@ namespace MotionFramework.Editor
 			buildParameters.OutputRoot = defaultOutputRoot;
 			buildParameters.BuildTarget = BuildTarget;
 			buildParameters.BuildVersion = BuildVersion;
+			buildParameters.HashType = HashType;
 			buildParameters.CompressOption = CompressOption;
 			buildParameters.IsForceRebuild = IsForceRebuild;
-			buildParameters.IsAppendHash = IsAppendHash;
-			buildParameters.IsDisableWriteTypeTree = IsDisableWriteTypeTree;
-			buildParameters.IsIgnoreTypeTreeChanges = IsIgnoreTypeTreeChanges;
 			_assetBuilder.Run(buildParameters);
 		}
 
@@ -276,10 +252,6 @@ namespace MotionFramework.Editor
 		#region 设置相关
 		private const string StrEditorCompressOption = "StrEditorCompressOption";
 		private const string StrEditorIsForceRebuild = "StrEditorIsForceRebuild";
-		private const string StrEditorIsAppendHash = "StrEditorIsAppendHash";
-		private const string StrEditorIsDisableWriteTypeTree = "StrEditorIsDisableWriteTypeTree";
-		private const string StrEditorIsIgnoreTypeTreeChanges = "StrEditorIsIgnoreTypeTreeChanges";
-		private const string StrEditorIsUsePlayerSettingVersion = "StrEditorIsUsePlayerSettingVersion";
 
 		/// <summary>
 		/// 存储配置
@@ -288,9 +260,6 @@ namespace MotionFramework.Editor
 		{
 			EditorTools.PlayerSetEnum<ECompressOption>(StrEditorCompressOption, CompressOption);
 			EditorTools.PlayerSetBool(StrEditorIsForceRebuild, IsForceRebuild);
-			EditorTools.PlayerSetBool(StrEditorIsAppendHash, IsAppendHash);
-			EditorTools.PlayerSetBool(StrEditorIsDisableWriteTypeTree, IsDisableWriteTypeTree);
-			EditorTools.PlayerSetBool(StrEditorIsIgnoreTypeTreeChanges, IsIgnoreTypeTreeChanges);
 		}
 
 		/// <summary>
@@ -300,9 +269,6 @@ namespace MotionFramework.Editor
 		{
 			CompressOption = EditorTools.PlayerGetEnum<ECompressOption>(StrEditorCompressOption, ECompressOption.Uncompressed);
 			IsForceRebuild = EditorTools.PlayerGetBool(StrEditorIsForceRebuild, false);
-			IsAppendHash = EditorTools.PlayerGetBool(StrEditorIsAppendHash, false);
-			IsDisableWriteTypeTree = EditorTools.PlayerGetBool(StrEditorIsDisableWriteTypeTree, false);
-			IsIgnoreTypeTreeChanges = EditorTools.PlayerGetBool(StrEditorIsIgnoreTypeTreeChanges, false);
 		}
 		#endregion
 	}

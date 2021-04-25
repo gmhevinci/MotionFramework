@@ -70,8 +70,7 @@ namespace MotionFramework.Editor
 			foreach (var bundleName in allAssetBundles)
 			{
 				string path = $"{buildParameters.OutputDirectory}/{bundleName}";
-				string md5 = HashUtility.FileMD5(path);
-				uint crc32 = HashUtility.FileCRC32(path);
+				string hash = GetFileHash(buildParameters.HashType, path);
 				long sizeBytes = EditorTools.GetFileSize(path);
 				int version = buildParameters.BuildVersion;
 				string[] assets = buildMapContext.GetCollectAssetPaths(bundleName);
@@ -85,15 +84,24 @@ namespace MotionFramework.Editor
 				// 注意：如果文件没有变化使用旧版本号
 				if (oldPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle oldElement))
 				{
-					if (oldElement.MD5 == md5)
+					if (oldElement.Hash == hash)
 						version = oldElement.Version;
 				}
 
-				PatchBundle newElement = new PatchBundle(bundleName, md5, crc32, sizeBytes, version, flags, assets, depends, dlcLabels);
+				PatchBundle newElement = new PatchBundle(bundleName, hash, sizeBytes, version, flags, assets, depends, dlcLabels);
 				result.Add(newElement);
 			}
 
 			return result;
+		}
+		private string GetFileHash(EHashType hashType, string path)
+		{
+			if (hashType == EHashType.MD5)
+				return HashUtility.FileMD5(path);
+			else if (hashType == EHashType.CRC32)
+				return HashUtility.FileCRC32(path).ToString();
+			else
+				throw new NotImplementedException(hashType.ToString());
 		}
 
 		/// <summary>
