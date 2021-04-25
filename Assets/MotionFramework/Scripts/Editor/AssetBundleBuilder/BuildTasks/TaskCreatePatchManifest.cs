@@ -41,6 +41,9 @@ namespace MotionFramework.Editor
 			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext, unityManifest);
 			patchManifest.VariantList = GetAllPatchVariant(unityManifest);
 
+			// 检测哈希冲突
+			CheckHashConflict(patchManifest);
+
 			// 创建新文件
 			string filePath = $"{buildParameters.OutputDirectory}/{PatchDefine.PatchManifestFileName}";
 			BuildLogger.Log($"创建补丁清单文件：{filePath}");
@@ -137,6 +140,26 @@ namespace MotionFramework.Editor
 				}
 			}
 			return result;
+		}
+
+		/// <summary>
+		/// 检测哈希冲突
+		/// </summary>
+		private void CheckHashConflict(PatchManifest patchManifest)
+		{
+			Dictionary<string, PatchBundle> temper = new Dictionary<string, PatchBundle>(patchManifest.BundleList.Count);
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				if (temper.ContainsKey(patchBundle.Hash))
+				{
+					var conflictBundle = temper[patchBundle.Hash];
+					throw new Exception($"Hash confilct : {conflictBundle.BundleName} : {patchBundle.BundleName}");
+				}
+				else
+				{
+					temper.Add(patchBundle.Hash, patchBundle);
+				}
+			}
 		}
 	}
 }

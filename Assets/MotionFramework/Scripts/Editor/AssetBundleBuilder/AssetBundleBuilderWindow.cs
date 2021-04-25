@@ -251,6 +251,7 @@ namespace MotionFramework.Editor
 
 		#region 设置相关
 		private const string StrEditorCompressOption = "StrEditorCompressOption";
+		private const string StrEditorHashType = "StrEditorHashType";
 		private const string StrEditorIsForceRebuild = "StrEditorIsForceRebuild";
 
 		/// <summary>
@@ -259,6 +260,7 @@ namespace MotionFramework.Editor
 		private void SaveSettingsToPlayerPrefs()
 		{
 			EditorTools.PlayerSetEnum<ECompressOption>(StrEditorCompressOption, CompressOption);
+			EditorTools.PlayerSetEnum<EHashType>(StrEditorHashType, HashType);
 			EditorTools.PlayerSetBool(StrEditorIsForceRebuild, IsForceRebuild);
 		}
 
@@ -268,6 +270,7 @@ namespace MotionFramework.Editor
 		private void LoadSettingsFromPlayerPrefs()
 		{
 			CompressOption = EditorTools.PlayerGetEnum<ECompressOption>(StrEditorCompressOption, ECompressOption.Uncompressed);
+			HashType = EditorTools.PlayerGetEnum<EHashType>(StrEditorHashType, EHashType.CRC32);
 			IsForceRebuild = EditorTools.PlayerGetBool(StrEditorIsForceRebuild, false);
 		}
 		#endregion
