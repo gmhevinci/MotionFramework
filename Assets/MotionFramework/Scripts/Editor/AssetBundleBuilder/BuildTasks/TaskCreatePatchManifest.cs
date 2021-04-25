@@ -102,7 +102,7 @@ namespace MotionFramework.Editor
 			if (hashType == EHashType.MD5)
 				return HashUtility.FileMD5(path);
 			else if (hashType == EHashType.CRC32)
-				return HashUtility.FileCRC32(path).ToString();
+				return HashUtility.FileCRC32(path);
 			else
 				throw new NotImplementedException(hashType.ToString());
 		}
