@@ -36,11 +36,6 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public int BuildVersion;
 
-			/// <summary>
-			/// 验证资源包的哈希类型
-			/// </summary>
-			public EHashType HashType;
-
 			#region 构建选项
 			/// <summary>
 			/// 压缩选项
@@ -92,21 +87,15 @@ namespace MotionFramework.Editor
 			public int BuildVersion { private set; get; }
 
 			/// <summary>
-			/// 用于验证资源包的哈希类型
-			/// </summary>
-			public EHashType HashType { private set; get; }
-
-			/// <summary>
 			/// 最终的输出目录
 			/// </summary>
 			public string OutputDirectory { private set; get; }
 
-			public BuildParametersContext(string outputRoot, BuildTarget buildTarget, int buildVersion, EHashType hashType)
+			public BuildParametersContext(string outputRoot, BuildTarget buildTarget, int buildVersion)
 			{
 				OutputRoot = outputRoot;
 				BuildTarget = buildTarget;
 				BuildVersion = buildVersion;
-				HashType = hashType;
 				OutputDirectory = MakeOutputDirectory(outputRoot, buildTarget);
 			}
 
@@ -131,7 +120,7 @@ namespace MotionFramework.Editor
 			_buildContext.ClearAllContext();
 
 			// 构建参数
-			var buildParametersContext = new BuildParametersContext(buildParameters.OutputRoot, buildParameters.BuildTarget, buildParameters.BuildVersion, buildParameters.HashType);
+			var buildParametersContext = new BuildParametersContext(buildParameters.OutputRoot, buildParameters.BuildTarget, buildParameters.BuildVersion);
 			_buildContext.SetContextObject(buildParametersContext);
 
 			// 构建选项

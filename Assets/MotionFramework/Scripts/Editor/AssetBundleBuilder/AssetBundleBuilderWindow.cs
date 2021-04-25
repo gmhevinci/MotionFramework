@@ -29,7 +29,6 @@ namespace MotionFramework.Editor
 		// 构建参数
 		public int BuildVersion;
 		public BuildTarget BuildTarget;
-		public EHashType HashType;
 
 		// 构建选项
 		public ECompressOption CompressOption = ECompressOption.Uncompressed;
@@ -80,7 +79,6 @@ namespace MotionFramework.Editor
 			EditorGUILayout.LabelField("Build Output", outputDirectory);
 
 			BuildVersion = EditorGUILayout.IntField("Build Version", BuildVersion, GUILayout.MaxWidth(250));
-			HashType = (EHashType)EditorGUILayout.EnumPopup("HashType", HashType, GUILayout.MaxWidth(250));
 			CompressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", CompressOption, GUILayout.MaxWidth(250));
 			IsForceRebuild = GUILayout.Toggle(IsForceRebuild, "Froce Rebuild", GUILayout.MaxWidth(120));
 
@@ -160,7 +158,6 @@ namespace MotionFramework.Editor
 			buildParameters.OutputRoot = defaultOutputRoot;
 			buildParameters.BuildTarget = BuildTarget;
 			buildParameters.BuildVersion = BuildVersion;
-			buildParameters.HashType = HashType;
 			buildParameters.CompressOption = CompressOption;
 			buildParameters.IsForceRebuild = IsForceRebuild;
 			_assetBuilder.Run(buildParameters);
@@ -251,7 +248,6 @@ namespace MotionFramework.Editor
 
 		#region 设置相关
 		private const string StrEditorCompressOption = "StrEditorCompressOption";
-		private const string StrEditorHashType = "StrEditorHashType";
 		private const string StrEditorIsForceRebuild = "StrEditorIsForceRebuild";
 
 		/// <summary>
@@ -260,7 +256,6 @@ namespace MotionFramework.Editor
 		private void SaveSettingsToPlayerPrefs()
 		{
 			EditorTools.PlayerSetEnum<ECompressOption>(StrEditorCompressOption, CompressOption);
-			EditorTools.PlayerSetEnum<EHashType>(StrEditorHashType, HashType);
 			EditorTools.PlayerSetBool(StrEditorIsForceRebuild, IsForceRebuild);
 		}
 
@@ -270,7 +265,6 @@ namespace MotionFramework.Editor
 		private void LoadSettingsFromPlayerPrefs()
 		{
 			CompressOption = EditorTools.PlayerGetEnum<ECompressOption>(StrEditorCompressOption, ECompressOption.Uncompressed);
-			HashType = EditorTools.PlayerGetEnum<EHashType>(StrEditorHashType, EHashType.CRC32);
 			IsForceRebuild = EditorTools.PlayerGetBool(StrEditorIsForceRebuild, false);
 		}
 		#endregion
