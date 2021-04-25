@@ -41,9 +41,6 @@ namespace MotionFramework.Editor
 			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext, unityManifest);
 			patchManifest.VariantList = GetAllPatchVariant(unityManifest);
 
-			// 检测哈希冲突
-			CheckHashConflict(patchManifest);
-
 			// 创建新文件
 			string filePath = $"{buildParameters.OutputDirectory}/{PatchDefine.PatchManifestFileName}";
 			BuildLogger.Log($"创建补丁清单文件：{filePath}");
@@ -73,8 +70,9 @@ namespace MotionFramework.Editor
 			foreach (var bundleName in allAssetBundles)
 			{
 				string path = $"{buildParameters.OutputDirectory}/{bundleName}";
-				string hash = GetFileHash(buildParameters.HashType, path);
-				long sizeBytes = EditorTools.GetFileSize(path);
+				string hash = HashUtility.FileMD5(path);
+				string crc = HashUtility.FileCRC32(path);
+				long size = FileUtility.GetFileSize(path);
 				int version = buildParameters.BuildVersion;
 				string[] assets = buildMapContext.GetCollectAssetPaths(bundleName);
 				string[] depends = unityManifest.GetDirectDependencies(bundleName);
@@ -91,20 +89,11 @@ namespace MotionFramework.Editor
 						version = oldElement.Version;
 				}
 
-				PatchBundle newElement = new PatchBundle(bundleName, hash, sizeBytes, version, flags, assets, depends, dlcLabels);
+				PatchBundle newElement = new PatchBundle(bundleName, hash, crc, size, version, flags, assets, depends, dlcLabels);
 				result.Add(newElement);
 			}
 
 			return result;
-		}
-		private string GetFileHash(EHashType hashType, string path)
-		{
-			if (hashType == EHashType.MD5)
-				return HashUtility.FileMD5(path);
-			else if (hashType == EHashType.CRC32)
-				return HashUtility.FileCRC32(path);
-			else
-				throw new NotImplementedException(hashType.ToString());
 		}
 
 		/// <summary>
@@ -140,26 +129,6 @@ namespace MotionFramework.Editor
 				}
 			}
 			return result;
-		}
-
-		/// <summary>
-		/// 检测哈希冲突
-		/// </summary>
-		private void CheckHashConflict(PatchManifest patchManifest)
-		{
-			Dictionary<string, PatchBundle> temper = new Dictionary<string, PatchBundle>(patchManifest.BundleList.Count);
-			foreach (var patchBundle in patchManifest.BundleList)
-			{
-				if (temper.ContainsKey(patchBundle.Hash))
-				{
-					var conflictBundle = temper[patchBundle.Hash];
-					throw new Exception($"Hash confilct : {conflictBundle.BundleName} : {patchBundle.BundleName}");
-				}
-				else
-				{
-					temper.Add(patchBundle.Hash, patchBundle);
-				}
-			}
 		}
 	}
 }
