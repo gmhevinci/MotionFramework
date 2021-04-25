@@ -297,7 +297,15 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 获取所有的打包路径
+		/// 获取收集器总数
+		/// </summary>
+		public static int GetCollecterCount()
+		{
+			return Setting.Collectors.Count;
+		}
+
+		/// <summary>
+		/// 获取所有的收集路径
 		/// </summary>
 		public static List<string> GetAllCollectDirectory()
 		{
@@ -311,14 +319,6 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 获取收集器数量
-		/// </summary>
-		public static int GetCollecterCount()
-		{
-			return Setting.Collectors.Count;
-		}
-
-		/// <summary>
 		/// 获取所有收集的资源
 		/// </summary>
 		/// <returns>返回资源路径列表</returns>
@@ -329,13 +329,15 @@ namespace MotionFramework.Editor
 			{
 				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
 				string collectDirectory = collector.CollectDirectory.TrimEnd('/'); //注意：AssetDatabase不支持末尾带分隔符的文件夹路径
+
+				// 获取收集目录下的所有资源对象的GUID包括子文件夹
 				string[] guids = AssetDatabase.FindAssets(string.Empty, new string[] { collectDirectory });
 				foreach (string guid in guids)
 				{
 					string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 					if (ValidateAsset(assetPath) == false)
 						continue;
-					if (FilterAsset(assetPath, collector.SearchFilterClassName) == false)
+					if (SearchAsset(assetPath, collector.SearchFilterClassName) == false)
 						continue;
 					if (result.Contains(assetPath) == false)
 						result.Add(assetPath);
@@ -343,8 +345,15 @@ namespace MotionFramework.Editor
 			}
 			return result;
 		}
-		private static bool FilterAsset(string assetPath, string filterClassName)
+		private static bool SearchAsset(string assetPath, string filterClassName)
 		{
+			if (Setting.IsCollectAllShaders)
+			{
+				Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+				if (assetType == typeof(UnityEngine.Shader))
+					return true;
+			}
+
 			// 根据规则设置获取标签名称
 			ISearchFilter filter = GetSearchFilterInstance(filterClassName);
 			return filter.FilterAsset(assetPath);
@@ -374,26 +383,6 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 是否收集该资源
-		/// </summary>
-		public static bool IsCollectAsset(string assetPath, System.Type assetType)
-		{
-			if (Setting.IsCollectAllShaders)
-			{
-				if (assetType == typeof(UnityEngine.Shader))
-					return true;
-			}
-
-			for (int i = 0; i < Setting.Collectors.Count; i++)
-			{
-				AssetBundleCollectorSetting.Collector wrapper = Setting.Collectors[i];
-				if (assetPath.StartsWith(wrapper.CollectDirectory))
-					return true;
-			}
-			return false;
-		}
-
-		/// <summary>
 		/// 获取资源的打包信息
 		/// </summary>
 		public static BundleLabelAndVariant GetBundleLabelAndVariant(string assetPath, System.Type assetType)
@@ -419,19 +408,19 @@ namespace MotionFramework.Editor
 				}
 			}
 
-			string label;
+			string bundleLabel;
 
 			// 如果没有找到收集器
 			if (findWrapper == null)
 			{
 				IBundleLabel defaultLabelInstance = new LabelByFilePath();
-				label = defaultLabelInstance.GetAssetBundleLabel(assetPath);
+				bundleLabel = defaultLabelInstance.GetAssetBundleLabel(assetPath);
 			}
 			else
 			{
 				// 根据规则设置获取标签名称
 				IBundleLabel bundleLabelInstance = GetBundleLabelInstance(findWrapper.BundleLabelClassName);
-				label = bundleLabelInstance.GetAssetBundleLabel(assetPath);
+				bundleLabel = bundleLabelInstance.GetAssetBundleLabel(assetPath);
 			}
 
 			// 注意：如果资源所在文件夹的名称包含后缀符号，则为变体资源
@@ -439,13 +428,13 @@ namespace MotionFramework.Editor
 			if (Path.HasExtension(assetDirectory))
 			{
 				string extension = Path.GetExtension(assetDirectory);
-				label = label.Replace(extension, string.Empty);
-				string variant = extension.RemoveFirstChar();
-				return new BundleLabelAndVariant(label, variant);
+				bundleLabel = bundleLabel.Replace(extension, string.Empty);
+				string bundleVariant = extension.RemoveFirstChar();
+				return new BundleLabelAndVariant(bundleLabel, bundleVariant);
 			}
 			else
 			{
-				return new BundleLabelAndVariant(label, PatchDefine.AssetBundleDefaultVariant);
+				return new BundleLabelAndVariant(bundleLabel, PatchDefine.AssetBundleDefaultVariant);
 			}
 		}
 
