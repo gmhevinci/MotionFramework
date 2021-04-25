@@ -125,7 +125,7 @@ namespace MotionFramework.Utility
 		/// <summary>
 		/// 获取字符串的CRC32
 		/// </summary>
-		public static uint StringCRC32(string str)
+		public static string StringCRC32(string str)
 		{
 			byte[] buffer = Encoding.UTF8.GetBytes(str);
 			return BytesCRC32(buffer);
@@ -134,7 +134,7 @@ namespace MotionFramework.Utility
 		/// <summary>
 		/// 获取文件的CRC32
 		/// </summary>
-		public static uint FileCRC32(string filePath)
+		public static string FileCRC32(string filePath)
 		{
 			try
 			{
@@ -146,26 +146,28 @@ namespace MotionFramework.Utility
 			catch (Exception e)
 			{
 				MotionLog.Exception(e.ToString());
-				return 0;
+				return string.Empty;
 			}
 		}
 
 		/// <summary>
 		/// 获取数据流的CRC32
 		/// </summary>
-		public static uint StreamCRC32(Stream stream)
+		public static string StreamCRC32(Stream stream)
 		{
 			CRC32Algorithm hash = new CRC32Algorithm();
 			byte[] hashBytes = hash.ComputeHash(stream);
-			return BitConverter.ToUInt32(hashBytes, 0);
+			return ToString(hashBytes);
 		}
 
 		/// <summary>
 		/// 获取字节数组的CRC32
 		/// </summary>
-		public static uint BytesCRC32(byte[] buffer)
+		public static string BytesCRC32(byte[] buffer)
 		{
-			return CRC32Algorithm.Compute(buffer);
+			CRC32Algorithm hash = new CRC32Algorithm();
+			byte[] hashBytes = hash.ComputeHash(buffer);
+			return ToString(hashBytes);
 		}
 		#endregion
 	}
