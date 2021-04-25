@@ -77,11 +77,11 @@ namespace MotionFramework.Editor
 			{
 				AppendData(content, "");
 				AppendData(content, $"--更新清单--");
-				foreach (var element in patchFile.ElementList)
+				foreach (var patchBundle in patchFile.BundleList)
 				{
-					if (element.Version == buildParameters.BuildVersion)
+					if (patchBundle.Version == buildParameters.BuildVersion)
 					{
-						AppendData(content, element.BundleName);
+						AppendData(content, patchBundle.BundleName);
 					}
 				}
 

@@ -64,17 +64,18 @@ namespace MotionFramework.Editor
 			// 复制所有更新文件
 			int progressBarCount = 0;
 			PatchManifest patchFile = AssetBundleBuilder.LoadPatchManifestFile(buildParameters);
-			foreach (var element in patchFile.ElementList)
+			int patchFileTotalCount = patchFile.BundleList.Count;
+			foreach (var patchBundle in patchFile.BundleList)
 			{
-				if (element.Version == buildParameters.BuildVersion)
+				if (patchBundle.Version == buildParameters.BuildVersion)
 				{
-					string sourcePath = $"{buildParameters.OutputDirectory}/{element.BundleName}";
-					string destPath = $"{packageDirectory}/{element.MD5}";
+					string sourcePath = $"{buildParameters.OutputDirectory}/{patchBundle.BundleName}";
+					string destPath = $"{packageDirectory}/{patchBundle.MD5}";
 					EditorTools.CopyFile(sourcePath, destPath, true);
 					BuildLogger.Log($"复制更新文件到补丁包：{sourcePath}");
 
 					progressBarCount++;
-					EditorUtility.DisplayProgressBar("进度", $"拷贝更新文件 : {sourcePath}", (float)progressBarCount / patchFile.ElementList.Count);
+					EditorUtility.DisplayProgressBar("进度", $"拷贝更新文件 : {sourcePath}", (float)progressBarCount / patchFileTotalCount);
 				}
 			}
 			EditorUtility.ClearProgressBar();

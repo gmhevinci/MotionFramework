@@ -123,16 +123,16 @@ namespace MotionFramework.Editor
 			PatchManifest pm = PatchManifest.Deserialize(jsonData);
 
 			// 拷贝文件列表
-			foreach(var element in pm.ElementList)
+			foreach(var patchBundle in pm.BundleList)
 			{
-				if (element.IsDLC())
+				if (patchBundle.IsDLC())
 					continue;
 
-				if (targetVersion >= 0 && element.Version > targetVersion)
+				if (targetVersion >= 0 && patchBundle.Version > targetVersion)
 					continue;
 
-				string sourcePath = $"{outputRoot}/{buildTarget}/{element.Version}/{element.MD5}";
-				string destPath = $"{Application.dataPath}/StreamingAssets/{element.MD5}";
+				string sourcePath = $"{outputRoot}/{buildTarget}/{patchBundle.Version}/{patchBundle.MD5}";
+				string destPath = $"{Application.dataPath}/StreamingAssets/{patchBundle.MD5}";
 				Debug.Log($"拷贝版本文件到流目录：{destPath}");
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}

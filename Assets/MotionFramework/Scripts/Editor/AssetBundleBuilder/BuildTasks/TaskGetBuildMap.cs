@@ -14,7 +14,7 @@ namespace MotionFramework.Editor
 	internal class TaskGetBuildMap : IBuildTask
 	{
 		public class BuildMapContext : IContextObject
-		{
+		{		
 			public readonly List<BundleInfo> BundleInfos = new List<BundleInfo>();
 
 			/// <summary>
@@ -61,25 +61,25 @@ namespace MotionFramework.Editor
 			}
 
 			/// <summary>
-			/// 检测AssetBundle的收集标记
+			/// 获取AssetBundle内包含的资源路径列表
 			/// </summary>
-			public bool IsCollectBundle(string bundleFullName)
+			public string[] GetIncludeAssetPaths(string bundleFullName)
 			{
 				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
 				{
-					return bundleInfo.IsCollectBundle;
+					return bundleInfo.GetIncludeAssetPaths();
 				}
 				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
 			}
 
 			/// <summary>
-			/// 获取AssetBundle内包含的资源路径列表
+			/// 获取AssetBundle内收集的资源路径列表
 			/// </summary>
-			public string[] GetAssetPaths(string bundleFullName)
+			public string[] GetCollectAssetPaths(string bundleFullName)
 			{
 				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
 				{
-					return bundleInfo.GetAssetPaths();
+					return bundleInfo.GetCollectAssetPaths();
 				}
 				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
 			}
@@ -122,13 +122,13 @@ namespace MotionFramework.Editor
 			int progressBarCount = 0;
 			Dictionary<string, AssetInfo> buildAssets = new Dictionary<string, AssetInfo>();
 
-			// 获取要收集的资源
+			// 1. 获取主动收集的资源
 			List<string> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
-			// 进行依赖分析
-			foreach (string mainAssetPath in allCollectAssets)
+			// 2. 对收集的资源进行依赖分析
+			foreach (string collectAssetPath in allCollectAssets)
 			{
-				List<AssetInfo> depends = GetDependencies(mainAssetPath);
+				List<AssetInfo> depends = GetDependencies(collectAssetPath);
 				for (int i = 0; i < depends.Count; i++)
 				{
 					AssetInfo assetInfo = depends[i];
@@ -136,14 +136,20 @@ namespace MotionFramework.Editor
 						buildAssets[assetInfo.AssetPath].DependCount++;
 					else
 						buildAssets.Add(assetInfo.AssetPath, assetInfo);
+
+					// 注意：检测是否为主动收集资源
+					if (assetInfo.AssetPath == collectAssetPath)
+					{
+						buildAssets[collectAssetPath].IsCollectAsset = true;
+					}
 				}
 				progressBarCount++;
 				EditorUtility.DisplayProgressBar("进度", $"依赖文件分析：{progressBarCount}/{allCollectAssets.Count}", (float)progressBarCount / allCollectAssets.Count);
 			}
-			EditorUtility.ClearProgressBar();
 			progressBarCount = 0;
+			EditorUtility.ClearProgressBar();		
 
-			// 移除零依赖的资源
+			// 3. 移除零依赖的资源
 			List<string> removeList = new List<string>();
 			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
 			{
@@ -157,19 +163,18 @@ namespace MotionFramework.Editor
 				buildAssets.Remove(removeList[i]);
 			}
 
-			// 设置资源标签和变种
+			// 4. 设置资源标签和变种
 			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
 			{
 				var assetInfo = pair.Value;
 				var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath, assetInfo.AssetType);
-				assetInfo.AssetBundleLabel = bundleLabelAndVariant.BundleLabel;
-				assetInfo.AssetBundleVariant = bundleLabelAndVariant.BundleVariant;
+				assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);
 				progressBarCount++;
 				EditorUtility.DisplayProgressBar("进度", $"设置资源标签：{progressBarCount}/{buildAssets.Count}", (float)progressBarCount / buildAssets.Count);
 			}
 			EditorUtility.ClearProgressBar();
 
-			// 返回结果
+			// 5. 返回结果
 			return buildAssets.Values.ToList();
 		}
 
@@ -179,17 +184,17 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private List<AssetInfo> GetDependencies(string assetPath)
 		{
-			List<AssetInfo> depends = new List<AssetInfo>();
-			string[] dependArray = AssetDatabase.GetDependencies(assetPath, true);
-			foreach (string dependPath in dependArray)
+			List<AssetInfo> result = new List<AssetInfo>();
+			string[] depends= AssetDatabase.GetDependencies(assetPath, true);
+			foreach (string dependAssetPath in depends)
 			{
-				if (AssetBundleCollectorSettingData.ValidateAsset(dependPath))
+				if (AssetBundleCollectorSettingData.ValidateAsset(dependAssetPath))
 				{
-					AssetInfo assetInfo = new AssetInfo(dependPath);
-					depends.Add(assetInfo);
+					AssetInfo assetInfo = new AssetInfo(dependAssetPath);
+					result.Add(assetInfo);
 				}
 			}
-			return depends;
+			return result;
 		}
 	}
 }

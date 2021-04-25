@@ -63,11 +63,20 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 获取资源路径列表
+		/// 获取包含的资源路径列表
 		/// </summary>
-		public string[] GetAssetPaths()
+		public string[] GetIncludeAssetPaths()
 		{
 			return Assets.Select(t => t.AssetPath).ToArray();
+		}
+
+		/// <summary>
+		/// 获取主动收集的资源路径列表
+		/// </summary>
+		/// <returns></returns>
+		public string[] GetCollectAssetPaths()
+		{
+			return Assets.Where(t => t.IsCollectAsset).Select(t => t.AssetPath).ToArray();
 		}
 
 		/// <summary>
