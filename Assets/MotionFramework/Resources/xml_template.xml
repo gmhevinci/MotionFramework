@@ -1,8 +1,0 @@
-<root>
-	
-	<!--注释-->
-	<Collect Directory="Assets/GameRes/UISprite/" LabelClassName="LabelByFolderPath" FilterClassName="SearchAll"/>
-	<Collect Directory="Assets/GameRes/UIAtlas/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
-	<Collect Directory="Assets/GameRes/UIPanel/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
-	
-</root>
