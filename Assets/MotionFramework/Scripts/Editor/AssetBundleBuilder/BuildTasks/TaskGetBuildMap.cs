@@ -188,7 +188,7 @@ namespace MotionFramework.Editor
 			string[] depends= AssetDatabase.GetDependencies(assetPath, true);
 			foreach (string dependAssetPath in depends)
 			{
-				if (AssetBundleCollectorSettingData.ValidateAsset(dependAssetPath))
+				if (AssetBundleCollectorSettingData.IsValidateAsset(dependAssetPath))
 				{
 					AssetInfo assetInfo = new AssetInfo(dependAssetPath);
 					result.Add(assetInfo);
