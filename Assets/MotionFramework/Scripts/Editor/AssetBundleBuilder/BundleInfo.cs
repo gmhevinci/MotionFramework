@@ -28,11 +28,6 @@ namespace MotionFramework.Editor
 		public string AssetBundleVariant { private set; get; }
 
 		/// <summary>
-		/// 收集标记
-		/// </summary>
-		public bool IsCollectBundle { private set; get; }
-
-		/// <summary>
 		/// 包含的资源列表
 		/// </summary>
 		public readonly List<AssetInfo> Assets = new List<AssetInfo>();
@@ -53,13 +48,9 @@ namespace MotionFramework.Editor
 			foreach (var asset in Assets)
 			{
 				if (asset.AssetPath == assetInfo.AssetPath)
-					throw new System.Exception($"Asset info is existed : {assetInfo.AssetPath}");
+					throw new System.Exception($"Asset is existed : {assetInfo.AssetPath}");
 			}
 			Assets.Add(assetInfo);
-
-			// 注意：只要有一个资源是主动收集的，我们就认为该Bundle文件同样为收集的。
-			if (assetInfo.IsCollectAsset)
-				IsCollectBundle = true;
 		}
 
 		/// <summary>
