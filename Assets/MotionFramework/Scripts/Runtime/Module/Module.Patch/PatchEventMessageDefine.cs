@@ -47,12 +47,12 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 下载文件列表进度
+		/// 下载进度
 		/// </summary>
 		public class DownloadFilesProgress : IEventMessage
 		{
 			public int TotalDownloadCount;
-			public int CurrentDownloadCount;	
+			public int CurrentDownloadCount;
 			public long TotalDownloadSizeBytes;
 			public long CurrentDownloadSizeBytes;
 		}

@@ -42,7 +42,7 @@ namespace MotionFramework.Patch
 			// 注册下载回调
 			downloader.OnPatchFileCheckFailedCallback = PatchEventDispatcher.SendWebFileCheckFailedMsg;
 			downloader.OnPatchFileDownloadFailedCallback = PatchEventDispatcher.SendWebFileDownloadFailedMsg;
-			downloader.OnPatchFileDownloadSucceedCallback = PatchEventDispatcher.SendDownloadFilesProgressMsg;
+			downloader.OnDownloadProgressCallback = PatchEventDispatcher.SendDownloadFilesProgressMsg;
 			downloader.Download();
 			yield return downloader;
 

@@ -19,7 +19,7 @@ namespace MotionFramework.Patch
 	{
 		private const int MAX_LOADER_COUNT = 64;
 
-		public delegate void OnPatchFileDownloadSucceed(int totalDownloadCount, int currentDownloadCount, long totalDownloadBytes, long currentDownloadBytes);
+		public delegate void OnDownloadProgress(int totalDownloadCount, int currentDownloadCoun, long totalDownloadBytes, long currentDownloadBytes);
 		public delegate void OnPatchFileDownloadFailed(string fileName);
 		public delegate void OnPatchFileCheckFailed(string fileName);
 
@@ -37,9 +37,11 @@ namespace MotionFramework.Patch
 		public long TotalDownloadBytes { private set; get; }
 		public int CurrentDownloadCount { private set; get; }
 		public long CurrentDownloadBytes { private set; get; }
-
+		private long _lastDownloadBytes = 0;
+		private int _lastDownloadCount = 0;
+		
 		// 委托相关
-		public OnPatchFileDownloadSucceed OnPatchFileDownloadSucceedCallback { set; get; }
+		public OnDownloadProgress OnDownloadProgressCallback { set; get; }
 		public OnPatchFileDownloadFailed OnPatchFileDownloadFailedCallback { set; get; }
 		public OnPatchFileCheckFailed OnPatchFileCheckFailedCallback { set; get; }
 
@@ -74,10 +76,10 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public void Dispose()
 		{
-			if(DownloadStates != EDownloaderStates.Forbid)
+			if (DownloadStates != EDownloaderStates.Forbid)
 			{
 				DownloadStates = EDownloaderStates.Forbid;
-				foreach(var loader in _loaders)
+				foreach (var loader in _loaders)
 				{
 					loader.Dispose();
 				}
@@ -106,9 +108,11 @@ namespace MotionFramework.Patch
 				return;
 
 			// 检测下载器结果
+			long downloadBytes = CurrentDownloadBytes;
 			for (int i = _loaders.Count - 1; i >= 0; i--)
 			{
 				var loader = _loaders[i];
+				downloadBytes += (long)loader.DownloadedBytes;
 				if (loader.IsDone() == false)
 					continue;
 
@@ -130,7 +134,7 @@ namespace MotionFramework.Patch
 					MotionLog.Error($"Check download content integrity is failed : {element.BundleName}");
 					loader.Dispose();
 					_loaders.RemoveAt(i);
-					_checkFailedList.Add(element);			
+					_checkFailedList.Add(element);
 					continue;
 				}
 
@@ -140,9 +144,16 @@ namespace MotionFramework.Patch
 				_succeedList.Add(element);
 				CurrentDownloadCount++;
 				CurrentDownloadBytes += element.SizeBytes;
-				OnPatchFileDownloadSucceedCallback?.Invoke(TotalDownloadCount, CurrentDownloadCount, TotalDownloadBytes, CurrentDownloadBytes);
 			}
 
+			// 如果下载进度发生变化
+			if(_lastDownloadBytes != downloadBytes || _lastDownloadCount != CurrentDownloadCount)
+			{
+				_lastDownloadBytes = downloadBytes;
+				_lastDownloadCount = CurrentDownloadCount;
+				OnDownloadProgressCallback?.Invoke(TotalDownloadCount, _lastDownloadCount, TotalDownloadBytes, _lastDownloadBytes);
+			}
+			
 			// 动态创建新的下载器到最大数量限制
 			// 注意：如果期间有下载失败的文件，暂停动态创建下载器
 			if (_downloadList.Count > 0 && _loadFailedList.Count == 0 && _checkFailedList.Count == 0)
@@ -168,10 +179,10 @@ namespace MotionFramework.Patch
 					DownloadStates = EDownloaderStates.Failed;
 					OnPatchFileDownloadFailedCallback?.Invoke(_loadFailedList[0].BundleName);
 				}
-				else if(_checkFailedList.Count > 0)
+				else if (_checkFailedList.Count > 0)
 				{
 					DownloadStates = EDownloaderStates.Failed;
-					OnPatchFileCheckFailedCallback?.Invoke(_checkFailedList[0].BundleName);			
+					OnPatchFileCheckFailedCallback?.Invoke(_checkFailedList[0].BundleName);
 				}
 				else
 				{
