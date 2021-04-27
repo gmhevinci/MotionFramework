@@ -4,13 +4,10 @@
 
 **界面说明**  
 ```
-Build Version : 补丁包的版本号（资源版本号）
 Build Output : 打包完成后的输出路径（在工程目录下）。该路径无法修改！
-Force Rebuild : 强制重建会删除当前平台下所有的补丁包文件
-
+Build Version : 补丁包的版本号（资源版本号）
 Compression : Assetbundle的压缩格式
-Disable Write Type Tree : 禁止写入TypeTree，建议不勾选
-Ignore Type Tree Chanages : 忽略TypeTree变化，建议勾选
+Force Rebuild : 强制重建会删除当前平台下所有的补丁包文件
 ```
 
 **加密方式**  
@@ -47,7 +44,7 @@ public class AssetEncrypter : IAssetEncrypter
 ![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/AssetBundleBuilder3.png)   
 
 **补丁清单**  
-每次打包都会生成一个名为PatchManifest.bytes的补丁清单，补丁清单内包含了所有资源的信息，例如：名称，版本，大小，MD5
+每次打包都会生成一个名为PatchManifest.bytes的补丁清单，补丁清单内包含了所有资源的信息，例如：名称，版本，大小，CRC
 
 **Jenkins支持**  
 ```C#
@@ -62,19 +59,18 @@ private static void BuildInternal(BuildTarget buildTarget)
 	Debug.Log($"[Build] Version : {buildVersion}");
 	Debug.Log($"[Build] 强制重建 : {isForceBuild}");
 
-	// 创建AssetBuilder
-	AssetBundleBuilder builder = new AssetBundleBuilder(buildTarget, buildVersion);
-
-	// 设置配置
-	builder.CompressOption = AssetBundleBuilder.ECompressOption.ChunkBasedCompressionLZ4;
-	builder.IsForceRebuild = isForceBuild;
-	builder.IsAppendHash = false;
-	builder.IsDisableWriteTypeTree = false;
-	builder.IsIgnoreTypeTreeChanges = true;
+	// 构建参数
+	string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
+	AssetBundleBuilder.BuildParameters buildParameters = new AssetBundleBuilder.BuildParameters();
+	buildParameters.OutputRoot = defaultOutputRoot;
+	buildParameters.BuildTarget = buildTarget;
+	buildParameters.BuildVersion = buildVersion;
+	buildParameters.CompressOption = AssetBundleBuilder.ECompressOption.ChunkBasedCompressionLZ4;
+	buildParameters.IsForceRebuild = isForceBuild;
 
 	// 执行构建
-	builder.PreAssetBuild();
-	builder.PostAssetBuild();
+	AssetBundleBuilder builder = new AssetBundleBuilder();
+	_assetBuilder.Run(buildParameters);
 
 	// 构建成功
 	Debug.Log("[Build] 构建完成");

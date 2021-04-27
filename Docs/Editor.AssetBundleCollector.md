@@ -4,10 +4,10 @@
 
 **界面说明**  
 不同项目对资源的处理及打包规则都有所不同，我们可以通过以下几项设置来定制化自己的打包规则。  
-1. Label By File Path : AssetBundle标签按照文件路径设置
-2. Label By Folder Path : AssetBundle标签按照文件所在的文件夹路径设置 
+1. PackExplicit : AssetBundle标签按照文件路径设置
+2. PackDirectory : AssetBundle标签按照文件所在的文件夹路径设置 
 
-注意：LabelByFolder会将文件夹内所有资源打在一个AssetBundle文件里。
+注意：PackDirectory会将文件夹内所有资源打在一个AssetBundle文件里。
 
 **导入配置表**   
 点击Import Config按钮可以导入外部的XML配置表，配置表规范如下图：
@@ -15,15 +15,15 @@
 <root>
 	
 	<!--注释-->
-	<Collect Directory="Assets/GameRes/Lua/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
-	<Collect Directory="Assets/GameRes/UIAtlas/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
-	<Collect Directory="Assets/GameRes/UIPanel/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
-	<Collect Directory="Assets/GameRes/UITexture/Foods/" LabelClassName="LabelByFolderPath" FilterClassName="SearchAll"/>
-	<Collect Directory="Assets/GameRes/UITexture/Background/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
-	<Collect Directory="Assets/GameRes/Entity/" LabelClassName="LabelByFilePath" FilterClassName="SearchAll"/>
+	<Collector Directory="Assets/GameRes/Lua/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
+	<Collector Directory="Assets/GameRes/UIAtlas/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
+	<Collector Directory="Assets/GameRes/UIPanel/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
+	<Collector Directory="Assets/GameRes/UITexture/Foods/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
+	<Collector Directory="Assets/GameRes/UITexture/Background/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
+	<Collector Directory="Assets/GameRes/Entity/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
 
 	<!--精灵-->
-	<Collect Directory="Assets/GameArt/Panel/Sprite/" LabelClassName="LabelByFolderPath" FilterClassName="SearchAll"/>
+	<Collector Directory="Assets/GameArt/Panel/Sprite/" PackRuleClass="PackDirectory" FilterRuleClass="CollectAll"/>
 	
 </root>
 ```
@@ -35,21 +35,21 @@ using UnityEngine;
 using UnityEditor;
 using MotionFramework.Editor;
 
-public class LabelByCustom : IBundleLabel
+public class PackCustom : IPackRule
 {
 	/// <summary>
 	/// 获取资源的打包标签
 	/// </summary>
-	string IBundleLabel.GetAssetBundleLabel(string assetPath)
+	string IPackRule.GetAssetBundleLabel(string assetPath)
 	{
 		// Your code in here
 		throw new System.NotImplementedException();
 	}
 }
 
-public class SearchSprite : ISearchFilter
+public class CollectSprite : IFilterRule
 {
-	bool ISearchFilter.FilterAsset(string assetPath)
+	bool IFilterRule.IsCollectAsset(string assetPath)
 	{
 		if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(Sprite))
 			return true;
