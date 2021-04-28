@@ -67,7 +67,7 @@ namespace MotionFramework.Editor
 			int patchFileTotalCount = patchFile.BundleList.Count;
 			foreach (var patchBundle in patchFile.BundleList)
 			{
-				if (patchBundle.Version == buildParameters.BuildVersion)
+				if (patchBundle.Version == buildParameters.Parameters.BuildVersion)
 				{
 					string sourcePath = $"{buildParameters.OutputDirectory}/{patchBundle.BundleName}";
 					string destPath = $"{packageDirectory}/{patchBundle.Hash}";

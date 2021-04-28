@@ -15,17 +15,16 @@ namespace MotionFramework.Editor
 	{
 		void IBuildTask.Run(BuildContext context)
 		{
-			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-			var buildOptions = context.GetContextObject<AssetBundleBuilder.BuildOptionsContext>();
+			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();		
 
 			// 检测构建平台是否合法
-			if (buildParameters.BuildTarget == BuildTarget.NoTarget)
+			if (buildParameters.Parameters.BuildTarget == BuildTarget.NoTarget)
 				throw new Exception("请选择目标平台");
 
 			// 检测构建版本是否合法
-			if (EditorTools.IsNumber(buildParameters.BuildVersion.ToString()) == false)
-				throw new Exception($"版本号格式非法：{buildParameters.BuildVersion}");
-			if (buildParameters.BuildVersion < 0)
+			if (EditorTools.IsNumber(buildParameters.Parameters.BuildVersion.ToString()) == false)
+				throw new Exception($"版本号格式非法：{buildParameters.Parameters.BuildVersion}");
+			if (buildParameters.Parameters.BuildVersion < 0)
 				throw new Exception("请先设置版本号");
 
 			// 检测输出目录是否为空
@@ -42,10 +41,10 @@ namespace MotionFramework.Editor
 				throw new Exception("配置的资源收集路径为空！");
 
 			// 如果是强制重建
-			if (buildOptions.IsForceRebuild)
+			if (buildParameters.Parameters.IsForceRebuild)
 			{
 				// 删除平台总目录
-				string platformDirectory = $"{buildParameters.OutputRoot}/{buildParameters.BuildTarget}";
+				string platformDirectory = $"{buildParameters.Parameters.OutputRoot}/{buildParameters.Parameters.BuildTarget}";
 				if (EditorTools.DeleteDirectory(platformDirectory))
 				{
 					BuildLogger.Log($"删除平台总目录：{platformDirectory}");

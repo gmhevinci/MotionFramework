@@ -22,21 +22,20 @@ namespace MotionFramework.Editor
 		public class BuildParameters
 		{
 			/// <summary>
-			/// 输出目录根路径
+			/// 输出的根目录
 			/// </summary>
 			public string OutputRoot;
 
 			/// <summary>
-			/// 构建平台
+			/// 构建的平台
 			/// </summary>
 			public BuildTarget BuildTarget;
 
 			/// <summary>
-			/// 构建版本
+			/// 构建的版本（资源版本号）
 			/// </summary>
 			public int BuildVersion;
 
-			#region 构建选项
 			/// <summary>
 			/// 压缩选项
 			/// </summary>
@@ -47,56 +46,40 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public bool IsForceRebuild;
 
-			// 高级选项
+			#region 高级选项
+			/// <summary>
+			/// 文件名附加上哈希值
+			/// </summary>
 			public bool IsAppendHash = false;
-			public bool IsDisableWriteTypeTree = false;
-			public bool IsIgnoreTypeTreeChanges = true;
+
+			/// <summary>
+			/// 禁止写入类型树结构
+			/// </summary>
+			public bool IsDisableWriteTypeTree = true;
+
+			/// <summary>
+			/// 忽略类型树变化
+			/// </summary>
+			public bool IsIgnoreTypeTreeChanges = false;
 			#endregion
 		}
 
 		/// <summary>
-		/// 构建选项
-		/// </summary>
-		public class BuildOptionsContext : IContextObject
-		{
-			public ECompressOption CompressOption = ECompressOption.Uncompressed;
-			public bool IsForceRebuild = false;
-			public bool IsAppendHash = false;
-			public bool IsDisableWriteTypeTree = false;
-			public bool IsIgnoreTypeTreeChanges = false;
-		}
-
-		/// <summary>
-		/// 构建参数
+		/// 构建参数环境
 		/// </summary>
 		public class BuildParametersContext : IContextObject
 		{
-			/// <summary>
-			/// 输出的根目录
-			/// </summary>
-			public string OutputRoot { private set; get; }
-
-			/// <summary>
-			/// 构建的平台
-			/// </summary>
-			public BuildTarget BuildTarget { private set; get; }
-
-			/// <summary>
-			/// 构建的资源版本号
-			/// </summary>
-			public int BuildVersion { private set; get; }
+			public BuildParameters Parameters { private set; get; }
 
 			/// <summary>
 			/// 最终的输出目录
 			/// </summary>
 			public string OutputDirectory { private set; get; }
 
-			public BuildParametersContext(string outputRoot, BuildTarget buildTarget, int buildVersion)
+			public BuildParametersContext(BuildParameters parameters)
 			{
-				OutputRoot = outputRoot;
-				BuildTarget = buildTarget;
-				BuildVersion = buildVersion;
-				OutputDirectory = MakeOutputDirectory(outputRoot, buildTarget);
+				Parameters = parameters;
+				OutputDirectory = MakeOutputDirectory(parameters.OutputRoot, parameters.BuildTarget);
 			}
 
 			/// <summary>
@@ -104,7 +87,35 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public string GetPackageDirectory()
 			{
-				return $"{OutputRoot}/{BuildTarget}/{BuildVersion}";
+				return $"{Parameters.OutputRoot}/{Parameters.BuildTarget}/{Parameters.BuildVersion}";
+			}
+
+			/// <summary>
+			/// 获取构建选项
+			/// </summary>
+			public BuildAssetBundleOptions GetPiplineBuildOptions()
+			{
+				// For the new build system, unity always need BuildAssetBundleOptions.CollectDependencies and BuildAssetBundleOptions.DeterministicAssetBundle
+				// 除非设置ForceRebuildAssetBundle标记，否则会进行增量打包
+
+				BuildAssetBundleOptions opt = BuildAssetBundleOptions.None;
+				opt |= BuildAssetBundleOptions.StrictMode; //Do not allow the build to succeed if any errors are reporting during it.
+
+				if (Parameters.CompressOption == ECompressOption.Uncompressed)
+					opt |= BuildAssetBundleOptions.UncompressedAssetBundle;
+				else if (Parameters.CompressOption == ECompressOption.LZ4)
+					opt |= BuildAssetBundleOptions.ChunkBasedCompression;
+
+				if (Parameters.IsForceRebuild)
+					opt |= BuildAssetBundleOptions.ForceRebuildAssetBundle; //Force rebuild the asset bundles
+				if (Parameters.IsAppendHash)
+					opt |= BuildAssetBundleOptions.AppendHashToAssetBundleName; //Append the hash to the assetBundle name
+				if (Parameters.IsDisableWriteTypeTree)
+					opt |= BuildAssetBundleOptions.DisableWriteTypeTree; //Do not include type information within the asset bundle (don't write type tree).
+				if (Parameters.IsIgnoreTypeTreeChanges)
+					opt |= BuildAssetBundleOptions.IgnoreTypeTreeChanges; //Ignore the type tree changes when doing the incremental build check.
+
+				return opt;
 			}
 		}
 
@@ -120,23 +131,15 @@ namespace MotionFramework.Editor
 			_buildContext.ClearAllContext();
 
 			// 构建参数
-			var buildParametersContext = new BuildParametersContext(buildParameters.OutputRoot, buildParameters.BuildTarget, buildParameters.BuildVersion);
+			var buildParametersContext = new BuildParametersContext(buildParameters);
 			_buildContext.SetContextObject(buildParametersContext);
 
-			// 构建选项
-			var buildOptionsContext = new BuildOptionsContext();
-			buildOptionsContext.CompressOption = buildParameters.CompressOption;
-			buildOptionsContext.IsForceRebuild = buildParameters.IsForceRebuild;
-			buildOptionsContext.IsAppendHash = buildParameters.IsAppendHash;
-			buildOptionsContext.IsDisableWriteTypeTree = buildParameters.IsDisableWriteTypeTree;
-			buildOptionsContext.IsIgnoreTypeTreeChanges = buildParameters.IsIgnoreTypeTreeChanges;
-			_buildContext.SetContextObject(buildOptionsContext);
-
+			// 执行构建流程
 			List<IBuildTask> pipeline = new List<IBuildTask>
 			{
 				new TaskPrepare(), //前期准备工作
 				new TaskGetBuildMap(), //获取构建列表
-				new TaskBuilding(), //开始构建
+				new TaskBuilding(), //开始执行构建
 				new TaskEncryption(), //加密资源文件
 				new TaskCheckCycle(), //检测循环依赖
 				new TaskCreatePatchManifest(), //创建补丁文件

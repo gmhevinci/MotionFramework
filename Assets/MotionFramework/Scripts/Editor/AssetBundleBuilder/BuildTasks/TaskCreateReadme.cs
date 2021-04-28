@@ -22,15 +22,14 @@ namespace MotionFramework.Editor
 		void IBuildTask.Run(BuildContext context)
 		{
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-			var buildOptions = context.GetContextObject<AssetBundleBuilder.BuildOptionsContext>();
 			var unityManifestContext = context.GetContextObject<TaskBuilding.UnityManifestContext>();
-			CreateReadmeFile(buildParameters, buildOptions, unityManifestContext.Manifest);
+			CreateReadmeFile(buildParameters, unityManifestContext.Manifest);
 		}
 
 		/// <summary>
 		/// 创建Readme文件到输出目录
 		/// </summary>
-		private void CreateReadmeFile(AssetBundleBuilder.BuildParametersContext buildParameters, AssetBundleBuilder.BuildOptionsContext buildOptions, AssetBundleManifest unityManifest)
+		private void CreateReadmeFile(AssetBundleBuilder.BuildParametersContext buildParameters, AssetBundleManifest unityManifest)
 		{
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 
@@ -42,8 +41,8 @@ namespace MotionFramework.Editor
 			BuildLogger.Log($"创建说明文件：{filePath}");
 
 			StringBuilder content = new StringBuilder();
-			AppendData(content, $"构建平台：{buildParameters.BuildTarget}");
-			AppendData(content, $"构建版本：{buildParameters.BuildVersion}");
+			AppendData(content, $"构建平台：{buildParameters.Parameters.BuildTarget}");
+			AppendData(content, $"构建版本：{buildParameters.Parameters.BuildVersion}");
 			AppendData(content, $"构建时间：{DateTime.Now}");
 
 			AppendData(content, "");
@@ -61,10 +60,11 @@ namespace MotionFramework.Editor
 
 			AppendData(content, "");
 			AppendData(content, $"--构建参数--");
-			AppendData(content, $"CompressOption：{buildOptions.CompressOption}");
-			AppendData(content, $"IsForceRebuild：{buildOptions.IsForceRebuild}");
-			AppendData(content, $"IsDisableWriteTypeTree：{buildOptions.IsDisableWriteTypeTree}");
-			AppendData(content, $"IsIgnoreTypeTreeChanges：{buildOptions.IsIgnoreTypeTreeChanges}");
+			AppendData(content, $"CompressOption：{buildParameters.Parameters.CompressOption}");
+			AppendData(content, $"IsForceRebuild：{buildParameters.Parameters.IsForceRebuild}");
+			AppendData(content, $"IsAppendHash：{buildParameters.Parameters.IsAppendHash}");
+			AppendData(content, $"IsDisableWriteTypeTree：{buildParameters.Parameters.IsDisableWriteTypeTree}");
+			AppendData(content, $"IsIgnoreTypeTreeChanges：{buildParameters.Parameters.IsIgnoreTypeTreeChanges}");
 
 			AppendData(content, "");
 			AppendData(content, $"--构建清单--");
@@ -79,7 +79,7 @@ namespace MotionFramework.Editor
 				AppendData(content, $"--更新清单--");
 				foreach (var patchBundle in patchFile.BundleList)
 				{
-					if (patchBundle.Version == buildParameters.BuildVersion)
+					if (patchBundle.Version == buildParameters.Parameters.BuildVersion)
 					{
 						AppendData(content, patchBundle.BundleName);
 					}

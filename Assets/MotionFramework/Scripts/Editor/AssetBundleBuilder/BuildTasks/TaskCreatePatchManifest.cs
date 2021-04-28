@@ -37,7 +37,7 @@ namespace MotionFramework.Editor
 		{
 			// 创建新补丁清单
 			PatchManifest patchManifest = new PatchManifest();
-			patchManifest.ResourceVersion = buildParameters.BuildVersion;
+			patchManifest.ResourceVersion = buildParameters.Parameters.BuildVersion;
 			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext, unityManifest);
 			patchManifest.VariantList = GetAllPatchVariant(unityManifest);
 
@@ -73,7 +73,7 @@ namespace MotionFramework.Editor
 				string hash = HashUtility.FileMD5(path);
 				string crc = HashUtility.FileCRC32(path);
 				long size = FileUtility.GetFileSize(path);
-				int version = buildParameters.BuildVersion;
+				int version = buildParameters.Parameters.BuildVersion;
 				string[] assets = buildMapContext.GetCollectAssetPaths(bundleName);
 				string[] depends = unityManifest.GetDirectDependencies(bundleName);
 				string[] dlcLabels = dlcManager.GetAssetBundleDLCLabels(bundleName);
