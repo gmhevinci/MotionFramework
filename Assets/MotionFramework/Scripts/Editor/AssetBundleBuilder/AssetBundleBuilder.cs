@@ -150,12 +150,13 @@ namespace MotionFramework.Editor
 			BuildLogger.Log($"构建完成！");
 		}
 
+
 		/// <summary>
 		/// 从输出目录加载补丁清单文件
 		/// </summary>
-		public static PatchManifest LoadPatchManifestFile(BuildParametersContext buildParameters)
+		public static PatchManifest LoadPatchManifestFile(string fileDirectory)
 		{
-			string filePath = $"{buildParameters.OutputDirectory}/{PatchDefine.PatchManifestFileName}";
+			string filePath = $"{fileDirectory}/{PatchDefine.PatchManifestFileName}";
 			if (File.Exists(filePath) == false)
 				return new PatchManifest();
 

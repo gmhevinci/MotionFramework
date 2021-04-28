@@ -63,7 +63,7 @@ namespace MotionFramework.Editor
 
 			// 复制所有更新文件
 			int progressBarCount = 0;
-			PatchManifest patchFile = AssetBundleBuilder.LoadPatchManifestFile(buildParameters);
+			PatchManifest patchFile = AssetBundleBuilder.LoadPatchManifestFile(buildParameters.OutputDirectory);
 			int patchFileTotalCount = patchFile.BundleList.Count;
 			foreach (var patchBundle in patchFile.BundleList)
 			{

@@ -61,7 +61,7 @@ namespace MotionFramework.Editor
 			dlcManager.LoadAllDLC();
 
 			// 加载旧补丁清单
-			PatchManifest oldPatchManifest = AssetBundleBuilder.LoadPatchManifestFile(buildParameters);
+			PatchManifest oldPatchManifest = AssetBundleBuilder.LoadPatchManifestFile(buildParameters.OutputDirectory);
 
 			// 获取加密列表
 			List<string> encryptList = encryptionContext.EncryptList;
