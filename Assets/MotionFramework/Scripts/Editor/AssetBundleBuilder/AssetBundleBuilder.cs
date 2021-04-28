@@ -55,12 +55,12 @@ namespace MotionFramework.Editor
 			/// <summary>
 			/// 禁止写入类型树结构
 			/// </summary>
-			public bool IsDisableWriteTypeTree = true;
+			public bool IsDisableWriteTypeTree = false;
 
 			/// <summary>
 			/// 忽略类型树变化
 			/// </summary>
-			public bool IsIgnoreTypeTreeChanges = false;
+			public bool IsIgnoreTypeTreeChanges = true;
 			#endregion
 		}
 
