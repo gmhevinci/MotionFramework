@@ -385,11 +385,12 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 获取资源的打包信息
 		/// </summary>
-		public static BundleLabelAndVariant GetBundleLabelAndVariant(string assetPath, System.Type assetType)
+		public static BundleLabelAndVariant GetBundleLabelAndVariant(string assetPath)
 		{
 			// 如果收集全路径着色器		
 			if (Setting.IsCollectAllShaders)
 			{
+				System.Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
 				if (assetType == typeof(UnityEngine.Shader))
 				{
 					return new BundleLabelAndVariant(Setting.ShadersBundleName, PatchDefine.AssetBundleDefaultVariant);
