@@ -119,7 +119,6 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private List<AssetInfo> GetBuildAssets()
 		{
-			int progressBarCount = 0;
 			Dictionary<string, AssetInfo> buildAssets = new Dictionary<string, AssetInfo>();
 			Dictionary<string, string> references = new Dictionary<string, string>();
 
@@ -127,6 +126,7 @@ namespace MotionFramework.Editor
 			List<string> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
 			// 2. 对收集的资源进行依赖分析
+			int progressValue = 0;
 			foreach (string mainAssetPath in allCollectAssets)
 			{
 				List<AssetInfo> depends = GetDependencies(mainAssetPath);
@@ -149,11 +149,9 @@ namespace MotionFramework.Editor
 						buildAssets[mainAssetPath].IsCollectAsset = true;
 					}
 				}
-				progressBarCount++;
-				EditorUtility.DisplayProgressBar("进度", $"依赖文件分析：{progressBarCount}/{allCollectAssets.Count}", (float)progressBarCount / allCollectAssets.Count);
+				EditorTools.DisplayProgressBar("依赖文件分析", ++progressValue, allCollectAssets.Count);
 			}
-			progressBarCount = 0;
-			EditorUtility.ClearProgressBar();
+			EditorTools.ClearProgressBar();
 
 			// 3. 移除零依赖的资源
 			List<AssetInfo> undependentAssets = new List<AssetInfo>();
@@ -170,15 +168,15 @@ namespace MotionFramework.Editor
 			}
 
 			// 4. 设置资源标签和变种
+			progressValue = 0;
 			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
 			{
 				var assetInfo = pair.Value;
 				var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
 				assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);
-				progressBarCount++;
-				EditorUtility.DisplayProgressBar("进度", $"设置资源标签：{progressBarCount}/{buildAssets.Count}", (float)progressBarCount / buildAssets.Count);
+				EditorTools.DisplayProgressBar("设置资源标签", ++progressValue, buildAssets.Count);
 			}
-			EditorUtility.ClearProgressBar();
+			EditorTools.ClearProgressBar();
 
 			// 5. 补充零依赖的资源
 			foreach (var assetInfo in undependentAssets)

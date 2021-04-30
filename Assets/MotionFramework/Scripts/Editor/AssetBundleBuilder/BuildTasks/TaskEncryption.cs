@@ -59,8 +59,8 @@ namespace MotionFramework.Editor
 				return encryptList;
 
 			BuildLogger.Log($"开始加密资源文件");
-			int progressBarCount = 0;
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
+			int progressValue = 0;
 			foreach (string assetName in allAssetBundles)
 			{
 				string filePath = $"{buildParameters.OutputDirectory}/{assetName}";
@@ -79,10 +79,9 @@ namespace MotionFramework.Editor
 				}
 
 				// 进度条
-				progressBarCount++;
-				EditorUtility.DisplayProgressBar("进度", $"加密资源包：{progressBarCount}/{allAssetBundles.Length}", (float)progressBarCount / allAssetBundles.Length);
+				EditorTools.DisplayProgressBar("加密资源包", ++progressValue, allAssetBundles.Length);
 			}
-			EditorUtility.ClearProgressBar();
+			EditorTools.ClearProgressBar();
 
 			return encryptList;
 		}

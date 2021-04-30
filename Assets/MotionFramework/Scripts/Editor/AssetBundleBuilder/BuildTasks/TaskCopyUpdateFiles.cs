@@ -62,7 +62,7 @@ namespace MotionFramework.Editor
 			}
 
 			// 复制所有更新文件
-			int progressBarCount = 0;
+			int progressValue = 0;
 			PatchManifest patchFile = AssetBundleBuilder.LoadPatchManifestFile(buildParameters.OutputDirectory);
 			int patchFileTotalCount = patchFile.BundleList.Count;
 			foreach (var patchBundle in patchFile.BundleList)
@@ -73,12 +73,10 @@ namespace MotionFramework.Editor
 					string destPath = $"{packageDirectory}/{patchBundle.Hash}";
 					EditorTools.CopyFile(sourcePath, destPath, true);
 					BuildLogger.Log($"复制更新文件到补丁包：{sourcePath}");
-
-					progressBarCount++;
-					EditorUtility.DisplayProgressBar("进度", $"拷贝更新文件 : {sourcePath}", (float)progressBarCount / patchFileTotalCount);
+					EditorTools.DisplayProgressBar("拷贝更新文件", ++progressValue, patchFileTotalCount);
 				}
 			}
-			EditorUtility.ClearProgressBar();
+			EditorTools.ClearProgressBar();
 		}
 	}
 }

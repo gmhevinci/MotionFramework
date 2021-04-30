@@ -37,13 +37,10 @@ namespace MotionFramework.Editor
 					invalidCount++;
 					Debug.LogError($"发现损坏预制件：{assetPath}");
 				}
-
-				// 进度条相关
-				checkCount++;
-				EditorUtility.DisplayProgressBar("进度", $"检测预制件文件是否损坏：{checkCount}/{guids.Length}", (float)checkCount / guids.Length);
+				EditorTools.DisplayProgressBar("检测预制件文件是否损坏", ++checkCount, guids.Length);
 			}
+			EditorTools.ClearProgressBar();
 
-			EditorUtility.ClearProgressBar();
 			if (invalidCount == 0)
 				Debug.Log($"没有发现损坏预制件");
 		}
@@ -76,13 +73,10 @@ namespace MotionFramework.Editor
 				{
 					Debug.LogWarning($"发现重名着色器：{assetPath} {temper[fileName]}");
 				}
-
-				// 进度条相关
-				checkCount++;
-				EditorUtility.DisplayProgressBar("进度", $"检测着色器文件是否重名：{checkCount}/{guids.Length}", (float)checkCount / guids.Length);
+				EditorTools.DisplayProgressBar("检测着色器文件是否重名", ++checkCount, guids.Length);
 			}
+			EditorTools.ClearProgressBar();
 
-			EditorUtility.ClearProgressBar();
 			if (invalidCount == 0)
 				Debug.Log($"没有发现损坏预制件");
 		}
@@ -111,13 +105,10 @@ namespace MotionFramework.Editor
 					removedCount++;
 					Debug.LogWarning($"材质球已被处理：{assetPath}");
 				}
-
-				// 进度条相关
-				checkCount++;
-				EditorUtility.DisplayProgressBar("进度", $"清理无用的材质球属性：{checkCount}/{guids.Length}", (float)checkCount / guids.Length);
+				EditorTools.DisplayProgressBar("清理无用的材质球属性", ++checkCount, guids.Length);
 			}
+			EditorTools.ClearProgressBar();
 
-			EditorUtility.ClearProgressBar();
 			if (removedCount == 0)
 				Debug.Log($"没有发现冗余的材质球属性");
 			else
