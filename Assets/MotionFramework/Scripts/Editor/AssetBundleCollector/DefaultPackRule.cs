@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2020-2020 何冠峰
+// Copyright©2020-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;

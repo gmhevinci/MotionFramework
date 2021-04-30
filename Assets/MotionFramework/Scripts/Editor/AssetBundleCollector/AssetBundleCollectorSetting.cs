@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2019-2020 何冠峰
+// Copyright©2019-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -18,6 +18,12 @@ namespace MotionFramework.Editor
 			public string CollectDirectory = string.Empty;
 			public string PackRuleClassName = string.Empty;
 			public string FilterRuleClassName = string.Empty;
+			public bool DontWriteAssetPath = false;
+
+			public override string ToString()
+			{
+				return $"Directory : {CollectDirectory} | {PackRuleClassName} | {FilterRuleClassName} | {DontWriteAssetPath}";
+			}
 		}
 
 		/// <summary>
@@ -29,7 +35,7 @@ namespace MotionFramework.Editor
 		/// 收集的着色器Bundle名称
 		/// </summary>
 		public string ShadersBundleName = "shaders";
-		
+
 		/// <summary>
 		/// 收集列表
 		/// </summary>

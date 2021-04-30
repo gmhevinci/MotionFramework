@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using MotionFramework.Utility;
@@ -185,7 +186,7 @@ namespace MotionFramework.Editor
 			Setting.Collectors.Clear();
 			SaveFile();
 		}
-		public static void AddCollector(string directory, string packRuleClassName, string filterRuleClassName, bool saveFile = true)
+		public static void AddCollector(string directory, string packRuleClassName, string filterRuleClassName, bool dontWriteAssetPath, bool saveFile = true)
 		{
 			// 末尾添加路径分隔符号
 			if (directory.EndsWith("/") == false)
@@ -199,6 +200,7 @@ namespace MotionFramework.Editor
 			element.CollectDirectory = directory;
 			element.PackRuleClassName = packRuleClassName;
 			element.FilterRuleClassName = filterRuleClassName;
+			element.DontWriteAssetPath = dontWriteAssetPath;
 			Setting.Collectors.Add(element);
 
 			if(saveFile)
@@ -216,7 +218,7 @@ namespace MotionFramework.Editor
 			}
 			SaveFile();
 		}
-		public static void ModifyCollector(string directory, string packRuleClassName, string filterRuleClassName)
+		public static void ModifyCollector(string directory, string packRuleClassName, string filterRuleClassName, bool dontWriteAssetPath)
 		{
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
@@ -224,6 +226,7 @@ namespace MotionFramework.Editor
 				{
 					Setting.Collectors[i].PackRuleClassName = packRuleClassName;
 					Setting.Collectors[i].FilterRuleClassName = filterRuleClassName;
+					Setting.Collectors[i].DontWriteAssetPath = dontWriteAssetPath;
 					break;
 				}
 			}
@@ -322,15 +325,16 @@ namespace MotionFramework.Editor
 		/// 获取所有收集的资源
 		/// </summary>
 		/// <returns>返回资源路径列表</returns>
-		public static List<string> GetAllCollectAssets()
+		
+		public static List<CollectInfo> GetAllCollectAssets()
 		{
-			List<string> result = new List<string>(10000);
+			Dictionary<string, CollectInfo> result = new Dictionary<string, CollectInfo>(10000);
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
-				string collectDirectory = collector.CollectDirectory.TrimEnd('/'); //注意：AssetDatabase不支持末尾带分隔符的文件夹路径
 
 				// 获取收集目录下的所有资源对象的GUID包括子文件夹
+				string collectDirectory = collector.CollectDirectory.TrimEnd('/'); //注意：AssetDatabase不支持末尾带分隔符的文件夹路径
 				string[] guids = AssetDatabase.FindAssets(string.Empty, new string[] { collectDirectory });
 				foreach (string guid in guids)
 				{
@@ -339,11 +343,11 @@ namespace MotionFramework.Editor
 						continue;
 					if (IsCollectAsset(assetPath, collector.FilterRuleClassName) == false)
 						continue;
-					if (result.Contains(assetPath) == false)
-						result.Add(assetPath);
+					if (result.ContainsKey(assetPath) == false)
+						result.Add(assetPath, new CollectInfo(assetPath, collector.DontWriteAssetPath));
 				}
 			}
-			return result;
+			return result.Values.ToList();
 		}
 		private static bool IsCollectAsset(string assetPath, string filterRuleClassName)
 		{

@@ -9,6 +9,7 @@ using System.Xml;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using MotionFramework.IO;
 
 namespace MotionFramework.Editor
 {
@@ -19,11 +20,13 @@ namespace MotionFramework.Editor
 			public string CollectDirectory;
 			public string PackRuleClassName;
 			public string FilterRuleClassName;
-			public CollectWrapper(string directory, string packRuleClassName, string filterRuleClassName)
+			public bool DontWriteAssetPath;
+			public CollectWrapper(string directory, string packRuleClassName, string filterRuleClassName, bool dontWriteAssetPath)
 			{
 				CollectDirectory = directory;
 				PackRuleClassName = packRuleClassName;
 				FilterRuleClassName = filterRuleClassName;
+				DontWriteAssetPath = dontWriteAssetPath;
 			}
 		}
 
@@ -31,6 +34,7 @@ namespace MotionFramework.Editor
 		public const string XmlDirectory = "Directory";
 		public const string XmlPackRuleClassName = "PackRuleClass";
 		public const string XmlFilterRuleClassName = "FilterRuleClass";
+		public const string XmlDontWriteAssetPath = "DontWrite";
 
 		public static void ImportXmlConfig(string filePath)
 		{
@@ -57,6 +61,7 @@ namespace MotionFramework.Editor
 				string directory = collect.GetAttribute(XmlDirectory);
 				string packRuleClassName = collect.GetAttribute(XmlPackRuleClassName);
 				string filterRuleClassName = collect.GetAttribute(XmlFilterRuleClassName);
+				string dontWriteAssetPath = collect.GetAttribute(XmlDontWriteAssetPath);
 
 				if (Directory.Exists(directory) == false)
 					throw new Exception($"Not found directory : {directory}");
@@ -64,12 +69,15 @@ namespace MotionFramework.Editor
 					throw new Exception($"Not found attribute {XmlPackRuleClassName} in collector : {directory}");
 				if (string.IsNullOrEmpty(filterRuleClassName))
 					throw new Exception($"Not found attribute {XmlFilterRuleClassName} in collector : {directory}");
+				if (string.IsNullOrEmpty(dontWriteAssetPath))
+					throw new Exception($"Not found attribute {XmlDontWriteAssetPath} in collector : {directory}");
 				if (AssetBundleCollectorSettingData.HasPackRuleClassName(packRuleClassName) == false)
 					throw new Exception($"Invalid {nameof(IPackRule)} class type : {packRuleClassName}");
 				if (AssetBundleCollectorSettingData.HasFilterRuleClassName(filterRuleClassName) == false)
 					throw new Exception($"Invalid {nameof(IFilterRule)} class type : {filterRuleClassName}");
 
-				var collectWrapper = new CollectWrapper(directory, packRuleClassName, filterRuleClassName);
+				bool dontWriteAssetPathFlag = StringConvert.StringToBool(dontWriteAssetPath);
+				var collectWrapper = new CollectWrapper(directory, packRuleClassName, filterRuleClassName, dontWriteAssetPathFlag);
 				wrappers.Add(collectWrapper);
 			}
 
@@ -77,7 +85,7 @@ namespace MotionFramework.Editor
 			AssetBundleCollectorSettingData.ClearAllCollector();
 			foreach (var wrapper in wrappers)
 			{
-				AssetBundleCollectorSettingData.AddCollector(wrapper.CollectDirectory, wrapper.PackRuleClassName, wrapper.FilterRuleClassName, false);
+				AssetBundleCollectorSettingData.AddCollector(wrapper.CollectDirectory, wrapper.PackRuleClassName, wrapper.FilterRuleClassName, wrapper.DontWriteAssetPath, false);
 			}
 			AssetBundleCollectorSettingData.SaveFile();
 			Debug.Log($"导入配置完毕，一共导入{wrappers.Count}个收集器。");

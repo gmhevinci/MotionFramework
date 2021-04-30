@@ -120,6 +120,7 @@ namespace MotionFramework.Editor
 				string directory = collector.CollectDirectory;
 				string packRuleClassName = collector.PackRuleClassName;
 				string filterRuleClassName = collector.FilterRuleClassName;
+				bool dontWriteAssetPath = collector.DontWriteAssetPath;
 
 				EditorGUILayout.BeginHorizontal();
 				{
@@ -128,11 +129,11 @@ namespace MotionFramework.Editor
 					// IPackRule
 					{
 						int index = PackRuleClassNameToIndex(packRuleClassName);
-						int newIndex = EditorGUILayout.Popup(index, _packRuleClassArray, GUILayout.MaxWidth(200));
+						int newIndex = EditorGUILayout.Popup(index, _packRuleClassArray, GUILayout.MaxWidth(150));
 						if (newIndex != index)
 						{
 							packRuleClassName = IndexToPackRuleClassName(newIndex);
-							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName, dontWriteAssetPath);
 						}
 					}
 
@@ -143,8 +144,15 @@ namespace MotionFramework.Editor
 						if (newIndex != index)
 						{
 							filterRuleClassName = IndexToFilterRuleClassName(newIndex);
-							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName, dontWriteAssetPath);
 						}
+					}
+
+					// DontWriteAssetPath
+					bool newToggleValue = EditorGUILayout.Toggle("DontWrite", dontWriteAssetPath, GUILayout.MaxWidth(120));
+					if (newToggleValue != dontWriteAssetPath)
+					{
+						AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName, newToggleValue);
 					}
 
 					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
@@ -166,7 +174,8 @@ namespace MotionFramework.Editor
 					_lastOpenFolderPath = EditorTools.AbsolutePathToAssetPath(resultPath);
 					string defaultPackRuleClassName = nameof(PackExplicit);
 					string defaultFilterRuleClassName = nameof(CollectAll);
-					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath, defaultPackRuleClassName, defaultFilterRuleClassName);
+					bool defaultDontWriteAssetPathValue = false;
+					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath, defaultPackRuleClassName, defaultFilterRuleClassName, defaultDontWriteAssetPathValue);
 				}
 			}
 
