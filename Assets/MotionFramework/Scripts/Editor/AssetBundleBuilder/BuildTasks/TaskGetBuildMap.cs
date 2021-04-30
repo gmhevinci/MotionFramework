@@ -14,7 +14,7 @@ namespace MotionFramework.Editor
 	internal class TaskGetBuildMap : IBuildTask
 	{
 		public class BuildMapContext : IContextObject
-		{		
+		{
 			public readonly List<BundleInfo> BundleInfos = new List<BundleInfo>();
 
 			/// <summary>
@@ -53,7 +53,7 @@ namespace MotionFramework.Editor
 			public UnityEditor.AssetBundleBuild[] GetPipelineBuilds()
 			{
 				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BundleInfos.Count);
-				foreach(var bundleInfo in BundleInfos)
+				foreach (var bundleInfo in BundleInfos)
 				{
 					builds.Add(bundleInfo.CreateAssetBundleBuild());
 				}
@@ -121,60 +121,75 @@ namespace MotionFramework.Editor
 		{
 			int progressBarCount = 0;
 			Dictionary<string, AssetInfo> buildAssets = new Dictionary<string, AssetInfo>();
+			Dictionary<string, string> references = new Dictionary<string, string>();
 
 			// 1. 获取主动收集的资源
 			List<string> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
 			// 2. 对收集的资源进行依赖分析
-			foreach (string collectAssetPath in allCollectAssets)
+			foreach (string mainAssetPath in allCollectAssets)
 			{
-				List<AssetInfo> depends = GetDependencies(collectAssetPath);
+				List<AssetInfo> depends = GetDependencies(mainAssetPath);
 				for (int i = 0; i < depends.Count; i++)
 				{
 					AssetInfo assetInfo = depends[i];
 					if (buildAssets.ContainsKey(assetInfo.AssetPath))
+					{
 						buildAssets[assetInfo.AssetPath].DependCount++;
+					}
 					else
+					{
 						buildAssets.Add(assetInfo.AssetPath, assetInfo);
+						references.Add(assetInfo.AssetPath, mainAssetPath);
+					}
 
 					// 注意：检测是否为主动收集资源
-					if (assetInfo.AssetPath == collectAssetPath)
+					if (assetInfo.AssetPath == mainAssetPath)
 					{
-						buildAssets[collectAssetPath].IsCollectAsset = true;
+						buildAssets[mainAssetPath].IsCollectAsset = true;
 					}
 				}
 				progressBarCount++;
 				EditorUtility.DisplayProgressBar("进度", $"依赖文件分析：{progressBarCount}/{allCollectAssets.Count}", (float)progressBarCount / allCollectAssets.Count);
 			}
 			progressBarCount = 0;
-			EditorUtility.ClearProgressBar();		
+			EditorUtility.ClearProgressBar();
 
 			// 3. 移除零依赖的资源
-			List<string> removeList = new List<string>();
+			List<AssetInfo> undependentAssets = new List<AssetInfo>();
 			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
 			{
 				if (pair.Value.IsCollectAsset)
 					continue;
 				if (pair.Value.DependCount == 0)
-					removeList.Add(pair.Value.AssetPath);
+					undependentAssets.Add(pair.Value);
 			}
-			for (int i = 0; i < removeList.Count; i++)
+			foreach (var assetInfo in undependentAssets)
 			{
-				buildAssets.Remove(removeList[i]);
+				buildAssets.Remove(assetInfo.AssetPath);
 			}
 
 			// 4. 设置资源标签和变种
 			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
 			{
 				var assetInfo = pair.Value;
-				var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath, assetInfo.AssetType);
+				var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
 				assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);
 				progressBarCount++;
 				EditorUtility.DisplayProgressBar("进度", $"设置资源标签：{progressBarCount}/{buildAssets.Count}", (float)progressBarCount / buildAssets.Count);
 			}
 			EditorUtility.ClearProgressBar();
 
-			// 5. 返回结果
+			// 5. 补充零依赖的资源
+			foreach (var assetInfo in undependentAssets)
+			{
+				var referenceAssetPath = references[assetInfo.AssetPath];
+				var referenceAssetInfo = buildAssets[referenceAssetPath];
+				assetInfo.SetBundleLabelAndVariant(referenceAssetInfo.AssetBundleLabel, referenceAssetInfo.AssetBundleVariant);
+				buildAssets.Add(assetInfo.AssetPath, assetInfo);
+			}
+
+			// 6. 返回结果
 			return buildAssets.Values.ToList();
 		}
 
@@ -182,15 +197,15 @@ namespace MotionFramework.Editor
 		/// 获取指定资源依赖的资源列表
 		/// 注意：返回列表里已经包括主资源自己
 		/// </summary>
-		private List<AssetInfo> GetDependencies(string assetPath)
+		private List<AssetInfo> GetDependencies(string mainAssetPath)
 		{
 			List<AssetInfo> result = new List<AssetInfo>();
-			string[] depends= AssetDatabase.GetDependencies(assetPath, true);
-			foreach (string dependAssetPath in depends)
+			string[] depends = AssetDatabase.GetDependencies(mainAssetPath, true);
+			foreach (string assetPath in depends)
 			{
-				if (AssetBundleCollectorSettingData.IsValidateAsset(dependAssetPath))
+				if (AssetBundleCollectorSettingData.IsValidateAsset(assetPath))
 				{
-					AssetInfo assetInfo = new AssetInfo(dependAssetPath);
+					AssetInfo assetInfo = new AssetInfo(assetPath);
 					result.Add(assetInfo);
 				}
 			}

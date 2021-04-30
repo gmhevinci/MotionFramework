@@ -18,11 +18,6 @@ namespace MotionFramework.Editor
 		public string AssetPath { private set; get; }
 
 		/// <summary>
-		/// 资源类型
-		/// </summary>
-		public System.Type AssetType { private set; get; }
-
-		/// <summary>
 		/// AssetBundle标签
 		/// </summary>
 		public string AssetBundleLabel { private set; get; }
@@ -46,7 +41,6 @@ namespace MotionFramework.Editor
 		public AssetInfo(string assetPath)
 		{
 			AssetPath = assetPath;
-			AssetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
 		}
 
 		/// <summary>
