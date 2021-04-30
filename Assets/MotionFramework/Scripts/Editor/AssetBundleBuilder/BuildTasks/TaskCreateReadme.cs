@@ -55,7 +55,7 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector wrapper = AssetBundleCollectorSettingData.Setting.Collectors[i];
-				AppendData(content, $"Directory : {wrapper.CollectDirectory} | {wrapper.PackRuleClassName} | {wrapper.FilterRuleClassName}");
+				AppendData(content, wrapper.ToString());
 			}
 
 			AppendData(content, "");

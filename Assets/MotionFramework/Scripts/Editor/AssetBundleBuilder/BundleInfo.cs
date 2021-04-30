@@ -66,7 +66,7 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public string[] GetCollectAssetPaths()
 		{
-			return Assets.Where(t => t.IsCollectAsset).Select(t => t.AssetPath).ToArray();
+			return Assets.Where(t => t.IsCollectAsset && t.DontWriteAssetPath == false).Select(t => t.AssetPath).ToArray();
 		}
 
 		/// <summary>

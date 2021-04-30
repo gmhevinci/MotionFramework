@@ -123,12 +123,13 @@ namespace MotionFramework.Editor
 			Dictionary<string, string> references = new Dictionary<string, string>();
 
 			// 1. 获取主动收集的资源
-			List<string> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
+			List<CollectInfo> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
 			// 2. 对收集的资源进行依赖分析
 			int progressValue = 0;
-			foreach (string mainAssetPath in allCollectAssets)
+			foreach (CollectInfo collectInfo in allCollectAssets)
 			{
+				string mainAssetPath = collectInfo.AssetPath;
 				List<AssetInfo> depends = GetDependencies(mainAssetPath);
 				for (int i = 0; i < depends.Count; i++)
 				{
@@ -147,6 +148,7 @@ namespace MotionFramework.Editor
 					if (assetInfo.AssetPath == mainAssetPath)
 					{
 						buildAssets[mainAssetPath].IsCollectAsset = true;
+						buildAssets[mainAssetPath].DontWriteAssetPath = collectInfo.DontWriteAssetPath;
 					}
 				}
 				EditorTools.DisplayProgressBar("依赖文件分析", ++progressValue, allCollectAssets.Count);

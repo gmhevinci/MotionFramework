@@ -33,6 +33,11 @@ namespace MotionFramework.Editor
 		public bool IsCollectAsset = false;
 
 		/// <summary>
+		/// 不写入资源路径信息
+		/// </summary>
+		public bool DontWriteAssetPath = false;
+
+		/// <summary>
 		/// 被依赖次数
 		/// </summary>
 		public int DependCount = 0;
