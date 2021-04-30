@@ -191,8 +191,6 @@ namespace MotionFramework.Editor
 		/// <param name="searchFolder">搜索的文件夹</param>
 		private void FindReferenceInProject(string searchAssetPath, string searchFolder, EAssetSearchType serachType)
 		{
-			ShowProgress(0, 0, 0);
-
 			// 创建集合
 			if (_collection == null)
 			{
@@ -217,7 +215,7 @@ namespace MotionFramework.Editor
 				allGuids = AssetDatabase.FindAssets($"t:{serachType}", new string[] { $"{searchFolder}" });
 
 			// 查找引用
-			int curCount = 0;
+			int progressValue = 0;
 			foreach (string guid in allGuids)
 			{
 				string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -241,11 +239,9 @@ namespace MotionFramework.Editor
 						}
 					}
 				}
-				curCount++;
-				ShowProgress((float)curCount / (float)allGuids.Length, allGuids.Length, curCount);
+				EditorTools.DisplayProgressBar("正在搜索", ++progressValue, allGuids.Length);
 			}
-
-			EditorUtility.ClearProgressBar();
+			EditorTools.ClearProgressBar();
 		}
 
 		/// <summary>
@@ -336,11 +332,6 @@ namespace MotionFramework.Editor
 			}
 
 			return null;
-		}
-
-		private void ShowProgress(float progress, int total, int cur)
-		{
-			EditorUtility.DisplayProgressBar("Searching", $"Finding ({cur}/{total}), please waiting...", progress);
 		}
 	}
 }
