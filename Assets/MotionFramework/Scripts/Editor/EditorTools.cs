@@ -21,7 +21,7 @@ namespace MotionFramework.Editor
 	/// </summary>
 	public static class EditorTools
 	{
-		#region NGUI相关代码
+		#region NGUI代码
 		/// <summary>
 		/// Draw a distinctly different looking header label
 		/// </summary>
@@ -67,7 +67,7 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
-		#region 搜索面板相关
+		#region 搜索面板
 		/// <summary>
 		/// 打开搜索面板
 		/// </summary>
@@ -106,6 +106,17 @@ namespace MotionFramework.Editor
 				return null;
 			}
 			return openPath;
+		}
+		#endregion
+
+		#region 进度条
+		public static void DisplayProgressBar(string tips, int progressValue, int totalValue)
+		{
+			EditorUtility.DisplayProgressBar("进度", $"{tips} : {progressValue}/{totalValue}", (float)progressValue / totalValue);
+		}
+		public static void ClearProgressBar()
+		{
+			EditorUtility.ClearProgressBar();
 		}
 		#endregion
 
@@ -247,7 +258,7 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
-		#region 材质球相关
+		#region 材质球
 		/// <summary>
 		/// 清理无用的材质球属性
 		/// </summary>
@@ -298,7 +309,7 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
-		#region 清空控制台
+		#region 控制台
 		private static MethodInfo _clearConsoleMethod;
 		private static MethodInfo ClearConsoleMethod
 		{
@@ -323,7 +334,7 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
-		#region 文件相关
+		#region 文件
 		/// <summary>
 		/// 测试写入权限
 		/// </summary>
@@ -385,7 +396,7 @@ namespace MotionFramework.Editor
 			else
 			{
 				return false;
-			}		
+			}
 		}
 
 		/// <summary>
@@ -541,7 +552,7 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
-		#region 路径相关
+		#region 路径
 		/// <summary>
 		/// 获取规范的路径
 		/// </summary>
@@ -603,7 +614,7 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
-		#region 字符串相关
+		#region 字符串
 		/// <summary>
 		/// 是否含有中文
 		/// </summary>
