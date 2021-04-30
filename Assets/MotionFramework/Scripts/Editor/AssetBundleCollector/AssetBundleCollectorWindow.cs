@@ -149,7 +149,7 @@ namespace MotionFramework.Editor
 					}
 
 					// DontWriteAssetPath
-					bool newToggleValue = EditorGUILayout.Toggle("DontWrite", dontWriteAssetPath, GUILayout.MaxWidth(120));
+					bool newToggleValue = EditorGUILayout.Toggle("DontWriteAssetPath", dontWriteAssetPath, GUILayout.MaxWidth(180));
 					if (newToggleValue != dontWriteAssetPath)
 					{
 						AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName, newToggleValue);
