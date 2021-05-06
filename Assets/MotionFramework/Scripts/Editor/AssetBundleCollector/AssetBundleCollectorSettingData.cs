@@ -316,7 +316,7 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector wrapper = Setting.Collectors[i];
-				result.Add(wrapper.CollectDirectory);
+				result.Add(wrapper.CollectDirectoryTrimEndSeparator);
 			}
 			return result;
 		}
@@ -333,7 +333,7 @@ namespace MotionFramework.Editor
 				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
 
 				// 获取收集目录下的所有资源对象的GUID包括子文件夹
-				string collectDirectory = collector.CollectDirectory.TrimEnd('/'); //注意：AssetDatabase不支持末尾带分隔符的文件夹路径
+				string collectDirectory = collector.CollectDirectoryTrimEndSeparator;
 				string[] guids = AssetDatabase.FindAssets(string.Empty, new string[] { collectDirectory });
 				foreach (string guid in guids)
 				{

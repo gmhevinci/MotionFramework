@@ -20,6 +20,18 @@ namespace MotionFramework.Editor
 			public string FilterRuleClassName = string.Empty;
 			public bool DontWriteAssetPath = false;
 
+			/// <summary>
+			/// 末尾没有分隔符号的收集路径
+			/// 注意：AssetDatabase不支持末尾带分隔符的文件夹路径
+			/// </summary>
+			public string CollectDirectoryTrimEndSeparator
+			{
+				get
+				{
+					return CollectDirectory.TrimEnd('/');
+				}
+			}
+
 			public override string ToString()
 			{
 				return $"Directory : {CollectDirectory} | {PackRuleClassName} | {FilterRuleClassName} | {DontWriteAssetPath}";
