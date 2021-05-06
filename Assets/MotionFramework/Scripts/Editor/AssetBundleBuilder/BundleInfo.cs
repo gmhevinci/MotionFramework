@@ -77,8 +77,12 @@ namespace MotionFramework.Editor
 			AssetBundleBuild build = new AssetBundleBuild();
 			build.assetBundleName = AssetBundleLabel;
 			build.assetBundleVariant = AssetBundleVariant;
-			build.assetNames = Assets.Select(t => t.AssetPath).ToArray();
+			build.assetNames = GetBuildinAssetPaths();
 			return build;
+		}
+		private string[] GetBuildinAssetPaths()
+		{
+			return Assets.Where(t => t.IsCollectAsset || t.DependCount > 0).Select(t => t.AssetPath).ToArray();
 		}
 	}
 }
