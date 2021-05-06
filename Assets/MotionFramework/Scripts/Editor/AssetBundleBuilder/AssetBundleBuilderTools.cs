@@ -78,7 +78,7 @@ namespace MotionFramework.Editor
 			EditorTools.ClearProgressBar();
 
 			if (invalidCount == 0)
-				Debug.Log($"没有发现损坏预制件");
+				Debug.Log($"没有发现重名着色器");
 		}
 
 		/// <summary>

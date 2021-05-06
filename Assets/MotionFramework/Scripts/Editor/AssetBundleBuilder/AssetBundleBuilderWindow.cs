@@ -134,7 +134,7 @@ namespace MotionFramework.Editor
 					}
 
 					// 检测所有重名的着色器文件
-					if (GUILayout.Button("Check Invalid Prefabs", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
+					if (GUILayout.Button("Check Same Name Shader", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
 						EditorApplication.delayCall += AssetBundleBuilderTools.CheckSameNameShader;
 					}
