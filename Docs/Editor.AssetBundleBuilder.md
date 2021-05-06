@@ -65,7 +65,7 @@ private static void BuildInternal(BuildTarget buildTarget)
 	buildParameters.OutputRoot = defaultOutputRoot;
 	buildParameters.BuildTarget = buildTarget;
 	buildParameters.BuildVersion = buildVersion;
-	buildParameters.CompressOption = AssetBundleBuilder.ECompressOption.ChunkBasedCompressionLZ4;
+	buildParameters.CompressOption = ECompressOption.LZ4;
 	buildParameters.IsForceRebuild = isForceBuild;
 
 	// 执行构建

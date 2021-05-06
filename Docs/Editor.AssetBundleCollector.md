@@ -15,15 +15,15 @@
 <root>
 	
 	<!--注释-->
-	<Collector Directory="Assets/GameRes/Lua/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
-	<Collector Directory="Assets/GameRes/UIAtlas/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
-	<Collector Directory="Assets/GameRes/UIPanel/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
-	<Collector Directory="Assets/GameRes/UITexture/Foods/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
-	<Collector Directory="Assets/GameRes/UITexture/Background/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
-	<Collector Directory="Assets/GameRes/Entity/" PackRuleClass="PackExplicit" FilterRuleClass="CollectAll"/>
+	<Collector Directory="Assets/GameRes/Lua/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
+	<Collector Directory="Assets/GameRes/UIAtlas/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
+	<Collector Directory="Assets/GameRes/UIPanel/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
+	<Collector Directory="Assets/GameRes/UITexture/Foods/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
+	<Collector Directory="Assets/GameRes/UITexture/Background/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
+	<Collector Directory="Assets/GameRes/Entity/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
 
 	<!--精灵-->
-	<Collector Directory="Assets/GameArt/Panel/Sprite/" PackRuleClass="PackDirectory" FilterRuleClass="CollectAll"/>
+	<Collector Directory="Assets/GameArt/Panel/Sprite/" PackRule="PackDirectory" FilterRule="CollectAll" DontWriteAssetPath="1"/>
 	
 </root>
 ```
@@ -35,15 +35,11 @@ using UnityEngine;
 using UnityEditor;
 using MotionFramework.Editor;
 
-public class PackCustom : IPackRule
+public class PackExplicit : IPackRule
 {
-	/// <summary>
-	/// 获取资源的打包标签
-	/// </summary>
 	string IPackRule.GetAssetBundleLabel(string assetPath)
 	{
-		// Your code in here
-		throw new System.NotImplementedException();
+		return assetPath.RemoveExtension();
 	}
 }
 
