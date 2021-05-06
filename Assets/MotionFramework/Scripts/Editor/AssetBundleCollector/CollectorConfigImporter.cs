@@ -34,7 +34,7 @@ namespace MotionFramework.Editor
 		public const string XmlDirectory = "Directory";
 		public const string XmlPackRuleClassName = "PackRuleClass";
 		public const string XmlFilterRuleClassName = "FilterRuleClass";
-		public const string XmlDontWriteAssetPath = "DontWrite";
+		public const string XmlDontWriteAssetPath = "DontWriteAssetPath";
 
 		public static void ImportXmlConfig(string filePath)
 		{

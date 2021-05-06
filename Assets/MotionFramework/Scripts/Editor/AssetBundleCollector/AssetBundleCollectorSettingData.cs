@@ -203,7 +203,7 @@ namespace MotionFramework.Editor
 			element.DontWriteAssetPath = dontWriteAssetPath;
 			Setting.Collectors.Add(element);
 
-			if(saveFile)
+			if (saveFile)
 				SaveFile();
 		}
 		public static void RemoveCollector(string directory)
@@ -325,10 +325,9 @@ namespace MotionFramework.Editor
 		/// 获取所有收集的资源
 		/// </summary>
 		/// <returns>返回资源路径列表</returns>
-		
-		public static List<CollectInfo> GetAllCollectAssets()
+		public static List<AssetCollectInfo> GetAllCollectAssets()
 		{
-			Dictionary<string, CollectInfo> result = new Dictionary<string, CollectInfo>(10000);
+			Dictionary<string, AssetCollectInfo> result = new Dictionary<string, AssetCollectInfo>(10000);
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
@@ -344,7 +343,7 @@ namespace MotionFramework.Editor
 					if (IsCollectAsset(assetPath, collector.FilterRuleClassName) == false)
 						continue;
 					if (result.ContainsKey(assetPath) == false)
-						result.Add(assetPath, new CollectInfo(assetPath, collector.DontWriteAssetPath));
+						result.Add(assetPath, new AssetCollectInfo(assetPath, collector.DontWriteAssetPath));
 				}
 			}
 			return result.Values.ToList();
