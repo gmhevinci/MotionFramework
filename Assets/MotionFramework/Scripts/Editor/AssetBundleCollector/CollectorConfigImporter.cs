@@ -32,10 +32,10 @@ namespace MotionFramework.Editor
 
 		public const string XmlTag = "Collector";
 		public const string XmlDirectory = "Directory";
-		public const string XmlPackRuleClassName = "PackRuleClass";
-		public const string XmlFilterRuleClassName = "FilterRuleClass";
+		public const string XmlPackRuleName = "PackRule";
+		public const string XmlFilterRuleName = "FilterRule";
 		public const string XmlDontWriteAssetPath = "DontWriteAssetPath";
-
+		
 		public static void ImportXmlConfig(string filePath)
 		{
 			if (File.Exists(filePath) == false)
@@ -59,16 +59,16 @@ namespace MotionFramework.Editor
 			{
 				XmlElement collect = node as XmlElement;
 				string directory = collect.GetAttribute(XmlDirectory);
-				string packRuleClassName = collect.GetAttribute(XmlPackRuleClassName);
-				string filterRuleClassName = collect.GetAttribute(XmlFilterRuleClassName);
+				string packRuleClassName = collect.GetAttribute(XmlPackRuleName);
+				string filterRuleClassName = collect.GetAttribute(XmlFilterRuleName);
 				string dontWriteAssetPath = collect.GetAttribute(XmlDontWriteAssetPath);
 
 				if (Directory.Exists(directory) == false)
 					throw new Exception($"Not found directory : {directory}");
 				if (string.IsNullOrEmpty(packRuleClassName))
-					throw new Exception($"Not found attribute {XmlPackRuleClassName} in collector : {directory}");
+					throw new Exception($"Not found attribute {XmlPackRuleName} in collector : {directory}");
 				if (string.IsNullOrEmpty(filterRuleClassName))
-					throw new Exception($"Not found attribute {XmlFilterRuleClassName} in collector : {directory}");
+					throw new Exception($"Not found attribute {XmlFilterRuleName} in collector : {directory}");
 				if (string.IsNullOrEmpty(dontWriteAssetPath))
 					throw new Exception($"Not found attribute {XmlDontWriteAssetPath} in collector : {directory}");
 				if (AssetBundleCollectorSettingData.HasPackRuleClassName(packRuleClassName) == false)
