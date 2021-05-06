@@ -4,10 +4,12 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
 
 namespace MotionFramework.Editor
 {
@@ -45,6 +47,41 @@ namespace MotionFramework.Editor
 					result.AddRange(bundleInfo.Assets);
 				}
 				return result;
+			}
+
+			/// <summary>
+			/// 检测哈希冲突并报告错误
+			/// 注意：Unity的打包机制在指定了Variant的时候，同一个AssetBundle文件内不允许有同类型的同名文件
+			/// </summary>
+			public void CheckHashCollisionAndReportError()
+			{
+				Dictionary<string, string> temper = new Dictionary<string, string>(100);
+				foreach (var bundleInfo in BundleInfos)
+				{
+					temper.Clear();
+					bool isFoundSameFile = false;
+
+					string[] includeAssets = bundleInfo.GetIncludeAssetPaths();
+					foreach (var assetPath in includeAssets)
+					{
+						string fileName = Path.GetFileName(assetPath);
+						if (temper.ContainsKey(fileName))
+						{
+							isFoundSameFile = true;
+							string sameFile = temper[fileName];
+							Debug.LogWarning($"Found same file in one assetBundle : {assetPath} {sameFile}");
+						}
+						else
+						{
+							temper.Add(fileName, assetPath);
+						}
+					}
+
+					if (isFoundSameFile)
+					{
+						throw new Exception($"Found same file in one assetBundle : {bundleInfo.AssetBundleFullName}");
+					}
+				}
 			}
 
 			/// <summary>
@@ -112,6 +149,9 @@ namespace MotionFramework.Editor
 				buildMapContext.PackAsset(assetInfo);
 			}
 			context.SetContextObject(buildMapContext);
+
+			// 最后检测哈希冲突
+			buildMapContext.CheckHashCollisionAndReportError();
 		}
 
 		/// <summary>

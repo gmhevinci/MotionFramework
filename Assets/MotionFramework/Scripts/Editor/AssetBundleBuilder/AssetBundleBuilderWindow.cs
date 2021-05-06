@@ -133,12 +133,6 @@ namespace MotionFramework.Editor
 						EditorApplication.delayCall += AssetBundleBuilderTools.CheckCorruptionPrefab;
 					}
 
-					// 检测所有重名的着色器文件
-					if (GUILayout.Button("Check Same Name Shader", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
-					{
-						EditorApplication.delayCall += AssetBundleBuilderTools.CheckSameNameShader;
-					}
-
 					// 清理无用的材质球属性
 					if (GUILayout.Button("Clear Material Unused Property", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
