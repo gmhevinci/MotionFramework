@@ -72,7 +72,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 创建AssetBundleBuild类
 		/// </summary>
-		public UnityEditor.AssetBundleBuild CreateAssetBundleBuild()
+		public UnityEditor.AssetBundleBuild CreatePipelineBuild()
 		{
 			AssetBundleBuild build = new AssetBundleBuild();
 			build.assetBundleName = AssetBundleLabel;

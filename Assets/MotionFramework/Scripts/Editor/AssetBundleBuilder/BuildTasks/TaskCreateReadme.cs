@@ -73,7 +73,7 @@ namespace MotionFramework.Editor
 				AppendData(content, allAssetBundles[i]);
 			}
 
-			PatchManifest patchFile = AssetBundleBuilder.LoadPatchManifestFile(buildParameters.OutputDirectory);
+			PatchManifest patchFile = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.OutputDirectory);
 			{
 				AppendData(content, "");
 				AppendData(content, $"--更新清单--");

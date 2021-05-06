@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -22,6 +22,14 @@ namespace MotionFramework.Editor
 		{
 			string projectPath = EditorTools.GetProjectPath();
 			return $"{projectPath}/BuildBundles";
+		}
+
+		/// <summary>
+		/// 获取配置的输出目录
+		/// </summary>
+		public static string MakeOutputDirectory(string outputRoot, BuildTarget buildTarget)
+		{
+			return $"{outputRoot}/{buildTarget}/{PatchDefine.UnityManifestFileName}";
 		}
 
 		/// <summary>
@@ -145,6 +153,20 @@ namespace MotionFramework.Editor
 
 			// 刷新目录
 			AssetDatabase.Refresh();
+		}
+
+
+		/// <summary>
+		/// 从输出目录加载补丁清单文件
+		/// </summary>
+		public static PatchManifest LoadPatchManifestFile(string fileDirectory)
+		{
+			string filePath = $"{fileDirectory}/{PatchDefine.PatchManifestFileName}";
+			if (File.Exists(filePath) == false)
+				return new PatchManifest();
+
+			string jsonData = FileUtility.ReadFile(filePath);
+			return PatchManifest.Deserialize(jsonData);
 		}
 	}
 }

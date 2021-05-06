@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -75,7 +75,7 @@ namespace MotionFramework.Editor
 
 			// 输出路径
 			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
-			string outputDirectory = AssetBundleBuilder.MakeOutputDirectory(defaultOutputRoot, BuildTarget);
+			string outputDirectory = AssetBundleBuilderHelper.MakeOutputDirectory(defaultOutputRoot, BuildTarget);
 			EditorGUILayout.LabelField("Build Output", outputDirectory);
 
 			BuildVersion = EditorGUILayout.IntField("Build Version", BuildVersion, GUILayout.MaxWidth(250));

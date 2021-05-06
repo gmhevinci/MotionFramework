@@ -79,7 +79,7 @@ namespace MotionFramework.Editor
 			public BuildParametersContext(BuildParameters parameters)
 			{
 				Parameters = parameters;
-				OutputDirectory = MakeOutputDirectory(parameters.OutputRoot, parameters.BuildTarget);
+				OutputDirectory = AssetBundleBuilderHelper.MakeOutputDirectory(parameters.OutputRoot, parameters.BuildTarget);
 			}
 
 			/// <summary>
@@ -142,34 +142,12 @@ namespace MotionFramework.Editor
 				new TaskBuilding(), //开始执行构建
 				new TaskEncryption(), //加密资源文件
 				new TaskCheckCycle(), //检测循环依赖
-				new TaskCreatePatchManifest(), //创建补丁文件
+				new TaskCreatePatchManifest(), //创建清单文件
 				new TaskCreateReadme(), //创建说明文件
-				new TaskCopyUpdateFiles() //复制更新文件
+				new TaskCopyPatchFiles() //拷贝补丁文件
 			};
 			BuildRunner.Run(pipeline, _buildContext);
 			BuildLogger.Log($"构建完成！");
-		}
-
-
-		/// <summary>
-		/// 从输出目录加载补丁清单文件
-		/// </summary>
-		public static PatchManifest LoadPatchManifestFile(string fileDirectory)
-		{
-			string filePath = $"{fileDirectory}/{PatchDefine.PatchManifestFileName}";
-			if (File.Exists(filePath) == false)
-				return new PatchManifest();
-
-			string jsonData = FileUtility.ReadFile(filePath);
-			return PatchManifest.Deserialize(jsonData);
-		}
-
-		/// <summary>
-		/// 获取配置的输出目录
-		/// </summary>
-		public static string MakeOutputDirectory(string outputRoot, BuildTarget buildTarget)
-		{
-			return $"{outputRoot}/{buildTarget}/{PatchDefine.UnityManifestFileName}";
 		}
 	}
 }

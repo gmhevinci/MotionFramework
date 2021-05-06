@@ -12,58 +12,59 @@ using MotionFramework.Patch;
 namespace MotionFramework.Editor
 {
 	/// <summary>
-	/// 复制更新文件
+	/// 拷贝补丁文件
 	/// </summary>
-	internal class TaskCopyUpdateFiles : IBuildTask
+	internal class TaskCopyPatchFiles : IBuildTask
 	{
 		void IBuildTask.Run(BuildContext context)
 		{
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-			CopyUpdateFiles(buildParameters);
+			CopyPatchFiles(buildParameters);
 		}
 
 		/// <summary>
-		/// 复制更新文件到补丁包目录
+		/// 拷贝补丁文件到补丁包目录
 		/// </summary>
-		private void CopyUpdateFiles(AssetBundleBuilder.BuildParametersContext buildParameters)
+		private void CopyPatchFiles(AssetBundleBuilder.BuildParametersContext buildParameters)
 		{
 			string packageDirectory = buildParameters.GetPackageDirectory();
-			BuildLogger.Log($"开始复制更新文件到补丁包目录：{packageDirectory}");
+			BuildLogger.Log($"开始拷贝补丁文件到补丁包目录：{packageDirectory}");
 
-			// 复制Readme文件
+			// 拷贝Readme文件
 			{
 				string sourcePath = $"{buildParameters.OutputDirectory}/{PatchDefine.ReadmeFileName}";
 				string destPath = $"{packageDirectory}/{PatchDefine.ReadmeFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
-				BuildLogger.Log($"复制Readme文件到：{destPath}");
+				BuildLogger.Log($"拷贝Readme文件到：{destPath}");
 			}
 
-			// 复制PatchManifest文件
+			// 拷贝PatchManifest文件
 			{
 				string sourcePath = $"{buildParameters.OutputDirectory}/{PatchDefine.PatchManifestFileName}";
 				string destPath = $"{packageDirectory}/{PatchDefine.PatchManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
-				BuildLogger.Log($"复制PatchManifest文件到：{destPath}");
+				BuildLogger.Log($"拷贝PatchManifest文件到：{destPath}");
 			}
 
-			// 复制UnityManifest文件
+			// 拷贝UnityManifest序列化文件
 			{
 				string sourcePath = $"{buildParameters.OutputDirectory}/{PatchDefine.UnityManifestFileName}";
 				string destPath = $"{packageDirectory}/{PatchDefine.UnityManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
-				BuildLogger.Log($"复制UnityManifest文件到：{destPath}");
+				BuildLogger.Log($"拷贝UnityManifest文件到：{destPath}");
 			}
 
-			// 复制Manifest文件
+			// 拷贝UnityManifest文本文件
 			{
 				string sourcePath = $"{buildParameters.OutputDirectory}/{PatchDefine.UnityManifestFileName}.manifest";
 				string destPath = $"{packageDirectory}/{PatchDefine.UnityManifestFileName}.manifest";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
 
-			// 复制所有更新文件
+			// 拷贝所有补丁文件
+			// 注意：拷贝的补丁文件都是需要玩家热更新的文件
 			int progressValue = 0;
-			PatchManifest patchFile = AssetBundleBuilder.LoadPatchManifestFile(buildParameters.OutputDirectory);
+			PatchManifest patchFile = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.OutputDirectory);
 			int patchFileTotalCount = patchFile.BundleList.Count;
 			foreach (var patchBundle in patchFile.BundleList)
 			{
@@ -72,8 +73,8 @@ namespace MotionFramework.Editor
 					string sourcePath = $"{buildParameters.OutputDirectory}/{patchBundle.BundleName}";
 					string destPath = $"{packageDirectory}/{patchBundle.Hash}";
 					EditorTools.CopyFile(sourcePath, destPath, true);
-					BuildLogger.Log($"复制更新文件到补丁包：{sourcePath}");
-					EditorTools.DisplayProgressBar("拷贝更新文件", ++progressValue, patchFileTotalCount);
+					BuildLogger.Log($"拷贝补丁文件到补丁包：{sourcePath}");
+					EditorTools.DisplayProgressBar("拷贝补丁文件", ++progressValue, patchFileTotalCount);
 				}
 			}
 			EditorTools.ClearProgressBar();

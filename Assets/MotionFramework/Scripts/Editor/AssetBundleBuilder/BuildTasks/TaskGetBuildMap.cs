@@ -55,7 +55,7 @@ namespace MotionFramework.Editor
 				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BundleInfos.Count);
 				foreach (var bundleInfo in BundleInfos)
 				{
-					builds.Add(bundleInfo.CreateAssetBundleBuild());
+					builds.Add(bundleInfo.CreatePipelineBuild());
 				}
 				return builds.ToArray();
 			}
@@ -123,11 +123,11 @@ namespace MotionFramework.Editor
 			Dictionary<string, string> references = new Dictionary<string, string>();
 
 			// 1. 获取主动收集的资源
-			List<CollectInfo> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
+			List<AssetCollectInfo> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
 			// 2. 对收集的资源进行依赖分析
 			int progressValue = 0;
-			foreach (CollectInfo collectInfo in allCollectAssets)
+			foreach (AssetCollectInfo collectInfo in allCollectAssets)
 			{
 				string mainAssetPath = collectInfo.AssetPath;
 				List<AssetInfo> depends = GetDependencies(mainAssetPath);

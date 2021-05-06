@@ -33,7 +33,7 @@ namespace MotionFramework.Editor
 		public bool IsCollectAsset = false;
 
 		/// <summary>
-		/// 不写入资源路径信息
+		/// 不写入资源路径信息到清单文件
 		/// </summary>
 		public bool DontWriteAssetPath = false;
 
