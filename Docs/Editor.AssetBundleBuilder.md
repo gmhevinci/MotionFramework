@@ -70,7 +70,7 @@ private static void BuildInternal(BuildTarget buildTarget)
 
 	// 执行构建
 	AssetBundleBuilder builder = new AssetBundleBuilder();
-	_assetBuilder.Run(buildParameters);
+	builder.Run(buildParameters);
 
 	// 构建成功
 	Debug.Log("[Build] 构建完成");
