@@ -125,7 +125,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 开始构建
 		/// </summary>
-		public void Run(BuildParameters buildParameters)
+		public bool Run(BuildParameters buildParameters)
 		{
 			// 清空旧数据
 			_buildContext.ClearAllContext();
@@ -152,6 +152,7 @@ namespace MotionFramework.Editor
 				BuildLogger.Log($"构建成功！");
 			else
 				BuildLogger.Warning($"构建失败！");
+			return succeed;
 		}
 	}
 }
