@@ -146,8 +146,12 @@ namespace MotionFramework.Editor
 				new TaskCreateReadme(), //创建说明文件
 				new TaskCopyPatchFiles() //拷贝补丁文件
 			};
-			BuildRunner.Run(pipeline, _buildContext);
-			BuildLogger.Log($"构建完成！");
+
+			bool succeed = BuildRunner.Run(pipeline, _buildContext);
+			if(succeed)
+				BuildLogger.Log($"构建成功！");
+			else
+				BuildLogger.Warning($"构建失败！");
 		}
 	}
 }

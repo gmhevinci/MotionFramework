@@ -13,5 +13,10 @@ namespace MotionFramework.Editor
 		{
 			Debug.Log($"[BuildPatch] {info}");
 		}
+
+		public static void Warning(string info)
+		{
+			Debug.LogWarning($"[BuildPatch] {info}");
+		}
 	}
 }
