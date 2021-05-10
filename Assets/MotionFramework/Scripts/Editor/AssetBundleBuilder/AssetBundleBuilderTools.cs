@@ -27,17 +27,16 @@ namespace MotionFramework.Editor
 			// 获取所有资源列表
 			int checkCount = 0;
 			int invalidCount = 0;
-			string[] guids = AssetDatabase.FindAssets($"t:{EAssetSearchType.Prefab}", collectDirectorys.ToArray());
-			foreach (string guid in guids)
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.Prefab, collectDirectorys.ToArray());
+			foreach (string assetPath in findAssets)
 			{
-				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 				UnityEngine.Object prefab = AssetDatabase.LoadAssetAtPath(assetPath, typeof(UnityEngine.Object));
 				if (prefab == null)
 				{
 					invalidCount++;
 					Debug.LogError($"发现损坏预制件：{assetPath}");
 				}
-				EditorTools.DisplayProgressBar("检测预制件文件是否损坏", ++checkCount, guids.Length);
+				EditorTools.DisplayProgressBar("检测预制件文件是否损坏", ++checkCount, findAssets.Length);
 			}
 			EditorTools.ClearProgressBar();
 
@@ -58,10 +57,9 @@ namespace MotionFramework.Editor
 			// 获取所有资源列表
 			int checkCount = 0;
 			int removedCount = 0;
-			string[] guids = AssetDatabase.FindAssets($"t:{EAssetSearchType.Material}", collectDirectorys.ToArray());
-			foreach (string guid in guids)
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.Material, collectDirectorys.ToArray());
+			foreach (string assetPath in findAssets)
 			{
-				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 				Material mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
 				bool removed = EditorTools.ClearMaterialUnusedProperty(mat);
 				if (removed)
@@ -69,7 +67,7 @@ namespace MotionFramework.Editor
 					removedCount++;
 					Debug.LogWarning($"材质球已被处理：{assetPath}");
 				}
-				EditorTools.DisplayProgressBar("清理无用的材质球属性", ++checkCount, guids.Length);
+				EditorTools.DisplayProgressBar("清理无用的材质球属性", ++checkCount, findAssets.Length);
 			}
 			EditorTools.ClearProgressBar();
 

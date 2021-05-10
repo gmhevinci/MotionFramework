@@ -23,27 +23,31 @@ namespace MotionFramework.Editor
 				throw new Exception("请选择目标平台");
 
 			// 检测构建版本是否合法
-			if (EditorTools.IsNumber(buildParameters.Parameters.BuildVersion.ToString()) == false)
-				throw new Exception($"版本号格式非法：{buildParameters.Parameters.BuildVersion}");
-			if (buildParameters.Parameters.BuildVersion < 0)
+			if (buildParameters.Parameters.BuildVersion <= 0)
 				throw new Exception("请先设置版本号");
 
 			// 检测输出目录是否为空
 			if (string.IsNullOrEmpty(buildParameters.PipelineOutputDirectory))
 				throw new Exception("输出目录不能为空");
 
-			// 检测补丁包是否已经存在
-			string packageDirectory = buildParameters.GetPackageDirectory();
-			if (Directory.Exists(packageDirectory))
-				throw new Exception($"补丁包已经存在：{packageDirectory}");
-
 			// 检测资源收集配置文件
 			if (AssetBundleCollectorSettingData.GetCollecterCount() == 0)
-				throw new Exception("配置的资源收集路径为空！");
+				throw new Exception("配置的资源收集路径为空");
 
-			// 检测内置资源标记是否一致
+			// 增量更新时候的必要检测
 			if (buildParameters.Parameters.IsForceRebuild == false)
 			{
+				// 检测构建版本是否合法
+				int maxPackageVersion = AssetBundleBuilderHelper.GetMaxPackageVersion(buildParameters.Parameters.BuildTarget, buildParameters.Parameters.OutputRoot);
+				if (buildParameters.Parameters.BuildVersion <= maxPackageVersion)
+					throw new Exception("构建版本不能小于历史版本");
+
+				// 检测补丁包是否已经存在
+				string packageDirectory = buildParameters.GetPackageDirectory();
+				if (Directory.Exists(packageDirectory))
+					throw new Exception($"补丁包已经存在：{packageDirectory}");
+
+				// 检测内置资源标记是否一致
 				PatchManifest oldPatchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
 				if (buildParameters.Parameters.BuildinTags != oldPatchManifest.BuildinTags)
 					throw new Exception($"增量更新时内置资源标记必须一致：{buildParameters.Parameters.BuildinTags} != {oldPatchManifest.BuildinTags}");
