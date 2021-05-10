@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using MotionFramework.IO;
 
 namespace MotionFramework.Editor
 {
@@ -16,13 +17,14 @@ namespace MotionFramework.Editor
 		public class Collector
 		{
 			public string CollectDirectory = string.Empty;
-			public string PackRuleClassName = string.Empty;
-			public string FilterRuleClassName = string.Empty;
+			public string PackRuleName = string.Empty;
+			public string FilterRuleName = string.Empty;
 			public bool DontWriteAssetPath = false;
+			public string AssetTags = string.Empty;
 
 			/// <summary>
 			/// 末尾没有分隔符号的收集路径
-			/// 注意：AssetDatabase不支持末尾带分隔符的文件夹路径
+			/// 注意：AssetDatabase.FindAssets()不支持末尾带分隔符的文件夹路径
 			/// </summary>
 			public string CollectDirectoryTrimEndSeparator
 			{
@@ -32,9 +34,17 @@ namespace MotionFramework.Editor
 				}
 			}
 
+			/// <summary>
+			/// 获取资源标记列表
+			/// </summary>
+			public List<string> GetAssetTags()
+			{
+				return StringConvert.StringToStringList(AssetTags, ';');
+			}
+
 			public override string ToString()
 			{
-				return $"Directory : {CollectDirectory} | {PackRuleClassName} | {FilterRuleClassName} | {DontWriteAssetPath}";
+				return $"Directory : {CollectDirectory} | {PackRuleName} | {FilterRuleName} | {DontWriteAssetPath} | {AssetTags}";
 			}
 		}
 
@@ -52,10 +62,5 @@ namespace MotionFramework.Editor
 		/// 收集列表
 		/// </summary>
 		public List<Collector> Collectors = new List<Collector>();
-
-		/// <summary>
-		/// DLC文件列表
-		/// </summary>
-		public List<string> DLCFiles = new List<string>();
 	}
 }

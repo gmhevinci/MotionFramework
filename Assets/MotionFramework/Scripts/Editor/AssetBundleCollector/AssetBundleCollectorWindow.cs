@@ -30,53 +30,63 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private string _lastOpenFolderPath = "Assets/";
 
-		private string[] _packRuleClassArray = null;
-		private string[] _filterRuleClassArray = null;
+		// GUI相关
+		private const float GuiDirecotryMaxSize = 800f;
+		private const float GuiDirecotryMinSize = 300f;
+		private const float GuiPackRuleSize = 130f;
+		private const float GuiFilterRuleSize = 130f;
+		private const float GuiDontWriteAssetPathSize = 130f;
+		private const float GuiAssetTagsSize = 100f;
+		private const float GuiBtnSize = 40f;
 		private Vector2 _scrollPos = Vector2.zero;
 
 		// 初始化相关
+		private string[] _packRuleArray = null;
+		private string[] _filterRuleArray = null;
 		private bool _isInit = false;
+
+
 		private void Init()
 		{
-			List<string> packRuleClassNames = AssetBundleCollectorSettingData.GetPackRuleClassNames();
-			_packRuleClassArray = packRuleClassNames.ToArray();
+			List<string> packRuleNames = AssetBundleCollectorSettingData.GetPackRuleNames();
+			_packRuleArray = packRuleNames.ToArray();
 
-			List<string> filterRuleClassNames = AssetBundleCollectorSettingData.GetFilterRuleClassNames();
-			_filterRuleClassArray = filterRuleClassNames.ToArray();
+			List<string> filterRuleNames = AssetBundleCollectorSettingData.GetFilterRuleNames();
+			_filterRuleArray = filterRuleNames.ToArray();
 		}
-		private int PackRuleClassNameToIndex(string name)
+		private int PackRuleNameToIndex(string name)
 		{
-			for (int i = 0; i < _packRuleClassArray.Length; i++)
+			for (int i = 0; i < _packRuleArray.Length; i++)
 			{
-				if (_packRuleClassArray[i] == name)
+				if (_packRuleArray[i] == name)
 					return i;
 			}
 			return 0;
 		}
-		private string IndexToPackRuleClassName(int index)
+		private string IndexToPackRuleName(int index)
 		{
-			for (int i = 0; i < _packRuleClassArray.Length; i++)
+			for (int i = 0; i < _packRuleArray.Length; i++)
 			{
 				if (i == index)
-					return _packRuleClassArray[i];
+					return _packRuleArray[i];
 			}
 			return string.Empty;
 		}
-		private int FilterRuleClassNameToIndex(string name)
+		private int FilterRuleNameToIndex(string name)
 		{
-			for (int i = 0; i < _filterRuleClassArray.Length; i++)
+			for (int i = 0; i < _filterRuleArray.Length; i++)
 			{
-				if (_filterRuleClassArray[i] == name)
+				if (_filterRuleArray[i] == name)
 					return i;
 			}
 			return 0;
 		}
-		private string IndexToFilterRuleClassName(int index)
+		private string IndexToFilterRuleName(int index)
 		{
-			for (int i = 0; i < _filterRuleClassArray.Length; i++)
+			for (int i = 0; i < _filterRuleArray.Length; i++)
 			{
 				if (i == index)
-					return _filterRuleClassArray[i];
+					return _filterRuleArray[i];
 			}
 			return string.Empty;
 		}
@@ -89,73 +99,108 @@ namespace MotionFramework.Editor
 				Init();
 			}
 
+			OnDrawShader();
+			OnDrawHeadBar();
 			OnDrawCollector();
-			OnDrawDLC();
 		}
-		private void OnDrawCollector()
+		private void OnDrawShader()
 		{
-			// 着色器选项
+			bool isCollectAllShader = AssetBundleCollectorSettingData.Setting.IsCollectAllShaders;
+			string shadersBundleName = AssetBundleCollectorSettingData.Setting.ShadersBundleName;
+
 			EditorGUILayout.Space();
-			bool isCollectAllShader = EditorGUILayout.Toggle("收集所有着色器", AssetBundleCollectorSettingData.Setting.IsCollectAllShaders);
-			if (isCollectAllShader != AssetBundleCollectorSettingData.Setting.IsCollectAllShaders)
+
+			bool newToggleValue = EditorGUILayout.Toggle("收集所有着色器", isCollectAllShader);
+			if (newToggleValue != isCollectAllShader)
 			{
-				AssetBundleCollectorSettingData.ModifyShader(isCollectAllShader, AssetBundleCollectorSettingData.Setting.ShadersBundleName);
+				isCollectAllShader = newToggleValue;
+				AssetBundleCollectorSettingData.ModifyShader(isCollectAllShader, shadersBundleName);
 			}
+
 			if (isCollectAllShader)
 			{
-				string shadersBundleName = EditorGUILayout.TextField("AssetBundle名称", AssetBundleCollectorSettingData.Setting.ShadersBundleName);
-				if (shadersBundleName != AssetBundleCollectorSettingData.Setting.ShadersBundleName)
+				string newTextValue = EditorGUILayout.TextField("AssetBundle名称", shadersBundleName, GUILayout.MaxWidth(300));
+				if (newTextValue != shadersBundleName)
 				{
+					shadersBundleName = newTextValue;
 					AssetBundleCollectorSettingData.ModifyShader(isCollectAllShader, shadersBundleName);
 				}
 			}
-
+		}
+		private void OnDrawHeadBar()
+		{
+			EditorGUILayout.Space(10);
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Directory", GUILayout.MinWidth(GuiDirecotryMinSize), GUILayout.MaxWidth(GuiDirecotryMaxSize));
+			EditorGUILayout.LabelField("PackRule", GUILayout.MinWidth(GuiPackRuleSize), GUILayout.MaxWidth(GuiPackRuleSize));
+			EditorGUILayout.LabelField("FilterRule", GUILayout.MinWidth(GuiFilterRuleSize), GUILayout.MaxWidth(GuiFilterRuleSize));
+			EditorGUILayout.LabelField("DontWriteAssetPath", GUILayout.MinWidth(GuiDontWriteAssetPathSize), GUILayout.MaxWidth(GuiDontWriteAssetPathSize));
+			EditorGUILayout.LabelField("AssetTags", GUILayout.MinWidth(GuiAssetTagsSize), GUILayout.MaxWidth(GuiAssetTagsSize));
+			EditorGUILayout.LabelField("", GUILayout.MinWidth(GuiBtnSize), GUILayout.MaxWidth(GuiBtnSize));
+			EditorGUILayout.EndHorizontal();
+		}
+		private void OnDrawCollector()
+		{
 			// 列表显示
 			EditorGUILayout.Space();
-			EditorGUILayout.LabelField($"[ Collector ]");
 			_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
 			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.Collectors.Count; i++)
 			{
 				var collector = AssetBundleCollectorSettingData.Setting.Collectors[i];
 				string directory = collector.CollectDirectory;
-				string packRuleClassName = collector.PackRuleClassName;
-				string filterRuleClassName = collector.FilterRuleClassName;
+				string packRuleName = collector.PackRuleName;
+				string filterRuleName = collector.FilterRuleName;
 				bool dontWriteAssetPath = collector.DontWriteAssetPath;
+				string assetTags = collector.AssetTags;
 
 				EditorGUILayout.BeginHorizontal();
 				{
-					EditorGUILayout.LabelField(directory);
+					// Directory
+					EditorGUILayout.LabelField(directory, GUILayout.MinWidth(GuiDirecotryMinSize), GUILayout.MaxWidth(GuiDirecotryMaxSize));
 
 					// IPackRule
 					{
-						int index = PackRuleClassNameToIndex(packRuleClassName);
-						int newIndex = EditorGUILayout.Popup(index, _packRuleClassArray, GUILayout.MaxWidth(150));
+						int index = PackRuleNameToIndex(packRuleName);
+						int newIndex = EditorGUILayout.Popup(index, _packRuleArray, GUILayout.MinWidth(GuiPackRuleSize), GUILayout.MaxWidth(GuiPackRuleSize));
 						if (newIndex != index)
 						{
-							packRuleClassName = IndexToPackRuleClassName(newIndex);
-							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName, dontWriteAssetPath);
+							packRuleName = IndexToPackRuleName(newIndex);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleName, filterRuleName, dontWriteAssetPath, assetTags);
 						}
 					}
 
 					// IFilterRule
 					{
-						int index = FilterRuleClassNameToIndex(filterRuleClassName);
-						int newIndex = EditorGUILayout.Popup(index, _filterRuleClassArray, GUILayout.MaxWidth(150));
+						int index = FilterRuleNameToIndex(filterRuleName);
+						int newIndex = EditorGUILayout.Popup(index, _filterRuleArray, GUILayout.MinWidth(GuiFilterRuleSize), GUILayout.MaxWidth(GuiFilterRuleSize));
 						if (newIndex != index)
 						{
-							filterRuleClassName = IndexToFilterRuleClassName(newIndex);
-							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName, dontWriteAssetPath);
+							filterRuleName = IndexToFilterRuleName(newIndex);
+							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleName, filterRuleName, dontWriteAssetPath, assetTags);
 						}
 					}
 
 					// DontWriteAssetPath
-					bool newToggleValue = EditorGUILayout.Toggle("DontWriteAssetPath", dontWriteAssetPath, GUILayout.MaxWidth(180));
-					if (newToggleValue != dontWriteAssetPath)
 					{
-						AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleClassName, filterRuleClassName, newToggleValue);
+						bool newToggleValue = EditorGUILayout.Toggle(dontWriteAssetPath, GUILayout.MinWidth(GuiDontWriteAssetPathSize), GUILayout.MaxWidth(GuiDontWriteAssetPathSize));
+						if (newToggleValue != dontWriteAssetPath)
+						{
+							dontWriteAssetPath = newToggleValue;
+							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleName, filterRuleName, dontWriteAssetPath, assetTags);
+						}
 					}
 
-					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
+					// AssetTags
+					{
+						string newTextValue = EditorGUILayout.TextField(assetTags, GUILayout.MinWidth(GuiAssetTagsSize), GUILayout.MaxWidth(GuiAssetTagsSize));
+						if (newTextValue != assetTags)
+						{
+							assetTags = newTextValue;
+							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleName, filterRuleName, dontWriteAssetPath, assetTags);
+						}
+					}
+
+					if (GUILayout.Button("-", GUILayout.MinWidth(GuiBtnSize), GUILayout.MaxWidth(GuiBtnSize)))
 					{
 						AssetBundleCollectorSettingData.RemoveCollector(directory);
 						break;
@@ -172,10 +217,11 @@ namespace MotionFramework.Editor
 				if (resultPath != null)
 				{
 					_lastOpenFolderPath = EditorTools.AbsolutePathToAssetPath(resultPath);
-					string defaultPackRuleClassName = nameof(PackExplicit);
-					string defaultFilterRuleClassName = nameof(CollectAll);
+					string defaultPackRuleName = nameof(PackExplicit);
+					string defaultFilterRuleName = nameof(CollectAll);
 					bool defaultDontWriteAssetPathValue = false;
-					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath, defaultPackRuleClassName, defaultFilterRuleClassName, defaultDontWriteAssetPathValue);
+					string defaultAssetTag = string.Empty;
+					AssetBundleCollectorSettingData.AddCollector(_lastOpenFolderPath, defaultPackRuleName, defaultFilterRuleName, defaultDontWriteAssetPathValue, defaultAssetTag);
 				}
 			}
 
@@ -186,37 +232,6 @@ namespace MotionFramework.Editor
 				if (resultPath != null)
 				{
 					CollectorConfigImporter.ImportXmlConfig(resultPath);
-				}
-			}
-		}
-		private void OnDrawDLC()
-		{
-			// 列表显示
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField($"[ DLC ]");
-			for (int i = 0; i < AssetBundleCollectorSettingData.Setting.DLCFiles.Count; i++)
-			{
-				string filePath = AssetBundleCollectorSettingData.Setting.DLCFiles[i];
-				EditorGUILayout.BeginHorizontal();
-				{
-					EditorGUILayout.LabelField(filePath);
-					if (GUILayout.Button("-", GUILayout.MaxWidth(40)))
-					{
-						AssetBundleCollectorSettingData.RemoveDLC(filePath);
-						break;
-					}
-				}
-				EditorGUILayout.EndHorizontal();
-			}
-
-			// 添加按钮
-			if (GUILayout.Button("+"))
-			{
-				string resultPath = EditorTools.OpenFilePath("Select File", "Assets/");
-				if (resultPath != null)
-				{
-					string filePath = EditorTools.AbsolutePathToAssetPath(resultPath);
-					AssetBundleCollectorSettingData.AddDLC(filePath);
 				}
 			}
 		}

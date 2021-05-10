@@ -47,7 +47,7 @@ namespace MotionFramework.Editor
 			}
 		}
 
-		public static List<string> GetPackRuleClassNames()
+		public static List<string> GetPackRuleNames()
 		{
 			if (_setting == null)
 				LoadSettingData();
@@ -59,7 +59,7 @@ namespace MotionFramework.Editor
 			}
 			return names;
 		}
-		public static List<string> GetFilterRuleClassNames()
+		public static List<string> GetFilterRuleNames()
 		{
 			if (_setting == null)
 				LoadSettingData();
@@ -71,20 +71,20 @@ namespace MotionFramework.Editor
 			}
 			return names;
 		}
-		public static bool HasPackRuleClassName(string className)
+		public static bool HasPackRuleName(string ruleName)
 		{
 			foreach (var pair in _cachePackRuleTypes)
 			{
-				if (pair.Key == className)
+				if (pair.Key == ruleName)
 					return true;
 			}
 			return false;
 		}
-		public static bool HasFilterRuleClassName(string className)
+		public static bool HasFilterRuleName(string ruleName)
 		{
 			foreach (var pair in _cacheFilterRuleTypes)
 			{
-				if (pair.Key == className)
+				if (pair.Key == ruleName)
 					return true;
 			}
 			return false;
@@ -186,7 +186,7 @@ namespace MotionFramework.Editor
 			Setting.Collectors.Clear();
 			SaveFile();
 		}
-		public static void AddCollector(string directory, string packRuleClassName, string filterRuleClassName, bool dontWriteAssetPath, bool saveFile = true)
+		public static void AddCollector(string directory, string packRuleName, string filterRuleName, bool dontWriteAssetPath, string assetTags, bool saveFile = true)
 		{
 			// 末尾添加路径分隔符号
 			if (directory.EndsWith("/") == false)
@@ -198,9 +198,10 @@ namespace MotionFramework.Editor
 
 			AssetBundleCollectorSetting.Collector element = new AssetBundleCollectorSetting.Collector();
 			element.CollectDirectory = directory;
-			element.PackRuleClassName = packRuleClassName;
-			element.FilterRuleClassName = filterRuleClassName;
+			element.PackRuleName = packRuleName;
+			element.FilterRuleName = filterRuleName;
 			element.DontWriteAssetPath = dontWriteAssetPath;
+			element.AssetTags = assetTags;
 			Setting.Collectors.Add(element);
 
 			if (saveFile)
@@ -218,15 +219,17 @@ namespace MotionFramework.Editor
 			}
 			SaveFile();
 		}
-		public static void ModifyCollector(string directory, string packRuleClassName, string filterRuleClassName, bool dontWriteAssetPath)
+		public static void ModifyCollector(string directory, string packRuleName, string filterRuleName, bool dontWriteAssetPath, string assetTags)
 		{
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
-				if (Setting.Collectors[i].CollectDirectory == directory)
+				var collector = Setting.Collectors[i];
+				if (collector.CollectDirectory == directory)
 				{
-					Setting.Collectors[i].PackRuleClassName = packRuleClassName;
-					Setting.Collectors[i].FilterRuleClassName = filterRuleClassName;
-					Setting.Collectors[i].DontWriteAssetPath = dontWriteAssetPath;
+					collector.PackRuleName = packRuleName;
+					collector.FilterRuleName = filterRuleName;
+					collector.DontWriteAssetPath = dontWriteAssetPath;
+					collector.AssetTags = assetTags;
 					break;
 				}
 			}
@@ -268,37 +271,6 @@ namespace MotionFramework.Editor
 			return false;
 		}
 
-		// DLC相关
-		public static void AddDLC(string filePath)
-		{
-			if (IsContainsDLC(filePath) == false)
-			{
-				Setting.DLCFiles.Add(filePath);
-				SaveFile();
-			}
-		}
-		public static void RemoveDLC(string filePath)
-		{
-			for (int i = 0; i < Setting.DLCFiles.Count; i++)
-			{
-				if (Setting.DLCFiles[i] == filePath)
-				{
-					Setting.DLCFiles.RemoveAt(i);
-					break;
-				}
-			}
-			SaveFile();
-		}
-		public static bool IsContainsDLC(string filePath)
-		{
-			for (int i = 0; i < Setting.DLCFiles.Count; i++)
-			{
-				if (Setting.DLCFiles[i] == filePath)
-					return true;
-			}
-			return false;
-		}
-
 		/// <summary>
 		/// 获取收集器总数
 		/// </summary>
@@ -324,7 +296,6 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 获取所有收集的资源
 		/// </summary>
-		/// <returns>返回资源路径列表</returns>
 		public static List<AssetCollectInfo> GetAllCollectAssets()
 		{
 			Dictionary<string, AssetCollectInfo> result = new Dictionary<string, AssetCollectInfo>(10000);
@@ -340,15 +311,20 @@ namespace MotionFramework.Editor
 					string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 					if (IsValidateAsset(assetPath) == false)
 						continue;
-					if (IsCollectAsset(assetPath, collector.FilterRuleClassName) == false)
+					if (IsCollectAsset(assetPath, collector.FilterRuleName) == false)
 						continue;
+
+					// 注意：AssetDatabase.FindAssets()可能会获取到重复的资源
 					if (result.ContainsKey(assetPath) == false)
-						result.Add(assetPath, new AssetCollectInfo(assetPath, collector.DontWriteAssetPath));
+					{
+						var assetCollectInfo = new AssetCollectInfo(assetPath, collector.GetAssetTags(), collector.DontWriteAssetPath);
+						result.Add(assetPath, assetCollectInfo);
+					}
 				}
 			}
 			return result.Values.ToList();
 		}
-		private static bool IsCollectAsset(string assetPath, string filterRuleClassName)
+		private static bool IsCollectAsset(string assetPath, string filterRuleName)
 		{
 			if (Setting.IsCollectAllShaders)
 			{
@@ -358,7 +334,7 @@ namespace MotionFramework.Editor
 			}
 
 			// 根据规则设置获取标签名称
-			IFilterRule filterRuleInstance = GetFilterRuleInstance(filterRuleClassName);
+			IFilterRule filterRuleInstance = GetFilterRuleInstance(filterRuleName);
 			return filterRuleInstance.IsCollectAsset(assetPath);
 		}
 
@@ -423,7 +399,7 @@ namespace MotionFramework.Editor
 			else
 			{
 				// 根据规则设置获取标签名称
-				IPackRule getInstance = GetPackRuleInstance(findCollector.PackRuleClassName);
+				IPackRule getInstance = GetPackRuleInstance(findCollector.PackRuleName);
 				bundleLabel = getInstance.GetAssetBundleLabel(assetPath);
 			}
 
@@ -442,46 +418,38 @@ namespace MotionFramework.Editor
 			}
 		}
 
-		/// <summary>
-		/// 获取所有DLC文件列表
-		/// </summary>
-		public static string[] GetDLCFiles()
+		private static IPackRule GetPackRuleInstance(string ruleName)
 		{
-			return Setting.DLCFiles.ToArray();
-		}
-
-		private static IPackRule GetPackRuleInstance(string className)
-		{
-			if (_cachePackRuleInstance.TryGetValue(className, out IPackRule instance))
+			if (_cachePackRuleInstance.TryGetValue(ruleName, out IPackRule instance))
 				return instance;
 
 			// 如果不存在创建类的实例
-			if (_cachePackRuleTypes.TryGetValue(className, out Type type))
+			if (_cachePackRuleTypes.TryGetValue(ruleName, out Type type))
 			{
 				instance = (IPackRule)Activator.CreateInstance(type);
-				_cachePackRuleInstance.Add(className, instance);
+				_cachePackRuleInstance.Add(ruleName, instance);
 				return instance;
 			}
 			else
 			{
-				throw new Exception($"{nameof(IPackRule)}类型无效：{className}");
+				throw new Exception($"{nameof(IPackRule)}类型无效：{ruleName}");
 			}
 		}
-		private static IFilterRule GetFilterRuleInstance(string className)
+		private static IFilterRule GetFilterRuleInstance(string ruleName)
 		{
-			if (_cacheFilterRuleInstance.TryGetValue(className, out IFilterRule instance))
+			if (_cacheFilterRuleInstance.TryGetValue(ruleName, out IFilterRule instance))
 				return instance;
 
 			// 如果不存在创建类的实例
-			if (_cacheFilterRuleTypes.TryGetValue(className, out Type type))
+			if (_cacheFilterRuleTypes.TryGetValue(ruleName, out Type type))
 			{
 				instance = (IFilterRule)Activator.CreateInstance(type);
-				_cacheFilterRuleInstance.Add(className, instance);
+				_cacheFilterRuleInstance.Add(ruleName, instance);
 				return instance;
 			}
 			else
 			{
-				throw new Exception($"{nameof(IFilterRule)}类型无效：{className}");
+				throw new Exception($"{nameof(IFilterRule)}类型无效：{ruleName}");
 			}
 		}
 	}

@@ -18,23 +18,27 @@ namespace MotionFramework.Editor
 		private class CollectWrapper
 		{
 			public string CollectDirectory;
-			public string PackRuleClassName;
-			public string FilterRuleClassName;
+			public string PackRuleName;
+			public string FilterRuleName;
 			public bool DontWriteAssetPath;
-			public CollectWrapper(string directory, string packRuleClassName, string filterRuleClassName, bool dontWriteAssetPath)
+			public string AssetTags;
+
+			public CollectWrapper(string directory, string packRuleName, string filterRuleName, bool dontWriteAssetPath, string assetTags)
 			{
 				CollectDirectory = directory;
-				PackRuleClassName = packRuleClassName;
-				FilterRuleClassName = filterRuleClassName;
+				PackRuleName = packRuleName;
+				FilterRuleName = filterRuleName;
 				DontWriteAssetPath = dontWriteAssetPath;
+				AssetTags = assetTags;
 			}
 		}
 
-		public const string XmlTag = "Collector";
+		public const string XmlCollector = "Collector";
 		public const string XmlDirectory = "Directory";
-		public const string XmlPackRuleName = "PackRule";
-		public const string XmlFilterRuleName = "FilterRule";
+		public const string XmlPackRule = "PackRule";
+		public const string XmlFilterRule = "FilterRule";
 		public const string XmlDontWriteAssetPath = "DontWriteAssetPath";
+		public const string XmlAssetTags = "AssetTags";
 		
 		public static void ImportXmlConfig(string filePath)
 		{
@@ -52,32 +56,37 @@ namespace MotionFramework.Editor
 
 			// 解析文件
 			XmlElement root = xml.DocumentElement;
-			XmlNodeList nodeList = root.GetElementsByTagName(XmlTag);
+			XmlNodeList nodeList = root.GetElementsByTagName(XmlCollector);
 			if (nodeList.Count == 0)
-				throw new Exception($"Not found any {XmlTag}");
+				throw new Exception($"Not found any {XmlCollector}");
 			foreach (XmlNode node in nodeList)
 			{
 				XmlElement collect = node as XmlElement;
 				string directory = collect.GetAttribute(XmlDirectory);
-				string packRuleClassName = collect.GetAttribute(XmlPackRuleName);
-				string filterRuleClassName = collect.GetAttribute(XmlFilterRuleName);
+				string packRuleName = collect.GetAttribute(XmlPackRule);
+				string filterRuleName = collect.GetAttribute(XmlFilterRule);
 				string dontWriteAssetPath = collect.GetAttribute(XmlDontWriteAssetPath);
+				string assetTags = collect.GetAttribute(XmlAssetTags);
 
 				if (Directory.Exists(directory) == false)
 					throw new Exception($"Not found directory : {directory}");
-				if (string.IsNullOrEmpty(packRuleClassName))
-					throw new Exception($"Not found attribute {XmlPackRuleName} in collector : {directory}");
-				if (string.IsNullOrEmpty(filterRuleClassName))
-					throw new Exception($"Not found attribute {XmlFilterRuleName} in collector : {directory}");
-				if (string.IsNullOrEmpty(dontWriteAssetPath))
-					throw new Exception($"Not found attribute {XmlDontWriteAssetPath} in collector : {directory}");
-				if (AssetBundleCollectorSettingData.HasPackRuleClassName(packRuleClassName) == false)
-					throw new Exception($"Invalid {nameof(IPackRule)} class type : {packRuleClassName}");
-				if (AssetBundleCollectorSettingData.HasFilterRuleClassName(filterRuleClassName) == false)
-					throw new Exception($"Invalid {nameof(IFilterRule)} class type : {filterRuleClassName}");
 
-				bool dontWriteAssetPathFlag = StringConvert.StringToBool(dontWriteAssetPath);
-				var collectWrapper = new CollectWrapper(directory, packRuleClassName, filterRuleClassName, dontWriteAssetPathFlag);
+				if (collect.HasAttribute(XmlPackRule) == false)
+					throw new Exception($"Not found attribute {XmlPackRule} in collector : {directory}");
+				if (collect.HasAttribute(XmlFilterRule) == false)
+					throw new Exception($"Not found attribute {XmlFilterRule} in collector : {directory}");
+				if (collect.HasAttribute(XmlDontWriteAssetPath) == false)
+					throw new Exception($"Not found attribute {XmlDontWriteAssetPath} in collector : {directory}");
+				if (collect.HasAttribute(XmlAssetTags) == false)
+					throw new Exception($"Not found attribute {XmlAssetTags} in collector : {directory}");
+
+				if (AssetBundleCollectorSettingData.HasPackRuleName(packRuleName) == false)
+					throw new Exception($"Invalid {nameof(IPackRule)} class type : {packRuleName}");
+				if (AssetBundleCollectorSettingData.HasFilterRuleName(filterRuleName) == false)
+					throw new Exception($"Invalid {nameof(IFilterRule)} class type : {filterRuleName}");
+
+				bool dontWriteAssetPathValue = StringConvert.StringToBool(dontWriteAssetPath);
+				CollectWrapper collectWrapper = new CollectWrapper(directory, packRuleName, filterRuleName, dontWriteAssetPathValue, assetTags);
 				wrappers.Add(collectWrapper);
 			}
 
@@ -85,8 +94,10 @@ namespace MotionFramework.Editor
 			AssetBundleCollectorSettingData.ClearAllCollector();
 			foreach (var wrapper in wrappers)
 			{
-				AssetBundleCollectorSettingData.AddCollector(wrapper.CollectDirectory, wrapper.PackRuleClassName, wrapper.FilterRuleClassName, wrapper.DontWriteAssetPath, false);
+				AssetBundleCollectorSettingData.AddCollector(wrapper.CollectDirectory, wrapper.PackRuleName, wrapper.FilterRuleName, wrapper.DontWriteAssetPath, wrapper.AssetTags, false);
 			}
+
+			// 保存配置数据
 			AssetBundleCollectorSettingData.SaveFile();
 			Debug.Log($"导入配置完毕，一共导入{wrappers.Count}个收集器。");
 		}
