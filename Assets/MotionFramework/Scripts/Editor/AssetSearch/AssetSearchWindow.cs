@@ -207,39 +207,32 @@ namespace MotionFramework.Editor
 				_collection[value].Clear();
 			}
 
-			// 搜索相关资源的GUID
-			string[] allGuids = null;
-			if (serachType == EAssetSearchType.All)
-				allGuids = AssetDatabase.FindAssets(string.Empty, new string[] { $"{searchFolder}" });
-			else
-				allGuids = AssetDatabase.FindAssets($"t:{serachType}", new string[] { $"{searchFolder}" });
-
 			// 查找引用
 			int progressValue = 0;
-			foreach (string guid in allGuids)
+			string[] findAssets = EditorTools.FindAssets(serachType, searchFolder);
+			foreach (string assetPath in findAssets)
 			{
-				string path = AssetDatabase.GUIDToAssetPath(guid);
-				string[] dpends = AssetDatabase.GetDependencies(path, _recursive);
+				string[] dpends = AssetDatabase.GetDependencies(assetPath, _recursive);
 				foreach (string name in dpends)
 				{
-					if (name.Equals(path))
+					if (name.Equals(assetPath))
 						continue;
 					if (name.Equals(searchAssetPath))
 					{
 						foreach (EAssetFileExtension value in Enum.GetValues(typeof(EAssetFileExtension)))
 						{
-							if (path.EndsWith($".{value}"))
+							if (assetPath.EndsWith($".{value}"))
 							{
-								if (_collection[value].Contains(path) == false)
+								if (_collection[value].Contains(assetPath) == false)
 								{
-									_collection[value].Add(path);
+									_collection[value].Add(assetPath);
 									break;
 								}
 							}
 						}
 					}
 				}
-				EditorTools.DisplayProgressBar("正在搜索", ++progressValue, allGuids.Length);
+				EditorTools.DisplayProgressBar("正在搜索", ++progressValue, findAssets.Length);
 			}
 			EditorTools.ClearProgressBar();
 		}
