@@ -20,12 +20,12 @@ namespace MotionFramework.Editor
 		{
 			// 获取导入资源所在文件夹内的所有文件的GUID
 			string folderPath = Path.GetDirectoryName(importAssetPath);
-			string[] guids = AssetDatabase.FindAssets(string.Empty, new[] { folderPath });
-			if (guids.Length == 0)
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.All, folderPath);
+			if (findAssets.Length == 0)
 				return string.Empty;
 
 			// 我们以Project视图里文件夹内首个资源做为模板
-			return AssetDatabase.GUIDToAssetPath(guids[0]);
+			return findAssets[0];
 		}
 		private AssetImporter GetTemplateAssetImporter(string importAssetPath)
 		{
@@ -44,10 +44,10 @@ namespace MotionFramework.Editor
 		private void ProcessAllModel(ModelImporter templateImporter)
 		{
 			string folderPath = Path.GetDirectoryName(templateImporter.assetPath);
-			string[] guids = AssetDatabase.FindAssets($"t:{EAssetSearchType.Model}", new[] { folderPath });
-			for (int i = 0; i < guids.Length; i++)
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.Model, folderPath);
+			for (int i = 0; i < findAssets.Length; i++)
 			{
-				string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+				string assetPath = findAssets[i];
 				if (Path.GetFileName(assetPath) == Path.GetFileName(templateImporter.assetPath))
 					continue;
 				AssetDatabase.ImportAsset(assetPath);
@@ -56,10 +56,10 @@ namespace MotionFramework.Editor
 		private void ProcessAllTexture(TextureImporter templateImporter)
 		{
 			string folderPath = Path.GetDirectoryName(templateImporter.assetPath);
-			string[] guids = AssetDatabase.FindAssets($"t:{EAssetSearchType.Texture}", new[] { folderPath });
-			for (int i = 0; i < guids.Length; i++)
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.Texture, folderPath);
+			for (int i = 0; i < findAssets.Length; i++)
 			{
-				string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+				string assetPath = findAssets[i];
 				if (Path.GetFileName(assetPath) == Path.GetFileName(templateImporter.assetPath))
 					continue;
 				AssetDatabase.ImportAsset(assetPath);
@@ -68,10 +68,10 @@ namespace MotionFramework.Editor
 		private void ProcessAllAudio(AudioImporter templateImporter)
 		{
 			string folderPath = Path.GetDirectoryName(templateImporter.assetPath);
-			string[] guids = AssetDatabase.FindAssets($"t:{EAssetSearchType.AudioClip}", new[] { folderPath });
-			for (int i = 0; i < guids.Length; i++)
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.AudioClip, folderPath);
+			for (int i = 0; i < findAssets.Length; i++)
 			{
-				string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+				string assetPath = findAssets[i];
 				if (Path.GetFileName(assetPath) == Path.GetFileName(templateImporter.assetPath))
 					continue;
 				AssetDatabase.ImportAsset(assetPath);
