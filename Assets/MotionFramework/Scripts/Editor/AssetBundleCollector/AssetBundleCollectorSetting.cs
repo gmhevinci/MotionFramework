@@ -23,18 +23,6 @@ namespace MotionFramework.Editor
 			public string AssetTags = string.Empty;
 
 			/// <summary>
-			/// 末尾没有分隔符号的收集路径
-			/// 注意：AssetDatabase.FindAssets()不支持末尾带分隔符的文件夹路径
-			/// </summary>
-			public string CollectDirectoryTrimEndSeparator
-			{
-				get
-				{
-					return CollectDirectory.TrimEnd('/');
-				}
-			}
-
-			/// <summary>
 			/// 获取资源标记列表
 			/// </summary>
 			public List<string> GetAssetTags()

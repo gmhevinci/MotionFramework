@@ -288,7 +288,7 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector wrapper = Setting.Collectors[i];
-				result.Add(wrapper.CollectDirectoryTrimEndSeparator);
+				result.Add(wrapper.CollectDirectory);
 			}
 			return result;
 		}
@@ -302,19 +302,14 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
-
-				// 获取收集目录下的所有资源对象的GUID包括子文件夹
-				string collectDirectory = collector.CollectDirectoryTrimEndSeparator;
-				string[] guids = AssetDatabase.FindAssets(string.Empty, new string[] { collectDirectory });
-				foreach (string guid in guids)
+				string[] findAssets = EditorTools.FindAssets(EAssetSearchType.All, collector.CollectDirectory);
+				foreach (string assetPath in findAssets)
 				{
-					string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 					if (IsValidateAsset(assetPath) == false)
 						continue;
 					if (IsCollectAsset(assetPath, collector.FilterRuleName) == false)
 						continue;
 
-					// 注意：AssetDatabase.FindAssets()可能会获取到重复的资源
 					if (result.ContainsKey(assetPath) == false)
 					{
 						var assetCollectInfo = new AssetCollectInfo(assetPath, collector.GetAssetTags(), collector.DontWriteAssetPath);
