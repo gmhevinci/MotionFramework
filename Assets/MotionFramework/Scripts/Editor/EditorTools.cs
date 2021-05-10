@@ -67,7 +67,56 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
-		#region 搜索面板
+		#region EditorUtility封装
+		/// <summary>
+		/// 搜集资源
+		/// </summary>
+		/// <param name="searchType">搜集的资源类型</param>
+		/// <param name="searchInFolders">指定搜索的文件夹列表</param>
+		/// <returns>返回搜集到的资源路径列表</returns>
+		public static string[] FindAssets(EAssetSearchType searchType, string[] searchInFolders)
+		{
+			// 注意：AssetDatabase.FindAssets()不支持末尾带分隔符的文件夹路径
+			for (int i = 0; i < searchInFolders.Length; i++)
+			{
+				string folderPath = searchInFolders[i];
+				searchInFolders[i] = folderPath.TrimEnd('/');
+			}
+
+			// 注意：获取指定目录下的所有资源对象（包括子文件夹）
+			string[] guids;
+			if (searchType == EAssetSearchType.All)
+				guids = AssetDatabase.FindAssets(string.Empty, searchInFolders);
+			else
+				guids = AssetDatabase.FindAssets($"t:{searchType}", searchInFolders);
+
+			// 注意：AssetDatabase.FindAssets()可能会获取到重复的资源
+			List<string> result = new List<string>();
+			for (int i = 0; i < guids.Length; i++)
+			{
+				string guid = guids[i];
+				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+				if (result.Contains(assetPath) == false)
+				{
+					result.Add(assetPath);
+				}
+			}
+
+			// 返回结果
+			return result.ToArray();
+		}
+
+		/// <summary>
+		/// 搜集资源
+		/// </summary>
+		/// <param name="searchType">搜集的资源类型</param>
+		/// <param name="searchInFolder">指定搜索的文件夹</param>
+		/// <returns>返回搜集到的资源路径列表</returns>
+		public static string[] FindAssets(EAssetSearchType searchType, string searchInFolder)
+		{
+			return FindAssets(searchType, new string[] { searchInFolder });
+		}
+
 		/// <summary>
 		/// 打开搜索面板
 		/// </summary>
@@ -107,20 +156,25 @@ namespace MotionFramework.Editor
 			}
 			return openPath;
 		}
-		#endregion
 
-		#region 进度条
+		/// <summary>
+		/// 显示进度框
+		/// </summary>
 		public static void DisplayProgressBar(string tips, int progressValue, int totalValue)
 		{
 			EditorUtility.DisplayProgressBar("进度", $"{tips} : {progressValue}/{totalValue}", (float)progressValue / totalValue);
 		}
+
+		/// <summary>
+		/// 隐藏进度框
+		/// </summary>
 		public static void ClearProgressBar()
 		{
 			EditorUtility.ClearProgressBar();
 		}
 		#endregion
 
-		#region 查找引用对象
+		#region 引用关系
 		/// <summary>
 		/// 获取场景里的克隆预制体
 		/// </summary>
@@ -678,17 +732,6 @@ namespace MotionFramework.Editor
 		#endregion
 
 		#region 玩家偏好
-		// BOOL
-		public static void PlayerSetBool(string key, bool value)
-		{
-			EditorPrefs.SetInt(key, value ? 1 : 0);
-		}
-		public static bool PlayerGetBool(string key, bool defaultValue)
-		{
-			int result = EditorPrefs.GetInt(key, defaultValue ? 1 : 0);
-			return result != 0;
-		}
-
 		// 枚举
 		public static void PlayerSetEnum<T>(string key, T value)
 		{
