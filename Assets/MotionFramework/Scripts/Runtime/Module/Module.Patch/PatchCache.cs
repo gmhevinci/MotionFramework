@@ -59,9 +59,9 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 缓存文件是否已经存在
 		/// </summary>
-		public bool Contains(string md5)
+		public bool Contains(string hash)
 		{
-			return CachedFileHashList.Contains(md5);
+			return CachedFileHashList.Contains(hash);
 		}
 
 		/// <summary>

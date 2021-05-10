@@ -77,15 +77,15 @@ namespace MotionFramework.Patch
 			if (_variantCollector != null)
 				bundleName = _variantCollector.RemapVariantName(_patchManifest, bundleName);
 
-			if (_patchManifest.Bundles.TryGetValue(bundleName, out PatchBundle element))
+			if (_patchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
-				string localPath = AssetPathHelper.MakeStreamingLoadPath(element.Hash);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, string.Empty, element.Version, element.IsEncrypted);
+				string localPath = AssetPathHelper.MakeStreamingLoadPath(patchBundle.Hash);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, string.Empty, patchBundle.Version, patchBundle.IsEncrypted);
 				return bundleInfo;
 			}
 			else
 			{
-				MotionLog.Warning($"Not found element in patch manifest : {bundleName}");
+				MotionLog.Warning($"Not found bundle in patch manifest : {bundleName}");
 				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, string.Empty);
 				return bundleInfo;
 			}

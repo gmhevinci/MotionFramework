@@ -55,7 +55,7 @@ namespace MotionFramework.Patch
 			public List<VariantRule> VariantRules;
 
 			/// <summary>
-			/// 启动游戏时自动下载的DLC内容
+			/// 更新游戏时自动下载的DLC内容
 			/// </summary>
 			public string[] AutoDownloadDLC;
 
@@ -158,20 +158,22 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取DLC下载器
 		/// </summary>
-		/// <param name="dlcLabel">DLC标签</param>
+		/// <param name="dlcTag">DLC标签</param>
 		/// <param name="maxNumberOnLoad">下载器同时下载的文件数</param>
-		public PatchDownloader CreateDLCDownloader(string dlcLabel, int maxNumberOnLoad)
+		public PatchDownloader CreateDLCDownloader(string dlcTag, int maxNumberOnLoad)
 		{
-			return CreateDLCDownloader(new string[] { dlcLabel }, maxNumberOnLoad);
+			return CreateDLCDownloader(new string[] { dlcTag }, maxNumberOnLoad);
 		}
-		public PatchDownloader CreateDLCDownloader(string[] dlcLabels, int maxNumberOnLoad)
+		public PatchDownloader CreateDLCDownloader(string[] dlcTags, int maxNumberOnLoad)
 		{
+			if (dlcTags == null || dlcTags.Length == 0)
+				throw new Exception("DLC tags is null or empty.");
 			if (_isRun == false)
 				throw new Exception($"The patch system is not start. Call PatchManager.Instance.Download()");
 			if (IsFinish() == false)
 				throw new Exception($"The patch system is not over.");
 
-			var downloadList = _patcher.GetPatchDownloadList(dlcLabels);
+			var downloadList = _patcher.GetPatchDownloadList(dlcTags);
 			PatchDownloader downlader = new PatchDownloader(_patcher, downloadList, maxNumberOnLoad);
 			return downlader;
 		}
@@ -189,7 +191,9 @@ namespace MotionFramework.Patch
 		{
 			bool result = _patcher.CheckContentIntegrity(bundleName);
 			if (result)
+			{
 				_patcher.CacheDownloadPatchFile(bundleName);
+			}		
 			return result;
 		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)

@@ -38,11 +38,6 @@ namespace MotionFramework.Patch
 		public int Version;
 
 		/// <summary>
-		/// 标记位
-		/// </summary>
-		public int Flags;
-
-		/// <summary>
 		/// 收集的资源列表
 		/// </summary>
 		public string[] CollectAssets;
@@ -53,89 +48,81 @@ namespace MotionFramework.Patch
 		public int[] DependIDs;
 
 		/// <summary>
-		/// DLC标签列表
+		/// Tags
 		/// </summary>
-		public string[] DLCLabels;
+		public string[] Tags;
+
+		/// <summary>
+		/// Flags
+		/// </summary>
+		public int Flags;
 
 
 		/// <summary>
 		/// 是否为加密文件
 		/// </summary>
-		[NonSerialized]
-		public bool IsEncrypted;
+		public bool IsEncrypted { private set; get; }
+
+		/// <summary>
+		/// 是否为内置文件
+		/// </summary>
+		public bool IsBuildin { private set; get; }
 
 		/// <summary>
 		/// 依赖的资源包名称列表
 		/// </summary>
-		[NonSerialized]
-		public string[] Depends;
+		public string[] Depends { set; get; }
 
 
-		public PatchBundle(string bundleName, string hash, string crc, long sizeBytes, int version, int flags, string[] collectAssets, string[] depends, string[] dlcLabels)
+		public PatchBundle(string bundleName, string hash, string crc, long sizeBytes, int version, string[] collectAssets, string[] depends, string[] tags)
 		{
 			BundleName = bundleName;
 			Hash = hash;
 			CRC = crc;
 			SizeBytes = sizeBytes;
 			Version = version;
-			Flags = flags;
 			CollectAssets = collectAssets;
 			Depends = depends;
-			DLCLabels = dlcLabels;
+			Tags = tags;
 		}
 
 		/// <summary>
-		/// 是否为DLC资源
+		/// 设置Flags
 		/// </summary>
-		public bool IsDLC()
+		public void SetFlagsValue(bool isEncrypted, bool isBuildin)
 		{
-			return DLCLabels != null && DLCLabels.Length > 0;
+			IsEncrypted = isEncrypted;
+			IsBuildin = isBuildin;
+
+			BitMask32 mask = new BitMask32(0);
+			if (isEncrypted) mask.Open(0);
+			if (isBuildin) mask.Open(1);
+			Flags = mask;
 		}
 
 		/// <summary>
-		/// 是否包含DLC标签
+		/// 解析Flags
 		/// </summary>
-		public bool HasDLCLabel(string label)
+		public void ParseFlagsValue()
 		{
-			if (DLCLabels == null)
+			BitMask32 value = Flags;
+			IsEncrypted = value.Test(0);
+			IsBuildin = value.Test(1);
+		}
+
+		/// <summary>
+		/// 是否包含Tag
+		/// </summary>
+		public bool HasTag(string[] tags)
+		{
+			if (Tags == null || Tags.Length == 0)
 				return false;
-			return DLCLabels.Contains(label);
-		}
-
-		/// <summary>
-		/// 是否包含DLC标签
-		/// </summary>
-		public bool HasDLCLabel(string[] labels)
-		{
-			if (DLCLabels == null)
-				return false;
-			for (int i = 0; i < labels.Length; i++)
+			foreach (var tag in tags)
 			{
-				if (DLCLabels.Contains(labels[i]))
+				if (Tags.Contains(tag))
 					return true;
 			}
 			return false;
-		}
-
-
-		/// <summary>
-		/// 创建标记位
-		/// </summary>
-		/// <param name="isEncrypted">是否为加密文件</param>
-		public static int CreateFlags(bool isEncrypted)
-		{
-			BitMask32 flags = new BitMask32(0);
-			if (isEncrypted) flags.Open(0);
-			return flags;
-		}
-
-		/// <summary>
-		/// 解析标记位
-		/// </summary>
-		public static void ParseFlags(int flags, out bool isEncrypted)
-		{
-			BitMask32 value = flags;
-			isEncrypted = value.Test(0);
 		}
 	}
 }

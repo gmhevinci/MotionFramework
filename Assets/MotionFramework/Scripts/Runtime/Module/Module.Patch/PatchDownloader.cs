@@ -39,7 +39,7 @@ namespace MotionFramework.Patch
 		public long CurrentDownloadBytes { private set; get; }
 		private long _lastDownloadBytes = 0;
 		private int _lastDownloadCount = 0;
-		
+
 		// 委托相关
 		public OnDownloadProgress OnDownloadProgressCallback { set; get; }
 		public OnPatchFileDownloadFailed OnPatchFileDownloadFailedCallback { set; get; }
@@ -57,9 +57,9 @@ namespace MotionFramework.Patch
 
 			DownloadStates = EDownloaderStates.None;
 			TotalDownloadCount = downloadList.Count;
-			foreach (var element in downloadList)
+			foreach (var patchBundle in downloadList)
 			{
-				TotalDownloadBytes += element.SizeBytes;
+				TotalDownloadBytes += patchBundle.SizeBytes;
 			}
 		}
 
@@ -116,7 +116,7 @@ namespace MotionFramework.Patch
 				if (loader.IsDone() == false)
 					continue;
 
-				PatchBundle element = loader.UserData as PatchBundle;
+				PatchBundle patchBundle = loader.UserData as PatchBundle;
 
 				// 检测是否下载失败
 				if (loader.HasError())
@@ -124,36 +124,36 @@ namespace MotionFramework.Patch
 					loader.ReportError();
 					loader.Dispose();
 					_loaders.RemoveAt(i);
-					_loadFailedList.Add(element);
+					_loadFailedList.Add(patchBundle);
 					continue;
 				}
 
 				// 验证下载文件完整性
-				if (_patcher.CheckContentIntegrity(element) == false)
+				if (_patcher.CheckContentIntegrity(patchBundle) == false)
 				{
-					MotionLog.Error($"Check download content integrity is failed : {element.BundleName}");
+					MotionLog.Error($"Check download content integrity is failed : {patchBundle.BundleName}");
 					loader.Dispose();
 					_loaders.RemoveAt(i);
-					_checkFailedList.Add(element);
+					_checkFailedList.Add(patchBundle);
 					continue;
 				}
 
 				// 下载成功
 				loader.Dispose();
 				_loaders.RemoveAt(i);
-				_succeedList.Add(element);
+				_succeedList.Add(patchBundle);
 				CurrentDownloadCount++;
-				CurrentDownloadBytes += element.SizeBytes;
+				CurrentDownloadBytes += patchBundle.SizeBytes;
 			}
 
 			// 如果下载进度发生变化
-			if(_lastDownloadBytes != downloadBytes || _lastDownloadCount != CurrentDownloadCount)
+			if (_lastDownloadBytes != downloadBytes || _lastDownloadCount != CurrentDownloadCount)
 			{
 				_lastDownloadBytes = downloadBytes;
 				_lastDownloadCount = CurrentDownloadCount;
 				OnDownloadProgressCallback?.Invoke(TotalDownloadCount, _lastDownloadCount, TotalDownloadBytes, _lastDownloadBytes);
 			}
-			
+
 			// 动态创建新的下载器到最大数量限制
 			// 注意：如果期间有下载失败的文件，暂停动态创建下载器
 			if (_downloadList.Count > 0 && _loadFailedList.Count == 0 && _checkFailedList.Count == 0)
@@ -192,17 +192,17 @@ namespace MotionFramework.Patch
 			}
 		}
 
-		private WebFileRequest CreateDownloader(PatchBundle element)
+		private WebFileRequest CreateDownloader(PatchBundle patchBundle)
 		{
 			// 注意：资源版本号只用于确定下载路径
-			string url = _patcher.GetWebDownloadURL(element.Version.ToString(), element.Hash);
-			string savePath = PatchHelper.MakeSandboxCacheFilePath(element.Hash);
+			string url = _patcher.GetWebDownloadURL(patchBundle.Version, patchBundle.Hash);
+			string savePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 			FileUtility.CreateFileDirectory(savePath);
 
 			// 创建下载器
-			MotionLog.Log($"Beginning to download web file : {url}");
+			MotionLog.Log($"Beginning to download web file : {patchBundle.BundleName} URL : {url}");
 			WebFileRequest download = new WebFileRequest(url, savePath);
-			download.UserData = element;
+			download.UserData = patchBundle;
 			download.DownLoad();
 			return download;
 		}

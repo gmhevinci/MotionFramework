@@ -24,6 +24,11 @@ namespace MotionFramework.Patch
 		public int ResourceVersion;
 
 		/// <summary>
+		/// 内置资源的标记列表
+		/// </summary>
+		public string BuildinTags;
+
+		/// <summary>
 		/// 资源包列表
 		/// </summary>
 		public List<PatchBundle> BundleList = new List<PatchBundle>();
@@ -52,7 +57,7 @@ namespace MotionFramework.Patch
 		[NonSerialized]
 		private readonly Dictionary<string, PatchBundle> AssetsMapping = new Dictionary<string, PatchBundle>();
 
-		
+
 		/// <summary>
 		/// 是否包含变体资源
 		/// </summary>
@@ -118,7 +123,7 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public static void Serialize(string savePath, PatchManifest patchManifest)
 		{
-			// 构建依赖关系
+			// 前置准备工作
 			foreach (var patchBundle in patchManifest.BundleList)
 			{
 				patchBundle.DependIDs = GetPatchDpendIDs(patchManifest, patchBundle);
@@ -158,13 +163,12 @@ namespace MotionFramework.Patch
 			// 构建资源包集合
 			foreach (var patchBundle in patchManifest.BundleList)
 			{
-				patchManifest.Bundles.Add(patchBundle.BundleName, patchBundle);
-
-				// 解析标记位
-				PatchBundle.ParseFlags(patchBundle.Flags, out patchBundle.IsEncrypted);
-
-				// 解析依赖列表
+				// 前置准备工作
+				patchBundle.ParseFlagsValue();
 				patchBundle.Depends = GetDepends(patchManifest, patchBundle);
+
+				// 添加到字典集合
+				patchManifest.Bundles.Add(patchBundle.BundleName, patchBundle);
 
 				// 构建资源映射集合
 				UpdateAssetMap(patchManifest, patchBundle);

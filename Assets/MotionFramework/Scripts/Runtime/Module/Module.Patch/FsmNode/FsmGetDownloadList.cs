@@ -36,10 +36,8 @@ namespace MotionFramework.Patch
 
 		private void GetDownloadList()
 		{
-			// 获取游戏启动时的下载列表
-			var downloadList = _patcher.GetAutoPatchDownloadList();
-
 			// 如果下载列表为空
+			var downloadList = _patcher.GetAutoPatchDownloadList();
 			if (downloadList.Count == 0)
 			{
 				MotionLog.Log("Not found update web files.");
