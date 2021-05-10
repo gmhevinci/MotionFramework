@@ -41,16 +41,46 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
+		/// 是否包含指定资源
+		/// </summary>
+		public bool IsContainsAsset(string assetPath)
+		{
+			foreach (var assetInfo in Assets)
+			{
+				if (assetInfo.AssetPath == assetPath)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
 		/// 添加一个打包资源
 		/// </summary>
 		public void PackAsset(AssetInfo assetInfo)
 		{
-			foreach (var asset in Assets)
-			{
-				if (asset.AssetPath == assetInfo.AssetPath)
-					throw new System.Exception($"Asset is existed : {assetInfo.AssetPath}");
-			}
+			if(IsContainsAsset(assetInfo.AssetPath))
+				throw new System.Exception($"Asset is existed : {assetInfo.AssetPath}");
+
 			Assets.Add(assetInfo);
+		}
+
+		/// <summary>
+		/// 获取资源标记列表
+		/// </summary>
+		public string[] GetAssetTags()
+		{
+			List<string> result = new List<string>(Assets.Count);
+			foreach(var assetInfo in Assets)
+			{
+				foreach(var assetTag in assetInfo.AssetTags)
+				{
+					if (result.Contains(assetTag) == false)
+						result.Add(assetTag);
+				}
+			}
+			return result.ToArray();
 		}
 
 		/// <summary>

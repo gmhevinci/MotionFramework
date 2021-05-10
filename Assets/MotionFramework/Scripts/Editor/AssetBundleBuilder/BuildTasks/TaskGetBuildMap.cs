@@ -85,16 +85,15 @@ namespace MotionFramework.Editor
 			}
 
 			/// <summary>
-			/// 获取构建管线里需要的数据
+			/// 获取AssetBundle内包含的标记列表
 			/// </summary>
-			public UnityEditor.AssetBundleBuild[] GetPipelineBuilds()
+			public string[] GetAssetTags(string bundleFullName)
 			{
-				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BundleInfos.Count);
-				foreach (var bundleInfo in BundleInfos)
+				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
 				{
-					builds.Add(bundleInfo.CreatePipelineBuild());
+					return bundleInfo.GetAssetTags();
 				}
-				return builds.ToArray();
+				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
 			}
 
 			/// <summary>
@@ -119,6 +118,19 @@ namespace MotionFramework.Editor
 					return bundleInfo.GetCollectAssetPaths();
 				}
 				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
+			}
+
+			/// <summary>
+			/// 获取构建管线里需要的数据
+			/// </summary>
+			public UnityEditor.AssetBundleBuild[] GetPipelineBuilds()
+			{
+				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BundleInfos.Count);
+				foreach (var bundleInfo in BundleInfos)
+				{
+					builds.Add(bundleInfo.CreatePipelineBuild());
+				}
+				return builds.ToArray();
 			}
 
 			private bool TryGetBundleInfo(string bundleFullName, out BundleInfo result)
@@ -174,21 +186,27 @@ namespace MotionFramework.Editor
 				for (int i = 0; i < depends.Count; i++)
 				{
 					AssetInfo assetInfo = depends[i];
-					if (buildAssets.ContainsKey(assetInfo.AssetPath))
+					string assetPath = assetInfo.AssetPath;
+
+					// 如果已经存在，则增加该资源的依赖计数
+					if (buildAssets.ContainsKey(assetPath))
 					{
-						buildAssets[assetInfo.AssetPath].DependCount++;
+						buildAssets[assetPath].DependCount++;
 					}
 					else
 					{
-						buildAssets.Add(assetInfo.AssetPath, assetInfo);
-						references.Add(assetInfo.AssetPath, mainAssetPath);
+						buildAssets.Add(assetPath, assetInfo);
+						references.Add(assetPath, mainAssetPath);
 					}
 
+					// 添加资源标记
+					buildAssets[assetPath].AddAssetTags(collectInfo.AssetTags);
+
 					// 注意：检测是否为主动收集资源
-					if (assetInfo.AssetPath == mainAssetPath)
+					if (assetPath == mainAssetPath)
 					{
-						buildAssets[mainAssetPath].IsCollectAsset = true;
-						buildAssets[mainAssetPath].DontWriteAssetPath = collectInfo.DontWriteAssetPath;
+						buildAssets[assetPath].IsCollectAsset = true;
+						buildAssets[assetPath].DontWriteAssetPath = collectInfo.DontWriteAssetPath;
 					}
 				}
 				EditorTools.DisplayProgressBar("依赖文件分析", ++progressValue, allCollectAssets.Count);

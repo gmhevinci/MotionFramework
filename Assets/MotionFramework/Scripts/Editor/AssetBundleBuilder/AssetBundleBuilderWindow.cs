@@ -26,13 +26,15 @@ namespace MotionFramework.Editor
 			_thisInstance.Show();
 		}
 
-		// 构建参数
-		public int BuildVersion;
-		public BuildTarget BuildTarget;
+		// 构建器
+		private readonly AssetBundleBuilder _assetBuilder = new AssetBundleBuilder();
 
-		// 构建选项
-		public ECompressOption CompressOption = ECompressOption.Uncompressed;
-		public bool IsForceRebuild = false;
+		// 构建参数
+		private int _buildVersion;
+		private BuildTarget _buildTarget;
+		private ECompressOption _compressOption = ECompressOption.Uncompressed;
+		private bool _isForceRebuild = false;
+		private string _buildinTags = string.Empty;
 
 		// GUI相关
 		private bool _isInit = false;
@@ -40,10 +42,13 @@ namespace MotionFramework.Editor
 		private GUIStyle _leftStyle;
 		private bool _showToolsFoldout = true;
 
-		// 构建器
-		private readonly AssetBundleBuilder _assetBuilder = new AssetBundleBuilder();
 
-
+		private void OnGUI()
+		{
+			InitInternal();
+			OnDrawBuildContent();
+			OnDrawGUITools();
+		}
 		private void InitInternal()
 		{
 			if (_isInit)
@@ -58,29 +63,29 @@ namespace MotionFramework.Editor
 
 			// 构建参数
 			var appVersion = new Version(Application.version);
-			BuildVersion = appVersion.Revision;
-			BuildTarget = EditorUserBuildSettings.activeBuildTarget;
+			_buildVersion = appVersion.Revision;
+			_buildTarget = EditorUserBuildSettings.activeBuildTarget;
 
 			// 读取配置
 			LoadSettingsFromPlayerPrefs();
 		}
-		private void OnGUI()
+		private void OnDrawBuildContent()
 		{
-			// 初始化
-			InitInternal();
-
 			// 标题
 			EditorGUILayout.LabelField("Build setup", _centerStyle);
 			EditorGUILayout.Space();
 
 			// 输出路径
-			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
-			string outputDirectory = AssetBundleBuilderHelper.MakeOutputDirectory(defaultOutputRoot, BuildTarget);
-			EditorGUILayout.LabelField("Build Output", outputDirectory);
+			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRoot();
+			string pipelineOutputDirectory = AssetBundleBuilderHelper.MakePipelineOutputDirectory(defaultOutputRoot, _buildTarget);
+			EditorGUILayout.LabelField("Build Output", pipelineOutputDirectory);
 
-			BuildVersion = EditorGUILayout.IntField("Build Version", BuildVersion, GUILayout.MaxWidth(250));
-			CompressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", CompressOption, GUILayout.MaxWidth(250));
-			IsForceRebuild = GUILayout.Toggle(IsForceRebuild, "Froce Rebuild", GUILayout.MaxWidth(120));
+			// 构建参数
+			_buildVersion = EditorGUILayout.IntField("Build Version", _buildVersion, GUILayout.MaxWidth(250));
+			_compressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", _compressOption, GUILayout.MaxWidth(250));
+			_isForceRebuild = GUILayout.Toggle(_isForceRebuild, "Froce Rebuild", GUILayout.MaxWidth(120));
+			if(_isForceRebuild)
+				_buildinTags = EditorGUILayout.TextField("Buildin Tags", _buildinTags);
 
 			// 构建按钮
 			EditorGUILayout.Space();
@@ -88,7 +93,7 @@ namespace MotionFramework.Editor
 			{
 				string title;
 				string content;
-				if (IsForceRebuild)
+				if (_isForceRebuild)
 				{
 					title = "警告";
 					content = "确定开始强制构建吗，这样会删除所有已有构建的文件";
@@ -100,12 +105,8 @@ namespace MotionFramework.Editor
 				}
 				if (EditorUtility.DisplayDialog(title, content, "Yes", "No"))
 				{
-					// 清空控制台
-					EditorTools.ClearUnityConsole();
-
-					// 存储配置
 					SaveSettingsToPlayerPrefs();
-
+					EditorTools.ClearUnityConsole();			
 					EditorApplication.delayCall += ExecuteBuild;
 				}
 				else
@@ -113,9 +114,6 @@ namespace MotionFramework.Editor
 					Debug.LogWarning("[Build] 打包已经取消");
 				}
 			}
-
-			// 绘制工具栏部分
-			OnDrawGUITools();
 		}
 		private void OnDrawGUITools()
 		{
@@ -138,12 +136,6 @@ namespace MotionFramework.Editor
 					{
 						EditorApplication.delayCall += AssetBundleBuilderTools.ClearMaterialUnusedProperty;
 					}
-
-					// 拷贝补丁文件到流目录
-					if (GUILayout.Button("Copy Patch To StreamingAssets", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
-					{
-						EditorApplication.delayCall += () => { AssetBundleBuilderTools.CopyPatchFilesToStreamming(true, BuildTarget); };
-					}
 				}
 			}
 		}
@@ -153,27 +145,30 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void ExecuteBuild()
 		{
-			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
+			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRoot();
 			AssetBundleBuilder.BuildParameters buildParameters = new AssetBundleBuilder.BuildParameters();
 			buildParameters.OutputRoot = defaultOutputRoot;
-			buildParameters.BuildTarget = BuildTarget;
-			buildParameters.BuildVersion = BuildVersion;
-			buildParameters.CompressOption = CompressOption;
-			buildParameters.IsForceRebuild = IsForceRebuild;
+			buildParameters.BuildTarget = _buildTarget;
+			buildParameters.BuildVersion = _buildVersion;
+			buildParameters.CompressOption = _compressOption;
+			buildParameters.IsForceRebuild = _isForceRebuild;
+			buildParameters.BuildinTags = _buildinTags;
 			_assetBuilder.Run(buildParameters);
 		}
 
-		#region 设置相关
+		#region 配置相关
 		private const string StrEditorCompressOption = "StrEditorCompressOption";
 		private const string StrEditorIsForceRebuild = "StrEditorIsForceRebuild";
+		private const string StrEditorBuildinTags = "StrEditorBuildinTags";
 
 		/// <summary>
 		/// 存储配置
 		/// </summary>
 		private void SaveSettingsToPlayerPrefs()
 		{
-			EditorTools.PlayerSetEnum<ECompressOption>(StrEditorCompressOption, CompressOption);
-			EditorTools.PlayerSetBool(StrEditorIsForceRebuild, IsForceRebuild);
+			EditorTools.PlayerSetEnum<ECompressOption>(StrEditorCompressOption, _compressOption);
+			EditorPrefs.SetBool(StrEditorIsForceRebuild, _isForceRebuild);
+			EditorPrefs.SetString(StrEditorBuildinTags, _buildinTags);
 		}
 
 		/// <summary>
@@ -181,8 +176,9 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void LoadSettingsFromPlayerPrefs()
 		{
-			CompressOption = EditorTools.PlayerGetEnum<ECompressOption>(StrEditorCompressOption, ECompressOption.Uncompressed);
-			IsForceRebuild = EditorTools.PlayerGetBool(StrEditorIsForceRebuild, false);
+			_compressOption = EditorTools.PlayerGetEnum<ECompressOption>(StrEditorCompressOption, ECompressOption.Uncompressed);
+			_isForceRebuild = EditorPrefs.GetBool(StrEditorIsForceRebuild, false);
+			_buildinTags = EditorPrefs.GetString(StrEditorBuildinTags, string.Empty);
 		}
 		#endregion
 	}

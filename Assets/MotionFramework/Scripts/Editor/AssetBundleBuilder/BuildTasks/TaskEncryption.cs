@@ -19,60 +19,72 @@ namespace MotionFramework.Editor
 		public class EncryptionContext : IContextObject
 		{
 			public List<string> EncryptList;
-		}
 
-		private IAssetEncrypter _encrypter = null;
+			/// <summary>
+			/// 检测是否为加密文件
+			/// </summary>
+			public bool IsEncryptFile(string bundleName)
+			{
+				return EncryptList.Contains(bundleName);
+			}
+		}
 
 		void IBuildTask.Run(BuildContext context)
 		{
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-
-			// 初始化加密器
-			InitAssetEncrypter();
-
 			var unityManifestContext = context.GetContextObject<TaskBuilding.UnityManifestContext>();
-			List<string> encryptList = EncryptFiles(unityManifestContext.Manifest, buildParameters);
+
+			var encrypter = CreateAssetEncrypter();
+			List<string> encryptList = EncryptFiles(encrypter, unityManifestContext.Manifest, buildParameters);
 
 			EncryptionContext encryptionContext = new EncryptionContext();
 			encryptionContext.EncryptList = encryptList;
 			context.SetContextObject(encryptionContext);
 		}
 
-		private void InitAssetEncrypter()
+		/// <summary>
+		/// 创建加密类
+		/// </summary>
+		/// <returns>如果没有定义加密类型，则返回NULL</returns>
+		private IAssetEncrypter CreateAssetEncrypter()
 		{
 			var types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetEncrypter));
 			if (types.Count == 0)
-				return;
+				return null;
 			if (types.Count != 1)
 				throw new Exception($"Found more {nameof(IAssetEncrypter)} types. We only support one.");
 
 			BuildLogger.Log($"创建加密类 : {types[0].FullName}");
-			_encrypter = (IAssetEncrypter)Activator.CreateInstance(types[0]);
+			return (IAssetEncrypter)Activator.CreateInstance(types[0]);
 		}
-		private List<string> EncryptFiles(AssetBundleManifest unityManifest, AssetBundleBuilder.BuildParametersContext buildParameters)
+
+		/// <summary>
+		/// 加密文件
+		/// </summary>
+		private List<string> EncryptFiles(IAssetEncrypter encrypter, AssetBundleManifest unityManifest, AssetBundleBuilder.BuildParametersContext buildParameters)
 		{
 			// 加密资源列表
 			List<string> encryptList = new List<string>();
 
 			// 如果没有设置加密类
-			if (_encrypter == null)
+			if (encrypter == null)
 				return encryptList;
 
 			BuildLogger.Log($"开始加密资源文件");
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 			int progressValue = 0;
-			foreach (string assetName in allAssetBundles)
+			foreach (string bundleName in allAssetBundles)
 			{
-				string filePath = $"{buildParameters.OutputDirectory}/{assetName}";
-				if (_encrypter.Check(filePath))
+				string filePath = $"{buildParameters.PipelineOutputDirectory}/{bundleName}";
+				if (encrypter.Check(filePath))
 				{
-					encryptList.Add(assetName);
+					encryptList.Add(bundleName);
 
-					// 通过判断文件合法性，规避重复加密一个文件
+					// 注意：通过判断文件合法性，规避重复加密一个文件
 					byte[] fileData = File.ReadAllBytes(filePath);
 					if (EditorTools.CheckBundleFileValid(fileData))
 					{
-						byte[] bytes = _encrypter.Encrypt(fileData);
+						byte[] bytes = encrypter.Encrypt(fileData);
 						File.WriteAllBytes(filePath, bytes);
 						BuildLogger.Log($"文件加密完成：{filePath}");
 					}

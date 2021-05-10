@@ -78,19 +78,5 @@ namespace MotionFramework.Editor
 			else
 				AssetDatabase.SaveAssets();
 		}
-
-		/// <summary>
-		/// 拷贝补丁文件到流目录
-		/// </summary>
-		public static void CopyPatchFilesToStreamming(bool clearStreamming, BuildTarget buildTarget)
-		{
-			if (clearStreamming)
-			{
-				AssetBundleBuilderHelper.ClearStreamingAssetsFolder();
-			}
-
-			string outputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
-			AssetBundleBuilderHelper.CopyPackageToStreamingFolder(buildTarget, outputRoot);
-		}
 	}
 }

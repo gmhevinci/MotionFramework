@@ -6,11 +6,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEditor;
-using MotionFramework.Patch;
-using MotionFramework.Utility;
+using MotionFramework.IO;
 
 namespace MotionFramework.Editor
 {
@@ -46,6 +44,12 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public bool IsForceRebuild;
 
+			/// <summary>
+			/// 内置资源的标记列表
+			/// 注意：分号为分隔符
+			/// </summary>
+			public string BuildinTags;
+
 			#region 高级选项
 			/// <summary>
 			/// 文件名附加上哈希值
@@ -62,6 +66,15 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public bool IsIgnoreTypeTreeChanges = true;
 			#endregion
+
+
+			/// <summary>
+			/// 获取内置标记列表
+			/// </summary>
+			public List<string> GetBuildinTags()
+			{
+				return StringConvert.StringToStringList(BuildinTags, ';');
+			}
 		}
 
 		/// <summary>
@@ -69,17 +82,21 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public class BuildParametersContext : IContextObject
 		{
+			/// <summary>
+			/// 构建参数
+			/// </summary>
 			public BuildParameters Parameters { private set; get; }
 
 			/// <summary>
-			/// 最终的输出目录
+			/// 构建管线的输出目录
 			/// </summary>
-			public string OutputDirectory { private set; get; }
+			public string PipelineOutputDirectory { private set; get; }
+
 
 			public BuildParametersContext(BuildParameters parameters)
 			{
 				Parameters = parameters;
-				OutputDirectory = AssetBundleBuilderHelper.MakeOutputDirectory(parameters.OutputRoot, parameters.BuildTarget);
+				PipelineOutputDirectory = AssetBundleBuilderHelper.MakePipelineOutputDirectory(parameters.OutputRoot, parameters.BuildTarget);
 			}
 
 			/// <summary>
@@ -144,7 +161,8 @@ namespace MotionFramework.Editor
 				new TaskCheckCycle(), //检测循环依赖
 				new TaskCreatePatchManifest(), //创建清单文件
 				new TaskCreateReadme(), //创建说明文件
-				new TaskCopyPatchFiles() //拷贝补丁文件
+				new TaskCreatePatchPackage(), //制作补丁包
+				new TaskCopyBuildinFiles(), //拷贝内置文件
 			};
 
 			bool succeed = BuildRunner.Run(pipeline, _buildContext);

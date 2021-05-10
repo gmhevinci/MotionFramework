@@ -34,7 +34,7 @@ namespace MotionFramework.Editor
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 
 			// 删除旧文件
-			string filePath = $"{buildParameters.OutputDirectory}/{PatchDefine.ReadmeFileName}";
+			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.ReadmeFileName}";
 			if (File.Exists(filePath))
 				File.Delete(filePath);
 
@@ -62,6 +62,7 @@ namespace MotionFramework.Editor
 			AppendData(content, $"--构建参数--");
 			AppendData(content, $"CompressOption：{buildParameters.Parameters.CompressOption}");
 			AppendData(content, $"IsForceRebuild：{buildParameters.Parameters.IsForceRebuild}");
+			AppendData(content, $"BuildinTags：{buildParameters.Parameters.BuildinTags}");
 			AppendData(content, $"IsAppendHash：{buildParameters.Parameters.IsAppendHash}");
 			AppendData(content, $"IsDisableWriteTypeTree：{buildParameters.Parameters.IsDisableWriteTypeTree}");
 			AppendData(content, $"IsIgnoreTypeTreeChanges：{buildParameters.Parameters.IsIgnoreTypeTreeChanges}");
@@ -73,11 +74,11 @@ namespace MotionFramework.Editor
 				AppendData(content, allAssetBundles[i]);
 			}
 
-			PatchManifest patchFile = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.OutputDirectory);
+			PatchManifest patchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
 			{
 				AppendData(content, "");
 				AppendData(content, $"--更新清单--");
-				foreach (var patchBundle in patchFile.BundleList)
+				foreach (var patchBundle in patchManifest.BundleList)
 				{
 					if (patchBundle.Version == buildParameters.Parameters.BuildVersion)
 					{
@@ -87,7 +88,7 @@ namespace MotionFramework.Editor
 
 				AppendData(content, "");
 				AppendData(content, $"--变体列表--");
-				foreach (var variant in patchFile.VariantList)
+				foreach (var variant in patchManifest.VariantList)
 				{
 					AppendData(content, variant.ToString());
 				}

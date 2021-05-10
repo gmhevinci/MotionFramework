@@ -8,6 +8,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using MotionFramework.Patch;
 
 namespace MotionFramework.Editor
 {
@@ -28,7 +29,7 @@ namespace MotionFramework.Editor
 				throw new Exception("请先设置版本号");
 
 			// 检测输出目录是否为空
-			if (string.IsNullOrEmpty(buildParameters.OutputDirectory))
+			if (string.IsNullOrEmpty(buildParameters.PipelineOutputDirectory))
 				throw new Exception("输出目录不能为空");
 
 			// 检测补丁包是否已经存在
@@ -39,6 +40,14 @@ namespace MotionFramework.Editor
 			// 检测资源收集配置文件
 			if (AssetBundleCollectorSettingData.GetCollecterCount() == 0)
 				throw new Exception("配置的资源收集路径为空！");
+
+			// 检测内置资源标记是否一致
+			if (buildParameters.Parameters.IsForceRebuild == false)
+			{
+				PatchManifest oldPatchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
+				if (buildParameters.Parameters.BuildinTags != oldPatchManifest.BuildinTags)
+					throw new Exception($"增量更新时内置资源标记必须一致：{buildParameters.Parameters.BuildinTags} != {oldPatchManifest.BuildinTags}");
+			}
 
 			// 如果是强制重建
 			if (buildParameters.Parameters.IsForceRebuild)
@@ -52,9 +61,9 @@ namespace MotionFramework.Editor
 			}
 
 			// 如果输出目录不存在
-			if(EditorTools.CreateDirectory(buildParameters.OutputDirectory))
+			if (EditorTools.CreateDirectory(buildParameters.PipelineOutputDirectory))
 			{
-				BuildLogger.Log($"创建输出目录：{buildParameters.OutputDirectory}");
+				BuildLogger.Log($"创建输出目录：{buildParameters.PipelineOutputDirectory}");
 			}
 		}
 	}

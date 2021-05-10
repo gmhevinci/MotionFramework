@@ -38,11 +38,12 @@ namespace MotionFramework.Editor
 			// 创建新补丁清单
 			PatchManifest patchManifest = new PatchManifest();
 			patchManifest.ResourceVersion = buildParameters.Parameters.BuildVersion;
+			patchManifest.BuildinTags = buildParameters.Parameters.BuildinTags;
 			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext, unityManifest);
 			patchManifest.VariantList = GetAllPatchVariant(unityManifest);
 
 			// 创建新文件
-			string filePath = $"{buildParameters.OutputDirectory}/{PatchDefine.PatchManifestFileName}";
+			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestFileName}";
 			BuildLogger.Log($"创建补丁清单文件：{filePath}");
 			PatchManifest.Serialize(filePath, patchManifest);
 		}
@@ -56,44 +57,56 @@ namespace MotionFramework.Editor
 		{
 			List<PatchBundle> result = new List<PatchBundle>();
 
-			// 加载DLC
-			DLCManager dlcManager = new DLCManager();
-			dlcManager.LoadAllDLC();
+			// 内置标记列表
+			List<string> buildinTags = buildParameters.Parameters.GetBuildinTags();
 
 			// 加载旧补丁清单
-			PatchManifest oldPatchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.OutputDirectory);
-
-			// 获取加密列表
-			List<string> encryptList = encryptionContext.EncryptList;
+			PatchManifest oldPatchManifest = null;
+			if(buildParameters.Parameters.IsForceRebuild == false)
+			{
+				oldPatchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
+			}
 
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 			foreach (var bundleName in allAssetBundles)
 			{
-				string path = $"{buildParameters.OutputDirectory}/{bundleName}";
+				string path = $"{buildParameters.PipelineOutputDirectory}/{bundleName}";
 				string hash = HashUtility.FileMD5(path);
 				string crc = HashUtility.FileCRC32(path);
 				long size = FileUtility.GetFileSize(path);
 				int version = buildParameters.Parameters.BuildVersion;
-				string[] assets = buildMapContext.GetCollectAssetPaths(bundleName);
+				string[] collectAssets = buildMapContext.GetCollectAssetPaths(bundleName);
 				string[] depends = unityManifest.GetDirectDependencies(bundleName);
-				string[] dlcLabels = dlcManager.GetAssetBundleDLCLabels(bundleName);
-
-				// 创建标记位
-				bool isEncrypted = encryptList.Contains(bundleName);
-				int flags = PatchBundle.CreateFlags(isEncrypted);
+				string[] tags = buildMapContext.GetAssetTags(bundleName);
+				bool isEncrypted = encryptionContext.IsEncryptFile(bundleName);
+				bool isBuildin = IsBuildinBundle(tags, buildinTags);
 
 				// 注意：如果文件没有变化使用旧版本号
-				if (oldPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle oldElement))
+				if (oldPatchManifest != null && oldPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle value))
 				{
-					if (oldElement.Hash == hash)
-						version = oldElement.Version;
+					if (value.Hash == hash)
+						version = value.Version;
 				}
 
-				PatchBundle newElement = new PatchBundle(bundleName, hash, crc, size, version, flags, assets, depends, dlcLabels);
-				result.Add(newElement);
+				PatchBundle patchBundle = new PatchBundle(bundleName, hash, crc, size, version, collectAssets, depends, tags);
+				patchBundle.SetFlagsValue(isEncrypted, isBuildin);
+				result.Add(patchBundle);
 			}
 
 			return result;
+		}
+		private bool IsBuildinBundle(string[] bundleTags, List<string> buildinTags)
+		{
+			// 注意：没有标记的默认为内置文件
+			if (bundleTags.Length == 0)
+				return true;
+
+			foreach(var tag in bundleTags)
+			{
+				if (buildinTags.Contains(tag))
+					return true;
+			}
+			return false;
 		}
 
 		/// <summary>

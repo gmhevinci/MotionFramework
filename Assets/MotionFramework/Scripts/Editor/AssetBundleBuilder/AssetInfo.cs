@@ -3,7 +3,8 @@
 // Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
-using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace MotionFramework.Editor
 {
@@ -28,7 +29,7 @@ namespace MotionFramework.Editor
 		public string AssetBundleVariant { private set; get; }
 
 		/// <summary>
-		/// 收集标记
+		/// 是否为主动收集资源
 		/// </summary>
 		public bool IsCollectAsset = false;
 
@@ -36,6 +37,11 @@ namespace MotionFramework.Editor
 		/// 不写入资源路径信息到清单文件
 		/// </summary>
 		public bool DontWriteAssetPath = false;
+
+		/// <summary>
+		/// 资源标记列表
+		/// </summary>
+		public List<string> AssetTags = new List<string>();
 
 		/// <summary>
 		/// 被依赖次数
@@ -58,10 +64,27 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
+		/// 添加资源标记
+		/// </summary>
+		public void AddAssetTags(List<string> tags)
+		{
+			foreach(var tag in tags)
+			{
+				if (AssetTags.Contains(tag) == false)
+				{
+					AssetTags.Add(tag);
+				}
+			}
+		}
+
+		/// <summary>
 		/// 获取AssetBundle的完整名称
 		/// </summary>
 		public string GetAssetBundleFullName()
 		{
+			if (string.IsNullOrEmpty(AssetBundleLabel) || string.IsNullOrEmpty(AssetBundleVariant))
+				throw new System.ArgumentNullException();
+
 			return AssetBundleBuilderHelper.MakeAssetBundleFullName(AssetBundleLabel, AssetBundleVariant);
 		}
 	}

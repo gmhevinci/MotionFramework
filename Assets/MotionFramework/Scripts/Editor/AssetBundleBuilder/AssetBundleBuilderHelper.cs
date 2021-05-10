@@ -16,18 +16,18 @@ namespace MotionFramework.Editor
 	public static class AssetBundleBuilderHelper
 	{
 		/// <summary>
-		/// 获取默认的导出根路径
+		/// 获取默认的输出根路录
 		/// </summary>
-		public static string GetDefaultOutputRootPath()
+		public static string GetDefaultOutputRoot()
 		{
 			string projectPath = EditorTools.GetProjectPath();
-			return $"{projectPath}/BuildBundles";
+			return $"{projectPath}/Bundles";
 		}
 
 		/// <summary>
-		/// 获取配置的输出目录
+		/// 获取构建管线的输出目录
 		/// </summary>
-		public static string MakeOutputDirectory(string outputRoot, BuildTarget buildTarget)
+		public static string MakePipelineOutputDirectory(string outputRoot, BuildTarget buildTarget)
 		{
 			return $"{outputRoot}/{buildTarget}/{PatchDefine.UnityManifestFileName}";
 		}
@@ -93,8 +93,7 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < allFolders.Length; i++)
 			{
 				string folderName = Path.GetFileNameWithoutExtension(allFolders[i]);
-				int version;
-				if (int.TryParse(folderName, out version))
+				if (int.TryParse(folderName, out int version))
 					versionList.Add(version);
 			}
 
@@ -115,46 +114,6 @@ namespace MotionFramework.Editor
 			return versionList[versionList.Count - 1];
 		}
 
-		/// <summary>
-		/// 复制所有补丁包文件到流目录
-		/// </summary>
-		/// <param name="targetVersion">目标版本。如果版本为负值则拷贝所有版本</param>
-		public static void CopyPackageToStreamingFolder(BuildTarget buildTarget, string outputRoot, int targetVersion = -1)
-		{
-			// 补丁清单路径
-			string filePath = $"{outputRoot}/{buildTarget}/{PatchDefine.UnityManifestFileName}/{PatchDefine.PatchManifestFileName}";
-			if (File.Exists(filePath) == false)
-				throw new System.Exception($"Not found {PatchDefine.PatchManifestFileName} file : {filePath}");
-
-			// 加载补丁清单
-			string jsonData = FileUtility.ReadFile(filePath);
-			PatchManifest pm = PatchManifest.Deserialize(jsonData);
-
-			// 拷贝文件列表
-			foreach(var patchBundle in pm.BundleList)
-			{
-				if (patchBundle.IsDLC())
-					continue;
-
-				if (targetVersion >= 0 && patchBundle.Version > targetVersion)
-					continue;
-
-				string sourcePath = $"{outputRoot}/{buildTarget}/{patchBundle.Version}/{patchBundle.Hash}";
-				string destPath = $"{Application.dataPath}/StreamingAssets/{patchBundle.Hash}";
-				Debug.Log($"拷贝版本文件到流目录：{destPath}");
-				EditorTools.CopyFile(sourcePath, destPath, true);
-			}
-
-			// 拷贝核心文件
-			{
-				string destFilePath = $"{Application.dataPath}/StreamingAssets/{PatchDefine.PatchManifestFileName}";
-				EditorTools.CopyFile(filePath, destFilePath, true);
-			}
-
-			// 刷新目录
-			AssetDatabase.Refresh();
-		}
-
 
 		/// <summary>
 		/// 从输出目录加载补丁清单文件
@@ -163,7 +122,9 @@ namespace MotionFramework.Editor
 		{
 			string filePath = $"{fileDirectory}/{PatchDefine.PatchManifestFileName}";
 			if (File.Exists(filePath) == false)
-				return new PatchManifest();
+			{
+				throw new System.Exception($"Not found patch manifest file : {filePath}");
+			}
 
 			string jsonData = FileUtility.ReadFile(filePath);
 			return PatchManifest.Deserialize(jsonData);
