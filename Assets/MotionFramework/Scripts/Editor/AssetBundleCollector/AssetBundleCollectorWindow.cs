@@ -129,7 +129,8 @@ namespace MotionFramework.Editor
 		}
 		private void OnDrawHeadBar()
 		{
-			EditorGUILayout.Space(10);
+			EditorGUILayout.Space();
+			EditorGUILayout.Space();
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField("Directory", GUILayout.MinWidth(GuiDirecotryMinSize), GUILayout.MaxWidth(GuiDirecotryMaxSize));
 			EditorGUILayout.LabelField("PackRule", GUILayout.MinWidth(GuiPackRuleSize), GUILayout.MaxWidth(GuiPackRuleSize));
