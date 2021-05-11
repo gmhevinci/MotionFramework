@@ -60,13 +60,14 @@ private static void BuildInternal(BuildTarget buildTarget)
 	Debug.Log($"[Build] 强制重建 : {isForceBuild}");
 
 	// 构建参数
-	string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRootPath();
+	string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRoot();
 	AssetBundleBuilder.BuildParameters buildParameters = new AssetBundleBuilder.BuildParameters();
 	buildParameters.OutputRoot = defaultOutputRoot;
 	buildParameters.BuildTarget = buildTarget;
 	buildParameters.BuildVersion = buildVersion;
 	buildParameters.CompressOption = ECompressOption.LZ4;
 	buildParameters.IsForceRebuild = isForceBuild;
+	buildParameters.BuildinTags = "base";
 
 	// 执行构建
 	AssetBundleBuilder builder = new AssetBundleBuilder();

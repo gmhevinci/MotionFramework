@@ -15,15 +15,15 @@
 <root>
 	
 	<!--注释-->
-	<Collector Directory="Assets/GameRes/Lua/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
-	<Collector Directory="Assets/GameRes/UIAtlas/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
-	<Collector Directory="Assets/GameRes/UIPanel/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
-	<Collector Directory="Assets/GameRes/UITexture/Foods/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
-	<Collector Directory="Assets/GameRes/UITexture/Background/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
-	<Collector Directory="Assets/GameRes/Entity/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0"/>
+	<Collector Directory="Assets/GameRes/Lua/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0" AssetTags=""/>
+	<Collector Directory="Assets/GameRes/UIAtlas/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0" AssetTags=""/>
+	<Collector Directory="Assets/GameRes/UIPanel/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0" AssetTags=""/>
+	<Collector Directory="Assets/GameRes/UITexture/Foods/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0" AssetTags=""/>
+	<Collector Directory="Assets/GameRes/UITexture/Background/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0" AssetTags=""/>
+	<Collector Directory="Assets/GameRes/Entity/" PackRule="PackExplicit" FilterRule="CollectAll" DontWriteAssetPath="0" AssetTags="entity"/>
 
 	<!--精灵-->
-	<Collector Directory="Assets/GameArt/Panel/Sprite/" PackRule="PackDirectory" FilterRule="CollectAll" DontWriteAssetPath="1"/>
+	<Collector Directory="Assets/GameArt/Panel/Sprite/" PackRule="PackDirectory" FilterRule="CollectAll" DontWriteAssetPath="1" AssetTags=""/>
 	
 </root>
 ```
