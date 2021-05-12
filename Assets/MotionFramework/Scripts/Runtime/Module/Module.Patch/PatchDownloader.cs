@@ -19,11 +19,12 @@ namespace MotionFramework.Patch
 	{
 		private const int MAX_LOADER_COUNT = 64;
 
+		public delegate void OnDownloadOver(bool isSucceed);
 		public delegate void OnDownloadProgress(int totalDownloadCount, int currentDownloadCoun, long totalDownloadBytes, long currentDownloadBytes);
 		public delegate void OnPatchFileDownloadFailed(string fileName);
 		public delegate void OnPatchFileCheckFailed(string fileName);
 
-		private readonly PatchManagerImpl _patcher;
+		private readonly PatchManagerImpl _patcherMgr;
 		private readonly int _maxNumberOnLoad;
 		private readonly List<PatchBundle> _downloadList;
 		private readonly List<PatchBundle> _succeedList = new List<PatchBundle>();
@@ -41,6 +42,7 @@ namespace MotionFramework.Patch
 		private int _lastDownloadCount = 0;
 
 		// 委托相关
+		public OnDownloadOver OnDownloadOverCallback { set; get; }
 		public OnDownloadProgress OnDownloadProgressCallback { set; get; }
 		public OnPatchFileDownloadFailed OnPatchFileDownloadFailedCallback { set; get; }
 		public OnPatchFileCheckFailed OnPatchFileCheckFailedCallback { set; get; }
@@ -49,9 +51,9 @@ namespace MotionFramework.Patch
 		private PatchDownloader()
 		{
 		}
-		internal PatchDownloader(PatchManagerImpl patcher, List<PatchBundle> downloadList, int maxNumberOnLoad)
+		internal PatchDownloader(PatchManagerImpl patcherMgr, List<PatchBundle> downloadList, int maxNumberOnLoad)
 		{
-			_patcher = patcher;
+			_patcherMgr = patcherMgr;
 			_downloadList = downloadList;
 			_maxNumberOnLoad = UnityEngine.Mathf.Clamp(maxNumberOnLoad, 1, MAX_LOADER_COUNT); ;
 
@@ -129,7 +131,7 @@ namespace MotionFramework.Patch
 				}
 
 				// 验证下载文件完整性
-				if (_patcher.CheckContentIntegrity(patchBundle) == false)
+				if (_patcherMgr.CheckContentIntegrity(patchBundle) == false)
 				{
 					MotionLog.Error($"Check download content integrity is failed : {patchBundle.BundleName}");
 					loader.Dispose();
@@ -172,22 +174,25 @@ namespace MotionFramework.Patch
 			{
 				// 更新缓存并保存
 				if (_succeedList.Count > 0)
-					_patcher.CacheDownloadPatchFiles(_succeedList);
+					_patcherMgr.CacheDownloadPatchFiles(_succeedList);
 
 				if (_loadFailedList.Count > 0)
 				{
 					DownloadStates = EDownloaderStates.Failed;
 					OnPatchFileDownloadFailedCallback?.Invoke(_loadFailedList[0].BundleName);
+					OnDownloadOverCallback?.Invoke(false);
 				}
 				else if (_checkFailedList.Count > 0)
 				{
 					DownloadStates = EDownloaderStates.Failed;
 					OnPatchFileCheckFailedCallback?.Invoke(_checkFailedList[0].BundleName);
+					OnDownloadOverCallback?.Invoke(false);
 				}
 				else
 				{
 					// 结算成功
 					DownloadStates = EDownloaderStates.Succeed;
+					OnDownloadOverCallback?.Invoke(true);
 				}
 			}
 		}
@@ -195,7 +200,7 @@ namespace MotionFramework.Patch
 		private WebFileRequest CreateDownloader(PatchBundle patchBundle)
 		{
 			// 注意：资源版本号只用于确定下载路径
-			string url = _patcher.GetWebDownloadURL(patchBundle.Version, patchBundle.Hash);
+			string url = _patcherMgr.GetWebDownloadURL(patchBundle.Version, patchBundle.Hash);
 			string savePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 			FileUtility.CreateFileDirectory(savePath);
 
