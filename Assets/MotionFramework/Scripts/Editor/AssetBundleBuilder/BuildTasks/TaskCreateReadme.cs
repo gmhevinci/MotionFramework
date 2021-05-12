@@ -87,6 +87,26 @@ namespace MotionFramework.Editor
 				}
 
 				AppendData(content, "");
+				AppendData(content, $"--内置列表--");
+				foreach (var patchBundle in patchManifest.BundleList)
+				{
+					if (patchBundle.IsBuildin)
+					{
+						AppendData(content, patchBundle.BundleName);
+					}
+				}
+
+				AppendData(content, "");
+				AppendData(content, $"--加密列表--");
+				foreach (var patchBundle in patchManifest.BundleList)
+				{
+					if (patchBundle.IsEncrypted)
+					{
+						AppendData(content, patchBundle.BundleName);
+					}
+				}
+
+				AppendData(content, "");
 				AppendData(content, $"--变体列表--");
 				foreach (var variant in patchManifest.VariantList)
 				{
