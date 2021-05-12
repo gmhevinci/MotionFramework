@@ -31,12 +31,13 @@ namespace MotionFramework.Editor
 		private string _lastOpenFolderPath = "Assets/";
 
 		// GUI相关
-		private const float GuiDirecotryMaxSize = 800f;
 		private const float GuiDirecotryMinSize = 300f;
+		private const float GuiDirecotryMaxSize = 800f;
 		private const float GuiPackRuleSize = 130f;
 		private const float GuiFilterRuleSize = 130f;
 		private const float GuiDontWriteAssetPathSize = 130f;
-		private const float GuiAssetTagsSize = 100f;
+		private const float GuiAssetTagsMinSize = 100f;
+		private const float GuiAssetTagsMaxSize = 300f;
 		private const float GuiBtnSize = 40f;
 		private Vector2 _scrollPos = Vector2.zero;
 
@@ -136,7 +137,7 @@ namespace MotionFramework.Editor
 			EditorGUILayout.LabelField("PackRule", GUILayout.MinWidth(GuiPackRuleSize), GUILayout.MaxWidth(GuiPackRuleSize));
 			EditorGUILayout.LabelField("FilterRule", GUILayout.MinWidth(GuiFilterRuleSize), GUILayout.MaxWidth(GuiFilterRuleSize));
 			EditorGUILayout.LabelField("DontWriteAssetPath", GUILayout.MinWidth(GuiDontWriteAssetPathSize), GUILayout.MaxWidth(GuiDontWriteAssetPathSize));
-			EditorGUILayout.LabelField("AssetTags", GUILayout.MinWidth(GuiAssetTagsSize), GUILayout.MaxWidth(GuiAssetTagsSize));
+			EditorGUILayout.LabelField("AssetTags", GUILayout.MinWidth(GuiAssetTagsMinSize), GUILayout.MaxWidth(GuiAssetTagsMaxSize));
 			EditorGUILayout.LabelField("", GUILayout.MinWidth(GuiBtnSize), GUILayout.MaxWidth(GuiBtnSize));
 			EditorGUILayout.EndHorizontal();
 		}
@@ -193,7 +194,7 @@ namespace MotionFramework.Editor
 
 					// AssetTags
 					{
-						string newTextValue = EditorGUILayout.TextField(assetTags, GUILayout.MinWidth(GuiAssetTagsSize), GUILayout.MaxWidth(GuiAssetTagsSize));
+						string newTextValue = EditorGUILayout.TextField(assetTags, GUILayout.MinWidth(GuiAssetTagsMinSize), GUILayout.MaxWidth(GuiAssetTagsMaxSize));
 						if (newTextValue != assetTags)
 						{
 							assetTags = newTextValue;

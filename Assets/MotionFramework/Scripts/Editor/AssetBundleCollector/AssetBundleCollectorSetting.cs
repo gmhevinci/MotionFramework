@@ -44,7 +44,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 收集的着色器Bundle名称
 		/// </summary>
-		public string ShadersBundleName = "shaders";
+		public string ShadersBundleName = "myshaders";
 
 		/// <summary>
 		/// 收集列表
