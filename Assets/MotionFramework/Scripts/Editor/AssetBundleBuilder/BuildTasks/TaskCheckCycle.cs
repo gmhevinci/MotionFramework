@@ -30,15 +30,15 @@ namespace MotionFramework.Editor
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 			for (int i = 0; i < allAssetBundles.Length; i++)
 			{
-				var element = allAssetBundles[i];
+				var mainBundleName = allAssetBundles[i];
 				visited.Clear();
 				stack.Clear();
 
 				// 深度优先搜索检测有向图有无环路算法
-				if (CheckCycle(unityManifest, element, visited, stack))
+				if (CheckCycle(unityManifest, mainBundleName, visited, stack))
 				{
 					isFoundCycleDepend = true;
-					Debug.LogError($"Found cycle assetbundle : {element}");
+					Debug.LogError($"Found cycle assetbundle : {mainBundleName}");
 					foreach (var ele in stack)
 					{
 						Debug.LogWarning(ele);
@@ -49,14 +49,14 @@ namespace MotionFramework.Editor
 			if (isFoundCycleDepend)
 				throw new Exception("Found cycle assetbundle, Please fix the error first.");
 		}
-		private bool CheckCycle(AssetBundleManifest unityManifest, string element, List<string> visited, List<string> stack)
+		private bool CheckCycle(AssetBundleManifest unityManifest, string bundleName, List<string> visited, List<string> stack)
 		{
-			if (visited.Contains(element) == false)
+			if (visited.Contains(bundleName) == false)
 			{
-				visited.Add(element);
-				stack.Add(element);
+				visited.Add(bundleName);
+				stack.Add(bundleName);
 
-				string[] depends = unityManifest.GetDirectDependencies(element);
+				string[] depends = unityManifest.GetDirectDependencies(bundleName);
 				foreach (var dp in depends)
 				{
 					if (visited.Contains(dp) == false && CheckCycle(unityManifest, dp, visited, stack))
@@ -66,7 +66,7 @@ namespace MotionFramework.Editor
 				}
 			}
 
-			stack.Remove(element);
+			stack.Remove(bundleName);
 			return false;
 		}
 	}
