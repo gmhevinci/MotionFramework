@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2019-2020 何冠峰
+// Copyright©2019-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections;
@@ -61,12 +61,12 @@ namespace MotionFramework.Patch
 				download.Dispose();
 			}
 
-			// 检测强更安装包
-			if(_patcher.ForceInstall)
+			// 如果发现了新的安装包
+			if(_patcher.FoundNewApp)
 			{
 				string requestedGameVersion = _patcher.RequestedGameVersion.ToString();
 				MotionLog.Log($"Found new APP can be install : {requestedGameVersion}");
-				PatchEventDispatcher.SendFoundForceInstallAPPMsg(requestedGameVersion, _patcher.AppURL);
+				PatchEventDispatcher.SendFoundNewAppMsg(_patcher.ForceInstall, _patcher.AppURL, requestedGameVersion);
 				yield break;
 			}
 

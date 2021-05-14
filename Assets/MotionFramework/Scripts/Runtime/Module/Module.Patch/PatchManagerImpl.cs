@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2019-2020 何冠峰
+// Copyright©2019-2021 何冠峰
 // Copyright©2020-2020 ZensYue
 // Licensed under the MIT license
 //--------------------------------------------------
@@ -32,7 +32,8 @@ namespace MotionFramework.Patch
 #pragma warning disable 0649
 			public string GameVersion; //当前游戏版本号
 			public int ResourceVersion; //当前资源版本
-			public bool ForceInstall; //是否需要强制安装
+			public bool FoundNewApp; //是否发现了新的安装包
+			public bool ForceInstall; //是否需要强制用户安装
 			public string AppURL; //App安装的地址
 #pragma warning restore 0649
 		}
@@ -50,7 +51,8 @@ namespace MotionFramework.Patch
 		private string[] _autoDownloadDLC;
 		private int _maxNumberOnLoad;
 
-		// 强更标记和APP地址
+		// 强更相关
+		public bool FoundNewApp { private set; get; } = false;
 		public bool ForceInstall { private set; get; } = false;
 		public string AppURL { private set; get; }
 
@@ -512,6 +514,7 @@ namespace MotionFramework.Patch
 			WebResponse response = JsonUtility.FromJson<WebResponse>(data);
 			RequestedGameVersion = new Version(response.GameVersion);
 			RequestedResourceVersion = response.ResourceVersion;
+			FoundNewApp = response.FoundNewApp;
 			ForceInstall = response.ForceInstall;
 			AppURL = response.AppURL;
 		}

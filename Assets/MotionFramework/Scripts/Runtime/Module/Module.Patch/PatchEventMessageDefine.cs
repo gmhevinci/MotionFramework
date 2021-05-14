@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2019-2020 何冠峰
+// Copyright©2019-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using MotionFramework.Event;
@@ -29,12 +29,13 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 发现强更安装包
+		/// 发现了新的安装包
 		/// </summary>
-		public class FoundForceInstallAPP : IEventMessage
+		public class FoundNewApp : IEventMessage
 		{
-			public string NewVersion;
+			public bool ForceInstall;
 			public string InstallURL;
+			public string NewVersion;
 		}
 
 		/// <summary>

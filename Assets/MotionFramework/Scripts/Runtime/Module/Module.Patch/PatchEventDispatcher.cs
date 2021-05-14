@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2019-2020 何冠峰
+// Copyright©2019-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using MotionFramework.Event;
@@ -15,11 +15,12 @@ namespace MotionFramework.Patch
 			msg.CurrentStates = currentStates;
 			EventManager.Instance.SendMessage(msg);
 		}
-		public static void SendFoundForceInstallAPPMsg(string newVersion, string installURL)
+		public static void SendFoundNewAppMsg(bool forceInstall, string installURL, string newVersion)
 		{
-			PatchEventMessageDefine.FoundForceInstallAPP msg = new PatchEventMessageDefine.FoundForceInstallAPP();
-			msg.NewVersion = newVersion;
+			PatchEventMessageDefine.FoundNewApp msg = new PatchEventMessageDefine.FoundNewApp();
+			msg.ForceInstall = forceInstall;	
 			msg.InstallURL = installURL;
+			msg.NewVersion = newVersion;
 			EventManager.Instance.SendMessage(msg);
 		}
 		public static void SendFoundUpdateFilesMsg(int totalCount, long totalSizeBytes)
