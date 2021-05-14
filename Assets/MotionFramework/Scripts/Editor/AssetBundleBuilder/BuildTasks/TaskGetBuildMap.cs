@@ -56,18 +56,17 @@ namespace MotionFramework.Editor
 			public void CheckHashCollisionAndReportError()
 			{
 				Dictionary<string, string> temper = new Dictionary<string, string>(100);
+				bool isThrowException = false;
 				foreach (var bundleInfo in BundleInfos)
 				{
 					temper.Clear();
-					bool isFoundSameFile = false;
-
 					string[] includeAssets = bundleInfo.GetIncludeAssetPaths();
 					foreach (var assetPath in includeAssets)
 					{
 						string fileName = Path.GetFileName(assetPath);
 						if (temper.ContainsKey(fileName))
 						{
-							isFoundSameFile = true;
+							isThrowException = true;
 							string sameFile = temper[fileName];
 							Debug.LogWarning($"Found same file in one assetBundle : {assetPath} {sameFile}");
 						}
@@ -76,11 +75,10 @@ namespace MotionFramework.Editor
 							temper.Add(fileName, assetPath);
 						}
 					}
-
-					if (isFoundSameFile)
-					{
-						throw new Exception($"Found same file in one assetBundle : {bundleInfo.AssetBundleFullName}");
-					}
+				}
+				if (isThrowException)
+				{
+					throw new Exception($"Found same file in assetBundle. Please see the warning information above.");
 				}
 			}
 

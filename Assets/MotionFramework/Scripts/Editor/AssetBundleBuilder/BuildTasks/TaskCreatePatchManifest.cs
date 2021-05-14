@@ -97,7 +97,7 @@ namespace MotionFramework.Editor
 		}
 		private bool IsBuildinBundle(string[] bundleTags, List<string> buildinTags)
 		{
-			// 注意：没有标记的默认为内置文件
+			// 注意：没有任何标记的Bundle文件默认为内置文件
 			if (bundleTags.Length == 0)
 				return true;
 
