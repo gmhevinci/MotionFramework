@@ -10,19 +10,19 @@ using MotionFramework.Network;
 
 namespace MotionFramework.Patch
 {
-	internal class FsmGetWebPatchManifest : IFsmNode
+	internal class FsmDownloadPatchManifest : IFsmNode
 	{
 		private readonly PatchManagerImpl _patcher;
 		public string Name { private set; get; }
 
-		public FsmGetWebPatchManifest(PatchManagerImpl patcher)
+		public FsmDownloadPatchManifest(PatchManagerImpl patcher)
 		{
 			_patcher = patcher;
-			Name = EPatchStates.GetWebPatchManifest.ToString();
+			Name = EPatchStates.DownloadPatchManifest.ToString();
 		}
 		void IFsmNode.OnEnter()
 		{
-			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.GetWebPatchManifest);
+			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.DownloadPatchManifest);
 			MotionEngine.StartCoroutine(Download());
 		}
 		void IFsmNode.OnUpdate()

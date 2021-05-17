@@ -11,9 +11,29 @@ namespace MotionFramework.Patch
 	/// </summary>
 	public enum EPatchOperation
 	{
-		BeginingDownloadWebFiles,
+		/// <summary>
+		/// 跳过安装新APP
+		/// </summary>
+		SkipInstallNewApp,
+
+		/// <summary>
+		/// 开始下载网络文件
+		/// </summary>
+		BeginDownloadWebFiles,
+
+		/// <summary>
+		/// 尝试再次请求游戏版本
+		/// </summary>
 		TryRequestGameVersion,
-		TryDownloadWebPatchManifest,
+
+		/// <summary>
+		/// 尝试再次下载补丁清单
+		/// </summary>
+		TryDownloadPatchManifest,
+
+		/// <summary>
+		/// 尝试再次下载网络文件
+		/// </summary>
 		TryDownloadWebFiles,
 	}
 }

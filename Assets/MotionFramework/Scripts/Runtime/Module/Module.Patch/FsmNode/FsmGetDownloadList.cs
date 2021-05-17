@@ -41,7 +41,7 @@ namespace MotionFramework.Patch
 			if (downloadList.Count == 0)
 			{
 				MotionLog.Log("Not found update web files.");
-				_patcher.Switch(EPatchStates.DownloadOver.ToString());
+				_patcher.Switch(EPatchStates.DownloadOver);
 			}
 			else
 			{

@@ -61,27 +61,28 @@ namespace MotionFramework.Patch
 				download.Dispose();
 			}
 
-			// 如果发现了新的安装包
-			if(_patcher.FoundNewApp)
-			{
-				string requestedGameVersion = _patcher.RequestedGameVersion.ToString();
-				MotionLog.Log($"Found new APP can be install : {requestedGameVersion}");
-				PatchEventDispatcher.SendFoundNewAppMsg(_patcher.ForceInstall, _patcher.AppURL, requestedGameVersion);
-				yield break;
-			}
-
 			// 检测资源版本是否变化
 			int newResourceVersion = _patcher.RequestedResourceVersion;
 			int oldResourceVersion = _patcher.LocalResourceVersion;
 			if (newResourceVersion == oldResourceVersion)
 			{
 				MotionLog.Log($"Resource version is not change.");
-				_patcher.Switch(EPatchStates.PatchDone.ToString());
+				_patcher.Switch(EPatchStates.PatchDone);
 			}
 			else
 			{
-				MotionLog.Log($"Resource version is change : {oldResourceVersion} -> {newResourceVersion}");
-				_patcher.SwitchNext();
+				// 如果发现了新的安装包
+				if (_patcher.FoundNewApp)
+				{
+					string requestedGameVersion = _patcher.RequestedGameVersion.ToString();
+					MotionLog.Log($"Found new APP can be install : {requestedGameVersion}");
+					PatchEventDispatcher.SendFoundNewAppMsg(_patcher.ForceInstall, _patcher.AppURL, requestedGameVersion);
+				}
+				else
+				{
+					MotionLog.Log($"Resource version is change : {oldResourceVersion} -> {newResourceVersion}");
+					_patcher.SwitchNext();
+				}
 			}
 		}
 	}

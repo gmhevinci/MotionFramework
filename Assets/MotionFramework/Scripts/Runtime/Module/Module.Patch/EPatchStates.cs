@@ -17,9 +17,9 @@ namespace MotionFramework.Patch
 		RequestGameVersion,
 
 		/// <summary>
-		/// 获取远端的补丁清单
+		/// 下载远端的补丁清单
 		/// </summary>
-		GetWebPatchManifest,
+		DownloadPatchManifest,
 
 		/// <summary>
 		/// 获取下载列表
@@ -27,12 +27,12 @@ namespace MotionFramework.Patch
 		GetDonwloadList,
 
 		/// <summary>
-		/// 下载网络文件
+		/// 下载远端的网络文件
 		/// </summary>
 		DownloadWebFiles,
 
 		/// <summary>
-		/// 下载结束
+		/// 下载结束（全部成功下载完毕）
 		/// </summary>
 		DownloadOver,
 

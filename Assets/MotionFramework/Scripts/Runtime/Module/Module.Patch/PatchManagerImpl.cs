@@ -185,7 +185,7 @@ namespace MotionFramework.Patch
 
 			// 注意：按照先后顺序添加流程节点
 			_procedure.AddNode(new FsmRequestGameVersion(this));
-			_procedure.AddNode(new FsmGetWebPatchManifest(this));
+			_procedure.AddNode(new FsmDownloadPatchManifest(this));
 			_procedure.AddNode(new FsmGetDonwloadList(this));
 			_procedure.AddNode(new FsmDownloadWebFiles(this));
 			_procedure.AddNode(new FsmDownloadOver(this));
@@ -209,7 +209,15 @@ namespace MotionFramework.Patch
 			if (msg is PatchEventMessageDefine.OperationEvent)
 			{
 				var message = msg as PatchEventMessageDefine.OperationEvent;
-				if (message.operation == EPatchOperation.BeginingDownloadWebFiles)
+				if (message.operation == EPatchOperation.SkipInstallNewApp)
+				{
+					// 从挂起的地方继续
+					if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
+						_procedure.SwitchNext();
+					else
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+				}
+				else if (message.operation == EPatchOperation.BeginDownloadWebFiles)
 				{
 					// 从挂起的地方继续
 					if (_procedure.Current == EPatchStates.GetDonwloadList.ToString())
@@ -225,10 +233,10 @@ namespace MotionFramework.Patch
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
 				}
-				else if (message.operation == EPatchOperation.TryDownloadWebPatchManifest)
+				else if (message.operation == EPatchOperation.TryDownloadPatchManifest)
 				{
 					// 修复当前节点错误
-					if (_procedure.Current == EPatchStates.GetWebPatchManifest.ToString())
+					if (_procedure.Current == EPatchStates.DownloadPatchManifest.ToString())
 						_procedure.Switch(_procedure.Current);
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
@@ -464,9 +472,9 @@ namespace MotionFramework.Patch
 		}
 
 		// 流程相关
-		public void Switch(string nodeName)
+		public void Switch(EPatchStates patchStates)
 		{
-			_procedure.Switch(nodeName);
+			_procedure.Switch(patchStates.ToString());
 		}
 		public void SwitchNext()
 		{
