@@ -2,18 +2,19 @@
 
 **补丁流程**  
 1. 请求最新的游戏版本 (RequestGameVersion)
-2. 获取远端的补丁清单（GetWebPatchManifest）
+2. 下载远端的补丁清单（DownloadPatchManifest）
 3. 获取下载列表 (GetDonwloadList)
-4. 下载网络文件 (DownloadWebFiles)
-6. 下载结束 (DownloadOver)
+4. 下载远端的网络文件 (DownloadWebFiles)
+6. 下载结束（全部下载成功） (DownloadOver)
 7. 补丁流程完毕（PatchDone）
 
 注意事项：
-1. 当发现更新文件的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.BeginingDownloadWebFiles)事件可以恢复流程系统。
-2. 当请求游戏版本号失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryRequestGameVersion)事件可以恢复流程系统，然后再次尝试请求游戏版本号。
-3. 当下载网络补丁清单失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebPatchManifest)事件可以恢复流程系统，然后再次尝试下载。
-4. 当下载网络文件失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
-5. 当下载的网络文件完整性验证失败的时候，流程系统会被挂起。发送OperationEvent(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
+1. 当发现新的安装APP的时候，流程系统会被挂起。如果不是强更，那么发送(EPatchOperation.SkipInstallNewApp)事件可以恢复流程系统。
+2. 当发现更新文件的时候，流程系统会被挂起。发送(EPatchOperation.BeginDownloadWebFiles)事件可以恢复流程系统。
+3. 当请求游戏版本号失败的时候，流程系统会被挂起。发送(EPatchOperation.TryRequestGameVersion)事件可以恢复流程系统，然后再次尝试请求游戏版本号。
+4. 当下载网络补丁清单失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadPatchManifest)事件可以恢复流程系统，然后再次尝试下载。
+5. 当下载网络文件失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
+6. 当下载的网络文件完整性验证失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
 
 **补丁事件**  
 整个流程抛出的事件
@@ -51,7 +52,8 @@ class WebResponse
 {
 	public string GameVersion; //当前游戏版本号
 	public int ResourceVersion; //当前资源版本
-	public bool ForceInstall; //是否需要强制安装
+	public bool FoundNewApp; //是否发现了新的安装包
+	public bool ForceInstall; //是否需要强制用户安装
 	public string AppURL; //App安装的地址
 }
 ```
@@ -98,6 +100,7 @@ Web服务器的PHP范例
 	$data=array(
 		'GameVersion'=>'1.0.0.0',
 		'ResourceVersion'=>123,
+		'FoundNewApp'=>false,
 		'ForceInstall'=>false,
 		'AppURL'=>'www.baidu.com',
 	);
