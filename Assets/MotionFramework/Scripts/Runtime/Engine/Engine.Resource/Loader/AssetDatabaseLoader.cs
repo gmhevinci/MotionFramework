@@ -40,13 +40,13 @@ namespace MotionFramework.Resource
 			if (IsSceneLoader)
 				return;
 
-			int frame = 1000;
+			int frame = 100;
 			while (true)
 			{
 				// 保险机制
 				frame--;
 				if (frame == 0)
-					throw new Exception($"Should never get here ! {BundleInfo.BundleName} = {States}");
+					throw new Exception($"Should never get here ! BundleName : {BundleInfo.BundleName} States : {States}");
 
 				// 更新加载流程
 				Update();

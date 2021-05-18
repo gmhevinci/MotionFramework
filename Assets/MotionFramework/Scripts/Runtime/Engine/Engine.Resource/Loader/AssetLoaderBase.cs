@@ -67,7 +67,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 销毁
 		/// </summary>
-		public virtual void Destroy(bool force)
+		public virtual void Destroy(bool checkFatal)
 		{
 			IsDestroyed = true;
 		}

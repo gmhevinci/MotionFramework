@@ -175,8 +175,7 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 资源回收
-		/// 卸载引用计数为零的资源
+		/// 资源回收（卸载引用计数为零的资源）
 		/// </summary>
 		public static void UnloadUnusedAssets()
 		{
@@ -199,7 +198,7 @@ namespace MotionFramework.Resource
 			for (int i = 0; i < _loaders.Count; i++)
 			{
 				AssetLoaderBase loader = _loaders[i];
-				loader.Destroy(true);
+				loader.Destroy(false);
 			}
 			_loaders.Clear();
 

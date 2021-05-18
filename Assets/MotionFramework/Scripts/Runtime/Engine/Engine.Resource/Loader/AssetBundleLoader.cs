@@ -190,15 +190,18 @@ namespace MotionFramework.Resource
 				_depends[i].Release();
 			}
 		}
-		public override void Destroy(bool force)
+		public override void Destroy(bool checkFatal)
 		{
-			base.Destroy(force);
+			base.Destroy(checkFatal);
 
 			// Check fatal
-			if (RefCount > 0)
-				throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.BundleName}");
-			if (IsDone() == false)
-				throw new Exception($"Bundle file loader is not done : {BundleInfo.BundleName}");
+			if (checkFatal)
+			{
+				if (RefCount > 0)
+					throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.BundleName}");
+				if (IsDone() == false)
+					throw new Exception($"Bundle file loader is not done : {BundleInfo.BundleName}");
+			}
 
 			if (_downloader != null)
 			{
@@ -208,7 +211,7 @@ namespace MotionFramework.Resource
 
 			if (CacheBundle != null)
 			{
-				CacheBundle.Unload(force);
+				CacheBundle.Unload(true);
 				CacheBundle = null;
 			}
 
@@ -219,14 +222,14 @@ namespace MotionFramework.Resource
 			if (IsSceneLoader)
 				return;
 
-			int frame = 1000;
+			int frame = 100;
 			while (true)
 			{
 				// 保险机制
 				// 注意：如果需要从WEB端下载资源，可能会触发保险机制！
 				frame--;
 				if (frame == 0)
-					throw new Exception($"Should never get here ! {BundleInfo.BundleName} = {States}");
+					throw new Exception($"Should never get here ! BundleName : {BundleInfo.BundleName} States : {States}");
 
 				// 更新加载流程
 				Update();
