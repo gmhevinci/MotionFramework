@@ -68,7 +68,7 @@ namespace MotionFramework.Editor
 			AppendData(content, $"IsIgnoreTypeTreeChanges：{buildParameters.Parameters.IsIgnoreTypeTreeChanges}");
 
 			AppendData(content, "");
-			AppendData(content, $"--构建清单--");
+			AppendData(content, $"--构建列表--");
 			for (int i = 0; i < allAssetBundles.Length; i++)
 			{
 				AppendData(content, allAssetBundles[i]);
@@ -77,20 +77,20 @@ namespace MotionFramework.Editor
 			PatchManifest patchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
 			{
 				AppendData(content, "");
-				AppendData(content, $"--更新清单--");
+				AppendData(content, $"--内置列表--");
 				foreach (var patchBundle in patchManifest.BundleList)
 				{
-					if (patchBundle.Version == buildParameters.Parameters.BuildVersion)
+					if (patchBundle.IsBuildin)
 					{
 						AppendData(content, patchBundle.BundleName);
 					}
 				}
 
 				AppendData(content, "");
-				AppendData(content, $"--内置列表--");
+				AppendData(content, $"--更新列表--");
 				foreach (var patchBundle in patchManifest.BundleList)
 				{
-					if (patchBundle.IsBuildin)
+					if (patchBundle.Version == buildParameters.Parameters.BuildVersion)
 					{
 						AppendData(content, patchBundle.BundleName);
 					}

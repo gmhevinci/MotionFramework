@@ -156,9 +156,9 @@ namespace MotionFramework.Editor
 			{
 				new TaskPrepare(), //前期准备工作
 				new TaskGetBuildMap(), //获取构建列表
-				new TaskBuilding(), //开始执行构建
-				new TaskEncryption(), //加密资源文件
+				new TaskBuilding(), //开始执行构建			
 				new TaskCheckCycle(), //检测循环依赖
+				new TaskEncryption(), //加密资源文件
 				new TaskCreatePatchManifest(), //创建清单文件
 				new TaskCreateReadme(), //创建说明文件
 				new TaskCreatePatchPackage(), //制作补丁包
@@ -166,7 +166,7 @@ namespace MotionFramework.Editor
 			};
 
 			bool succeed = BuildRunner.Run(pipeline, _buildContext);
-			if(succeed)
+			if (succeed)
 				BuildLogger.Log($"构建成功！");
 			else
 				BuildLogger.Warning($"构建失败！");
