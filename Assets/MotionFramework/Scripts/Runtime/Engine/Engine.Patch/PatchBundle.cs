@@ -115,14 +115,28 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public bool HasTag(string[] tags)
 		{
+			if (tags == null || tags.Length == 0)
+				return false;
 			if (Tags == null || Tags.Length == 0)
 				return false;
+
 			foreach (var tag in tags)
 			{
 				if (Tags.Contains(tag))
 					return true;
 			}
 			return false;
+		}
+
+		/// <summary>
+		/// 是否为纯内置资源（不带任何Tag的资源）
+		/// </summary>
+		public bool IsPureBuildin()
+		{
+			if (Tags == null || Tags.Length == 0)
+				return true;
+			else
+				return false;
 		}
 	}
 }

@@ -49,8 +49,9 @@ namespace MotionFramework.Patch
 		private EVerifyLevel _verifyLevel;
 		private RemoteServerInfo _serverInfo;
 		private string[] _autoDownloadDLC;
+		private bool _autoDownloadBuildinDLC;
 		private int _maxNumberOnLoad;
-
+		
 		// 强更相关
 		public bool FoundNewApp { private set; get; } = false;
 		public bool ForceInstall { private set; get; } = false;
@@ -103,6 +104,7 @@ namespace MotionFramework.Patch
 			_verifyLevel = createParam.VerifyLevel;
 			_serverInfo = createParam.ServerInfo;
 			_autoDownloadDLC = createParam.AutoDownloadDLC;
+			_autoDownloadBuildinDLC = createParam.AutoDownloadBuildinDLC;
 			_maxNumberOnLoad = createParam.MaxNumberOnLoad;
 		}
 
@@ -313,6 +315,8 @@ namespace MotionFramework.Patch
 			List<string> dlcTags = new List<string>();
 			if (_autoDownloadDLC != null)
 				dlcTags.AddRange(_autoDownloadDLC);
+			if(_autoDownloadBuildinDLC)
+				dlcTags.AddRange(_appPatchManifest.GetBuildinTags());
 
 			return GetPatchDownloadList(dlcTags.ToArray());
 		}
@@ -337,22 +341,19 @@ namespace MotionFramework.Patch
 						continue;
 				}
 
-				// 如果是内置资源，则统一下载
+				// 如果是纯内置资源，则统一下载
 				// 注意：可能是新增的或者变化的内置资源
 				// 注意：可能是由热更资源转换的内置资源
-				if (patchBundle.IsBuildin)
+				if (patchBundle.IsPureBuildin())
 				{
 					downloadList.Add(patchBundle);
 				}
 				else
 				{
 					// 查询DLC资源
-					if (dlcTags.Length > 0)
+					if (patchBundle.HasTag(dlcTags))
 					{
-						if (patchBundle.HasTag(dlcTags))
-						{
-							downloadList.Add(patchBundle);
-						}
+						downloadList.Add(patchBundle);
 					}
 				}
 			}

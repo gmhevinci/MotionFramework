@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Utility;
+using MotionFramework.IO;
 
 namespace MotionFramework.Patch
 {
@@ -57,6 +58,14 @@ namespace MotionFramework.Patch
 		[NonSerialized]
 		private readonly Dictionary<string, PatchBundle> AssetsMapping = new Dictionary<string, PatchBundle>();
 
+
+		/// <summary>
+		/// 获取内置标记列表
+		/// </summary>
+		public string[] GetBuildinTags()
+		{
+			return StringConvert.StringToStringList(BuildinTags, ';').ToArray();
+		}
 
 		/// <summary>
 		/// 是否包含变体资源

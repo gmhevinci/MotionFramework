@@ -74,9 +74,9 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 释放下载器
+		/// 取消下载
 		/// </summary>
-		public void Dispose()
+		public void Forbid()
 		{
 			if (DownloadStates != EDownloaderStates.Forbid)
 			{
