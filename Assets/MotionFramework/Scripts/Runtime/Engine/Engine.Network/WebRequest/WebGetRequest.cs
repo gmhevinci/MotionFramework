@@ -15,35 +15,38 @@ namespace MotionFramework.Network
 		public WebGetRequest(string url) : base(url)
 		{
 		}
-		public override void DownLoad()
-		{
-			if (CacheRequest != null)
-				return;
 
-			// 下载文件
-			CacheRequest = new UnityWebRequest(URL, UnityWebRequest.kHttpVerbGET);
-			DownloadHandlerBuffer handler = new DownloadHandlerBuffer();
-			CacheRequest.downloadHandler = handler;
-			CacheRequest.disposeDownloadHandlerOnDispose = true;
-			AsyncOperationHandle = CacheRequest.SendWebRequest();
-		}
-		public override void ReportError()
+		public void SendRequest(int timeout = 0)
 		{
-			if(CacheRequest != null)
-				MotionLog.Warning($"{nameof(WebGetRequest)} : {URL} Error : {CacheRequest.error}");
+			if (_webRequest == null)
+			{
+				_webRequest = new UnityWebRequest(URL, UnityWebRequest.kHttpVerbGET);
+				DownloadHandlerBuffer handler = new DownloadHandlerBuffer();
+				_webRequest.downloadHandler = handler;
+				_webRequest.disposeDownloadHandlerOnDispose = true;
+				_webRequest.timeout = timeout;
+				_operationHandle = _webRequest.SendWebRequest();
+			}
 		}
-
+		
+		/// <summary>
+		/// 获取下载的字节数据
+		/// </summary>
 		public byte[] GetData()
 		{
-			if (IsDone(false) && HasError() == false)
-				return CacheRequest.downloadHandler.data;
+			if (_webRequest != null && IsDone())
+				return _webRequest.downloadHandler.data;
 			else
 				return null;
 		}
+
+		/// <summary>
+		/// 获取下载的文本数据
+		/// </summary>
 		public string GetText()
 		{
-			if (IsDone(false) && HasError() == false)
-				return CacheRequest.downloadHandler.text;
+			if (_webRequest != null && IsDone())
+				return _webRequest.downloadHandler.text;
 			else
 				return null;
 		}

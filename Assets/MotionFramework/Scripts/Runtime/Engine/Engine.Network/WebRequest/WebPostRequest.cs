@@ -7,43 +7,56 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Networking;
+using UnityEngine;
 
 namespace MotionFramework.Network
 {
 	public sealed class WebPostRequest : WebRequestBase
 	{
-		public string PostData { private set; get; }
-
-		public WebPostRequest(string url, string post) : base(url)
+		public WebPostRequest(string url) : base(url)
 		{
-			PostData = post;
 		}
-		public override void DownLoad()
-		{
-			if (CacheRequest != null)
-				return;
 
+		public void SendRequest(string post, int timeout = 0)
+		{
 			// Check error
-			if (string.IsNullOrEmpty(PostData))
-				throw new Exception($"{nameof(WebPostRequest)} post content is null or empty : {URL}");
+			if (string.IsNullOrEmpty(post))
+				throw new Exception($"Web post content is null or empty : {URL}");
 
-			// 下载文件
-			CacheRequest = UnityWebRequest.Post(URL, PostData);
-			DownloadHandlerBuffer downloadhandler = new DownloadHandlerBuffer();
-			CacheRequest.downloadHandler = downloadhandler;
-			CacheRequest.disposeDownloadHandlerOnDispose = true;
-			AsyncOperationHandle = CacheRequest.SendWebRequest();
+			if (_webRequest == null)
+			{
+				_webRequest = UnityWebRequest.Post(URL, post);
+				SendRequestInternal(timeout);
+			}
 		}
-		public override void ReportError()
+		public void SendRequest(WWWForm form, int timeout = 0)
 		{
-			if(CacheRequest != null)
-				MotionLog.Warning($"{nameof(WebPostRequest)}  : {URL} Error : {CacheRequest.error}");
+			// Check error
+			if (form == null)
+				throw new Exception($"Web post content is null or empty : {URL}");
+
+			if (_webRequest == null)
+			{
+				_webRequest = UnityWebRequest.Post(URL, form);
+				SendRequestInternal(timeout);
+			}
+		}
+		private void SendRequestInternal(int timeout)
+		{
+			DownloadHandlerBuffer handler = new DownloadHandlerBuffer();
+			_webRequest.downloadHandler = handler;
+			_webRequest.disposeDownloadHandlerOnDispose = true;
+			_webRequest.timeout = timeout;
+			_operationHandle = _webRequest.SendWebRequest();
 		}
 
+		/// <summary>
+		/// 获取响应的文本数据
+		/// </summary>
 		public string GetResponse()
 		{
-			if (IsDone(false) && HasError() == false)
-				return CacheRequest.downloadHandler.text;
+			if (_webRequest != null && IsDone())
+				return _webRequest.downloadHandler.text;
 			else
 				return null;
 		}
