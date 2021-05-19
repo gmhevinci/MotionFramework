@@ -42,8 +42,8 @@ namespace MotionFramework.Patch
 				string url = _patcher.GetWebServerIP();
 				string post = _patcher.GetWebPostData();
 				MotionLog.Log($"Beginning to request from web : {url} {post}");
-				WebPostRequest download = new WebPostRequest(url, post);
-				download.DownLoad();
+				WebPostRequest download = new WebPostRequest(url);
+				download.SendRequest(post);
 				yield return download;
 
 				//Check fatal

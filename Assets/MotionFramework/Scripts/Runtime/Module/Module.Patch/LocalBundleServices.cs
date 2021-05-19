@@ -53,7 +53,7 @@ namespace MotionFramework.Patch
 			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
 			string url = AssetPathHelper.ConvertToWWWPath(filePath);
 			WebGetRequest downloader = new WebGetRequest(url);
-			downloader.DownLoad();
+			downloader.SendRequest();
 			yield return downloader;
 
 			if (downloader.HasError())

@@ -26,6 +26,7 @@ namespace MotionFramework.Patch
 
 		private readonly PatchManagerImpl _patcherMgr;
 		private readonly int _maxNumberOnLoad;
+		private readonly int _failedTryAgain;
 		private readonly List<PatchBundle> _downloadList;
 		private readonly List<PatchBundle> _succeedList = new List<PatchBundle>();
 		private readonly List<PatchBundle> _loadFailedList = new List<PatchBundle>();
@@ -51,11 +52,12 @@ namespace MotionFramework.Patch
 		private PatchDownloader()
 		{
 		}
-		internal PatchDownloader(PatchManagerImpl patcherMgr, List<PatchBundle> downloadList, int maxNumberOnLoad)
+		internal PatchDownloader(PatchManagerImpl patcherMgr, List<PatchBundle> downloadList, int maxNumberOnLoad, int failedTryAgain = 3)
 		{
 			_patcherMgr = patcherMgr;
 			_downloadList = downloadList;
 			_maxNumberOnLoad = UnityEngine.Mathf.Clamp(maxNumberOnLoad, 1, MAX_LOADER_COUNT); ;
+			_failedTryAgain = failedTryAgain;
 
 			DownloadStates = EDownloaderStates.None;
 			TotalDownloadCount = downloadList.Count;
@@ -206,9 +208,8 @@ namespace MotionFramework.Patch
 
 			// 创建下载器
 			MotionLog.Log($"Beginning to download web file : {patchBundle.BundleName} URL : {url}");
-			WebFileRequest download = new WebFileRequest(url, savePath);
+			WebFileRequest download = WebFileSystem.GetWebFileRequest(url, savePath, _failedTryAgain);
 			download.UserData = patchBundle;
-			download.DownLoad();
 			return download;
 		}
 

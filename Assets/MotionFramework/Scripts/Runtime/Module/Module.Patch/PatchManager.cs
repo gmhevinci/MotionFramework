@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using MotionFramework.Resource;
 using MotionFramework.Event;
 using MotionFramework.Console;
+using MotionFramework.Network;
 
 namespace MotionFramework.Patch
 {
@@ -98,11 +99,13 @@ namespace MotionFramework.Patch
 		}
 		void IModule.OnUpdate()
 		{
-			_patcher.Update();
+			_patcher.Update();		
+			WebFileSystem.Update();
 		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(PatchManager)}] States : {_patcher.CurrentStates}");
+			ConsoleGUI.Lable($"[{nameof(PatchManager)}] Reqeust : {WebFileSystem.GetRequestTotalCount()}");
 		}
 
 		/// <summary>

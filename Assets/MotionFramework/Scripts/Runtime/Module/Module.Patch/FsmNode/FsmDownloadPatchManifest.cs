@@ -41,7 +41,7 @@ namespace MotionFramework.Patch
 			int newResourceVersion = _patcher.RequestedResourceVersion;
 			string url = _patcher.GetWebDownloadURL(newResourceVersion, PatchDefine.PatchManifestFileName);
 			WebGetRequest download = new WebGetRequest(url);
-			download.DownLoad();
+			download.SendRequest();
 			yield return download;
 
 			// Check fatal
