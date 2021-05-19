@@ -60,8 +60,8 @@ namespace MotionFramework.Resource
 			// 1. 从服务器下载
 			if (States == ELoaderStates.Download)
 			{
-				_downloader = new WebFileRequest(BundleInfo.RemoteURL, BundleInfo.LocalPath);
-				_downloader.DownLoad();
+				int failedTryAgain = 3;
+				_downloader = WebFileSystem.GetWebFileRequest(BundleInfo.RemoteURL, BundleInfo.LocalPath, failedTryAgain);
 				States = ELoaderStates.CheckDownload;
 			}
 
