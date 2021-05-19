@@ -40,8 +40,9 @@ namespace MotionFramework.Patch
 			// 获取最新的游戏版本号
 			{
 				string url = _patcher.GetWebServerIP();
-				string post = _patcher.GetWebPostData();
-				MotionLog.Log($"Beginning to request from web : {url} {post}");
+				string post = _patcher.GetWebPostContent();
+				MotionLog.Log($"Beginning to request from web : {url}");
+				MotionLog.Log($"Web post content : {post}");
 				WebPostRequest download = new WebPostRequest(url);
 				download.SendRequest(post);
 				yield return download;
@@ -57,7 +58,7 @@ namespace MotionFramework.Patch
 
 				string response = download.GetResponse();
 				MotionLog.Log($"Succeed get response from web : {url} {response}");
-				_patcher.ParseWebResponseData(response);
+				_patcher.ParseWebResponse(response);
 				download.Dispose();
 			}
 

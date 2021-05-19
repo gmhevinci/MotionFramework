@@ -21,24 +21,9 @@ namespace MotionFramework.Patch
 		public class CreateParameters
 		{
 			/// <summary>
-			/// 最近登录的服务器ID
+			/// 向WEB服务器投递的数据
 			/// </summary>
-			public int ServerID;
-
-			/// <summary>
-			/// 渠道ID
-			/// </summary>
-			public int ChannelID;
-
-			/// <summary>
-			/// 设备唯一ID
-			/// </summary>
-			public string DeviceUID;
-
-			/// <summary>
-			/// 测试包标记
-			/// </summary>
-			public int TestFlag;
+			public string WebPoseContent;
 
 			/// <summary>
 			/// 补丁文件校验等级

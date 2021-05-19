@@ -19,14 +19,6 @@ namespace MotionFramework.Patch
 {
 	internal class PatchManagerImpl
 	{
-		private class WebPost
-		{
-			public string AppVersion; //应用程序内置版本
-			public int ServerID; //最近登录的服务器ID
-			public int ChannelID; //渠道ID
-			public string DeviceUID; //设备唯一ID
-			public int TestFlag; //测试标记
-		}
 		private class WebResponse
 		{
 #pragma warning disable 0649
@@ -42,16 +34,13 @@ namespace MotionFramework.Patch
 		private readonly ProcedureFsm _procedure = new ProcedureFsm();
 
 		// 参数相关
-		private int _serverID;
-		private int _channelID;
-		private string _deviceUID;
-		private int _testFlag;
+		private string _webPostContent;
 		private EVerifyLevel _verifyLevel;
 		private RemoteServerInfo _serverInfo;
 		private string[] _autoDownloadDLC;
 		private bool _autoDownloadBuildinDLC;
 		private int _maxNumberOnLoad;
-		
+
 		// 强更相关
 		public bool FoundNewApp { private set; get; } = false;
 		public bool ForceInstall { private set; get; } = false;
@@ -97,10 +86,7 @@ namespace MotionFramework.Patch
 
 		public void Create(PatchManager.CreateParameters createParam)
 		{
-			_serverID = createParam.ServerID;
-			_channelID = createParam.ChannelID;
-			_deviceUID = createParam.DeviceUID;
-			_testFlag = createParam.TestFlag;
+			_webPostContent = createParam.WebPoseContent;
 			_verifyLevel = createParam.VerifyLevel;
 			_serverInfo = createParam.ServerInfo;
 			_autoDownloadDLC = createParam.AutoDownloadDLC;
@@ -315,7 +301,7 @@ namespace MotionFramework.Patch
 			List<string> dlcTags = new List<string>();
 			if (_autoDownloadDLC != null)
 				dlcTags.AddRange(_autoDownloadDLC);
-			if(_autoDownloadBuildinDLC)
+			if (_autoDownloadBuildinDLC)
 				dlcTags.AddRange(_appPatchManifest.GetBuildinTags());
 
 			return GetPatchDownloadList(dlcTags.ToArray());
@@ -503,24 +489,16 @@ namespace MotionFramework.Patch
 		{
 			return $"{GetCDNServerIP()}/{resourceVersion}/{fileName}";
 		}
-		public string GetWebPostData()
+		public string GetWebPostContent()
 		{
-			WebPost post = new WebPost
-			{
-				AppVersion = Application.version,
-				ServerID = _serverID,
-				ChannelID = _channelID,
-				DeviceUID = _deviceUID,
-				TestFlag = _testFlag
-			};
-			return JsonUtility.ToJson(post);
+			return _webPostContent;
 		}
-		public void ParseWebResponseData(string data)
+		public void ParseWebResponse(string content)
 		{
-			if (string.IsNullOrEmpty(data))
+			if (string.IsNullOrEmpty(content))
 				throw new Exception("Web server response data is null or empty.");
 
-			WebResponse response = JsonUtility.FromJson<WebResponse>(data);
+			WebResponse response = JsonUtility.FromJson<WebResponse>(content);
 			RequestedGameVersion = new Version(response.GameVersion);
 			RequestedResourceVersion = response.ResourceVersion;
 			FoundNewApp = response.FoundNewApp;
