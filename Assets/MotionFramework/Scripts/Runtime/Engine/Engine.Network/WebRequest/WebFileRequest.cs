@@ -13,7 +13,6 @@ namespace MotionFramework.Network
 {
 	public sealed class WebFileRequest : WebRequestBase
 	{
-		private bool _isDispose = false;
 		private bool _isDone = false;
 		private string _savePath;
 		private int _timeout;
@@ -131,13 +130,10 @@ namespace MotionFramework.Network
 
 		public override void Dispose()
 		{
-			if (_isDispose == false)
+			RefCount--;
+			if (RefCount <= 0)
 			{
-				_isDispose = true;
-				RefCount--;
-
-				if (RefCount <= 0)
-					base.Dispose();
+				base.Dispose();
 			}
 		}
 		public override bool IsDone()
