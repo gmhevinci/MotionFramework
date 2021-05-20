@@ -22,8 +22,8 @@ namespace MotionFramework.Network
 		// 下载超时相关
 		// 注意：在连续时间段内无新增下载数据及判定为超时
 		private bool _isAbort = false;
-		private float _latestDownloadRealtime = -1;
-		private float _latestDownloadBytes = -1;
+		private ulong _latestDownloadBytes;
+		private float _latestDownloadRealtime;
 
 		/// <summary>
 		/// 用户自定义数据类
@@ -76,6 +76,11 @@ namespace MotionFramework.Network
 				_failedTryAgain = failedTryAgain;
 				_timeout = timeout;
 
+				// 重置超时相关变量
+				_isAbort = false;
+				_latestDownloadBytes = 0;
+				_latestDownloadRealtime = Time.realtimeSinceStartup;
+
 				_webRequest = new UnityWebRequest(URL, UnityWebRequest.kHttpVerbGET);
 				DownloadHandlerFile handler = new DownloadHandlerFile(savePath);
 				handler.removeFileOnAbort = true;
@@ -94,43 +99,44 @@ namespace MotionFramework.Network
 			if (_operationHandle.isDone)
 			{
 				// 如果发生错误，多尝试几次下载
-				if(HasError() && _failedTryAgain > 0)
+				if (IsError() && _failedTryAgain > 0)
 				{
 					TryAgainRequest();
 				}
 				else
 				{
-					_isError = HasError();
+					_isError = IsError();
 					_isDone = true;
 				}
 			}
 			else
 			{
 				// 检测是否超时
-				if (_isAbort == false)
-				{		
-					if (_latestDownloadBytes != DownloadedBytes)
-					{
-						_latestDownloadBytes = DownloadedBytes;
-						_latestDownloadRealtime = Time.realtimeSinceStartup;
-					}
-					if ((Time.realtimeSinceStartup - _latestDownloadRealtime) > _timeout)
-					{
-						MotionLog.Warning($"Web file request timeout : {URL}");
-						_webRequest.Abort();
-						_isAbort = true;
-					}
+				CheckTimeout();
+			}
+		}
+		private void CheckTimeout()
+		{
+			if (_isAbort == false)
+			{
+				if (_latestDownloadBytes != DownloadedBytes)
+				{
+					_latestDownloadBytes = DownloadedBytes;
+					_latestDownloadRealtime = Time.realtimeSinceStartup;
+				}
+
+				float offset = Time.realtimeSinceStartup - _latestDownloadRealtime;
+				if (offset > _timeout)
+				{
+					MotionLog.Warning($"Web file request timeout : {URL}");
+					_webRequest.Abort();
+					_isAbort = true;
 				}
 			}
 		}
 		private void TryAgainRequest()
 		{
 			_failedTryAgain--;
-
-			// 重置变量
-			_isAbort = false;
-			_latestDownloadRealtime = -1;
-			_latestDownloadBytes = -1;
 
 			// 报告错误
 			ReportError();
@@ -141,6 +147,13 @@ namespace MotionFramework.Network
 			// 重新请求下载
 			MotionLog.Warning($"Try again request : {URL}");
 			SendRequest(_savePath, _failedTryAgain, _timeout);
+		}
+		private bool IsError()
+		{
+			if (_webRequest.isNetworkError || _webRequest.isHttpError)
+				return true;
+			else
+				return false;
 		}
 
 		public override void Dispose()
