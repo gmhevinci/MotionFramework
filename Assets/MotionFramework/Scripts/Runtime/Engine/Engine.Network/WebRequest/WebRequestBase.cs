@@ -55,7 +55,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 下载是否发生错误
 		/// </summary>
-		public bool HasError()
+		public virtual bool HasError()
 		{
 			if (_webRequest.isNetworkError || _webRequest.isHttpError)
 				return true;
@@ -66,7 +66,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 报告错误
 		/// </summary>
-		public void ReportError()
+		public virtual void ReportError()
 		{
 			if (_webRequest != null)
 			{

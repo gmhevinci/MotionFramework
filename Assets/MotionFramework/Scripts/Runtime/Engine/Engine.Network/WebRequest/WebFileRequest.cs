@@ -14,12 +14,14 @@ namespace MotionFramework.Network
 	public sealed class WebFileRequest : WebRequestBase
 	{
 		private bool _isDone = false;
+		private bool _isError = false;
 		private string _savePath;
 		private int _timeout;
 		private int _failedTryAgain;
 
 		// 下载超时相关
 		// 注意：在连续时间段内无新增下载数据及判定为超时
+		private bool _isAbort = false;
 		private float _latestDownloadRealtime = -1;
 		private float _latestDownloadBytes = -1;
 
@@ -86,7 +88,6 @@ namespace MotionFramework.Network
 		{
 			if (_webRequest == null)
 				return;
-
 			if (_isDone)
 				return;
 
@@ -96,36 +97,50 @@ namespace MotionFramework.Network
 				if(HasError() && _failedTryAgain > 0)
 				{
 					TryAgainRequest();
-					return;
 				}
-				_isDone = true;
+				else
+				{
+					_isError = HasError();
+					_isDone = true;
+				}
 			}
 			else
 			{
 				// 检测是否超时
-				if (_latestDownloadBytes != DownloadedBytes)
-				{
-					_latestDownloadBytes = DownloadedBytes;
-					_latestDownloadRealtime = Time.realtimeSinceStartup;
-				}
-				if ((Time.realtimeSinceStartup - _latestDownloadRealtime) > _timeout)
-				{
-					MotionLog.Warning($"Web file request timeout : {URL}");
-					_webRequest.Abort();
-					_isDone = true;
+				if (_isAbort == false)
+				{		
+					if (_latestDownloadBytes != DownloadedBytes)
+					{
+						_latestDownloadBytes = DownloadedBytes;
+						_latestDownloadRealtime = Time.realtimeSinceStartup;
+					}
+					if ((Time.realtimeSinceStartup - _latestDownloadRealtime) > _timeout)
+					{
+						MotionLog.Warning($"Web file request timeout : {URL}");
+						_webRequest.Abort();
+						_isAbort = true;
+					}
 				}
 			}
 		}
 		private void TryAgainRequest()
 		{
 			_failedTryAgain--;
+
+			// 重置变量
+			_isAbort = false;
 			_latestDownloadRealtime = -1;
 			_latestDownloadBytes = -1;
 
-			// 注意：先清除旧数据，再创建新的下载器
+			// 报告错误
+			ReportError();
+
+			// 清除旧数据
 			base.Dispose();
-			SendRequest(_savePath, _failedTryAgain, _timeout);
+
+			// 重新请求下载
 			MotionLog.Warning($"Try again request : {URL}");
+			SendRequest(_savePath, _failedTryAgain, _timeout);
 		}
 
 		public override void Dispose()
@@ -139,6 +154,10 @@ namespace MotionFramework.Network
 		public override bool IsDone()
 		{
 			return _isDone;
+		}
+		public override bool HasError()
+		{
+			return _isError;
 		}
 	}
 }

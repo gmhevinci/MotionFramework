@@ -13,6 +13,10 @@ namespace MotionFramework.Network
 		private static readonly Dictionary<string, WebFileRequest> _webFileRequestDic = new Dictionary<string, WebFileRequest>();
 		private static readonly List<string> _removeWebFileList = new List<string>(100);
 
+
+		/// <summary>
+		/// 更新所有下载类
+		/// </summary>
 		internal static void Update()
 		{
 			_removeWebFileList.Clear();
@@ -22,8 +26,12 @@ namespace MotionFramework.Network
 			{
 				var reqeust = valuePair.Value;
 				reqeust.Update();
+
+				// 移除引用计数为零的下载类
 				if (reqeust.RefCount <= 0)
+				{
 					_removeWebFileList.Add(valuePair.Key);
+				}
 			}
 
 			// 移除引用计数为零的下载器
@@ -34,7 +42,7 @@ namespace MotionFramework.Network
 		}
 
 		/// <summary>
-		/// 获取文件下载器，如果不存在就创建新的下载器
+		/// 获取文件下载类，如果不存在就创建新的下载类
 		/// </summary>
 		public static WebFileRequest GetWebFileRequest(string url, string savePath, int failedTryAgain, int timeout = 60)
 		{
