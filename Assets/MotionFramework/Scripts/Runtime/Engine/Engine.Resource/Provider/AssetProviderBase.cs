@@ -8,7 +8,7 @@ namespace MotionFramework.Resource
 {
 	internal abstract class AssetProviderBase : IAssetProvider
 	{
-		protected AssetLoaderBase Owner { private set; get; }
+		protected FileLoaderBase Owner { private set; get; }
 
 		public string AssetName { private set; get; }
 		public System.Type AssetType { private set; get; }
@@ -44,7 +44,7 @@ namespace MotionFramework.Resource
 		}
 		
 
-		public AssetProviderBase(AssetLoaderBase owner, string assetName, System.Type assetType)
+		public AssetProviderBase(FileLoaderBase owner, string assetName, System.Type assetType)
 		{
 			Owner = owner;
 			AssetName = assetName;

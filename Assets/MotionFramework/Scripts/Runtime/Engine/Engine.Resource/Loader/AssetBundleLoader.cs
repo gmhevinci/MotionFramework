@@ -11,9 +11,9 @@ using MotionFramework.Network;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class AssetBundleLoader : AssetLoaderBase
+	internal sealed class AssetBundleLoader : FileLoaderBase
 	{
-		private readonly List<AssetLoaderBase> _depends = new List<AssetLoaderBase>(10);
+		private readonly List<FileLoaderBase> _depends = new List<FileLoaderBase>(10);
 		private WebFileRequest _downloader;
 		private AssetBundleCreateRequest _cacheRequest;
 		internal AssetBundle CacheBundle { private set; get; }
@@ -28,7 +28,7 @@ namespace MotionFramework.Resource
 				foreach (string dependBundleName in dependencies)
 				{
 					AssetBundleInfo dependBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dependBundleName);
-					AssetLoaderBase dependLoader = AssetSystem.CreateLoaderInternal(dependBundleInfo);
+					FileLoaderBase dependLoader = AssetSystem.CreateLoaderInternal(dependBundleInfo);
 					_depends.Add(dependLoader);
 				}
 			}

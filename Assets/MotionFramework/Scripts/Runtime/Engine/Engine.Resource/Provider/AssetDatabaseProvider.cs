@@ -22,7 +22,7 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetDatabaseProvider(AssetLoaderBase owner, string assetName, System.Type assetType)
+		public AssetDatabaseProvider(FileLoaderBase owner, string assetName, System.Type assetType)
 			: base(owner, assetName, assetType)
 		{
 		}

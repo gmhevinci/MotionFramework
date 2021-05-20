@@ -24,7 +24,7 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetSceneProvider(AssetLoaderBase owner, string assetName, SceneInstanceParam param)
+		public AssetSceneProvider(FileLoaderBase owner, string assetName, SceneInstanceParam param)
 			: base(owner, assetName, null)
 		{
 			_param = param;

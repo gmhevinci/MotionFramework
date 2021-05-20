@@ -159,7 +159,7 @@ namespace MotionFramework.Resource
 		public AssetOperationHandle LoadSceneAsync(string location, SceneInstanceParam instanceParam)
 		{
 			string sceneName = Path.GetFileName(location);
-			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
+			FileLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
 			var handle = cacheLoader.LoadSceneAsync(sceneName, instanceParam);
 			return handle;
 		}
@@ -194,7 +194,7 @@ namespace MotionFramework.Resource
 		private AssetOperationHandle LoadAssetInternal(string location, System.Type assetType, bool forceSyncLoad)
 		{
 			string assetName = Path.GetFileName(location);
-			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
+			FileLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
 			var handle = cacheLoader.LoadAssetAsync(assetName, assetType);
 			if (forceSyncLoad)
 				cacheLoader.ForceSyncLoad();
@@ -203,7 +203,7 @@ namespace MotionFramework.Resource
 		private AssetOperationHandle LoadSubAssetsInternal(string location, System.Type assetType, bool forceSyncLoad)
 		{
 			string assetName = Path.GetFileName(location);
-			AssetLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
+			FileLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
 			var handle = cacheLoader.LoadSubAssetsAsync(assetName, assetType);
 			if (forceSyncLoad)
 				cacheLoader.ForceSyncLoad();

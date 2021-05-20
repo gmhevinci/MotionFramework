@@ -23,7 +23,7 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetBundleSubProvider(AssetLoaderBase owner, string assetName, System.Type assetType)
+		public AssetBundleSubProvider(FileLoaderBase owner, string assetName, System.Type assetType)
 			: base(owner, assetName, assetType)
 		{
 			_loader = owner as AssetBundleLoader;

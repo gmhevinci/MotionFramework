@@ -8,7 +8,7 @@ using System;
 
 namespace MotionFramework.Resource
 {
-	internal abstract class AssetLoaderBase
+	internal abstract class FileLoaderBase
 	{
 		/// <summary>
 		/// 资源文件信息
@@ -36,7 +36,7 @@ namespace MotionFramework.Resource
 		public bool IsDestroyed { private set; get; } = false;
 
 
-		public AssetLoaderBase(AssetBundleInfo bundleInfo)
+		public FileLoaderBase(AssetBundleInfo bundleInfo)
 		{
 			BundleInfo = bundleInfo;
 			RefCount = 0;

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class AssetDatabaseLoader : AssetLoaderBase
+	internal sealed class AssetDatabaseLoader : FileLoaderBase
 	{
 		public AssetDatabaseLoader(AssetBundleInfo bundleInfo)
 			: base(bundleInfo)

@@ -16,7 +16,7 @@ namespace MotionFramework.Resource
 	/// </summary>
 	internal static class AssetSystem
 	{
-		private static readonly List<AssetLoaderBase> _loaders = new List<AssetLoaderBase>(1000);
+		private static readonly List<FileLoaderBase> _loaders = new List<FileLoaderBase>(1000);
 		private static readonly List<string> _removeKeys = new List<string>(100);
 		private static bool _isInitialize = false;
 
@@ -134,15 +134,15 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 创建资源文件加载器
 		/// </summary>
-		public static AssetLoaderBase CreateLoader(string location)
+		public static FileLoaderBase CreateLoader(string location)
 		{
 			AssetBundleInfo bundleInfo = GetAssetBundleInfo(location);
 			return CreateLoaderInternal(bundleInfo);
 		}
-		internal static AssetLoaderBase CreateLoaderInternal(AssetBundleInfo bundleInfo)
+		internal static FileLoaderBase CreateLoaderInternal(AssetBundleInfo bundleInfo)
 		{
 			// 如果加载器已经存在
-			AssetLoaderBase loader = TryGetLoader(bundleInfo.BundleName);
+			FileLoaderBase loader = TryGetLoader(bundleInfo.BundleName);
 			if (loader != null)
 				return loader;
 
@@ -165,7 +165,7 @@ namespace MotionFramework.Resource
 		{
 			for (int i = _loaders.Count - 1; i >= 0; i--)
 			{
-				AssetLoaderBase loader = _loaders[i];
+				FileLoaderBase loader = _loaders[i];
 				if (loader.IsSceneLoader && loader.CanDestroy())
 				{
 					loader.Destroy(true);
@@ -181,7 +181,7 @@ namespace MotionFramework.Resource
 		{
 			for (int i = _loaders.Count - 1; i >= 0; i--)
 			{
-				AssetLoaderBase loader = _loaders[i];
+				FileLoaderBase loader = _loaders[i];
 				if (loader.CanDestroy())
 				{
 					loader.Destroy(true);
@@ -197,7 +197,7 @@ namespace MotionFramework.Resource
 		{
 			for (int i = 0; i < _loaders.Count; i++)
 			{
-				AssetLoaderBase loader = _loaders[i];
+				FileLoaderBase loader = _loaders[i];
 				loader.Destroy(false);
 			}
 			_loaders.Clear();
@@ -209,12 +209,12 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 从列表里获取加载器
 		/// </summary>
-		private static AssetLoaderBase TryGetLoader(string bundleName)
+		private static FileLoaderBase TryGetLoader(string bundleName)
 		{
-			AssetLoaderBase loader = null;
+			FileLoaderBase loader = null;
 			for (int i = 0; i < _loaders.Count; i++)
 			{
-				AssetLoaderBase temp = _loaders[i];
+				FileLoaderBase temp = _loaders[i];
 				if (temp.BundleInfo.BundleName.Equals(bundleName))
 				{
 					loader = temp;
@@ -225,7 +225,7 @@ namespace MotionFramework.Resource
 		}
 
 		#region 调试专属方法
-		internal static List<AssetLoaderBase> GetAllLoaders()
+		internal static List<FileLoaderBase> GetAllLoaders()
 		{
 			return _loaders;
 		}
@@ -238,7 +238,7 @@ namespace MotionFramework.Resource
 			int count = 0;
 			for (int i = 0; i < _loaders.Count; i++)
 			{
-				AssetLoaderBase temp = _loaders[i];
+				FileLoaderBase temp = _loaders[i];
 				if (temp.States == ELoaderStates.Fail || temp.GetFailedProviderCount() > 0)
 					count++;
 			}
