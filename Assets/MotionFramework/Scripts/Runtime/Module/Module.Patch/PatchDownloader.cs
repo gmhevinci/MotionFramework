@@ -31,7 +31,8 @@ namespace MotionFramework.Patch
 		private readonly List<PatchBundle> _succeedList = new List<PatchBundle>();
 		private readonly List<PatchBundle> _loadFailedList = new List<PatchBundle>();
 		private readonly List<PatchBundle> _checkFailedList = new List<PatchBundle>();
-		private readonly List<WebFileRequest> _loaders = new List<WebFileRequest>();
+		private readonly List<WebFileRequest> _downloaders = new List<WebFileRequest>();
+		private readonly List<WebFileRequest> _removeList = new List<WebFileRequest>(MAX_LOADER_COUNT);
 
 		// 数据相关
 		public EDownloaderStates DownloadStates { private set; get; }
@@ -52,7 +53,7 @@ namespace MotionFramework.Patch
 		private PatchDownloader()
 		{
 		}
-		internal PatchDownloader(PatchManagerImpl patcherMgr, List<PatchBundle> downloadList, int maxNumberOnLoad, int failedTryAgain = 3)
+		internal PatchDownloader(PatchManagerImpl patcherMgr, List<PatchBundle> downloadList, int maxNumberOnLoad, int failedTryAgain)
 		{
 			_patcherMgr = patcherMgr;
 			_downloadList = downloadList;
@@ -83,11 +84,11 @@ namespace MotionFramework.Patch
 			if (DownloadStates != EDownloaderStates.Forbid)
 			{
 				DownloadStates = EDownloaderStates.Forbid;
-				foreach (var loader in _loaders)
+				foreach (var loader in _downloaders)
 				{
 					loader.Dispose();
 				}
-				_loaders.Clear();
+				_downloaders.Clear();
 			}
 		}
 
@@ -112,10 +113,10 @@ namespace MotionFramework.Patch
 				return;
 
 			// 检测下载器结果
+			_removeList.Clear();
 			long downloadBytes = CurrentDownloadBytes;
-			for (int i = _loaders.Count - 1; i >= 0; i--)
+			foreach(var loader in _downloaders)
 			{
-				var loader = _loaders[i];
 				downloadBytes += (long)loader.DownloadedBytes;
 				if (loader.IsDone() == false)
 					continue;
@@ -127,7 +128,7 @@ namespace MotionFramework.Patch
 				{
 					loader.ReportError();
 					loader.Dispose();
-					_loaders.RemoveAt(i);
+					_removeList.Add(loader);
 					_loadFailedList.Add(patchBundle);
 					continue;
 				}
@@ -137,17 +138,23 @@ namespace MotionFramework.Patch
 				{
 					MotionLog.Error($"Check download content integrity is failed : {patchBundle.BundleName}");
 					loader.Dispose();
-					_loaders.RemoveAt(i);
+					_removeList.Add(loader);
 					_checkFailedList.Add(patchBundle);
 					continue;
 				}
 
 				// 下载成功
 				loader.Dispose();
-				_loaders.RemoveAt(i);
+				_removeList.Add(loader);
 				_succeedList.Add(patchBundle);
 				CurrentDownloadCount++;
 				CurrentDownloadBytes += patchBundle.SizeBytes;
+			}
+
+			// 移除已经完成的下载器（无论成功或失败）
+			foreach(var loader in _removeList)
+			{
+				_downloaders.Remove(loader);
 			}
 
 			// 如果下载进度发生变化
@@ -162,17 +169,17 @@ namespace MotionFramework.Patch
 			// 注意：如果期间有下载失败的文件，暂停动态创建下载器
 			if (_downloadList.Count > 0 && _loadFailedList.Count == 0 && _checkFailedList.Count == 0)
 			{
-				if (_loaders.Count < _maxNumberOnLoad)
+				if (_downloaders.Count < _maxNumberOnLoad)
 				{
 					int index = _downloadList.Count - 1;
 					WebFileRequest downloader = CreateDownloader(_downloadList[index]);
-					_loaders.Add(downloader);
+					_downloaders.Add(downloader);
 					_downloadList.RemoveAt(index);
 				}
 			}
 
 			// 下载结算
-			if (_loaders.Count == 0)
+			if (_downloaders.Count == 0)
 			{
 				// 更新缓存并保存
 				if (_succeedList.Count > 0)

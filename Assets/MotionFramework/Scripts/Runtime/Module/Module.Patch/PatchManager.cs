@@ -51,9 +51,14 @@ namespace MotionFramework.Patch
 			public bool AutoDownloadBuildinDLC;
 
 			/// <summary>
-			/// 下载器同时下载的文件数
+			/// 同时下载的最大文件数（内置下载器参数）
 			/// </summary>
 			public int MaxNumberOnLoad = 1;
+
+			/// <summary>
+			/// 下载失败的重复次数（内置下载器参数）
+			/// </summary>
+			public int FailedTryAgain = 3;
 		}
 
 		private PatchManagerImpl _patcher;
@@ -149,25 +154,33 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 获取DLC下载器
+		/// 创建补丁下载器
 		/// </summary>
-		/// <param name="dlcTag">DLC标签</param>
-		/// <param name="maxNumberOnLoad">下载器同时下载的文件数</param>
-		public PatchDownloader CreateDLCDownloader(string dlcTag, int maxNumberOnLoad)
+		/// <param name="dlcTag">DLC标记</param>
+		/// <param name="maxNumberOnLoad">同时下载的最大文件数</param>
+		/// <param name="failedTryAgain">下载失败的重试次数</param>
+		public PatchDownloader CreateDLCDownloader(string dlcTag, int maxNumberOnLoad, int failedTryAgain)
 		{
-			return CreateDLCDownloader(new string[] { dlcTag }, maxNumberOnLoad);
+			return CreateDLCDownloader(new string[] { dlcTag }, maxNumberOnLoad, failedTryAgain);
 		}
-		public PatchDownloader CreateDLCDownloader(string[] dlcTags, int maxNumberOnLoad)
+
+		/// <summary>
+		/// 创建补丁下载器
+		/// </summary>
+		/// <param name="dlcTags">DLC标记列表</param>
+		/// <param name="maxNumberOnLoad">同时下载的最大文件数</param>
+		/// <param name="failedTryAgain">下载失败的重试次数</param>
+		public PatchDownloader CreateDLCDownloader(string[] dlcTags, int maxNumberOnLoad, int failedTryAgain)
 		{
 			if (dlcTags == null || dlcTags.Length == 0)
 				throw new Exception("DLC tags is null or empty.");
 			if (_isRun == false)
-				throw new Exception($"The patch system is not start. Call PatchManager.Instance.Download()");
+				throw new Exception($"The patch pipeline is not start. Call PatchManager.Instance.Download()");
 			if (IsFinish() == false)
-				throw new Exception($"The patch system is not over.");
+				throw new Exception($"The patch pipeline is not done.");
 
 			var downloadList = _patcher.GetPatchDownloadList(dlcTags);
-			PatchDownloader downlader = new PatchDownloader(_patcher, downloadList, maxNumberOnLoad);
+			PatchDownloader downlader = new PatchDownloader(_patcher, downloadList, maxNumberOnLoad, failedTryAgain);
 			return downlader;
 		}
 

@@ -40,6 +40,7 @@ namespace MotionFramework.Patch
 		private string[] _autoDownloadDLC;
 		private bool _autoDownloadBuildinDLC;
 		private int _maxNumberOnLoad;
+		private int _failedTryAgain;
 
 		// 强更相关
 		public bool FoundNewApp { private set; get; } = false;
@@ -92,6 +93,7 @@ namespace MotionFramework.Patch
 			_autoDownloadDLC = createParam.AutoDownloadDLC;
 			_autoDownloadBuildinDLC = createParam.AutoDownloadBuildinDLC;
 			_maxNumberOnLoad = createParam.MaxNumberOnLoad;
+			_failedTryAgain = createParam.FailedTryAgain;
 		}
 
 		/// <summary>
@@ -353,7 +355,7 @@ namespace MotionFramework.Patch
 		public void CreateInternalDownloader(List<PatchBundle> downloadList)
 		{
 			MotionLog.Log("Create internal patch downloader.");
-			InternalDownloader = new PatchDownloader(this, downloadList, _maxNumberOnLoad);
+			InternalDownloader = new PatchDownloader(this, downloadList, _maxNumberOnLoad, _failedTryAgain);
 		}
 
 		// 检测下载内容的完整性并缓存
