@@ -4,42 +4,41 @@
 1. 请求最新的游戏版本 (RequestGameVersion)
 2. 下载远端的补丁清单（DownloadPatchManifest）
 3. 获取下载列表 (GetDonwloadList)
-4. 下载远端的网络文件 (DownloadWebFiles)
+4. 下载远端文件 (DownloadWebFiles)
 6. 下载结束（全部下载成功） (DownloadOver)
 7. 补丁流程完毕（PatchDone）
 
-注意事项：
-1. 当发现新的安装APP的时候，流程系统会被挂起。如果不是强更，那么发送(EPatchOperation.SkipInstallNewApp)事件可以恢复流程系统。
-2. 当发现更新文件的时候，流程系统会被挂起。发送(EPatchOperation.BeginDownloadWebFiles)事件可以恢复流程系统。
-3. 当请求游戏版本号失败的时候，流程系统会被挂起。发送(EPatchOperation.TryRequestGameVersion)事件可以恢复流程系统，然后再次尝试请求游戏版本号。
-4. 当下载网络补丁清单失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadPatchManifest)事件可以恢复流程系统，然后再次尝试下载。
-5. 当下载网络文件失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
-6. 当下载的网络文件完整性验证失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
+**正常引起的流程挂起**  
+1. 当发现新的安装APP的时候，流程系统会被挂起。如果不是强更，那么发送(EPatchOperation.BeginDownloadPatchManifest)事件可以恢复流程系统。
+2. 当下载网络补丁清单成功的时候，流程系统会被挂起。发送(EPatchOperation.BeginGetDownloadList)事件可以恢复流程系统。
+3. 当发现更新文件的时候，流程系统会被挂起。发送(EPatchOperation.BeginDownloadWebFiles)事件可以恢复流程系统。
 
-**补丁事件**  
-整个流程抛出的事件
-````
-PatchEventMessageDefine.PatchStatesChange：补丁流程状态改变
-````
+**异常引起的流程挂起**  
+1. 当请求游戏版本号失败的时候，流程系统会被挂起。发送(EPatchOperation.TryRequestGameVersion)事件可以恢复流程系统，然后再次尝试请求游戏版本号。
+2. 当下载网络补丁清单失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadPatchManifest)事件可以恢复流程系统，然后再次尝试下载。
+3. 当下载网络文件失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
+4. 当下载的网络文件完整性验证失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
 
-下载阶段抛出的事件
-````
-PatchEventMessageDefine.FoundForceInstallAPP：发现强更安装包
-PatchEventMessageDefine.FoundUpdateFiles：发现更新文件
-PatchEventMessageDefine.DownloadFilesProgress：下载文件列表进度
-PatchEventMessageDefine.GameVersionRequestFailed：游戏版本号请求失败
-PatchEventMessageDefine.WebPatchManifestDownloadFailed：网络上补丁清单下载失败
-PatchEventMessageDefine.WebFileDownloadFailed：网络文件下载失败
-PatchEventMessageDefine.WebFileCheckFailed：文件验证失败
-````
+**业务逻辑层需要监听的补丁事件**  
+```C#
+PatchEventMessageDefine.PatchStatesChange //补丁流程状态改变
+PatchEventMessageDefine.FoundNewApp //发现了新的安装包
+PatchEventMessageDefine.FoundUpdateFiles //发现更新文件
+PatchEventMessageDefine.DownloadProgressUpdate //下载进度更新
+PatchEventMessageDefine.GameVersionRequestFailed //游戏版本号请求失败
+PatchEventMessageDefine.WebPatchManifestDownloadOK //远端的补丁清单下载成功
+PatchEventMessageDefine.WebPatchManifestDownloadFailed //远端的补丁清单下载失败
+PatchEventMessageDefine.WebFileDownloadFailed //网络文件下载失败
+PatchEventMessageDefine.WebFileCheckFailed //文件验证失败
+```
 
 **WEB服务器约定**  
 Post数据为Json文本
 ```C#
 class WebPost
 {
-  	public string AppVersion; //应用程序内置版本
-  	public int ServerID; //最近登录的服务器ID
+	public string AppVersion; //应用程序内置版本
+	public int ServerID; //最近登录的服务器ID
 	public int ChannelID; //渠道ID
 	public string DeviceUID; //设备唯一ID
 	public int TestFlag; //测试标记
@@ -49,7 +48,7 @@ class WebPost
 Response数据为Json文本
 ```C#
 class WebResponse
-{
+{	
 	public string GameVersion; //当前游戏版本号
 	public int ResourceVersion; //当前资源版本
 	public bool FoundNewApp; //是否发现了新的安装包
@@ -86,7 +85,7 @@ Web服务器根据[渠道ID][最近登录的服务器ID]来判断是否需要灰
 ````
 1. CDN服务器需要区分Android版本，IOS版本，PC版本。主要是因为部分AssetBundle文件在三个平台构建的文件会有差异。
 2. 部署资源服务器非常简单，只需要把对应平台构建的补丁包拷贝到服务器即可，每次出新的补丁包都需要拷贝。
-3. 补丁包可以在工程目录下找到，例如：Demo1\BuildBundles\StandaloneWindows64\
+3. 补丁包可以在工程目录下找到，例如：Demo1\Bundles\StandaloneWindows64\
 
 注意：当我们中途构建了强更包的时候，就可以把之前的补丁包都删除了。
 ````
