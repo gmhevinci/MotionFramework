@@ -17,9 +17,9 @@ namespace MotionFramework.Patch
 		RequestGameVersion,
 
 		/// <summary>
-		/// 下载远端的补丁清单
+		/// 请求远端的补丁清单
 		/// </summary>
-		DownloadPatchManifest,
+		RequestPatchManifest,
 
 		/// <summary>
 		/// 获取下载列表

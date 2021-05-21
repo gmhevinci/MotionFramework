@@ -12,15 +12,10 @@ namespace MotionFramework.Patch
 	public enum EPatchOperation
 	{
 		/// <summary>
-		/// 开始下载补丁清单
-		/// </summary>
-		BeginDownloadPatchManifest,
-
-		/// <summary>
 		/// 开始获取下载列表
 		/// </summary>
 		BeginGetDownloadList,
-
+		
 		/// <summary>
 		/// 开始下载网络文件
 		/// </summary>
@@ -32,9 +27,9 @@ namespace MotionFramework.Patch
 		TryRequestGameVersion,
 
 		/// <summary>
-		/// 尝试再次下载补丁清单
+		/// 尝试再次请求补丁清单
 		/// </summary>
-		TryDownloadPatchManifest,
+		TryRequestPatchManifest,
 
 		/// <summary>
 		/// 尝试再次下载网络文件
