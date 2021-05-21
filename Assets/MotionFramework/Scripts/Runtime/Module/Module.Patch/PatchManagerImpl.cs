@@ -199,10 +199,18 @@ namespace MotionFramework.Patch
 			if (msg is PatchEventMessageDefine.OperationEvent)
 			{
 				var message = msg as PatchEventMessageDefine.OperationEvent;
-				if (message.operation == EPatchOperation.SkipInstallNewApp)
+				if (message.operation == EPatchOperation.BeginDownloadPatchManifest)
 				{
 					// 从挂起的地方继续
 					if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
+						_procedure.SwitchNext();
+					else
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+				}
+				else if (message.operation == EPatchOperation.BeginGetDownloadList)
+				{
+					// 从挂起的地方继续
+					if (_procedure.Current == EPatchStates.DownloadPatchManifest.ToString())
 						_procedure.SwitchNext();
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
@@ -217,7 +225,7 @@ namespace MotionFramework.Patch
 				}
 				else if (message.operation == EPatchOperation.TryRequestGameVersion)
 				{
-					// 修复当前节点错误
+					// 修复当前错误节点
 					if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
 						_procedure.Switch(_procedure.Current);
 					else
@@ -225,7 +233,7 @@ namespace MotionFramework.Patch
 				}
 				else if (message.operation == EPatchOperation.TryDownloadPatchManifest)
 				{
-					// 修复当前节点错误
+					// 修复当前错误节点
 					if (_procedure.Current == EPatchStates.DownloadPatchManifest.ToString())
 						_procedure.Switch(_procedure.Current);
 					else
@@ -233,7 +241,7 @@ namespace MotionFramework.Patch
 				}
 				else if (message.operation == EPatchOperation.TryDownloadWebFiles)
 				{
-					// 修复当前节点错误
+					// 修复当前错误节点
 					if (_procedure.Current == EPatchStates.DownloadWebFiles.ToString())
 						_procedure.Switch(EPatchStates.GetDonwloadList.ToString());
 					else

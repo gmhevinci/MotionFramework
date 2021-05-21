@@ -48,9 +48,9 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 下载进度
+		/// 下载进度更新
 		/// </summary>
-		public class DownloadFilesProgress : IEventMessage
+		public class DownloadProgressUpdate : IEventMessage
 		{
 			public int TotalDownloadCount;
 			public int CurrentDownloadCount;
@@ -66,7 +66,14 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 网络上补丁清单下载失败
+		/// 远端的补丁清单下载成功
+		/// </summary>
+		public class WebPatchManifestDownloadOK : IEventMessage
+		{
+		}
+		
+		/// <summary>
+		/// 远端的补丁清单下载失败
 		/// </summary>
 		public class WebPatchManifestDownloadFailed : IEventMessage
 		{

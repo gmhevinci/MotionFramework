@@ -56,7 +56,7 @@ namespace MotionFramework.Patch
 			// 解析远端下载的补丁清单
 			_patcher.ParseRemotePatchManifest(download.GetText());
 			download.Dispose();
-			_patcher.SwitchNext();
+			PatchEventDispatcher.SendWebPatchManifestDownloadOKMsg();
 		}
 	}
 }

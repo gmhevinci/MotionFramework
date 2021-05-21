@@ -12,9 +12,14 @@ namespace MotionFramework.Patch
 	public enum EPatchOperation
 	{
 		/// <summary>
-		/// 跳过安装新APP
+		/// 开始下载补丁清单
 		/// </summary>
-		SkipInstallNewApp,
+		BeginDownloadPatchManifest,
+
+		/// <summary>
+		/// 开始获取下载列表
+		/// </summary>
+		BeginGetDownloadList,
 
 		/// <summary>
 		/// 开始下载网络文件

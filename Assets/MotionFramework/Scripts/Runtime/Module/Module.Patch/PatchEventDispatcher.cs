@@ -30,9 +30,9 @@ namespace MotionFramework.Patch
 			msg.TotalSizeBytes = totalSizeBytes;
 			EventManager.Instance.SendMessage(msg);
 		}
-		public static void SendDownloadFilesProgressMsg(int totalDownloadCount, int currentDownloadCount, long totalDownloadSizeBytes, long currentDownloadSizeBytes)
+		public static void SendDownloadProgressUpdateMsg(int totalDownloadCount, int currentDownloadCount, long totalDownloadSizeBytes, long currentDownloadSizeBytes)
 		{
-			PatchEventMessageDefine.DownloadFilesProgress msg = new PatchEventMessageDefine.DownloadFilesProgress();
+			PatchEventMessageDefine.DownloadProgressUpdate msg = new PatchEventMessageDefine.DownloadProgressUpdate();
 			msg.TotalDownloadCount = totalDownloadCount;
 			msg.CurrentDownloadCount = currentDownloadCount;
 			msg.TotalDownloadSizeBytes = totalDownloadSizeBytes;
@@ -42,6 +42,11 @@ namespace MotionFramework.Patch
 		public static void SendGameVersionRequestFailedMsg()
 		{
 			PatchEventMessageDefine.GameVersionRequestFailed msg = new PatchEventMessageDefine.GameVersionRequestFailed();
+			EventManager.Instance.SendMessage(msg);
+		}
+		public static void SendWebPatchManifestDownloadOKMsg()
+		{
+			PatchEventMessageDefine.WebPatchManifestDownloadOK msg = new PatchEventMessageDefine.WebPatchManifestDownloadOK();
 			EventManager.Instance.SendMessage(msg);
 		}
 		public static void SendWebPatchManifestDownloadFailedMsg()
