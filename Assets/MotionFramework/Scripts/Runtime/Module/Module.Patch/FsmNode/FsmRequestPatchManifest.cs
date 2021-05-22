@@ -37,17 +37,21 @@ namespace MotionFramework.Patch
 
 		private IEnumerator Download()
 		{
+			// 新安装的用户首次启动游戏（包括覆盖安装的用户）
+			// 注意：请求的补丁清单会在下载流程结束的时候，自动保存在沙盒里。
+			bool firstStartGame = PatchHelper.CheckSandboxPatchManifestFileExist() == false;
+
 			// 检测资源版本是否变化
 			int newResourceVersion = _patcher.RequestedResourceVersion;
 			int oldResourceVersion = _patcher.LocalResourceVersion;
-			if (newResourceVersion == oldResourceVersion)
+			if (firstStartGame == false && newResourceVersion == oldResourceVersion)
 			{
 				MotionLog.Log($"Resource version is not change.");
 				_patcher.Switch(EPatchStates.PatchDone);
 			}
 			else
 			{
-				// 从远端下载最新的补丁清单
+				// 从远端请求补丁清单
 				string url = _patcher.GetWebDownloadURL(newResourceVersion, PatchDefine.PatchManifestFileName);
 				WebGetRequest download = new WebGetRequest(url);
 				download.SendRequest();
