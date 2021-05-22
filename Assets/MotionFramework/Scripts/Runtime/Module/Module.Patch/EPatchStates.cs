@@ -12,7 +12,7 @@ namespace MotionFramework.Patch
 	public enum EPatchStates
 	{
 		/// <summary>
-		/// 请求最新的游戏版本
+		/// 请求游戏版本
 		/// </summary>
 		RequestGameVersion,
 
@@ -25,9 +25,9 @@ namespace MotionFramework.Patch
 		/// 获取下载列表
 		/// </summary>
 		GetDonwloadList,
-
+		
 		/// <summary>
-		/// 下载远端的网络文件
+		/// 下载远端文件
 		/// </summary>
 		DownloadWebFiles,
 
