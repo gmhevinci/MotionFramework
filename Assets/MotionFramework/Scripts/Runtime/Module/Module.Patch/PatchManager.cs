@@ -41,12 +41,12 @@ namespace MotionFramework.Patch
 			public List<VariantRule> VariantRules;
 
 			/// <summary>
-			/// 更新游戏时自动下载的DLC列表
+			/// 首次启动游戏或更新游戏时自动下载的DLC列表
 			/// </summary>
 			public string[] AutoDownloadDLC;
 
 			/// <summary>
-			/// 更新游戏时自动下载内置DLC列表
+			/// 首次启动游戏或更新游戏时自动下载内置DLC列表
 			/// </summary>
 			public bool AutoDownloadBuildinDLC;
 
