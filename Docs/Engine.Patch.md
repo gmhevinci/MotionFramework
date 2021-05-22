@@ -1,21 +1,20 @@
 ### 补丁系统 (Engine.Patch)
 
 **补丁流程**  
-1. 请求最新的游戏版本 (RequestGameVersion)
-2. 下载远端的补丁清单（DownloadPatchManifest）
+1. 请求游戏版本 (RequestGameVersion)
+2. 请求远端的补丁清单（RequestPatchManifest）
 3. 获取下载列表 (GetDonwloadList)
 4. 下载远端文件 (DownloadWebFiles)
 6. 下载结束（全部下载成功） (DownloadOver)
 7. 补丁流程完毕（PatchDone）
 
 **正常引起的流程挂起**  
-1. 当发现新的安装APP的时候，流程系统会被挂起。如果不是强更，那么发送(EPatchOperation.BeginDownloadPatchManifest)事件可以恢复流程系统。
-2. 当下载网络补丁清单成功的时候，流程系统会被挂起。发送(EPatchOperation.BeginGetDownloadList)事件可以恢复流程系统。
-3. 当发现更新文件的时候，流程系统会被挂起。发送(EPatchOperation.BeginDownloadWebFiles)事件可以恢复流程系统。
+1. 当发现新的安装APP的时候，流程系统会被挂起。如果不是强更，那么发送(EPatchOperation.BeginGetDownloadList)事件可以恢复流程系统。
+2. 当发现更新文件的时候，流程系统会被挂起。发送(EPatchOperation.BeginDownloadWebFiles)事件可以恢复流程系统。
 
 **异常引起的流程挂起**  
 1. 当请求游戏版本号失败的时候，流程系统会被挂起。发送(EPatchOperation.TryRequestGameVersion)事件可以恢复流程系统，然后再次尝试请求游戏版本号。
-2. 当下载网络补丁清单失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadPatchManifest)事件可以恢复流程系统，然后再次尝试下载。
+2. 当请求远端的补丁清单失败的时候，流程系统会被挂起。发送(EPatchOperation.TryRequestPatchManifest)事件可以恢复流程系统，然后再次尝试下载。
 3. 当下载网络文件失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
 4. 当下载的网络文件完整性验证失败的时候，流程系统会被挂起。发送(EPatchOperation.TryDownloadWebFiles)事件可以恢复流程系统，然后再次尝试下载。
 
@@ -25,11 +24,10 @@ PatchEventMessageDefine.PatchStatesChange //补丁流程状态改变
 PatchEventMessageDefine.FoundNewApp //发现了新的安装包
 PatchEventMessageDefine.FoundUpdateFiles //发现更新文件
 PatchEventMessageDefine.DownloadProgressUpdate //下载进度更新
-PatchEventMessageDefine.GameVersionRequestFailed //游戏版本号请求失败
-PatchEventMessageDefine.WebPatchManifestDownloadOK //远端的补丁清单下载成功
-PatchEventMessageDefine.WebPatchManifestDownloadFailed //远端的补丁清单下载失败
+PatchEventMessageDefine.GameVersionRequestFailed //游戏版本请求失败
+PatchEventMessageDefine.PatchManifestRequestFailed //远端的补丁清单请求失败
 PatchEventMessageDefine.WebFileDownloadFailed //网络文件下载失败
-PatchEventMessageDefine.WebFileCheckFailed //文件验证失败
+PatchEventMessageDefine.WebFileCheckFailed //网络文件验证失败
 ```
 
 **WEB服务器约定**  
