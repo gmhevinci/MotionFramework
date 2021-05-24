@@ -152,10 +152,10 @@ namespace MotionFramework.Patch
 				downloader.Dispose();
 			}
 
-			// 加载沙盒内的补丁清单
-			MotionLog.Log($"Load sandbox patch manifest.");
+			// 加载沙盒内的补丁清单			
 			if (PatchHelper.CheckSandboxPatchManifestFileExist())
 			{
+				MotionLog.Log($"Load sandbox patch manifest.");
 				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
 				string jsonData = File.ReadAllText(filePath);
 				_localPatchManifest = PatchManifest.Deserialize(jsonData);
@@ -267,7 +267,7 @@ namespace MotionFramework.Patch
 					if (appPatchBundle.IsBuildin && appPatchBundle.Hash == patchBundle.Hash)
 					{
 						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(appPatchBundle.Hash);
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, appLoadPath, string.Empty, appPatchBundle.Version, appPatchBundle.IsEncrypted);
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, appLoadPath, appPatchBundle.Version, appPatchBundle.IsEncrypted);
 						return bundleInfo;
 					}
 				}
@@ -277,13 +277,14 @@ namespace MotionFramework.Patch
 				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 				if (_cache.Contains(patchBundle.Hash))
 				{
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, string.Empty, patchBundle.Version, patchBundle.IsEncrypted);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, patchBundle.Version, patchBundle.IsEncrypted);
 					return bundleInfo;
 				}
 				else
 				{
-					string remoteURL = GetWebDownloadURL(patchBundle.Version, patchBundle.Hash);
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, remoteURL, patchBundle.Version, patchBundle.IsEncrypted);
+					string remoteURL = GetPatchDownloadURL(patchBundle.Version, patchBundle.Hash);
+					string remoteFallbackURL = GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, remoteURL, remoteFallbackURL, patchBundle.Version, patchBundle.IsEncrypted);
 					return bundleInfo;
 				}
 			}
@@ -474,22 +475,23 @@ namespace MotionFramework.Patch
 			_procedure.SwitchLast();
 		}
 
-		// 服务器地址相关
-		public string GetWebServerIP()
-		{
-			RuntimePlatform runtimePlatform = Application.platform;
-			return _serverInfo.GetPlatformWebServerIP(runtimePlatform);
-		}
-		public string GetCDNServerIP()
-		{
-			RuntimePlatform runtimePlatform = Application.platform;
-			return _serverInfo.GetPlatformCDNServerIP(runtimePlatform);
-		}
-
 		// WEB相关
-		public string GetWebDownloadURL(int resourceVersion, string fileName)
+		public string GetPatchDownloadURL(int resourceVersion, string fileName)
 		{
-			return $"{GetCDNServerIP()}/{resourceVersion}/{fileName}";
+			RuntimePlatform runtimePlatform = Application.platform;
+			string cdnServer = _serverInfo.GetCDNServer(runtimePlatform);
+			return $"{cdnServer}/{resourceVersion}/{fileName}";
+		}
+		public string GetPatchDownloadFallbackURL(int resourceVersion, string fileName)
+		{
+			RuntimePlatform runtimePlatform = Application.platform;
+			string cdnFallbackServer = _serverInfo.GetCDNFallbackServer(runtimePlatform);
+			return $"{cdnFallbackServer}/{resourceVersion}/{fileName}";
+		}
+		public string GetWebServerURL()
+		{
+			RuntimePlatform runtimePlatform = Application.platform;
+			return _serverInfo.GetWebServer(runtimePlatform);
 		}
 		public string GetWebPostContent()
 		{

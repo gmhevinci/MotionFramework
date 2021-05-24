@@ -115,7 +115,7 @@ namespace MotionFramework.Patch
 			// 检测下载器结果
 			_removeList.Clear();
 			long downloadBytes = CurrentDownloadBytes;
-			foreach(var loader in _downloaders)
+			foreach (var loader in _downloaders)
 			{
 				downloadBytes += (long)loader.DownloadedBytes;
 				if (loader.IsDone() == false)
@@ -152,7 +152,7 @@ namespace MotionFramework.Patch
 			}
 
 			// 移除已经完成的下载器（无论成功或失败）
-			foreach(var loader in _removeList)
+			foreach (var loader in _removeList)
 			{
 				_downloaders.Remove(loader);
 			}
@@ -209,13 +209,14 @@ namespace MotionFramework.Patch
 		private WebFileRequest CreateDownloader(PatchBundle patchBundle)
 		{
 			// 注意：资源版本号只用于确定下载路径
-			string url = _patcherMgr.GetWebDownloadURL(patchBundle.Version, patchBundle.Hash);
+			string mainURL = _patcherMgr.GetPatchDownloadURL(patchBundle.Version, patchBundle.Hash);
+			string fallbackURL = _patcherMgr.GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);
 			string savePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 			FileUtility.CreateFileDirectory(savePath);
 
 			// 创建下载器
-			MotionLog.Log($"Beginning to download web file : {patchBundle.BundleName} URL : {url}");
-			WebFileRequest download = WebFileSystem.GetWebFileRequest(url, savePath, _failedTryAgain);
+			MotionLog.Log($"Beginning to download web file : {patchBundle.BundleName} URL : {mainURL}");
+			WebFileRequest download = WebFileSystem.GetWebFileRequest(mainURL, fallbackURL, savePath, _failedTryAgain);
 			download.UserData = patchBundle;
 			return download;
 		}

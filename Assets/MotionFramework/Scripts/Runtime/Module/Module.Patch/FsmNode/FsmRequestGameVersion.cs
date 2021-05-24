@@ -38,7 +38,7 @@ namespace MotionFramework.Patch
 		public IEnumerator Download()
 		{
 			// 请求游戏版本
-			string url = _patcher.GetWebServerIP();
+			string url = _patcher.GetWebServerURL();
 			string post = _patcher.GetWebPostContent();
 			MotionLog.Log($"Beginning to request from web : {url}");
 			MotionLog.Log($"Web post content : {post}");

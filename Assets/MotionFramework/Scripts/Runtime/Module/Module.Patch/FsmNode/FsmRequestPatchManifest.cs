@@ -14,6 +14,7 @@ namespace MotionFramework.Patch
 	{
 		private readonly PatchManagerImpl _patcher;
 		public string Name { private set; get; }
+		private int _requestCount = 0;
 
 		public FsmRequestPatchManifest(PatchManagerImpl patcher)
 		{
@@ -52,7 +53,8 @@ namespace MotionFramework.Patch
 			else
 			{
 				// 从远端请求补丁清单
-				string url = _patcher.GetWebDownloadURL(newResourceVersion, PatchDefine.PatchManifestFileName);
+				_requestCount++;
+				string url = GetRequestURL(newResourceVersion, PatchDefine.PatchManifestFileName);
 				WebGetRequest download = new WebGetRequest(url);
 				download.SendRequest();
 				yield return download;
@@ -83,6 +85,14 @@ namespace MotionFramework.Patch
 					_patcher.SwitchNext();
 				}
 			}
+		}
+		private string GetRequestURL(int resourceVersion, string fileName)
+		{
+			// 轮流返回请求地址
+			if (_requestCount % 2 == 0)
+				return _patcher.GetPatchDownloadFallbackURL(resourceVersion, fileName);
+			else
+				return _patcher.GetPatchDownloadURL(resourceVersion, fileName);
 		}
 	}
 }
