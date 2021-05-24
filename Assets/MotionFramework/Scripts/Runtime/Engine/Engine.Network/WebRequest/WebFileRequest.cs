@@ -15,12 +15,15 @@ namespace MotionFramework.Network
 	{
 		private bool _isDone = false;
 		private bool _isError = false;
+
+		// 保留参数
+		private string _fallbackURL;
 		private string _savePath;
 		private int _timeout;
 		private int _failedTryAgain;
+		private int _requestCount;
 
 		// 下载超时相关
-		// 注意：在连续时间段内无新增下载数据及判定为超时
 		private bool _isAbort = false;
 		private ulong _latestDownloadBytes;
 		private float _latestDownloadRealtime;
@@ -62,8 +65,9 @@ namespace MotionFramework.Network
 		}
 
 
-		internal WebFileRequest(string url) : base(url)
+		internal WebFileRequest(string mainURL, string fallbackURL) : base(mainURL)
 		{
+			_fallbackURL = fallbackURL;
 		}
 		internal void SendRequest(string savePath, int failedTryAgain, int timeout)
 		{
@@ -75,13 +79,14 @@ namespace MotionFramework.Network
 				_savePath = savePath;
 				_failedTryAgain = failedTryAgain;
 				_timeout = timeout;
+				_requestCount++;
 
 				// 重置超时相关变量
 				_isAbort = false;
 				_latestDownloadBytes = 0;
 				_latestDownloadRealtime = Time.realtimeSinceStartup;
 
-				_webRequest = new UnityWebRequest(URL, UnityWebRequest.kHttpVerbGET);
+				_webRequest = new UnityWebRequest(GetRequestURL(), UnityWebRequest.kHttpVerbGET);
 				DownloadHandlerFile handler = new DownloadHandlerFile(savePath);
 				handler.removeFileOnAbort = true;
 				_webRequest.downloadHandler = handler;
@@ -115,8 +120,18 @@ namespace MotionFramework.Network
 				CheckTimeout();
 			}
 		}
+
+		private string GetRequestURL()
+		{
+			// 轮流返回请求地址
+			if (_requestCount % 2 == 0)
+				return _fallbackURL;
+			else
+				return URL;
+		}
 		private void CheckTimeout()
 		{
+			// 注意：在连续时间段内无新增下载数据及判定为超时
 			if (_isAbort == false)
 			{
 				if (_latestDownloadBytes != DownloadedBytes)

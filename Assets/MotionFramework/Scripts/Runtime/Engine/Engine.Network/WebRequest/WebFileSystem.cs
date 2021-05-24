@@ -44,19 +44,19 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 获取文件下载类，如果不存在就创建新的下载类
 		/// </summary>
-		public static WebFileRequest GetWebFileRequest(string url, string savePath, int failedTryAgain, int timeout = 60)
+		public static WebFileRequest GetWebFileRequest(string mainURL, string fallbackURL, string savePath, int failedTryAgain, int timeout = 60)
 		{
-			if (_webFileRequestDic.TryGetValue(url, out var request))
+			if (_webFileRequestDic.TryGetValue(mainURL, out var request))
 			{
 				request.RefCount++;
 				return request;
 			}
 			else
 			{
-				var newRequest = new WebFileRequest(url);
+				var newRequest = new WebFileRequest(mainURL, fallbackURL);
 				newRequest.RefCount++;
 				newRequest.SendRequest(savePath, failedTryAgain, timeout);
-				_webFileRequestDic.Add(url, newRequest);
+				_webFileRequestDic.Add(mainURL, newRequest);
 				return newRequest;
 			}
 		}
