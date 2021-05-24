@@ -30,13 +30,13 @@ public IEnumerator Start()
 
 	// 远程服务器信息
 	// 默认配置：在没有配置的平台上会走默认的地址。
-	string webServer = "http://127.0.0.1";
-	string cdnServer = "http://127.0.0.1";
-	string defaultWebServerIP = $"{webServer}/WEB/PC/GameVersion.php";
-	string defaultCDNServerIP = $"{cdnServer}/CDN/PC";
-	RemoteServerInfo serverInfo = new RemoteServerInfo(defaultWebServerIP, defaultCDNServerIP);
-	serverInfo.AddServerInfo(RuntimePlatform.Android, $"{webServer}/WEB/Android/GameVersion.php", $"{cdnServer}/CDN/Android");
-	serverInfo.AddServerInfo(RuntimePlatform.IPhonePlayer, $"{webServer}/WEB/Iphone/GameVersion.php", $"{cdnServer}/CDN/Iphone");
+	string webServerIP = "http://127.0.0.1";
+	string cdnServerIP = "http://127.0.0.1";
+	string defaultWebServer = $"{webServerIP}/WEB/PC/GameVersion.php";
+	string defaultCDNServer = $"{cdnServerIP}/CDN/PC";
+	RemoteServerInfo serverInfo = new RemoteServerInfo(defaultWebServer, defaultCDNServer);
+	serverInfo.AddServerInfo(RuntimePlatform.Android, $"{webServerIP}/WEB/Android/GameVersion.php", $"{cdnServerIP}/CDN/Android", $"{cdnServerIP}/CDN/Android");
+	serverInfo.AddServerInfo(RuntimePlatform.IPhonePlayer, $"{webServerIP}/WEB/Iphone/GameVersion.php", $"{cdnServerIP}/CDN/Iphone", $"{cdnServerIP}/CDN/Iphone");
 
 	// 向WEB服务器投递的数据
 	WebPost post = new WebPost
