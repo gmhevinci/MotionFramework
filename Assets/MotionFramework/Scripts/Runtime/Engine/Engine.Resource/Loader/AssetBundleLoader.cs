@@ -61,7 +61,7 @@ namespace MotionFramework.Resource
 			if (States == ELoaderStates.Download)
 			{
 				int failedTryAgain = 3;
-				_downloader = WebFileSystem.GetWebFileRequest(BundleInfo.RemoteURL, BundleInfo.LocalPath, failedTryAgain);
+				_downloader = WebFileSystem.GetWebFileRequest(BundleInfo.RemoteURL, BundleInfo.RemoteFallbackURL, BundleInfo.LocalPath, failedTryAgain);
 				States = ELoaderStates.CheckDownload;
 			}
 
