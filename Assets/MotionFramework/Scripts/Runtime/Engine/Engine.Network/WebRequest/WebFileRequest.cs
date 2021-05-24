@@ -22,6 +22,7 @@ namespace MotionFramework.Network
 		private int _timeout;
 		private int _failedTryAgain;
 		private int _requestCount;
+		private string _requestURL;
 
 		// 下载超时相关
 		private bool _isAbort = false;
@@ -80,13 +81,14 @@ namespace MotionFramework.Network
 				_failedTryAgain = failedTryAgain;
 				_timeout = timeout;
 				_requestCount++;
+				_requestURL = GetRequestURL();
 
 				// 重置超时相关变量
 				_isAbort = false;
 				_latestDownloadBytes = 0;
 				_latestDownloadRealtime = Time.realtimeSinceStartup;
 
-				_webRequest = new UnityWebRequest(GetRequestURL(), UnityWebRequest.kHttpVerbGET);
+				_webRequest = new UnityWebRequest(_requestURL, UnityWebRequest.kHttpVerbGET);
 				DownloadHandlerFile handler = new DownloadHandlerFile(savePath);
 				handler.removeFileOnAbort = true;
 				_webRequest.downloadHandler = handler;
@@ -143,7 +145,7 @@ namespace MotionFramework.Network
 				float offset = Time.realtimeSinceStartup - _latestDownloadRealtime;
 				if (offset > _timeout)
 				{
-					MotionLog.Warning($"Web file request timeout : {URL}");
+					MotionLog.Warning($"Web file request timeout : {_requestURL}");
 					_webRequest.Abort();
 					_isAbort = true;
 				}
@@ -160,8 +162,8 @@ namespace MotionFramework.Network
 			base.Dispose();
 
 			// 重新请求下载
-			MotionLog.Warning($"Try again request : {URL}");
 			SendRequest(_savePath, _failedTryAgain, _timeout);
+			MotionLog.Warning($"Try again request : {_requestURL}");
 		}
 		private bool IsError()
 		{
@@ -186,6 +188,13 @@ namespace MotionFramework.Network
 		public override bool HasError()
 		{
 			return _isError;
+		}
+		public override void ReportError()
+		{
+			if (_webRequest != null)
+			{
+				MotionLog.Warning($"URL : {_requestURL} Error : {_webRequest.error}");
+			}
 		}
 	}
 }
