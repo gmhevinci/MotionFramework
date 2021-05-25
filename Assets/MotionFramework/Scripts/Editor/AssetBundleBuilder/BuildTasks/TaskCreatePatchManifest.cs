@@ -40,7 +40,7 @@ namespace MotionFramework.Editor
 			patchManifest.ResourceVersion = buildParameters.Parameters.BuildVersion;
 			patchManifest.BuildinTags = buildParameters.Parameters.BuildinTags;
 			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext, unityManifest);
-			patchManifest.VariantList = GetAllPatchVariant(unityManifest);
+			patchManifest.VariantList = buildMapContext.GetAllPatchVariant();
 
 			// 创建新文件
 			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestFileName}";
@@ -107,41 +107,6 @@ namespace MotionFramework.Editor
 					return true;
 			}
 			return false;
-		}
-
-		/// <summary>
-		/// 获取变种列表
-		/// </summary>
-		private List<PatchVariant> GetAllPatchVariant(AssetBundleManifest unityManifest)
-		{
-			Dictionary<string, List<string>> variantInfos = new Dictionary<string, List<string>>();
-			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
-			foreach (var bundleName in allAssetBundles)
-			{
-				if (Path.HasExtension(bundleName) == false)
-					continue;
-
-				string path = bundleName.RemoveExtension();
-				string extension = Path.GetExtension(bundleName).Substring(1);
-
-				if (variantInfos.ContainsKey(path) == false)
-					variantInfos.Add(path, new List<string>());
-
-				if (extension != PatchDefine.AssetBundleDefaultVariant)
-					variantInfos[path].Add(extension);
-			}
-
-			List<PatchVariant> result = new List<PatchVariant>();
-			foreach (var pair in variantInfos)
-			{
-				if (pair.Value.Count > 0)
-				{
-					string bundleName = $"{pair.Key}.{ PatchDefine.AssetBundleDefaultVariant}";
-					List<string> variants = pair.Value;
-					result.Add(new PatchVariant(bundleName, variants));
-				}
-			}
-			return result;
 		}
 	}
 }

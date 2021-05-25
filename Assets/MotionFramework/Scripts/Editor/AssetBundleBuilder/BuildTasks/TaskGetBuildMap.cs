@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using MotionFramework.Patch;
 
 namespace MotionFramework.Editor
 {
@@ -129,6 +130,37 @@ namespace MotionFramework.Editor
 					builds.Add(bundleInfo.CreatePipelineBuild());
 				}
 				return builds.ToArray();
+			}
+
+			/// <summary>
+			/// 获取所有的变种信息
+			/// </summary>
+			public List<PatchVariant> GetAllPatchVariant()
+			{
+				Dictionary<string, List<BundleInfo>> variantDic = new Dictionary<string, List<BundleInfo>>();
+				foreach (var bundleInfo in BundleInfos)
+				{
+					string bundleLabel = bundleInfo.AssetBundleLabel;
+					string bundleVariant = bundleInfo.AssetBundleVariant;
+
+					if (variantDic.ContainsKey(bundleLabel) == false)
+						variantDic.Add(bundleLabel, new List<BundleInfo>());
+
+					if (bundleVariant != PatchDefine.AssetBundleDefaultVariant)
+						variantDic[bundleLabel].Add(bundleInfo);
+				}
+
+				List<PatchVariant> result = new List<PatchVariant>();
+				foreach (var pair in variantDic)
+				{
+					if (pair.Value.Count == 0)
+						continue;
+
+					string bundleName = $"{pair.Key}.{PatchDefine.AssetBundleDefaultVariant}";
+					List<string> variants = pair.Value.Select(t => t.AssetBundleVariant.ToLower()).ToList();
+					result.Add(new PatchVariant(bundleName.ToLower(), variants));
+				}
+				return result;
 			}
 
 			private bool TryGetBundleInfo(string bundleFullName, out BundleInfo result)
