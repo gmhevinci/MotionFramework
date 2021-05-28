@@ -16,6 +16,7 @@ namespace MotionFramework.Resource
 		private readonly List<FileLoaderBase> _depends = new List<FileLoaderBase>(10);
 		private WebFileRequest _downloader;
 		private AssetBundleCreateRequest _cacheRequest;
+		private bool _isWaitForAsyncComplete = false;
 		internal AssetBundle CacheBundle { private set; get; }
 
 		public AssetBundleLoader(AssetBundleInfo bundleInfo)
@@ -103,6 +104,9 @@ namespace MotionFramework.Resource
 			{
 				foreach (var dpLoader in _depends)
 				{
+					if (_isWaitForAsyncComplete)
+						dpLoader.WaitForAsyncComplete();
+
 					if (dpLoader.IsDone() == false)
 						return;
 				}
@@ -132,12 +136,18 @@ namespace MotionFramework.Resource
 					if (decryptType == EDecryptMethod.GetDecryptOffset)
 					{
 						ulong offset = AssetSystem.DecryptServices.GetDecryptOffset(BundleInfo);
-						_cacheRequest = AssetBundle.LoadFromFileAsync(BundleInfo.LocalPath, 0, offset);
+						if (_isWaitForAsyncComplete)
+							CacheBundle = AssetBundle.LoadFromFile(BundleInfo.LocalPath, 0, offset);
+						else
+							_cacheRequest = AssetBundle.LoadFromFileAsync(BundleInfo.LocalPath, 0, offset);
 					}
 					else if (decryptType == EDecryptMethod.GetDecryptBinary)
 					{
 						byte[] binary = AssetSystem.DecryptServices.GetDecryptBinary(BundleInfo);
-						_cacheRequest = AssetBundle.LoadFromMemoryAsync(binary);
+						if (_isWaitForAsyncComplete)
+							CacheBundle = AssetBundle.LoadFromMemory(binary);
+						else
+							_cacheRequest = AssetBundle.LoadFromMemoryAsync(binary);
 					}
 					else
 					{
@@ -146,7 +156,10 @@ namespace MotionFramework.Resource
 				}
 				else
 				{
-					_cacheRequest = AssetBundle.LoadFromFileAsync(BundleInfo.LocalPath);
+					if (_isWaitForAsyncComplete)
+						CacheBundle = AssetBundle.LoadFromFile(BundleInfo.LocalPath);
+					else
+						_cacheRequest = AssetBundle.LoadFromFileAsync(BundleInfo.LocalPath);
 				}
 				States = ELoaderStates.CheckFile;
 			}
@@ -154,9 +167,20 @@ namespace MotionFramework.Resource
 			// 5. 检测AssetBundle加载结果
 			if (States == ELoaderStates.CheckFile)
 			{
-				if (_cacheRequest.isDone == false)
-					return;
-				CacheBundle = _cacheRequest.assetBundle;
+				if (_cacheRequest != null)
+				{
+					if (_isWaitForAsyncComplete)
+					{
+						// 强制挂起主线程（注意：该操作会很耗时）
+						CacheBundle = _cacheRequest.assetBundle;
+					}
+					else
+					{
+						if (_cacheRequest.isDone == false)
+							return;
+						CacheBundle = _cacheRequest.assetBundle;
+					}
+				}
 
 				// Check error
 				if (CacheBundle == null)
@@ -217,12 +241,17 @@ namespace MotionFramework.Resource
 
 			_depends.Clear();
 		}
-		public override void ForceSyncLoad()
+		public override void WaitForAsyncComplete()
 		{
 			if (IsSceneLoader)
+			{
+				MotionLog.Warning($"Scene is not support {nameof(WaitForAsyncComplete)}.");
 				return;
+			}
 
-			int frame = 100;
+			_isWaitForAsyncComplete = true;
+
+			int frame = 1000;
 			while (true)
 			{
 				// 保险机制
@@ -231,33 +260,8 @@ namespace MotionFramework.Resource
 				if (frame == 0)
 					throw new Exception($"Should never get here ! BundleName : {BundleInfo.BundleName} States : {States}");
 
-				// 更新加载流程
+				// 驱动流程
 				Update();
-
-				// 强制加载依赖文件
-				if (States == ELoaderStates.CheckDepends)
-				{
-					foreach (var dpLoader in _depends)
-					{
-						dpLoader.ForceSyncLoad();
-					}
-				}
-
-				// 挂起主线程
-				if (States == ELoaderStates.CheckFile)
-				{
-					CacheBundle = _cacheRequest.assetBundle;
-				}
-
-				// 强制加载资源对象
-				if (States == ELoaderStates.Success || States == ELoaderStates.Fail)
-				{
-					for (int i = 0; i < _providers.Count; i++)
-					{
-						var provider = _providers[i] as AssetProviderBase;
-						provider.ForceSyncLoad();
-					}
-				}
 
 				// 完成后退出
 				if (IsDone())

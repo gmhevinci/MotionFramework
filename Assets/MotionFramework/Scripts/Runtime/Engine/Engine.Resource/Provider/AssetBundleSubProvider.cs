@@ -47,22 +47,44 @@ namespace MotionFramework.Resource
 			// 1. 加载资源对象
 			if (States == EAssetStates.Loading)
 			{
-				if (AssetType == null)
-					_cacheRequest = _loader.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName);
+				if (IsWaitForAsyncComplete)
+				{
+					if (AssetType == null)
+						AllAssets = _loader.CacheBundle.LoadAssetWithSubAssets(AssetName);
+					else
+						AllAssets = _loader.CacheBundle.LoadAssetWithSubAssets(AssetName, AssetType);
+				}
 				else
-					_cacheRequest = _loader.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName, AssetType);
+				{
+					if (AssetType == null)
+						_cacheRequest = _loader.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName);
+					else
+						_cacheRequest = _loader.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName, AssetType);
+				}
 				States = EAssetStates.Checking;
 			}
 
 			// 2. 检测加载结果
 			if (States == EAssetStates.Checking)
 			{
-				if (_cacheRequest.isDone == false)
-					return;
-				AllAssets = _cacheRequest.allAssets;
+				if (_cacheRequest != null)
+				{
+					if (IsWaitForAsyncComplete)
+					{
+						// 强制挂起主线程（注意：该操作会很耗时）
+						AllAssets = _cacheRequest.allAssets;
+					}
+					else
+					{
+						if (_cacheRequest.isDone == false)
+							return;
+						AllAssets = _cacheRequest.allAssets;
+					}
+				}
+
 				States = AllAssets == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load asset object : {AssetName} from bundle : {_loader.BundleInfo.BundleName}");
+					MotionLog.Warning($"Failed to load sub assets : {AssetName} from bundle : {_loader.BundleInfo.BundleName}");
 				InvokeCompletion();
 			}
 		}
@@ -77,14 +99,6 @@ namespace MotionFramework.Resource
 					if (assetObject is GameObject == false)
 						Resources.UnloadAsset(assetObject);
 				}
-			}
-		}
-		public override void ForceSyncLoad()
-		{
-			// 强制挂起主线程
-			if (States == EAssetStates.Checking)
-			{
-				AllAssets = _cacheRequest.allAssets;
 			}
 		}
 	}

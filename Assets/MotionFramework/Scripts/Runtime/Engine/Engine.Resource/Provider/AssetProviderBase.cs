@@ -9,7 +9,8 @@ namespace MotionFramework.Resource
 	internal abstract class AssetProviderBase : IAssetProvider
 	{
 		protected FileLoaderBase Owner { private set; get; }
-
+		protected bool IsWaitForAsyncComplete { private set; get; } = false;
+		
 		public string AssetName { private set; get; }
 		public System.Type AssetType { private set; get; }
 		public UnityEngine.Object AssetObject { protected set; get; }
@@ -58,9 +59,6 @@ namespace MotionFramework.Resource
 		{
 			IsDestroyed = true;
 		}
-		public virtual void ForceSyncLoad()
-		{
-		}
 
 		public void Reference()
 		{
@@ -81,6 +79,10 @@ namespace MotionFramework.Resource
 				return false;
 
 			return RefCount <= 0;
+		}
+		public void WaitForAsyncComplete()
+		{
+			IsWaitForAsyncComplete = true;
 		}
 
 		/// <summary>

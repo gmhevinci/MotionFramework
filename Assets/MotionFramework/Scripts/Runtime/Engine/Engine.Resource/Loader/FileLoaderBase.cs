@@ -98,9 +98,9 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 强制同步加载资源
+		/// 主线程等待异步操作完毕
 		/// </summary>
-		public abstract void ForceSyncLoad();
+		public abstract void WaitForAsyncComplete(); 
 
 		#region Asset Provider
 		internal readonly List<IAssetProvider> _providers = new List<IAssetProvider>();
@@ -130,7 +130,7 @@ namespace MotionFramework.Resource
 		/// <param name="assetName">资源名称</param>
 		/// <param name="assetType">资源类型</param>
 		/// <param name="param">附加参数</param>
-		public AssetOperationHandle LoadAssetAsync(string assetName, System.Type assetType)
+		public AssetOperationHandle LoadAssetAsync(string assetName, System.Type assetType, bool waitForAsyncComplete)
 		{
 			IAssetProvider provider = TryGetProvider(assetName);
 			if (provider == null)
@@ -144,6 +144,12 @@ namespace MotionFramework.Resource
 				_providers.Add(provider);
 			}
 
+			// 异步转同步
+			if (waitForAsyncComplete)
+			{
+				provider.WaitForAsyncComplete();
+			}
+
 			// 引用计数增加
 			provider.Reference();
 			return provider.Handle;
@@ -154,7 +160,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		/// <param name="assetName">资源名称</param>
 		/// <param name="assetType">资源类型</param>
-		public AssetOperationHandle LoadSubAssetsAsync(string assetName, System.Type assetType)
+		public AssetOperationHandle LoadSubAssetsAsync(string assetName, System.Type assetType, bool waitForAsyncComplete)
 		{
 			IAssetProvider provider = TryGetProvider(assetName);
 			if (provider == null)
@@ -166,6 +172,12 @@ namespace MotionFramework.Resource
 				else
 					throw new NotImplementedException($"{this.GetType()}");
 				_providers.Add(provider);
+			}
+
+			// 异步转同步
+			if (waitForAsyncComplete)
+			{
+				provider.WaitForAsyncComplete();
 			}
 
 			// 引用计数增加

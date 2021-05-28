@@ -191,22 +191,22 @@ namespace MotionFramework.Resource
 		}
 
 
-		private AssetOperationHandle LoadAssetInternal(string location, System.Type assetType, bool forceSyncLoad)
+		private AssetOperationHandle LoadAssetInternal(string location, System.Type assetType, bool waitForAsyncComplete)
 		{
 			string assetName = Path.GetFileName(location);
 			FileLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
-			var handle = cacheLoader.LoadAssetAsync(assetName, assetType);
-			if (forceSyncLoad)
-				cacheLoader.ForceSyncLoad();
+			var handle = cacheLoader.LoadAssetAsync(assetName, assetType, waitForAsyncComplete);
+			if (waitForAsyncComplete)
+				cacheLoader.WaitForAsyncComplete();
 			return handle;
 		}
-		private AssetOperationHandle LoadSubAssetsInternal(string location, System.Type assetType, bool forceSyncLoad)
+		private AssetOperationHandle LoadSubAssetsInternal(string location, System.Type assetType, bool waitForAsyncComplete)
 		{
 			string assetName = Path.GetFileName(location);
 			FileLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
-			var handle = cacheLoader.LoadSubAssetsAsync(assetName, assetType);
-			if (forceSyncLoad)
-				cacheLoader.ForceSyncLoad();
+			var handle = cacheLoader.LoadSubAssetsAsync(assetName, assetType, waitForAsyncComplete);
+			if (waitForAsyncComplete)
+				cacheLoader.WaitForAsyncComplete();
 			return handle;
 		}
 	}

@@ -47,22 +47,44 @@ namespace MotionFramework.Resource
 			// 1. 加载资源对象
 			if (States == EAssetStates.Loading)
 			{
-				if (AssetType == null)
-					_cacheRequest = _loader.CacheBundle.LoadAssetAsync(AssetName);
+				if (IsWaitForAsyncComplete)
+				{
+					if (AssetType == null)
+						AssetObject = _loader.CacheBundle.LoadAsset(AssetName);
+					else
+						AssetObject = _loader.CacheBundle.LoadAsset(AssetName, AssetType);
+				}
 				else
-					_cacheRequest = _loader.CacheBundle.LoadAssetAsync(AssetName, AssetType);
+				{
+					if (AssetType == null)
+						_cacheRequest = _loader.CacheBundle.LoadAssetAsync(AssetName);
+					else
+						_cacheRequest = _loader.CacheBundle.LoadAssetAsync(AssetName, AssetType);
+				}
 				States = EAssetStates.Checking;
 			}
 
 			// 2. 检测加载结果
 			if (States == EAssetStates.Checking)
 			{
-				if (_cacheRequest.isDone == false)
-					return;
-				AssetObject = _cacheRequest.asset;
+				if (_cacheRequest != null)
+				{
+					if (IsWaitForAsyncComplete)
+					{
+						// 强制挂起主线程（注意：该操作会很耗时）
+						AssetObject = _cacheRequest.asset;
+					}
+					else
+					{
+						if (_cacheRequest.isDone == false)
+							return;
+						AssetObject = _cacheRequest.asset;
+					}
+				}
+
 				States = AssetObject == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load asset object : {AssetName} from bundle : {_loader.BundleInfo.BundleName}");
+					MotionLog.Warning($"Failed to load asset : {AssetName} from bundle : {_loader.BundleInfo.BundleName}");
 				InvokeCompletion();
 			}
 		}
@@ -70,18 +92,10 @@ namespace MotionFramework.Resource
 		{
 			base.Destory();
 
-			if(AssetObject != null)
+			if (AssetObject != null)
 			{
-				if(AssetObject is GameObject == false)
+				if (AssetObject is GameObject == false)
 					Resources.UnloadAsset(AssetObject);
-			}
-		}
-		public override void ForceSyncLoad()
-		{
-			// 强制挂起主线程
-			if(States == EAssetStates.Checking)
-			{
-				AssetObject = _cacheRequest.asset;
 			}
 		}
 	}

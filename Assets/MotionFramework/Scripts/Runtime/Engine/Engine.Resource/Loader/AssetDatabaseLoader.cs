@@ -34,13 +34,16 @@ namespace MotionFramework.Resource
 				States = ELoaderStates.Success;
 #endif
 		}
-		public override void ForceSyncLoad()
+		public override void WaitForAsyncComplete()
 		{
 #if UNITY_EDITOR
 			if (IsSceneLoader)
+			{
+				MotionLog.Warning($"Scene is not support {nameof(WaitForAsyncComplete)}.");
 				return;
+			}
 
-			int frame = 100;
+			int frame = 1000;
 			while (true)
 			{
 				// 保险机制
@@ -48,7 +51,7 @@ namespace MotionFramework.Resource
 				if (frame == 0)
 					throw new Exception($"Should never get here ! BundleName : {BundleInfo.BundleName} States : {States}");
 
-				// 更新加载流程
+				// 驱动流程
 				Update();
 
 				// 完成后退出

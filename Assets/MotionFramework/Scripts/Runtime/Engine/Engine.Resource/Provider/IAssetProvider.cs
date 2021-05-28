@@ -102,6 +102,11 @@ namespace MotionFramework.Resource
 		bool CanDestroy();
 
 		/// <summary>
+		/// 等待异步加载结束
+		/// </summary>
+		void WaitForAsyncComplete();
+
+		/// <summary>
 		/// 异步操作任务
 		/// </summary>
 		System.Threading.Tasks.Task<object> Task { get; }
