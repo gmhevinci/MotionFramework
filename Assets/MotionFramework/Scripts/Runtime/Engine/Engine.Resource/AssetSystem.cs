@@ -193,7 +193,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 强制回收所有资源
 		/// </summary>
-		public static void UnloadAllAssets()
+		public static void ForceUnloadAllAssets()
 		{
 			for (int i = 0; i < _loaders.Count; i++)
 			{

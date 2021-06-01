@@ -51,7 +51,7 @@ namespace MotionFramework.Resource
 
 			/// <summary>
 			/// 资源系统自动释放零引用资源的间隔秒数
-			/// 注意：如果小于等于零代表不自动释放，可以使用ResourceManager.Release接口主动释放
+			/// 注意：如果小于等于零代表不自动释放，可以使用ResourceManager.UnloadUnusedAssets接口主动释放
 			/// </summary>
 			public float AutoReleaseInterval;
 		}
@@ -104,9 +104,9 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 强制回收所有资源
 		/// </summary>
-		public void UnloadAllAssets()
+		public void ForceUnloadAllAssets()
 		{
-			AssetSystem.UnloadAllAssets();
+			AssetSystem.ForceUnloadAllAssets();
 		}
 
 		/// <summary>
