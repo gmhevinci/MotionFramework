@@ -47,7 +47,7 @@ namespace MotionFramework.Resource
 			// 1. 加载资源对象
 			if (States == EAssetStates.Loading)
 			{
-				if (IsWaitForAsyncComplete)
+				if (SyncLoadMode)
 				{
 					if (AssetType == null)
 						AssetObject = _loader.CacheBundle.LoadAsset(AssetName);
@@ -69,7 +69,7 @@ namespace MotionFramework.Resource
 			{
 				if (_cacheRequest != null)
 				{
-					if (IsWaitForAsyncComplete)
+					if (SyncLoadMode)
 					{
 						// 强制挂起主线程（注意：该操作会很耗时）
 						AssetObject = _cacheRequest.asset;

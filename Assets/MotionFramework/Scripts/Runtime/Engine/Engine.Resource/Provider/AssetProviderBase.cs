@@ -9,7 +9,7 @@ namespace MotionFramework.Resource
 	internal abstract class AssetProviderBase : IAssetProvider
 	{
 		protected FileLoaderBase Owner { private set; get; }
-		protected bool IsWaitForAsyncComplete { private set; get; } = false;
+		protected bool SyncLoadMode { private set; get; } = false;
 		
 		public string AssetName { private set; get; }
 		public System.Type AssetType { private set; get; }
@@ -80,9 +80,9 @@ namespace MotionFramework.Resource
 
 			return RefCount <= 0;
 		}
-		public void WaitForAsyncComplete()
+		public void SetSyncLoadMode()
 		{
-			IsWaitForAsyncComplete = true;
+			SyncLoadMode = true;
 		}
 
 		/// <summary>

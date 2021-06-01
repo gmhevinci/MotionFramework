@@ -102,9 +102,9 @@ namespace MotionFramework.Resource
 		bool CanDestroy();
 
 		/// <summary>
-		/// 等待异步加载结束
+		/// 设置同步加载模式
 		/// </summary>
-		void WaitForAsyncComplete();
+		void SetSyncLoadMode();
 
 		/// <summary>
 		/// 异步操作任务

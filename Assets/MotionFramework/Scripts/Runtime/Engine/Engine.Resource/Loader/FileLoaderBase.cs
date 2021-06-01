@@ -129,8 +129,8 @@ namespace MotionFramework.Resource
 		/// </summary>
 		/// <param name="assetName">资源名称</param>
 		/// <param name="assetType">资源类型</param>
-		/// <param name="param">附加参数</param>
-		public AssetOperationHandle LoadAssetAsync(string assetName, System.Type assetType, bool waitForAsyncComplete)
+		/// <param name="syncLoadMode">同步加载模式</param>
+		public AssetOperationHandle LoadAssetAsync(string assetName, System.Type assetType, bool syncLoadMode)
 		{
 			IAssetProvider provider = TryGetProvider(assetName);
 			if (provider == null)
@@ -145,9 +145,9 @@ namespace MotionFramework.Resource
 			}
 
 			// 异步转同步
-			if (waitForAsyncComplete)
+			if (syncLoadMode)
 			{
-				provider.WaitForAsyncComplete();
+				provider.SetSyncLoadMode();
 			}
 
 			// 引用计数增加
@@ -159,8 +159,9 @@ namespace MotionFramework.Resource
 		/// 异步加载所有子资源对象
 		/// </summary>
 		/// <param name="assetName">资源名称</param>
-		/// <param name="assetType">资源类型</param>
-		public AssetOperationHandle LoadSubAssetsAsync(string assetName, System.Type assetType, bool waitForAsyncComplete)
+		/// <param name="assetType">资源类型</param>、
+		/// <param name="syncLoadMode">同步加载模式</param>
+		public AssetOperationHandle LoadSubAssetsAsync(string assetName, System.Type assetType, bool syncLoadMode)
 		{
 			IAssetProvider provider = TryGetProvider(assetName);
 			if (provider == null)
@@ -175,9 +176,9 @@ namespace MotionFramework.Resource
 			}
 
 			// 异步转同步
-			if (waitForAsyncComplete)
+			if (syncLoadMode)
 			{
-				provider.WaitForAsyncComplete();
+				provider.SetSyncLoadMode();
 			}
 
 			// 引用计数增加
