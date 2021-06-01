@@ -13,7 +13,8 @@ namespace MotionFramework.Resource
 {
 	internal sealed class AssetBundleLoader : FileLoaderBase
 	{
-		private readonly List<FileLoaderBase> _depends = new List<FileLoaderBase>(10);
+		private readonly List<AssetBundleLoader> _masters = new List<AssetBundleLoader>(10);
+		private readonly List<AssetBundleLoader> _depends = new List<AssetBundleLoader>(10);
 		private WebFileRequest _downloader;
 		private AssetBundleCreateRequest _cacheRequest;
 		private bool _isWaitForAsyncComplete = false;
@@ -29,7 +30,8 @@ namespace MotionFramework.Resource
 				foreach (string dependBundleName in dependencies)
 				{
 					AssetBundleInfo dependBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dependBundleName);
-					FileLoaderBase dependLoader = AssetSystem.CreateLoaderInternal(dependBundleInfo);
+					AssetBundleLoader dependLoader = AssetSystem.CreateLoaderInternal(dependBundleInfo) as AssetBundleLoader;
+					dependLoader.AddMaster(this);
 					_depends.Add(dependLoader);
 				}
 			}
@@ -39,7 +41,7 @@ namespace MotionFramework.Resource
 			// 如果资源文件加载完毕
 			if (States == ELoaderStates.Success || States == ELoaderStates.Fail)
 			{
-				UpdateAllProvider();
+				UpdateProviders();
 				return;
 			}
 
@@ -107,7 +109,7 @@ namespace MotionFramework.Resource
 					if (_isWaitForAsyncComplete)
 						dpLoader.WaitForAsyncComplete();
 
-					if (dpLoader.IsDone() == false)
+					if (dpLoader.CehckFileLoadDone() == false)
 						return;
 				}
 				States = ELoaderStates.LoadFile;
@@ -240,6 +242,25 @@ namespace MotionFramework.Resource
 			}
 
 			_depends.Clear();
+			_masters.Clear();
+		}
+		public override bool CanDestroy()
+		{
+			if (base.CanDestroy() == false)
+				return false;
+
+			// 注意：我们必须等待主资源已经可以销毁的时候，才可以销毁依赖资源
+			// 在一些特殊情况下：
+			// 当依赖资源被销毁的时候，而主资源因为还未加载完毕而暂时不能销毁，
+			// 当再次使用主资源的时候，因为依赖资源已经销毁导致实例化的资源不完整。
+			foreach (var masterLoader in _masters)
+			{
+				if (masterLoader.IsDestroyed)
+					continue;
+				if (masterLoader.CanDestroy() == false)
+					return false;
+			}
+			return true;
 		}
 		public override void WaitForAsyncComplete()
 		{
@@ -267,6 +288,10 @@ namespace MotionFramework.Resource
 				if (IsDone())
 					break;
 			}
+		}
+		public void AddMaster(AssetBundleLoader master)
+		{
+			_masters.Add(master);
 		}
 	}
 }

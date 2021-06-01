@@ -22,7 +22,7 @@ namespace MotionFramework.Resource
 			// 如果资源文件加载完毕
 			if (States == ELoaderStates.Fail || States == ELoaderStates.Success)
 			{
-				UpdateAllProvider();
+				UpdateProviders();
 				return;
 			}
 

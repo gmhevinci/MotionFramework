@@ -73,20 +73,9 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 是否完毕（无论成功失败）
-		/// </summary>
-		public bool IsDone()
-		{
-			if (States == ELoaderStates.Success || States == ELoaderStates.Fail)
-				return CheckAllProviderIsDone();
-			else
-				return false;
-		}
-
-		/// <summary>
 		/// 是否可以销毁
 		/// </summary>
-		public bool CanDestroy()
+		public virtual bool CanDestroy()
 		{
 			if (IsDone() == false)
 				return false;
@@ -98,9 +87,28 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
+		/// 是否完毕（无论成功失败）
+		/// </summary>
+		public bool IsDone()
+		{
+			if (CehckFileLoadDone())
+				return CheckProvidersDone();
+			else
+				return false;
+		}
+
+		/// <summary>
+		/// 文件加载是否完毕
+		/// </summary>
+		public bool CehckFileLoadDone()
+		{
+			return States == ELoaderStates.Success || States == ELoaderStates.Fail;
+		}
+
+		/// <summary>
 		/// 主线程等待异步操作完毕
 		/// </summary>
-		public abstract void WaitForAsyncComplete(); 
+		public abstract void WaitForAsyncComplete();
 
 		#region Asset Provider
 		internal readonly List<IAssetProvider> _providers = new List<IAssetProvider>();
@@ -202,9 +210,9 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 检测所有资源提供者是否完毕
+		/// 检测所有的资源提供者是否完毕
 		/// </summary>
-		protected bool CheckAllProviderIsDone()
+		protected bool CheckProvidersDone()
 		{
 			for (int i = 0; i < _providers.Count; i++)
 			{
@@ -214,11 +222,11 @@ namespace MotionFramework.Resource
 			}
 			return true;
 		}
-
+		
 		/// <summary>
-		/// 轮询更新所有资源提供者
+		/// 轮询更新所有的资源提供者
 		/// </summary>
-		protected void UpdateAllProvider()
+		protected void UpdateProviders()
 		{
 			for (int i = _providers.Count - 1; i >= 0; i--)
 			{

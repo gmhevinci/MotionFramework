@@ -98,6 +98,10 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public void UnloadUnusedAssets()
 		{
+			// 轮询更新资源系统
+			AssetSystem.UpdatePoll();
+
+			// 主动释放零引用资源
 			AssetSystem.UnloadUnusedAssets();
 		}
 
