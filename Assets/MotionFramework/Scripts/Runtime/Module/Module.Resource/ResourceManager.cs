@@ -96,7 +96,7 @@ namespace MotionFramework.Resource
 		/// 资源回收
 		/// 卸载引用计数为零的资源
 		/// </summary>
-		public static void UnloadUnusedAssets()
+		public void UnloadUnusedAssets()
 		{
 			AssetSystem.UnloadUnusedAssets();
 		}
