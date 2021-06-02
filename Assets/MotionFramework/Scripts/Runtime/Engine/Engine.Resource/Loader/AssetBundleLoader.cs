@@ -241,6 +241,11 @@ namespace MotionFramework.Resource
 				CacheBundle = null;
 			}
 
+			foreach(var dependLoader in _depends)
+			{
+				dependLoader.RemoveMaster(this);
+			}
+
 			_depends.Clear();
 			_masters.Clear();
 		}
@@ -289,9 +294,43 @@ namespace MotionFramework.Resource
 					break;
 			}
 		}
+
 		public void AddMaster(AssetBundleLoader master)
 		{
+#if UNITY_EDITOR
+			foreach (var loader in _masters)
+			{
+				if (loader == master)
+					throw new Exception("Should never get here.");
+			}
+#endif
+
 			_masters.Add(master);
+		}
+		public void RemoveMaster(AssetBundleLoader master)
+		{
+#if UNITY_EDITOR
+			bool exist = false;
+			foreach (var loader in _masters)
+			{
+				if (loader == master)
+				{
+					exist = true;
+					break;
+				}
+			}
+			if (exist == false)
+				throw new Exception("Should never get here.");
+#endif
+
+			for (int i = _masters.Count - 1; i >= 0; i--)
+			{
+				if (_masters[i] == master)
+				{
+					_masters.RemoveAt(i);
+					break;
+				}
+			}
 		}
 	}
 }
