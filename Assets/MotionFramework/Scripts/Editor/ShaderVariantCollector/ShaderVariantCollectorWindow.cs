@@ -24,12 +24,18 @@ namespace MotionFramework.Editor
 		}
 
 		private string _saveFilePath = "Assets/MyShaderVariants.shadervariants";
+		private ShaderVariantCollection _selectSVC;
 
 		private void OnGUI()
 		{
 			// 文件路径
 			EditorGUILayout.Space();
 			_saveFilePath = EditorGUILayout.TextField("文件路径", _saveFilePath);
+
+			int currentShaderCount = ShaderVariantCollector.GetCurrentShaderVariantCollectionShaderCount();
+			int currentVariantCount = ShaderVariantCollector.GetCurrentShaderVariantCollectionVariantCount();
+			EditorGUILayout.LabelField($"CurrentShaderCount : {currentShaderCount}");
+			EditorGUILayout.LabelField($"CurrentVariantCount : {currentVariantCount}");
 
 			// 搜集变种
 			EditorGUILayout.Space();
@@ -38,10 +44,21 @@ namespace MotionFramework.Editor
 				ShaderVariantCollector.Run(_saveFilePath);
 			}
 
-			int currentShaderCount = ShaderVariantCollector.GetCurrentShaderVariantCollectionShaderCount();
-			int currentVariantCount = ShaderVariantCollector.GetCurrentShaderVariantCollectionVariantCount();
-			EditorGUILayout.LabelField($"CurrentShaderCount : {currentShaderCount}");
-			EditorGUILayout.LabelField($"CurrentVariantCount : {currentVariantCount}");
+			// 查询
+			EditorGUILayout.Space();
+			if (GUILayout.Button("查询", GUILayout.MaxWidth(80)))
+			{
+				string resultPath = EditorTools.OpenFilePath("Select File", "Assets/", "shadervariants");
+				if (string.IsNullOrEmpty(resultPath))
+					return;
+				string assetPath = EditorTools.AbsolutePathToAssetPath(resultPath);
+				_selectSVC = AssetDatabase.LoadAssetAtPath<ShaderVariantCollection>(assetPath);
+			}
+			if (_selectSVC != null)
+			{
+				EditorGUILayout.LabelField($"ShaderCount : {_selectSVC.shaderCount}");
+				EditorGUILayout.LabelField($"VariantCount : {_selectSVC.variantCount}");
+			}
 		}
 	}
 }

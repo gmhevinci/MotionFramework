@@ -150,8 +150,6 @@ namespace MotionFramework.Editor
 			camera.orthographic = true;
 			camera.orthographicSize = halfHeight;
 			camera.transform.position = new Vector3(0f, 0f, -10f);
-			Selection.activeGameObject = camera.gameObject;
-			EditorApplication.ExecuteMenuItem("GameObject/Align View to Selected");
 
 			// 创建测试球体
 			int xMax = (int)(width - 1);
