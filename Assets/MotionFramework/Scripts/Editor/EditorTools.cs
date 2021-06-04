@@ -174,6 +174,38 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
+		#region 编辑器窗口
+		public static void FocusUnitySceneWindow()
+		{
+			EditorWindow.FocusWindowIfItsOpen<SceneView>();
+		}
+		public static void FocusUnityGameWindow()
+		{
+			System.Type T = Assembly.Load("UnityEditor").GetType("UnityEditor.GameView");
+			EditorWindow.GetWindow(T, false, "GameView", true);
+		}
+		public static void FocueUnityProjectWindow()
+		{
+			System.Type T = Assembly.Load("UnityEditor").GetType("UnityEditor.ProjectBrowser");
+			EditorWindow.GetWindow(T, false, "Project", true);
+		}
+		public static void FocusUnityHierarchyWindow()
+		{
+			System.Type T = Assembly.Load("UnityEditor").GetType("UnityEditor.SceneHierarchyWindow");
+			EditorWindow.GetWindow(T, false, "Hierarchy", true);
+		}
+		public static void FocusUnityInspectorWindow()
+		{
+			System.Type T = Assembly.Load("UnityEditor").GetType("UnityEditor.InspectorWindow");
+			EditorWindow.GetWindow(T, false, "Inspector", true);
+		}
+		public static void FocusUnityConsoleWindow()
+		{
+			System.Type T = Assembly.Load("UnityEditor").GetType("UnityEditor.ConsoleWindow");
+			EditorWindow.GetWindow(T, false, "Console", true);
+		}
+		#endregion
+
 		#region 引用关系
 		/// <summary>
 		/// 获取场景里的克隆预制体
