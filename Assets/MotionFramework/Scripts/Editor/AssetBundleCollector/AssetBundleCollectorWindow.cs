@@ -230,7 +230,7 @@ namespace MotionFramework.Editor
 			// 导入配置按钮
 			if (GUILayout.Button("Import Config"))
 			{
-				string resultPath = EditorTools.OpenFilePath("Select Folder", _lastOpenFolderPath);
+				string resultPath = EditorTools.OpenFilePath("Select File", "Assets/", "xml");
 				if (resultPath != null)
 				{
 					CollectorConfigImporter.ImportXmlConfig(resultPath);
