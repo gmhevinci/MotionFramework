@@ -143,9 +143,9 @@ namespace MotionFramework.Editor
 		/// <param name="title">标题名称</param>
 		/// <param name="defaultPath">默认搜索路径</param>
 		/// <returns>返回选择的文件绝对路径，如果无效返回NULL</returns>
-		public static string OpenFilePath(string title, string defaultPath)
+		public static string OpenFilePath(string title, string defaultPath, string extension = "")
 		{
-			string openPath = EditorUtility.OpenFilePanel(title, defaultPath, string.Empty);
+			string openPath = EditorUtility.OpenFilePanel(title, defaultPath, extension);
 			if (string.IsNullOrEmpty(openPath))
 				return null;
 
