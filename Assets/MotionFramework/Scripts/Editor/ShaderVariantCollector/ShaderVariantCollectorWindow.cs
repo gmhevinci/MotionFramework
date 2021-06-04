@@ -24,8 +24,6 @@ namespace MotionFramework.Editor
 		}
 
 		private string _saveFilePath = "Assets/MyShaderVariants.shadervariants";
-		private int _currentShaderCount = 0;
-		private int _currentVariantCount = 0;
 
 		private void OnGUI()
 		{
@@ -37,19 +35,13 @@ namespace MotionFramework.Editor
 			EditorGUILayout.Space();
 			if (GUILayout.Button("搜集变种", GUILayout.MaxWidth(80)))
 			{
-				EditorApplication.delayCall += CollectShaderVariants;
+				ShaderVariantCollector.Run(_saveFilePath);
 			}
 
-			EditorGUILayout.LabelField($"CurrentShaderCount : {_currentShaderCount}");
-			EditorGUILayout.LabelField($"CurrentVariantCount : {_currentVariantCount}");
-		}
-
-		private void CollectShaderVariants()
-		{
-			ShaderVariantCollector collector = new ShaderVariantCollector();
-			collector.Run(_saveFilePath);
-			_currentShaderCount = collector.GetCurrentShaderVariantCollectionShaderCount();
-			_currentVariantCount = collector.GetCurrentShaderVariantCollectionVariantCount();
+			int currentShaderCount = ShaderVariantCollector.GetCurrentShaderVariantCollectionShaderCount();
+			int currentVariantCount = ShaderVariantCollector.GetCurrentShaderVariantCollectionVariantCount();
+			EditorGUILayout.LabelField($"CurrentShaderCount : {currentShaderCount}");
+			EditorGUILayout.LabelField($"CurrentVariantCount : {currentVariantCount}");
 		}
 	}
 }

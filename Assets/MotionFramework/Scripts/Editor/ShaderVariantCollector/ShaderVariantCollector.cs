@@ -6,6 +6,7 @@
 //--------------------------------------------------
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.IO;
 using UnityEngine;
@@ -15,30 +16,67 @@ using MotionFramework.Utility;
 
 namespace MotionFramework.Editor
 {
-	public class ShaderVariantCollector
+	[InitializeOnLoad]
+	public static class ShaderVariantCollector
 	{
-		/// <summary>
-		/// 开始构建
-		/// </summary>
-		public void Run(string saveFilePath)
+		private const float WaitMilliseconds = 1000f;
+		private static string _saveFilePath;
+		private static bool _isStarted = false;
+		private static readonly Stopwatch _elapsedTime = new Stopwatch();
+
+		static ShaderVariantCollector()
 		{
+			EditorApplication.update += EditorUpdate;
+		}
+		private static void EditorUpdate()
+		{
+			// 注意：一定要延迟保存才会起效
+			if (_isStarted && _elapsedTime.ElapsedMilliseconds > WaitMilliseconds)
+			{
+				_isStarted = false;
+				_elapsedTime.Stop();
+
+				// 保存结果
+				SaveCurrentShaderVariantCollection();
+			}
+		}
+
+		/// <summary>
+		/// 开始收集
+		/// </summary>
+		public static void Run(string saveFilePath)
+		{
+			if (_isStarted)
+				return;
+
 			if (Path.HasExtension(saveFilePath) == false)
 				saveFilePath = $"{saveFilePath}.shadervariants";
-
 			if (Path.GetExtension(saveFilePath) != ".shadervariants")
 				throw new System.Exception("Shader variant file extension is invalid.");
-
 			EditorTools.CreateFileDirectory(saveFilePath);
-			var materials = GetAllMaterials();
+			_saveFilePath = saveFilePath;
+
+			// 聚焦到游戏窗口
+			EditorTools.FocusUnityGameWindow();
+
+			// 清空旧数据
 			ClearCurrentShaderVariantCollection();
+
+			// 收集着色器变种
+			var materials = GetAllMaterials();
 			CollectVariants(materials);
-			SaveCurrentShaderVariantCollection(saveFilePath);
+
+			_isStarted = true;
+			_elapsedTime.Reset();
+			_elapsedTime.Start();
+
+			UnityEngine.Debug.LogWarning("已经启动着色器变种收集工作，该工具只有人为的在编辑器下操作才会起效！");
 		}
 
 		/// <summary>
 		/// 收集所有打包的材质球
 		/// </summary>
-		private List<Material> GetAllMaterials()
+		private static List<Material> GetAllMaterials()
 		{
 			int progressValue = 0;
 			List<string> allAssets = new List<string>(1000);
@@ -96,7 +134,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 采集所有着色器的变种
 		/// </summary>
-		private void CollectVariants(List<Material> materials)
+		private static void CollectVariants(List<Material> materials)
 		{
 			// 创建临时场景
 			EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
@@ -137,10 +175,6 @@ namespace MotionFramework.Editor
 			}
 			EditorTools.ClearProgressBar();
 		}
-
-		/// <summary>
-		/// 创建测试球体
-		/// </summary>
 		private static void CreateSphere(Material material, Vector3 position, int index)
 		{
 			var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -149,19 +183,19 @@ namespace MotionFramework.Editor
 			go.name = $"Sphere_{index}|{material.name}";
 		}
 
-		private void ClearCurrentShaderVariantCollection()
+		private static void ClearCurrentShaderVariantCollection()
 		{
 			AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "ClearCurrentShaderVariantCollection");
 		}
-		private void SaveCurrentShaderVariantCollection(string saveFilePath)
+		private static void SaveCurrentShaderVariantCollection()
 		{
-			//AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "SaveCurrentShaderVariantCollection", saveFilePath);
+			AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "SaveCurrentShaderVariantCollection", _saveFilePath);
 		}
-		public int GetCurrentShaderVariantCollectionShaderCount()
+		public static int GetCurrentShaderVariantCollectionShaderCount()
 		{
 			return (int)AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "GetCurrentShaderVariantCollectionShaderCount");
 		}
-		public int GetCurrentShaderVariantCollectionVariantCount()
+		public static int GetCurrentShaderVariantCollectionVariantCount()
 		{
 			return (int)AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "GetCurrentShaderVariantCollectionVariantCount");
 		}
