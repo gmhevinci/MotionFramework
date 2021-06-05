@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2019-2019 https://github.com/networm
+// Copyright©2019-2019 networm
 // Copyright©2021-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
@@ -70,7 +70,7 @@ namespace MotionFramework.Editor
 			_elapsedTime.Reset();
 			_elapsedTime.Start();
 
-			UnityEngine.Debug.LogWarning("已经启动着色器变种收集工作，该工具只有人为的在编辑器下操作才会起效！");
+			UnityEngine.Debug.LogWarning("已经启动着色器变种收集工作，该工具只支持在编辑器下人工操作！");
 		}
 
 		/// <summary>
