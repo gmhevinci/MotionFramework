@@ -25,12 +25,13 @@ namespace MotionFramework.Editor
 
 		private string _saveFilePath = "Assets/MyShaderVariants.shadervariants";
 		private ShaderVariantCollection _selectSVC;
+		private GameObject _sceneGameObjects;
 
 		private void OnGUI()
 		{
-			// 文件路径
 			EditorGUILayout.Space();
-			_saveFilePath = EditorGUILayout.TextField("文件路径", _saveFilePath);
+			_saveFilePath = EditorGUILayout.TextField("收集文件保存路径", _saveFilePath);
+			_sceneGameObjects = (GameObject)EditorGUILayout.ObjectField("收集场景内置对象", _sceneGameObjects, typeof(UnityEngine.GameObject), false);
 
 			int currentShaderCount = ShaderVariantCollector.GetCurrentShaderVariantCollectionShaderCount();
 			int currentVariantCount = ShaderVariantCollector.GetCurrentShaderVariantCollectionVariantCount();
@@ -41,7 +42,7 @@ namespace MotionFramework.Editor
 			EditorGUILayout.Space();
 			if (GUILayout.Button("搜集变种", GUILayout.MaxWidth(80)))
 			{
-				ShaderVariantCollector.Run(_saveFilePath);
+				ShaderVariantCollector.Run(_saveFilePath, _sceneGameObjects);
 			}
 
 			// 查询

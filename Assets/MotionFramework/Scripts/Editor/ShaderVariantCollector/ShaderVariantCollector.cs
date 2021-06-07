@@ -44,7 +44,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 开始收集
 		/// </summary>
-		public static void Run(string saveFilePath)
+		public static void Run(string saveFilePath, GameObject sceneGameObjects)
 		{
 			if (_isStarted)
 				return;
@@ -64,7 +64,7 @@ namespace MotionFramework.Editor
 
 			// 收集着色器变种
 			var materials = GetAllMaterials();
-			CollectVariants(materials);
+			CollectVariants(materials, sceneGameObjects);
 
 			_isStarted = true;
 			_elapsedTime.Reset();
@@ -73,9 +73,6 @@ namespace MotionFramework.Editor
 			UnityEngine.Debug.LogWarning("已经启动着色器变种收集工作，该工具只支持在编辑器下人工操作！");
 		}
 
-		/// <summary>
-		/// 收集所有打包的材质球
-		/// </summary>
 		private static List<Material> GetAllMaterials()
 		{
 			int progressValue = 0;
@@ -130,17 +127,24 @@ namespace MotionFramework.Editor
 			}
 			return materials;
 		}
-
-		/// <summary>
-		/// 采集所有着色器的变种
-		/// </summary>
-		private static void CollectVariants(List<Material> materials)
+		private static void CollectVariants(List<Material> materials, GameObject sceneGameObjects)
 		{
 			// 创建临时场景
-			EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
+			if(sceneGameObjects == null)
+			{
+				EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
+			}
+			else
+			{
+				EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+				GameObject.Instantiate<GameObject>(sceneGameObjects);
+			}
+
+			Camera camera = Camera.main;
+			if(camera == null)
+				throw new System.Exception("Not found main camera.");
 
 			// 设置主相机
-			Camera camera = Camera.main;
 			float aspect = camera.aspect;
 			int totalMaterials = materials.Count;
 			float height = Mathf.Sqrt(totalMaterials / aspect) + 1;
