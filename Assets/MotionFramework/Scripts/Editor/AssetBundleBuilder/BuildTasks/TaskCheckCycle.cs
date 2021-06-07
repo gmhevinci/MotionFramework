@@ -14,7 +14,7 @@ namespace MotionFramework.Editor
 	/// <summary>
 	/// 检测资源之间是否有循环依赖
 	/// </summary>
-	internal class TaskCheckCycle : IBuildTask
+	public class TaskCheckCycle : IBuildTask
 	{
 		void IBuildTask.Run(BuildContext context)
 		{

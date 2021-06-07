@@ -17,7 +17,7 @@ namespace MotionFramework.Editor
 	/// <summary>
 	/// 创建说明文件
 	/// </summary>
-	internal class TaskCreateReadme : IBuildTask
+	public class TaskCreateReadme : IBuildTask
 	{
 		void IBuildTask.Run(BuildContext context)
 		{

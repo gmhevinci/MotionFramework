@@ -14,7 +14,7 @@ using MotionFramework.Patch;
 
 namespace MotionFramework.Editor
 {
-	internal class TaskGetBuildMap : IBuildTask
+	public class TaskGetBuildMap : IBuildTask
 	{
 		public class BuildMapContext : IContextObject
 		{

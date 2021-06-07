@@ -86,10 +86,14 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private static List<int> GetPackageVersionList(BuildTarget buildTarget, string outputRoot)
 		{
-			// 获取所有补丁包文件夹
-			string parentPath = $"{outputRoot}/{buildTarget}";
-			string[] allFolders = Directory.GetDirectories(parentPath);
 			List<int> versionList = new List<int>();
+
+			string parentPath = $"{outputRoot}/{buildTarget}";
+			if (Directory.Exists(parentPath) == false)
+				return versionList;
+
+			// 获取所有补丁包文件夹
+			string[] allFolders = Directory.GetDirectories(parentPath);
 			for (int i = 0; i < allFolders.Length; i++)
 			{
 				string folderName = Path.GetFileNameWithoutExtension(allFolders[i]);
@@ -112,6 +116,15 @@ namespace MotionFramework.Editor
 			if (versionList.Count == 0)
 				return -1;
 			return versionList[versionList.Count - 1];
+		}
+
+		/// <summary>
+		/// 是否存在任何补丁包版本
+		/// </summary>
+		public static bool HasAnyPackageVersion(BuildTarget buildTarget, string outputRoot)
+		{
+			List<int> versionList = GetPackageVersionList(buildTarget, outputRoot);
+			return versionList.Count > 0;
 		}
 
 

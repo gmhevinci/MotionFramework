@@ -12,7 +12,7 @@ using MotionFramework.Patch;
 
 namespace MotionFramework.Editor
 {
-	internal class TaskPrepare : IBuildTask
+	public class TaskPrepare : IBuildTask
 	{
 		void IBuildTask.Run(BuildContext context)
 		{
@@ -37,6 +37,10 @@ namespace MotionFramework.Editor
 			// 增量更新时候的必要检测
 			if (buildParameters.Parameters.IsForceRebuild == false)
 			{
+				// 检测历史版本是否存在
+				if (AssetBundleBuilderHelper.HasAnyPackageVersion(buildParameters.Parameters.BuildTarget, buildParameters.Parameters.OutputRoot) == false)
+					throw new Exception("没有发现任何历史版本，请尝试强制重建");
+
 				// 检测构建版本是否合法
 				int maxPackageVersion = AssetBundleBuilderHelper.GetMaxPackageVersion(buildParameters.Parameters.BuildTarget, buildParameters.Parameters.OutputRoot);
 				if (buildParameters.Parameters.BuildVersion <= maxPackageVersion)

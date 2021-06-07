@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace MotionFramework.Editor
 {
-	internal class TaskBuilding : IBuildTask
+	public class TaskBuilding : IBuildTask
 	{
 		public class UnityManifestContext : IContextObject
 		{

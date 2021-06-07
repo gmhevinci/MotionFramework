@@ -14,7 +14,7 @@ using MotionFramework.Utility;
 
 namespace MotionFramework.Editor
 {
-	internal class TaskEncryption : IBuildTask
+	public class TaskEncryption : IBuildTask
 	{
 		public class EncryptionContext : IContextObject
 		{

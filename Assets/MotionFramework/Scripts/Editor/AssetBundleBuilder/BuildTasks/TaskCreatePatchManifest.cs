@@ -17,7 +17,7 @@ namespace MotionFramework.Editor
 	/// <summary>
 	/// 创建补丁清单文件
 	/// </summary>
-	internal class TaskCreatePatchManifest : IBuildTask
+	public class TaskCreatePatchManifest : IBuildTask
 	{
 		void IBuildTask.Run(BuildContext context)
 		{
