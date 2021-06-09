@@ -4,6 +4,7 @@
 // Copyright©2021-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,9 +16,60 @@ namespace MotionFramework.Editor
 {
 	public static class ShaderVariantCollectionHelper
 	{
-		public static Dictionary<Shader, List<ShaderVariantCollection.ShaderVariant>> Extract(ShaderVariantCollection svc)
+		[Serializable]
+		public class ShaderVariantWrapper
 		{
-			var result = new Dictionary<Shader, List<ShaderVariantCollection.ShaderVariant>>(1000);
+			/// <summary>
+			/// Shader to use in this variant.
+			/// </summary>
+			public string Shader;
+
+			/// <summary>
+			///  Pass type to use in this variant.
+			/// </summary>
+			public PassType PassType;
+
+			/// <summary>
+			/// Array of shader keywords to use in this variant.
+			/// </summary>
+			public string[] Keywords;
+
+			public ShaderVariantWrapper(string shader, PassType passType, params string[] keywords)
+			{
+				Shader = shader;
+				PassType = passType;
+				Keywords = keywords;
+			}
+		}
+
+		[Serializable]
+		public class ShaderVariantCollectionWrapper
+		{
+			/// <summary>
+			/// Number of shaders in this collection
+			/// </summary>
+			public int ShaderCount;
+
+			/// <summary>
+			/// Number of total varians in this collection
+			/// </summary>
+			public int VariantCount;
+
+			/// <summary>
+			/// Shader variants list.
+			/// </summary>
+			public List<ShaderVariantWrapper> ShaderVariants = new List<ShaderVariantWrapper>(1000);
+
+			public void Add(ShaderVariantWrapper variant)
+			{
+				ShaderVariants.Add(variant);
+			}
+		}
+
+
+		public static ShaderVariantCollectionWrapper Extract(ShaderVariantCollection svc)
+		{
+			var result = new ShaderVariantCollectionWrapper();
 			using (var so = new SerializedObject(svc))
 			{
 				var shaderArray = so.FindProperty("m_Shaders.Array");
@@ -31,16 +83,11 @@ namespace MotionFramework.Editor
 						{
 							var shader = shaderRef.objectReferenceValue as Shader;
 							if (shader == null)
-								continue;
+							{
+								throw new Exception("Invalid shader in ShaderVariantCollection file.");
+							}
 
 							string shaderAssetPath = AssetDatabase.GetAssetPath(shader);
-
-							// 添加着色器
-							if (result.TryGetValue(shader, out List<ShaderVariantCollection.ShaderVariant> variants) == false)
-							{
-								variants = new List<ShaderVariantCollection.ShaderVariant>();
-								result.Add(shader, variants);
-							}
 
 							// 添加变种信息
 							for (int j = 0; j < shaderVariantsArray.arraySize; ++j)
@@ -51,7 +98,7 @@ namespace MotionFramework.Editor
 								{
 									string[] keywords = propKeywords.stringValue.Split(' ');
 									PassType pathType = (PassType)propPassType.intValue;
-									variants.Add(new ShaderVariantCollection.ShaderVariant(shader, pathType, keywords));
+									result.Add(new ShaderVariantWrapper(shader.name, pathType, keywords));
 								}
 							}
 						}

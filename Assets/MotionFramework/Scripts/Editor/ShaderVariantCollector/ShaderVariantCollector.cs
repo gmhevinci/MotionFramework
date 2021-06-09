@@ -38,7 +38,25 @@ namespace MotionFramework.Editor
 
 				// 保存结果
 				SaveCurrentShaderVariantCollection();
+
+				// 创建说明文件
+				CreateReadme();
 			}
+		}
+		private static void CreateReadme()
+		{
+			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+			ShaderVariantCollection svc = AssetDatabase.LoadAssetAtPath<ShaderVariantCollection>(_saveFilePath);
+			if(svc != null)
+			{
+				var wrapper = ShaderVariantCollectionHelper.Extract(svc);
+				string jsonContents = JsonUtility.ToJson(wrapper, true);
+				string savePath = _saveFilePath.Replace(".shadervariants", ".json");
+				File.WriteAllText(savePath, jsonContents);
+			}
+
+			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 		}
 
 		/// <summary>
