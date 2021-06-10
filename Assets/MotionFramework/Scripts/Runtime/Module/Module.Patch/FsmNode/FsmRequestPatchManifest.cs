@@ -81,7 +81,10 @@ namespace MotionFramework.Patch
 				}
 				else
 				{
-					MotionLog.Log($"Resource version is change : {oldResourceVersion} -> {newResourceVersion}");
+					if (firstStartGame)
+						MotionLog.Log("First start game.");
+					if (newResourceVersion != oldResourceVersion)
+						MotionLog.Log($"Resource version is change : {oldResourceVersion} -> {newResourceVersion}");
 					_patcher.SwitchNext();
 				}
 			}
