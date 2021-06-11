@@ -10,7 +10,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using MotionFramework.Patch;
 
 namespace MotionFramework.Editor
 {
@@ -48,39 +47,6 @@ namespace MotionFramework.Editor
 					result.AddRange(bundleInfo.Assets);
 				}
 				return result;
-			}
-
-			/// <summary>
-			/// 检测哈希冲突并报告错误
-			/// 注意：Unity的打包机制在指定了Variant的时候，同一个AssetBundle文件内不允许有同类型的同名文件
-			/// </summary>
-			public void CheckHashCollisionAndReportError()
-			{
-				Dictionary<string, string> temper = new Dictionary<string, string>(100);
-				bool isThrowException = false;
-				foreach (var bundleInfo in BundleInfos)
-				{
-					temper.Clear();
-					string[] includeAssets = bundleInfo.GetIncludeAssetPaths();
-					foreach (var assetPath in includeAssets)
-					{
-						string fileName = Path.GetFileName(assetPath);
-						if (temper.ContainsKey(fileName))
-						{
-							isThrowException = true;
-							string sameFile = temper[fileName];
-							Debug.LogWarning($"Found same file in one assetBundle : {assetPath} {sameFile}");
-						}
-						else
-						{
-							temper.Add(fileName, assetPath);
-						}
-					}
-				}
-				if (isThrowException)
-				{
-					throw new Exception($"Found same file in assetBundle. Please see the warning information above.");
-				}
 			}
 
 			/// <summary>
@@ -132,37 +98,6 @@ namespace MotionFramework.Editor
 				return builds.ToArray();
 			}
 
-			/// <summary>
-			/// 获取所有的变种信息
-			/// </summary>
-			public List<PatchVariant> GetAllPatchVariant()
-			{
-				Dictionary<string, List<BundleInfo>> variantDic = new Dictionary<string, List<BundleInfo>>();
-				foreach (var bundleInfo in BundleInfos)
-				{
-					string bundleLabel = bundleInfo.AssetBundleLabel;
-					string bundleVariant = bundleInfo.AssetBundleVariant;
-
-					if (variantDic.ContainsKey(bundleLabel) == false)
-						variantDic.Add(bundleLabel, new List<BundleInfo>());
-
-					if (bundleVariant != PatchDefine.AssetBundleDefaultVariant)
-						variantDic[bundleLabel].Add(bundleInfo);
-				}
-
-				List<PatchVariant> result = new List<PatchVariant>();
-				foreach (var pair in variantDic)
-				{
-					if (pair.Value.Count == 0)
-						continue;
-
-					string bundleName = $"{pair.Key}.{PatchDefine.AssetBundleDefaultVariant}";
-					List<string> variants = pair.Value.Select(t => t.AssetBundleVariant.ToLower()).ToList();
-					result.Add(new PatchVariant(bundleName.ToLower(), variants));
-				}
-				return result;
-			}
-
 			private bool TryGetBundleInfo(string bundleFullName, out BundleInfo result)
 			{
 				foreach (var bundleInfo in BundleInfos)
@@ -191,9 +126,6 @@ namespace MotionFramework.Editor
 				buildMapContext.PackAsset(assetInfo);
 			}
 			context.SetContextObject(buildMapContext);
-
-			// 最后检测哈希冲突
-			buildMapContext.CheckHashCollisionAndReportError();
 		}
 
 		/// <summary>

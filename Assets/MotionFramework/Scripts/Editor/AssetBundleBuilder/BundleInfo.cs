@@ -104,9 +104,10 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public UnityEditor.AssetBundleBuild CreatePipelineBuild()
 		{
+			// 注意：我们不在支持AssetBundle的变种机制
 			AssetBundleBuild build = new AssetBundleBuild();
-			build.assetBundleName = AssetBundleLabel;
-			build.assetBundleVariant = AssetBundleVariant;
+			build.assetBundleName = AssetBundleFullName;
+			build.assetBundleVariant = string.Empty;
 			build.assetNames = GetBuildinAssetPaths();
 			return build;
 		}

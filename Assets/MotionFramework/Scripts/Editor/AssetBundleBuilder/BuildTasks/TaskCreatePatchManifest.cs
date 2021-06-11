@@ -40,7 +40,6 @@ namespace MotionFramework.Editor
 			patchManifest.ResourceVersion = buildParameters.Parameters.BuildVersion;
 			patchManifest.BuildinTags = buildParameters.Parameters.BuildinTags;
 			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext, unityManifest);
-			patchManifest.VariantList = buildMapContext.GetAllPatchVariant();
 
 			// 创建新文件
 			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestFileName}";

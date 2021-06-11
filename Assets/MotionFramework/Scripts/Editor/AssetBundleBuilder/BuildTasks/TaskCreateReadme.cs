@@ -105,13 +105,6 @@ namespace MotionFramework.Editor
 						AppendData(content, patchBundle.BundleName);
 					}
 				}
-
-				AppendData(content, "");
-				AppendData(content, $"--变体列表--");
-				foreach (var variant in patchManifest.VariantList)
-				{
-					AppendData(content, variant.ToString());
-				}
 			}
 
 			// 创建新文件
