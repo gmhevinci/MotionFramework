@@ -34,23 +34,12 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public List<PatchBundle> BundleList = new List<PatchBundle>();
 
-		/// <summary>
-		/// 变体列表
-		/// </summary>
-		public List<PatchVariant> VariantList = new List<PatchVariant>();
-
 
 		/// <summary>
 		/// 资源包集合（提供AssetBundle名称获取PatchBundle）
 		/// </summary>
 		[NonSerialized]
 		public readonly Dictionary<string, PatchBundle> Bundles = new Dictionary<string, PatchBundle>();
-
-		/// <summary>
-		/// 变体集合（提供AssetBundle名称获取PatchVariant）
-		/// </summary>
-		[NonSerialized]
-		private readonly Dictionary<string, PatchVariant> Variants = new Dictionary<string, PatchVariant>();
 
 		/// <summary>
 		/// 资源映射集合（提供AssetPath获取PatchBundle）
@@ -65,26 +54,6 @@ namespace MotionFramework.Patch
 		public string[] GetBuildinTags()
 		{
 			return StringConvert.StringToStringList(BuildinTags, ';').ToArray();
-		}
-
-		/// <summary>
-		/// 是否包含变体资源
-		/// </summary>
-		public bool HasVariant(string bundleName)
-		{
-			return Variants.ContainsKey(bundleName);
-		}
-
-		/// <summary>
-		/// 获取首个变体格式
-		/// </summary>
-		public string GetFirstVariant(string bundleName)
-		{
-			if (Variants.TryGetValue(bundleName, out PatchVariant value))
-			{
-				return value.Variants[0];
-			}
-			return string.Empty;
 		}
 
 		/// <summary>
@@ -181,12 +150,6 @@ namespace MotionFramework.Patch
 
 				// 构建资源映射集合
 				UpdateAssetMap(patchManifest, patchBundle);
-			}
-
-			// 构建变种集合
-			foreach (var variant in patchManifest.VariantList)
-			{
-				patchManifest.Variants.Add(variant.BundleName, variant);
 			}
 
 			return patchManifest;

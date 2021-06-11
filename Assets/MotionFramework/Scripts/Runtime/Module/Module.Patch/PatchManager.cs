@@ -36,11 +36,6 @@ namespace MotionFramework.Patch
 			public RemoteServerInfo ServerInfo;
 
 			/// <summary>
-			/// 变体规则列表
-			/// </summary>
-			public List<VariantRule> VariantRules;
-
-			/// <summary>
 			/// 首次启动游戏或更新游戏时自动下载的DLC列表
 			/// </summary>
 			public string[] AutoDownloadDLC;
@@ -62,7 +57,6 @@ namespace MotionFramework.Patch
 		}
 
 		private PatchManagerImpl _patcher;
-		private VariantCollector _variantCollector;
 		private bool _isRun = false;
 
 		void IModule.OnCreate(System.Object param)
@@ -72,16 +66,6 @@ namespace MotionFramework.Patch
 				throw new Exception($"{nameof(PatchManager)} create param is invalid.");
 			if (createParam.ServerInfo == null)
 				throw new Exception("ServerInfo is null");
-
-			// 注册变体规则
-			if (createParam.VariantRules != null)
-			{
-				_variantCollector = new VariantCollector();
-				foreach (var variantRule in createParam.VariantRules)
-				{
-					_variantCollector.RegisterVariantRule(variantRule.VariantGroup, variantRule.TargetVariant);
-				}
-			}
 
 			// 创建补丁管理器实现类
 			_patcher = new PatchManagerImpl();
@@ -204,11 +188,6 @@ namespace MotionFramework.Patch
 		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)
 		{
-			if (_variantCollector != null)
-			{
-				PatchManifest patchManifest = _patcher.GetPatchManifest();
-				bundleName = _variantCollector.RemapVariantName(patchManifest, bundleName);
-			}
 			return _patcher.GetAssetBundleInfo(bundleName);
 		}
 		string IBundleServices.GetAssetBundleName(string assetPath)

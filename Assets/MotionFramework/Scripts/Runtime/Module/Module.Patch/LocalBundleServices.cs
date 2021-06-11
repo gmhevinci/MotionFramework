@@ -15,7 +15,6 @@ namespace MotionFramework.Patch
 {
 	public sealed class LocalBundleServices : IBundleServices
 	{
-		private VariantCollector _variantCollector;
 		private PatchManifest _patchManifest;
 
 		/// <summary>
@@ -23,22 +22,6 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public LocalBundleServices()
 		{
-		}
-
-		/// <summary>
-		/// 适合单机游戏的资源文件服务接口类
-		/// </summary>
-		/// <param name="variantRules">变体规则</param>
-		public LocalBundleServices(List<VariantRule> variantRules)
-		{
-			if (variantRules == null)
-				throw new ArgumentNullException();
-
-			_variantCollector = new VariantCollector();
-			foreach (var variantRule in variantRules)
-			{
-				_variantCollector.RegisterVariantRule(variantRule.VariantGroup, variantRule.TargetVariant);
-			}
 		}
 
 		/// <summary>
@@ -74,9 +57,6 @@ namespace MotionFramework.Patch
 		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)
 		{
-			if (_variantCollector != null)
-				bundleName = _variantCollector.RemapVariantName(_patchManifest, bundleName);
-
 			if (_patchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(patchBundle.Hash);
