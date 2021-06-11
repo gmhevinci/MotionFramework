@@ -1,4 +1,30 @@
 --------------------------------------------------------------------------------------
+v1.4.3 - 2021年6月11日
+
+新增
+[70e7198] 新增了着色器变种收集工具 : ShaderVariantCollector
+
+改进
+[90fc278] Check hash collision and report error when build bundle
+[4c203fc] 优化改进了DLC并改进了资源收集界面。
+[12642c4] 补丁系统改进了流程，新增了“发现了新的安装APP事件”。
+[518246f] 补丁系统构建参数里新增了用于控制启动热更的DLC标记：AutoDownloadBuildinDLC
+[b64d43e] 新增了WebFileSystem下载管理类，防止重复下载一个资源文件。
+[66e5c92] 当首次启动游戏的时候回自动更新DLC内容。
+[a69b754] 补丁系统支持了后备CDN服务器地址。
+[551df3c] 资源系统优化了同步加载流程。
+
+修复
+[400ea17] Fixed Cannot mark assets and scenes in one AssetBundle
+[0e89e85] Fixed an instance object missing error caused by reuse of the main bundle after the dependent bundle was destroyed
+
+变更
+[4c203fc] TaskCopyPatchFile.cs rename to TaskCreatePatchPackage.cs.
+[bbb99d2] AssetLoaderBase rename FileLoaderBase
+[4c203fc] Remove DLCManager.cs and DLContent.cs.
+
+
+--------------------------------------------------------------------------------------
 v1.4.2 - 2021年5月6日
 
 改进
