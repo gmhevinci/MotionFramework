@@ -176,7 +176,7 @@ namespace MotionFramework.Patch
 			// 注意：按照先后顺序添加流程节点
 			_procedure.AddNode(new FsmRequestGameVersion(this));
 			_procedure.AddNode(new FsmRequestPatchManifest(this));
-			_procedure.AddNode(new FsmGetDonwloadList(this));
+			_procedure.AddNode(new FsmGetDownloadList(this));
 			_procedure.AddNode(new FsmDownloadWebFiles(this));
 			_procedure.AddNode(new FsmDownloadOver(this));
 			_procedure.AddNode(new FsmPatchDone());

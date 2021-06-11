@@ -9,12 +9,12 @@ using MotionFramework.AI;
 
 namespace MotionFramework.Patch
 {
-	internal class FsmGetDonwloadList : IFsmNode
+	internal class FsmGetDownloadList : IFsmNode
 	{
 		private readonly PatchManagerImpl _patcher;
 		public string Name { private set; get; }
 
-		public FsmGetDonwloadList(PatchManagerImpl patcher)
+		public FsmGetDownloadList(PatchManagerImpl patcher)
 		{
 			_patcher = patcher;
 			Name = EPatchStates.GetDonwloadList.ToString();
