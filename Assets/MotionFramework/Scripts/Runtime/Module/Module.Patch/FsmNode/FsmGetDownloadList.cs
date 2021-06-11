@@ -17,11 +17,11 @@ namespace MotionFramework.Patch
 		public FsmGetDownloadList(PatchManagerImpl patcher)
 		{
 			_patcher = patcher;
-			Name = EPatchStates.GetDonwloadList.ToString();
+			Name = EPatchStates.GetDownloadList.ToString();
 		}
 		void IFsmNode.OnEnter()
 		{
-			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.GetDonwloadList);
+			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.GetDownloadList);
 			GetDownloadList();
 		}
 		void IFsmNode.OnUpdate()

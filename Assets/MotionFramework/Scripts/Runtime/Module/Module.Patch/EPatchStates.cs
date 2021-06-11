@@ -24,7 +24,7 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 获取下载列表
 		/// </summary>
-		GetDonwloadList,
+		GetDownloadList,
 		
 		/// <summary>
 		/// 下载远端文件

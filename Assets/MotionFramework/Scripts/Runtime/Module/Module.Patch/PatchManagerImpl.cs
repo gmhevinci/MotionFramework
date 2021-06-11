@@ -210,7 +210,7 @@ namespace MotionFramework.Patch
 				else if (message.operation == EPatchOperation.BeginDownloadWebFiles)
 				{
 					// 从挂起的地方继续
-					if (_procedure.Current == EPatchStates.GetDonwloadList.ToString())
+					if (_procedure.Current == EPatchStates.GetDownloadList.ToString())
 						_procedure.SwitchNext();
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
@@ -235,7 +235,7 @@ namespace MotionFramework.Patch
 				{
 					// 修复当前错误节点
 					if (_procedure.Current == EPatchStates.DownloadWebFiles.ToString())
-						_procedure.Switch(EPatchStates.GetDonwloadList.ToString());
+						_procedure.Switch(EPatchStates.GetDownloadList.ToString());
 					else
 						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
 				}
