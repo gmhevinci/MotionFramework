@@ -383,9 +383,8 @@ namespace MotionFramework.Editor
 				}
 			}
 
-			string bundleLabel;
-
 			// 如果没有找到收集器
+			string bundleLabel;
 			if (findCollector == null)
 			{
 				IPackRule defaultInstance = new PackExplicit();
@@ -398,19 +397,7 @@ namespace MotionFramework.Editor
 				bundleLabel = getInstance.GetAssetBundleLabel(assetPath);
 			}
 
-			// 注意：如果资源所在文件夹的名称包含后缀符号，则为变体资源
-			string assetDirectory = Path.GetDirectoryName(assetPath); // "Assets/Texture.HD/background.jpg" --> "Assets/Texture.HD"
-			if (Path.HasExtension(assetDirectory))
-			{
-				string extension = Path.GetExtension(assetDirectory);
-				bundleLabel = bundleLabel.Replace(extension, string.Empty);
-				string bundleVariant = extension.RemoveFirstChar();
-				return new BundleLabelAndVariant(bundleLabel, bundleVariant);
-			}
-			else
-			{
-				return new BundleLabelAndVariant(bundleLabel, PatchDefine.AssetBundleDefaultVariant);
-			}
+			return new BundleLabelAndVariant(bundleLabel, PatchDefine.AssetBundleDefaultVariant);
 		}
 
 		private static IPackRule GetPackRuleInstance(string ruleName)
