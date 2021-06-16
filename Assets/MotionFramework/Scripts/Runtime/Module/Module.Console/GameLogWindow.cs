@@ -27,19 +27,24 @@ namespace MotionFramework.Console
 		/// <summary>
 		/// 日志最大显示数量
 		/// </summary>
-		private const int LOG_MAX_COUNT = 500;
+		private const int LOG_MAX_COUNT = 2000;
 
 		/// <summary>
 		/// 日志集合
 		/// </summary>
 		private List<LogWrapper> _logs = new List<LogWrapper>();
 
+		private int _totalCount = 0;
+		private int _logCount = 0;
+		private int _warningCount = 0;
+		private int _errorCount = 0;
+
 		// GUI相关
 		private bool _showLog = true;
 		private bool _showWarning = true;
 		private bool _showError = true;
 		private Vector2 _scrollPos = Vector2.zero;
-		
+
 		public GameLogWindow()
 		{
 			// 注册UnityEngine日志系统
@@ -48,9 +53,9 @@ namespace MotionFramework.Console
 		void IConsoleWindow.OnGUI()
 		{
 			GUILayout.BeginHorizontal();
-			_showLog = ConsoleGUI.Toggle("Log", _showLog);
-			_showWarning = ConsoleGUI.Toggle("Warning", _showWarning);
-			_showError = ConsoleGUI.Toggle("Error", _showError);
+			_showLog = ConsoleGUI.Toggle($"Log ({_logCount})", _showLog);
+			_showWarning = ConsoleGUI.Toggle($"Warning ({_warningCount})", _showWarning);
+			_showError = ConsoleGUI.Toggle($"Error ({_errorCount})", _showError);
 			GUILayout.EndHorizontal();
 
 			float offset = ConsoleGUI.ToolbarStyle.fixedHeight;
@@ -68,7 +73,7 @@ namespace MotionFramework.Console
 					if (_showWarning)
 						ConsoleGUI.YellowLable(wrapper.Log);
 				}
-				else
+				else if (wrapper.Type == LogType.Assert || wrapper.Type == LogType.Error || wrapper.Type == LogType.Exception)
 				{
 					if (_showError)
 						ConsoleGUI.RedLable(wrapper.Log);
@@ -81,14 +86,23 @@ namespace MotionFramework.Console
 		{
 			LogWrapper wrapper = ReferencePool.Spawn<LogWrapper>();
 			wrapper.Type = type;
-			
+
+			_totalCount++;
 			if (type == LogType.Assert || type == LogType.Error || type == LogType.Exception)
-				wrapper.Log = logString + "\n" + stackTrace;
+				wrapper.Log = $"[{_totalCount}] " + logString + "\n" + stackTrace;
 			else
-				wrapper.Log = logString;
+				wrapper.Log = $"[{_totalCount}] " + logString;
+
+			if (type == LogType.Log)
+				_logCount++;
+			else if (type == LogType.Warning)
+				_warningCount++;
+			else if (type == LogType.Assert || type == LogType.Error || type == LogType.Exception)
+				_errorCount++;
+			else
+				throw new NotImplementedException(type.ToString());
 
 			_logs.Add(wrapper);
-
 			if (_logs.Count > LOG_MAX_COUNT)
 			{
 				ReferencePool.Release(_logs[0]);
