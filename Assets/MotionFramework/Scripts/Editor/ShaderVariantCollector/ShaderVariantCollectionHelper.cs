@@ -20,9 +20,14 @@ namespace MotionFramework.Editor
 		public class ShaderVariantWrapper
 		{
 			/// <summary>
-			/// Shader to use in this variant.
+			/// Shader asset path in editor.
 			/// </summary>
-			public string Shader;
+			public string AssetPath;
+
+			/// <summary>
+			/// Shader name.
+			/// </summary>
+			public string ShaderName;
 
 			/// <summary>
 			///  Pass type to use in this variant.
@@ -34,9 +39,10 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public string[] Keywords;
 
-			public ShaderVariantWrapper(string shader, PassType passType, params string[] keywords)
+			public ShaderVariantWrapper(string assetPath, string shaderName, PassType passType, params string[] keywords)
 			{
-				Shader = shader;
+				AssetPath = assetPath;
+				ShaderName = shaderName;
 				PassType = passType;
 				Keywords = keywords;
 			}
@@ -88,6 +94,7 @@ namespace MotionFramework.Editor
 							}
 
 							string shaderAssetPath = AssetDatabase.GetAssetPath(shader);
+							string shaderName = shader.name;
 
 							// 添加变种信息
 							for (int j = 0; j < shaderVariantsArray.arraySize; ++j)
@@ -98,7 +105,7 @@ namespace MotionFramework.Editor
 								{
 									string[] keywords = propKeywords.stringValue.Split(' ');
 									PassType pathType = (PassType)propPassType.intValue;
-									result.Add(new ShaderVariantWrapper(shader.name, pathType, keywords));
+									result.Add(new ShaderVariantWrapper(shaderAssetPath, shaderName, pathType, keywords));
 								}
 							}
 						}
