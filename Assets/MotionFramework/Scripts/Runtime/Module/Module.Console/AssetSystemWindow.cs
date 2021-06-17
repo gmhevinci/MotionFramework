@@ -15,25 +15,23 @@ namespace MotionFramework.Console
 	[ConsoleAttribute("资源系统", 104)]
 	internal class AssetSystemWindow : IConsoleWindow
 	{
-		private class InfoWrapper : IReference, IComparer<InfoWrapper>, IComparable<InfoWrapper>
+		private class LoaderWrapper : IReference, IComparer<LoaderWrapper>, IComparable<LoaderWrapper>
 		{
-			public string Info;
-			public ELoaderStates LoadState;
-			public int ProviderFailedCount;
+			public string BundleName;
+			public FileLoaderBase Loader;
 
 			public void OnRelease()
 			{
-				Info = string.Empty;
-				LoadState = ELoaderStates.None;
-				ProviderFailedCount = 0;
+				BundleName = null;
+				Loader = null;
 			}
-			public int CompareTo(InfoWrapper other)
+			public int CompareTo(LoaderWrapper other)
 			{
 				return Compare(this, other);
 			}
-			public int Compare(InfoWrapper a, InfoWrapper b)
+			public int Compare(LoaderWrapper a, LoaderWrapper b)
 			{
-				return string.CompareOrdinal(a.Info, b.Info);
+				return string.CompareOrdinal(a.BundleName, b.BundleName);
 			}
 		}
 
@@ -45,7 +43,7 @@ namespace MotionFramework.Console
 		/// <summary>
 		/// 显示信息集合
 		/// </summary>
-		private List<InfoWrapper> _cacheInfos = new List<InfoWrapper>(1000);
+		private List<LoaderWrapper> _cacheInfos = new List<LoaderWrapper>(1000);
 
 		/// <summary>
 		/// 过滤的关键字
@@ -68,16 +66,27 @@ namespace MotionFramework.Console
 			GUILayout.EndHorizontal();
 
 			ConsoleGUI.Lable($"加载器总数：{_loaderTotalCount}");
-
 			float offset = ConsoleGUI.ToolbarStyle.fixedHeight + ConsoleGUI.LableStyle.fontSize;
 			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
 			for (int i = 0; i < _cacheInfos.Count; i++)
 			{
-				var element = _cacheInfos[i];
-				if (element.LoadState == ELoaderStates.Fail || element.ProviderFailedCount > 0)
-					ConsoleGUI.RedLable(element.Info);
+				var loaderWrapper = _cacheInfos[i];
+
+				string loaderInfo = $"名称：{loaderWrapper.BundleName}  版本：{loaderWrapper.Loader.BundleInfo.Version}  引用：{loaderWrapper.Loader.RefCount}";
+				if (loaderWrapper.Loader.States == ELoaderStates.Fail)
+					ConsoleGUI.RedLable(loaderInfo);
 				else
-					ConsoleGUI.Lable(element.Info);
+					ConsoleGUI.Lable(loaderInfo);
+
+				var providers = loaderWrapper.Loader.GetProviders();
+				foreach (var provider in providers)
+				{
+					string providerInfo = $"对象：{provider.AssetName}  引用：{provider.RefCount}";
+					if (provider.States == EAssetStates.Fail)
+						ConsoleGUI.RedLable(providerInfo);
+					else
+						ConsoleGUI.Lable(providerInfo);
+				}
 			}
 			ConsoleGUI.EndScrollView();
 		}
@@ -86,11 +95,8 @@ namespace MotionFramework.Console
 		{
 			// 回收引用
 			ReferencePool.Release(_cacheInfos);
-
-			// 清空列表
 			_cacheInfos.Clear();
 
-			// 绘制显示列表
 			var fileLoaders = AssetSystem.GetAllLoaders();
 			_loaderTotalCount = fileLoaders.Count;
 			foreach (var loader in fileLoaders)
@@ -102,14 +108,12 @@ namespace MotionFramework.Console
 						continue;
 				}
 
-				string info = $"资源名称：{loader.BundleInfo.BundleName}  资源版本：{loader.BundleInfo.Version}  引用计数：{loader.RefCount}";
-				InfoWrapper element = ReferencePool.Spawn<InfoWrapper>();
-				element.Info = info;
-				element.LoadState = loader.States;
-				element.ProviderFailedCount = loader.GetFailedProviderCount();
+				LoaderWrapper loaderWrapper = ReferencePool.Spawn<LoaderWrapper>();
+				loaderWrapper.BundleName = loader.BundleInfo.BundleName;
+				loaderWrapper.Loader = loader;
 
 				// 添加到显示列表
-				_cacheInfos.Add(element);
+				_cacheInfos.Add(loaderWrapper);
 			}
 
 			// 重新排序
