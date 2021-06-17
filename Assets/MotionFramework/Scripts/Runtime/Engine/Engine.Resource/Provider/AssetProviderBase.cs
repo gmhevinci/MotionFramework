@@ -63,7 +63,6 @@ namespace MotionFramework.Resource
 		public void Reference()
 		{
 			RefCount++;
-			Owner.Reference();
 		}
 		public void Release()
 		{
@@ -71,7 +70,6 @@ namespace MotionFramework.Resource
 				throw new System.Exception("Cannot decrement reference count, AssetProvider reference is already zero.");
 
 			RefCount--;
-			Owner.Release();
 		}
 		public bool CanDestroy()
 		{

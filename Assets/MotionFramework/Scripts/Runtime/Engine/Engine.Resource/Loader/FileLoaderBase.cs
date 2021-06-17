@@ -44,14 +44,9 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 轮询更新
-		/// </summary>
-		public abstract void Update();
-
-		/// <summary>
 		/// 引用（引用计数递加）
 		/// </summary>
-		public virtual void Reference()
+		protected virtual void Reference()
 		{
 			RefCount++;
 		}
@@ -59,9 +54,20 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 释放（引用计数递减）
 		/// </summary>
-		public virtual void Release()
+		protected virtual void Release()
 		{
 			RefCount--;
+		}
+
+		/// <summary>
+		/// 轮询更新
+		/// </summary>
+		public virtual void Update()
+		{
+			if(CheckFileLoadDone())
+			{
+				UpdateProviders();
+			}
 		}
 
 		/// <summary>
@@ -75,7 +81,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 是否可以销毁
 		/// </summary>
-		public virtual bool CanDestroy()
+		public bool CanDestroy()
 		{
 			if (IsDone() == false)
 				return false;
@@ -91,7 +97,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsDone()
 		{
-			if (CehckFileLoadDone())
+			if (CheckFileLoadDone())
 				return CheckProvidersDone();
 			else
 				return false;
@@ -100,7 +106,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 文件加载是否完毕
 		/// </summary>
-		public bool CehckFileLoadDone()
+		public bool CheckFileLoadDone()
 		{
 			return States == ELoaderStates.Success || States == ELoaderStates.Fail;
 		}
@@ -111,7 +117,15 @@ namespace MotionFramework.Resource
 		public abstract void WaitForAsyncComplete();
 
 		#region Asset Provider
-		internal readonly List<IAssetProvider> _providers = new List<IAssetProvider>();
+		private readonly List<IAssetProvider> _providers = new List<IAssetProvider>();
+
+		/// <summary>
+		/// 调试接口
+		/// </summary>
+		internal List<IAssetProvider> GetProviders()
+		{
+			return _providers;
+		}
 
 		/// <summary>
 		/// 异步加载场景
@@ -194,25 +208,11 @@ namespace MotionFramework.Resource
 			return provider.Handle;
 		}
 
-		/// <summary>
-		/// 获取失败的资源提供者总数
-		/// </summary>
-		public int GetFailedProviderCount()
-		{
-			int failedCount = 0;
-			for (int i = 0; i < _providers.Count; i++)
-			{
-				var provider = _providers[i];
-				if (provider.States == EAssetStates.Fail)
-					failedCount++;
-			}
-			return failedCount;
-		}
 
 		/// <summary>
 		/// 检测所有的资源提供者是否完毕
 		/// </summary>
-		protected bool CheckProvidersDone()
+		private bool CheckProvidersDone()
 		{
 			for (int i = 0; i < _providers.Count; i++)
 			{
@@ -222,11 +222,11 @@ namespace MotionFramework.Resource
 			}
 			return true;
 		}
-		
+
 		/// <summary>
 		/// 轮询更新所有的资源提供者
 		/// </summary>
-		protected void UpdateProviders()
+		private void UpdateProviders()
 		{
 			for (int i = _providers.Count - 1; i >= 0; i--)
 			{
@@ -242,7 +242,9 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		// 获取一个资源提供者
+		/// <summary>
+		/// 获取一个资源提供者
+		/// </summary>
 		private IAssetProvider TryGetProvider(string assetName)
 		{
 			IAssetProvider provider = null;

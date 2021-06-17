@@ -86,10 +86,8 @@ namespace MotionFramework.Resource
 		void IModule.OnGUI()
 		{
 			int totalCount = AssetSystem.GetLoaderCount();
-			int failedCount = AssetSystem.GetLoaderFailedCount();
 			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Virtual simulation : {AssetSystem.SimulationOnEditor}");
-			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Loader total count : {totalCount}");
-			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Loader failed count : {failedCount}");
+			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Loader count : {totalCount}");
 		}
 
 		/// <summary>

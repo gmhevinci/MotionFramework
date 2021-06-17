@@ -13,7 +13,6 @@ namespace MotionFramework.Resource
 {
 	internal sealed class AssetBundleLoader : FileLoaderBase
 	{
-		private readonly List<AssetBundleLoader> _masters = new List<AssetBundleLoader>(10);
 		private readonly List<AssetBundleLoader> _depends = new List<AssetBundleLoader>(10);
 		private WebFileRequest _downloader;
 		private AssetBundleCreateRequest _cacheRequest;
@@ -31,19 +30,38 @@ namespace MotionFramework.Resource
 				{
 					AssetBundleInfo dependBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dependBundleName);
 					AssetBundleLoader dependLoader = AssetSystem.CreateLoaderInternal(dependBundleInfo) as AssetBundleLoader;
-					dependLoader.AddMaster(this);
+					dependLoader.Reference();
 					_depends.Add(dependLoader);
 				}
 			}
 		}
+		protected override void Reference()
+		{
+			base.Reference();
+
+			// 同时引用一遍所有依赖资源
+			for (int i = 0; i < _depends.Count; i++)
+			{
+				_depends[i].Reference();
+			}
+		}
+		protected override void Release()
+		{
+			base.Release();
+
+			// 同时释放一遍所有依赖资源
+			for (int i = 0; i < _depends.Count; i++)
+			{
+				_depends[i].Release();
+			}
+		}
 		public override void Update()
 		{
+			base.Update();
+
 			// 如果资源文件加载完毕
-			if (States == ELoaderStates.Success || States == ELoaderStates.Fail)
-			{
-				UpdateProviders();
+			if (CheckFileLoadDone())
 				return;
-			}
 
 			if (States == ELoaderStates.None)
 			{
@@ -109,7 +127,7 @@ namespace MotionFramework.Resource
 					if (_isWaitForAsyncComplete)
 						dpLoader.WaitForAsyncComplete();
 
-					if (dpLoader.CehckFileLoadDone() == false)
+					if (dpLoader.CheckFileLoadDone() == false)
 						return;
 				}
 				States = ELoaderStates.LoadFile;
@@ -196,26 +214,6 @@ namespace MotionFramework.Resource
 				}
 			}
 		}
-		public override void Reference()
-		{
-			base.Reference();
-
-			// 同时引用一遍所有依赖资源
-			for (int i = 0; i < _depends.Count; i++)
-			{
-				_depends[i].Reference();
-			}
-		}
-		public override void Release()
-		{
-			base.Release();
-
-			// 同时释放一遍所有依赖资源
-			for (int i = 0; i < _depends.Count; i++)
-			{
-				_depends[i].Release();
-			}
-		}
 		public override void Destroy(bool checkFatal)
 		{
 			base.Destroy(checkFatal);
@@ -241,31 +239,11 @@ namespace MotionFramework.Resource
 				CacheBundle = null;
 			}
 
-			foreach(var dependLoader in _depends)
+			foreach (var dependLoader in _depends)
 			{
-				dependLoader.RemoveMaster(this);
+				dependLoader.Release();
 			}
-
 			_depends.Clear();
-			_masters.Clear();
-		}
-		public override bool CanDestroy()
-		{
-			if (base.CanDestroy() == false)
-				return false;
-
-			// 注意：我们必须等待主资源已经可以销毁的时候，才可以销毁依赖资源
-			// 在一些特殊情况下：
-			// 当依赖资源被销毁的时候，而主资源因为还未加载完毕而暂时不能销毁，
-			// 当再次使用主资源的时候，因为依赖资源已经销毁导致实例化的资源不完整。
-			foreach (var masterLoader in _masters)
-			{
-				if (masterLoader.IsDestroyed)
-					continue;
-				if (masterLoader.CanDestroy() == false)
-					return false;
-			}
-			return true;
 		}
 		public override void WaitForAsyncComplete()
 		{
@@ -292,44 +270,6 @@ namespace MotionFramework.Resource
 				// 完成后退出
 				if (IsDone())
 					break;
-			}
-		}
-
-		public void AddMaster(AssetBundleLoader master)
-		{
-#if UNITY_EDITOR
-			foreach (var loader in _masters)
-			{
-				if (loader == master)
-					throw new Exception("Should never get here.");
-			}
-#endif
-
-			_masters.Add(master);
-		}
-		public void RemoveMaster(AssetBundleLoader master)
-		{
-#if UNITY_EDITOR
-			bool exist = false;
-			foreach (var loader in _masters)
-			{
-				if (loader == master)
-				{
-					exist = true;
-					break;
-				}
-			}
-			if (exist == false)
-				throw new Exception("Should never get here.");
-#endif
-
-			for (int i = _masters.Count - 1; i >= 0; i--)
-			{
-				if (_masters[i] == master)
-				{
-					_masters.RemoveAt(i);
-					break;
-				}
 			}
 		}
 	}

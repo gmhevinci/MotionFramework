@@ -19,19 +19,21 @@ namespace MotionFramework.Resource
 		public override void Update()
 		{
 #if UNITY_EDITOR
-			// 如果资源文件加载完毕
-			if (States == ELoaderStates.Fail || States == ELoaderStates.Success)
-			{
-				UpdateProviders();
-				return;
-			}
+			base.Update();
 
-			// 检测资源文件是否存在
-			string guid = UnityEditor.AssetDatabase.AssetPathToGUID(BundleInfo.LocalPath);
-			if (string.IsNullOrEmpty(guid))
-				States = ELoaderStates.Fail;
-			else
-				States = ELoaderStates.Success;
+			// 如果资源文件加载完毕
+			if (CheckFileLoadDone())
+				return;
+
+			if (States == ELoaderStates.None)
+			{
+				// 检测资源文件是否存在
+				string guid = UnityEditor.AssetDatabase.AssetPathToGUID(BundleInfo.LocalPath);
+				if (string.IsNullOrEmpty(guid))
+					States = ELoaderStates.Fail;
+				else
+					States = ELoaderStates.Success;
+			}
 #endif
 		}
 		public override void WaitForAsyncComplete()

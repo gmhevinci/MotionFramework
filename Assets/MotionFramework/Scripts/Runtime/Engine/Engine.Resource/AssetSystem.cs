@@ -233,17 +233,6 @@ namespace MotionFramework.Resource
 		{
 			return _loaders.Count;
 		}
-		internal static int GetLoaderFailedCount()
-		{
-			int count = 0;
-			for (int i = 0; i < _loaders.Count; i++)
-			{
-				FileLoaderBase temp = _loaders[i];
-				if (temp.States == ELoaderStates.Fail || temp.GetFailedProviderCount() > 0)
-					count++;
-			}
-			return count;
-		}
 		#endregion
 	}
 }
