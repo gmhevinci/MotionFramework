@@ -59,7 +59,7 @@ namespace MotionFramework.Audio
 		}
 		void IModule.OnGUI()
 		{
-			ConsoleGUI.Lable($"[{nameof(AudioManager)}] Audio total count : {_assets.Count}");
+			ConsoleGUI.Lable($"[{nameof(AudioManager)}] Audio count : {_assets.Count}");
 		}
 
 		/// <summary>
