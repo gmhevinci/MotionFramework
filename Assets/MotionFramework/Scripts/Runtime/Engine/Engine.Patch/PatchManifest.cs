@@ -91,7 +91,7 @@ namespace MotionFramework.Patch
 			else
 			{
 				MotionLog.Error($"Not found asset in patch manifest : {assetPath}");
-				return string.Empty;
+				return assetPath;
 			}
 		}
 
