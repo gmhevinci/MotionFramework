@@ -497,17 +497,23 @@ namespace MotionFramework.Patch
 		{
 			return _webPostContent;
 		}
-		public void ParseWebResponse(string content)
+		public bool ParseWebResponse(string content)
 		{
-			if (string.IsNullOrEmpty(content))
-				throw new Exception("Web server response data is null or empty.");
-
-			WebResponse response = JsonUtility.FromJson<WebResponse>(content);
-			RequestedGameVersion = new Version(response.GameVersion);
-			RequestedResourceVersion = response.ResourceVersion;
-			FoundNewApp = response.FoundNewApp;
-			ForceInstall = response.ForceInstall;
-			AppURL = response.AppURL;
+			try
+			{
+				WebResponse response = JsonUtility.FromJson<WebResponse>(content);
+				RequestedGameVersion = new Version(response.GameVersion);
+				RequestedResourceVersion = response.ResourceVersion;
+				FoundNewApp = response.FoundNewApp;
+				ForceInstall = response.ForceInstall;
+				AppURL = response.AppURL;
+				return true;
+			}
+			catch (Exception)
+			{
+				MotionLog.Error($"Failed to parse web response : {content}");
+				return false;
+			}
 		}
 	}
 }

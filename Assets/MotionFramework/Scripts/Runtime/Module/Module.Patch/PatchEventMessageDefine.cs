@@ -59,6 +59,13 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
+		/// 游戏版本号解析失败
+		/// </summary>
+		public class GameVersionParseFailed : IEventMessage
+		{
+		}
+
+		/// <summary>
 		/// 游戏版本号请求失败
 		/// </summary>
 		public class GameVersionRequestFailed : IEventMessage
