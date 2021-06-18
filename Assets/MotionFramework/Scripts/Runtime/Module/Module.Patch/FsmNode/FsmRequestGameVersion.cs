@@ -38,12 +38,12 @@ namespace MotionFramework.Patch
 		public IEnumerator Download()
 		{
 			// 请求游戏版本
-			string url = _patcher.GetWebServerURL();
-			string post = _patcher.GetWebPostContent();
-			MotionLog.Log($"Beginning to request from web : {url}");
-			MotionLog.Log($"Web post content : {post}");
-			WebPostRequest download = new WebPostRequest(url);
-			download.SendRequest(post);
+			string webURL = _patcher.GetWebServerURL();
+			string postContent = _patcher.GetWebPostContent();
+			MotionLog.Log($"Beginning to request from web : {webURL}");
+			MotionLog.Log($"Web post content : {postContent}");
+			WebPostRequest download = new WebPostRequest(webURL);
+			download.SendRequest(postContent);
 			yield return download;
 
 			// Check fatal
@@ -55,14 +55,10 @@ namespace MotionFramework.Patch
 				yield break;
 			}
 
-			string response = download.GetResponse();
-			MotionLog.Log($"Succeed get response from web : {url} {response}");
-			bool result = _patcher.ParseWebResponse(response);
+			string responseContent = download.GetResponse();
 			download.Dispose();
-			if (result)
-				_patcher.SwitchNext();
-			else
-				PatchEventDispatcher.SendGameVersionParseFailedMsg();
+			MotionLog.Log($"Succeed get response from web : {responseContent}");
+			PatchEventDispatcher.SendGameVersionContentMsg(responseContent);
 		}
 	}
 }

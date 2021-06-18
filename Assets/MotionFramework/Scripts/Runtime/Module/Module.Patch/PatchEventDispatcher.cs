@@ -39,9 +39,10 @@ namespace MotionFramework.Patch
 			msg.CurrentDownloadSizeBytes = currentDownloadSizeBytes;
 			EventManager.Instance.SendMessage(msg);
 		}
-		public static void SendGameVersionParseFailedMsg()
+		public static void SendGameVersionContentMsg(string content)
 		{
-			PatchEventMessageDefine.GameVersionParseFailed msg = new PatchEventMessageDefine.GameVersionParseFailed();
+			PatchEventMessageDefine.GameVersionContent msg = new PatchEventMessageDefine.GameVersionContent();
+			msg.Content = content;
 			EventManager.Instance.SendMessage(msg);
 		}
 		public static void SendGameVersionRequestFailedMsg()

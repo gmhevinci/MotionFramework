@@ -168,14 +168,6 @@ namespace MotionFramework.Patch
 			return downlader;
 		}
 
-		/// <summary>
-		/// 接收事件
-		/// </summary>
-		public void HandleEventMessage(IEventMessage msg)
-		{
-			_patcher.HandleEventMessage(msg);
-		}
-
 		#region IBundleServices接口
 		bool IBundleServices.CheckContentIntegrity(string bundleName)
 		{

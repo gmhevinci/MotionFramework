@@ -19,17 +19,6 @@ namespace MotionFramework.Patch
 {
 	internal class PatchManagerImpl
 	{
-		private class WebResponse
-		{
-#pragma warning disable 0649
-			public string GameVersion; //当前游戏版本号
-			public int ResourceVersion; //当前资源版本
-			public bool FoundNewApp; //是否发现了新的安装包
-			public bool ForceInstall; //是否需要强制用户安装
-			public string AppURL; //App安装的地址
-#pragma warning restore 0649
-		}
-
 		// 流程状态机
 		private readonly ProcedureFsm _procedure = new ProcedureFsm();
 
@@ -42,15 +31,6 @@ namespace MotionFramework.Patch
 		private int _maxNumberOnLoad;
 		private int _failedTryAgain;
 
-		// 强更相关
-		public bool FoundNewApp { private set; get; } = false;
-		public bool ForceInstall { private set; get; } = false;
-		public string AppURL { private set; get; }
-
-		// 请求的版本号
-		public Version RequestedGameVersion { private set; get; }
-		public int RequestedResourceVersion { private set; get; }
-
 		// 补丁清单
 		private PatchManifest _appPatchManifest;
 		private PatchManifest _localPatchManifest;
@@ -59,6 +39,12 @@ namespace MotionFramework.Patch
 		// 补丁下载器
 		public PatchDownloader InternalDownloader { private set; get; }
 
+		// 解析内容
+		public bool FoundNewApp { private set; get; }
+		public bool ForceInstall { private set; get; }
+		public string AppURL { private set; get; }
+		public Version RequestedGameVersion { private set; get; }
+		public int RequestedResourceVersion { private set; get; }
 
 		/// <summary>
 		/// 当前运行的状态
@@ -94,6 +80,10 @@ namespace MotionFramework.Patch
 			_autoDownloadBuildinDLC = createParam.AutoDownloadBuildinDLC;
 			_maxNumberOnLoad = createParam.MaxNumberOnLoad;
 			_failedTryAgain = createParam.FailedTryAgain;
+
+			// 注册事件
+			EventManager.Instance.AddListener<PatchEventMessageDefine.OperationEvent>(OnHandleEventMessage);
+			EventManager.Instance.AddListener<PatchEventMessageDefine.GameVersionInfo>(OnHandleEventMessage);
 		}
 
 		/// <summary>
@@ -189,61 +179,6 @@ namespace MotionFramework.Patch
 		public void Update()
 		{
 			_procedure.Update();
-		}
-
-		/// <summary>
-		/// 接收事件
-		/// </summary>
-		public void HandleEventMessage(IEventMessage msg)
-		{
-			if (msg is PatchEventMessageDefine.OperationEvent)
-			{
-				var message = msg as PatchEventMessageDefine.OperationEvent;
-				if (message.operation == EPatchOperation.BeginGetDownloadList)
-				{
-					// 从挂起的地方继续
-					if (_procedure.Current == EPatchStates.RequestPatchManifest.ToString())
-						_procedure.SwitchNext();
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.BeginDownloadWebFiles)
-				{
-					// 从挂起的地方继续
-					if (_procedure.Current == EPatchStates.GetDownloadList.ToString())
-						_procedure.SwitchNext();
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.TryRequestGameVersion)
-				{
-					// 修复当前错误节点
-					if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
-						_procedure.Switch(_procedure.Current);
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.TryRequestPatchManifest)
-				{
-					// 修复当前错误节点
-					if (_procedure.Current == EPatchStates.RequestPatchManifest.ToString())
-						_procedure.Switch(_procedure.Current);
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.TryDownloadWebFiles)
-				{
-					// 修复当前错误节点
-					if (_procedure.Current == EPatchStates.DownloadWebFiles.ToString())
-						_procedure.Switch(EPatchStates.GetDownloadList.ToString());
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else
-				{
-					throw new NotImplementedException($"{message.operation}");
-				}
-			}
 		}
 
 		/// <summary>
@@ -497,22 +432,72 @@ namespace MotionFramework.Patch
 		{
 			return _webPostContent;
 		}
-		public bool ParseWebResponse(string content)
+
+		// 处理事件
+		private void OnHandleEventMessage(IEventMessage msg)
 		{
-			try
+			if (msg is PatchEventMessageDefine.OperationEvent)
 			{
-				WebResponse response = JsonUtility.FromJson<WebResponse>(content);
-				RequestedGameVersion = new Version(response.GameVersion);
-				RequestedResourceVersion = response.ResourceVersion;
-				FoundNewApp = response.FoundNewApp;
-				ForceInstall = response.ForceInstall;
-				AppURL = response.AppURL;
-				return true;
+				var message = msg as PatchEventMessageDefine.OperationEvent;
+				if (message.operation == EPatchOperation.BeginGetDownloadList)
+				{
+					// 从挂起的地方继续
+					if (_procedure.Current == EPatchStates.RequestPatchManifest.ToString())
+						_procedure.SwitchNext();
+					else
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+				}
+				else if (message.operation == EPatchOperation.BeginDownloadWebFiles)
+				{
+					// 从挂起的地方继续
+					if (_procedure.Current == EPatchStates.GetDownloadList.ToString())
+						_procedure.SwitchNext();
+					else
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+				}
+				else if (message.operation == EPatchOperation.TryRequestGameVersion)
+				{
+					// 修复当前错误节点
+					if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
+						_procedure.Switch(_procedure.Current);
+					else
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+				}
+				else if (message.operation == EPatchOperation.TryRequestPatchManifest)
+				{
+					// 修复当前错误节点
+					if (_procedure.Current == EPatchStates.RequestPatchManifest.ToString())
+						_procedure.Switch(_procedure.Current);
+					else
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+				}
+				else if (message.operation == EPatchOperation.TryDownloadWebFiles)
+				{
+					// 修复当前错误节点
+					if (_procedure.Current == EPatchStates.DownloadWebFiles.ToString())
+						_procedure.Switch(EPatchStates.GetDownloadList.ToString());
+					else
+						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+				}
+				else
+				{
+					throw new NotImplementedException($"{message.operation}");
+				}
 			}
-			catch (Exception)
+			else if (msg is PatchEventMessageDefine.GameVersionInfo)
 			{
-				MotionLog.Error($"Failed to parse web response : {content}");
-				return false;
+				var gameVersionInfo = msg as PatchEventMessageDefine.GameVersionInfo;
+				RequestedGameVersion = gameVersionInfo.GameVersion;
+				RequestedResourceVersion = gameVersionInfo.ResourceVersion;
+				FoundNewApp = gameVersionInfo.FoundNewApp;
+				ForceInstall = gameVersionInfo.ForceInstall;
+				AppURL = gameVersionInfo.AppURL;
+
+				// 从挂起的地方继续
+				if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
+					_procedure.SwitchNext();
+				else
+					MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
 			}
 		}
 	}
