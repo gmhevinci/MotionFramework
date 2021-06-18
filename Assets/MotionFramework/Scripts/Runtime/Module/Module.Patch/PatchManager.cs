@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using MotionFramework.Resource;
-using MotionFramework.Event;
 using MotionFramework.Console;
 using MotionFramework.Network;
 
@@ -20,6 +19,11 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public class CreateParameters
 		{
+			/// <summary>
+			/// 游戏版本解析器
+			/// </summary>
+			public IGameVersionParser GameVersionParser;
+
 			/// <summary>
 			/// 向WEB服务器投递的数据
 			/// </summary>
@@ -66,6 +70,8 @@ namespace MotionFramework.Patch
 				throw new Exception($"{nameof(PatchManager)} create param is invalid.");
 			if (createParam.ServerInfo == null)
 				throw new Exception("ServerInfo is null");
+			if (createParam.GameVersionParser == null)
+				throw new Exception($"{nameof(IGameVersionParser)} is null.");
 
 			// 创建补丁管理器实现类
 			_patcher = new PatchManagerImpl();
@@ -73,7 +79,7 @@ namespace MotionFramework.Patch
 		}
 		void IModule.OnUpdate()
 		{
-			_patcher.Update();		
+			_patcher.Update();
 			WebFileSystem.Update();
 		}
 		void IModule.OnGUI()
@@ -117,6 +123,14 @@ namespace MotionFramework.Patch
 		public void ClearCache()
 		{
 			_patcher.ClearCache();
+		}
+
+		/// <summary>
+		/// 处理请求操作
+		/// </summary>
+		public void HandleOperation(EPatchOperation operation)
+		{
+			_patcher.HandleOperation(operation);
 		}
 
 		/// <summary>
@@ -175,7 +189,7 @@ namespace MotionFramework.Patch
 			if (result)
 			{
 				_patcher.CacheDownloadPatchFile(bundleName);
-			}		
+			}
 			return result;
 		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)

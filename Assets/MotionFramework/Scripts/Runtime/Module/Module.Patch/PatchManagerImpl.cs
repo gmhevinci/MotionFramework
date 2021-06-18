@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using MotionFramework.AI;
-using MotionFramework.Event;
 using MotionFramework.Resource;
 using MotionFramework.Network;
 using MotionFramework.Utility;
@@ -23,6 +22,7 @@ namespace MotionFramework.Patch
 		private readonly ProcedureFsm _procedure = new ProcedureFsm();
 
 		// 参数相关
+		private IGameVersionParser _gameVersionParser;
 		private string _webPostContent;
 		private EVerifyLevel _verifyLevel;
 		private RemoteServerInfo _serverInfo;
@@ -40,11 +40,26 @@ namespace MotionFramework.Patch
 		public PatchDownloader InternalDownloader { private set; get; }
 
 		// 解析内容
-		public bool FoundNewApp { private set; get; }
-		public bool ForceInstall { private set; get; }
-		public string AppURL { private set; get; }
-		public Version RequestedGameVersion { private set; get; }
-		public int RequestedResourceVersion { private set; get; }
+		public Version RequestedGameVersion
+		{
+			get { return _gameVersionParser.GameVersion; }
+		}
+		public int RequestedResourceVersion
+		{
+			get { return _gameVersionParser.ResourceVersion; }
+		}
+		public bool FoundNewApp 
+		{
+			get { return _gameVersionParser.FoundNewApp; }
+		}
+		public bool ForceInstall
+		{
+			get { return _gameVersionParser.ForceInstall; }
+		}
+		public string AppURL
+		{
+			get { return _gameVersionParser.AppURL; }
+		}
 
 		/// <summary>
 		/// 当前运行的状态
@@ -73,6 +88,7 @@ namespace MotionFramework.Patch
 
 		public void Create(PatchManager.CreateParameters createParam)
 		{
+			_gameVersionParser = createParam.GameVersionParser;
 			_webPostContent = createParam.WebPoseContent;
 			_verifyLevel = createParam.VerifyLevel;
 			_serverInfo = createParam.ServerInfo;
@@ -80,10 +96,6 @@ namespace MotionFramework.Patch
 			_autoDownloadBuildinDLC = createParam.AutoDownloadBuildinDLC;
 			_maxNumberOnLoad = createParam.MaxNumberOnLoad;
 			_failedTryAgain = createParam.FailedTryAgain;
-
-			// 注册事件
-			EventManager.Instance.AddListener<PatchEventMessageDefine.OperationEvent>(OnHandleEventMessage);
-			EventManager.Instance.AddListener<PatchEventMessageDefine.GameVersionInfo>(OnHandleEventMessage);
 		}
 
 		/// <summary>
@@ -187,6 +199,57 @@ namespace MotionFramework.Patch
 		public void ClearCache()
 		{
 			_cache.ClearCache();
+		}
+
+		/// <summary>
+		/// 处理请求操作
+		/// </summary>
+		public void HandleOperation(EPatchOperation operation)
+		{
+			if (operation == EPatchOperation.BeginGetDownloadList)
+			{
+				// 从挂起的地方继续
+				if (_procedure.Current == EPatchStates.RequestPatchManifest.ToString())
+					_procedure.SwitchNext();
+				else
+					MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+			}
+			else if (operation == EPatchOperation.BeginDownloadWebFiles)
+			{
+				// 从挂起的地方继续
+				if (_procedure.Current == EPatchStates.GetDownloadList.ToString())
+					_procedure.SwitchNext();
+				else
+					MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+			}
+			else if (operation == EPatchOperation.TryRequestGameVersion)
+			{
+				// 修复当前错误节点
+				if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
+					_procedure.Switch(_procedure.Current);
+				else
+					MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+			}
+			else if (operation == EPatchOperation.TryRequestPatchManifest)
+			{
+				// 修复当前错误节点
+				if (_procedure.Current == EPatchStates.RequestPatchManifest.ToString())
+					_procedure.Switch(_procedure.Current);
+				else
+					MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+			}
+			else if (operation == EPatchOperation.TryDownloadWebFiles)
+			{
+				// 修复当前错误节点
+				if (_procedure.Current == EPatchStates.DownloadWebFiles.ToString())
+					_procedure.Switch(EPatchStates.GetDownloadList.ToString());
+				else
+					MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
+			}
+			else
+			{
+				throw new NotImplementedException($"{operation}");
+			}
 		}
 
 		/// <summary>
@@ -432,73 +495,9 @@ namespace MotionFramework.Patch
 		{
 			return _webPostContent;
 		}
-
-		// 处理事件
-		private void OnHandleEventMessage(IEventMessage msg)
+		public void ParseResponseContent(string content)
 		{
-			if (msg is PatchEventMessageDefine.OperationEvent)
-			{
-				var message = msg as PatchEventMessageDefine.OperationEvent;
-				if (message.operation == EPatchOperation.BeginGetDownloadList)
-				{
-					// 从挂起的地方继续
-					if (_procedure.Current == EPatchStates.RequestPatchManifest.ToString())
-						_procedure.SwitchNext();
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.BeginDownloadWebFiles)
-				{
-					// 从挂起的地方继续
-					if (_procedure.Current == EPatchStates.GetDownloadList.ToString())
-						_procedure.SwitchNext();
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.TryRequestGameVersion)
-				{
-					// 修复当前错误节点
-					if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
-						_procedure.Switch(_procedure.Current);
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.TryRequestPatchManifest)
-				{
-					// 修复当前错误节点
-					if (_procedure.Current == EPatchStates.RequestPatchManifest.ToString())
-						_procedure.Switch(_procedure.Current);
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else if (message.operation == EPatchOperation.TryDownloadWebFiles)
-				{
-					// 修复当前错误节点
-					if (_procedure.Current == EPatchStates.DownloadWebFiles.ToString())
-						_procedure.Switch(EPatchStates.GetDownloadList.ToString());
-					else
-						MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-				}
-				else
-				{
-					throw new NotImplementedException($"{message.operation}");
-				}
-			}
-			else if (msg is PatchEventMessageDefine.GameVersionInfo)
-			{
-				var gameVersionInfo = msg as PatchEventMessageDefine.GameVersionInfo;
-				RequestedGameVersion = gameVersionInfo.GameVersion;
-				RequestedResourceVersion = gameVersionInfo.ResourceVersion;
-				FoundNewApp = gameVersionInfo.FoundNewApp;
-				ForceInstall = gameVersionInfo.ForceInstall;
-				AppURL = gameVersionInfo.AppURL;
-
-				// 从挂起的地方继续
-				if (_procedure.Current == EPatchStates.RequestGameVersion.ToString())
-					_procedure.SwitchNext();
-				else
-					MotionLog.Error($"Patch states is incorrect : {_procedure.Current}");
-			}
+			_gameVersionParser.ParseContent(content);
 		}
 	}
 }

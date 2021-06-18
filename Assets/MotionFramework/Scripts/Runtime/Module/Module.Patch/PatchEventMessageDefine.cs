@@ -10,17 +10,6 @@ namespace MotionFramework.Patch
 	public class PatchEventMessageDefine
 	{
 		/// <summary>
-		/// 操作事件
-		/// </summary>
-		public class OperationEvent : IEventMessage
-		{
-			/// <summary>
-			/// 操作方式
-			/// </summary>
-			public EPatchOperation operation;
-		}
-
-		/// <summary>
 		/// 补丁流程步骤改变
 		/// </summary>
 		public class PatchStatesChange : IEventMessage
@@ -56,45 +45,6 @@ namespace MotionFramework.Patch
 			public int CurrentDownloadCount;
 			public long TotalDownloadSizeBytes;
 			public long CurrentDownloadSizeBytes;
-		}
-
-		/// <summary>
-		/// WEB服务器反馈的游戏版本内容
-		/// </summary>
-		public class GameVersionContent : IEventMessage
-		{
-			public string Content;
-		}
-
-		/// <summary>
-		/// 解析后的游戏版本相关信息
-		/// </summary>
-		public class GameVersionInfo : IEventMessage
-		{
-			/// <summary>
-			/// 当前游戏版本号
-			/// </summary>
-			public System.Version GameVersion;
-
-			/// <summary>
-			/// 当前资源版本
-			/// </summary>
-			public int ResourceVersion;
-
-			/// <summary>
-			/// 是否发现了新的安装包
-			/// </summary>
-			public bool FoundNewApp;
-
-			/// <summary>
-			/// 是否需要强制用户安装
-			/// </summary>
-			public bool ForceInstall;
-
-			/// <summary>
-			/// App安装的地址
-			/// </summary>
-			public string AppURL;
 		}
 
 		/// <summary>
