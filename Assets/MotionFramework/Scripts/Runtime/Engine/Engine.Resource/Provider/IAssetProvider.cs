@@ -44,7 +44,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 引用计数
 		/// </summary>
-		 int RefCount { get; }
+		int RefCount { get; }
 
 		/// <summary>
 		/// 资源操作句柄
