@@ -20,9 +20,14 @@ namespace MotionFramework.Patch
 		public class CreateParameters
 		{
 			/// <summary>
-			/// 游戏版本解析器
+			/// 忽略资源版本号，每次启动都更新补丁清单
 			/// </summary>
-			public IGameVersionParser GameVersionParser;
+			public bool IgnoreResourceVersion = false;
+
+			/// <summary>
+			/// 远程服务器信息
+			/// </summary>
+			public RemoteServerInfo ServerInfo;
 
 			/// <summary>
 			/// 向WEB服务器投递的数据
@@ -30,14 +35,14 @@ namespace MotionFramework.Patch
 			public string WebPoseContent;
 
 			/// <summary>
+			/// 游戏版本解析器
+			/// </summary>
+			public IGameVersionParser GameVersionParser;
+
+			/// <summary>
 			/// 补丁文件校验等级
 			/// </summary>
 			public EVerifyLevel VerifyLevel = EVerifyLevel.Size;
-
-			/// <summary>
-			/// 远程服务器信息
-			/// </summary>
-			public RemoteServerInfo ServerInfo;
 
 			/// <summary>
 			/// 首次启动游戏或更新游戏时自动下载的DLC列表

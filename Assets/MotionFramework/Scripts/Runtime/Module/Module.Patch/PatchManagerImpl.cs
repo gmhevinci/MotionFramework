@@ -22,10 +22,11 @@ namespace MotionFramework.Patch
 		private readonly ProcedureFsm _procedure = new ProcedureFsm();
 
 		// 参数相关
-		private IGameVersionParser _gameVersionParser;
-		private string _webPostContent;
-		private EVerifyLevel _verifyLevel;
+		public bool IgnoreResourceVersion { private set; get; }
 		private RemoteServerInfo _serverInfo;
+		private string _webPostContent;
+		private IGameVersionParser _gameVersionParser;
+		private EVerifyLevel _verifyLevel;
 		private string[] _autoDownloadDLC;
 		private bool _autoDownloadBuildinDLC;
 		private int _maxNumberOnLoad;
@@ -88,10 +89,11 @@ namespace MotionFramework.Patch
 
 		public void Create(PatchManager.CreateParameters createParam)
 		{
-			_gameVersionParser = createParam.GameVersionParser;
-			_webPostContent = createParam.WebPoseContent;
-			_verifyLevel = createParam.VerifyLevel;
+			IgnoreResourceVersion = createParam.IgnoreResourceVersion;
 			_serverInfo = createParam.ServerInfo;
+			_webPostContent = createParam.WebPoseContent;
+			_gameVersionParser = createParam.GameVersionParser;
+			_verifyLevel = createParam.VerifyLevel;
 			_autoDownloadDLC = createParam.AutoDownloadDLC;
 			_autoDownloadBuildinDLC = createParam.AutoDownloadBuildinDLC;
 			_maxNumberOnLoad = createParam.MaxNumberOnLoad;
