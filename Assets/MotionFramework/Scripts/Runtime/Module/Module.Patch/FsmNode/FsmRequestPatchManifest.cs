@@ -57,7 +57,7 @@ namespace MotionFramework.Patch
 			{
 				// 从远端请求补丁清单
 				_requestCount++;
-				string url = GetRequestURL(newResourceVersion, PatchDefine.PatchManifestFileName);
+				string url = GetRequestURL(ignoreResourceVersion, newResourceVersion, PatchDefine.PatchManifestFileName);
 				WebGetRequest download = new WebGetRequest(url);
 				download.SendRequest();
 				yield return download;
@@ -92,13 +92,21 @@ namespace MotionFramework.Patch
 				}
 			}
 		}
-		private string GetRequestURL(int resourceVersion, string fileName)
+		private string GetRequestURL(bool ignoreResrouceVersion, int resourceVersion, string fileName)
 		{
+			string url;
+
 			// 轮流返回请求地址
 			if (_requestCount % 2 == 0)
-				return _patcher.GetPatchDownloadFallbackURL(resourceVersion, fileName);
+				url = _patcher.GetPatchDownloadFallbackURL(resourceVersion, fileName);
 			else
-				return _patcher.GetPatchDownloadURL(resourceVersion, fileName);
+				url = _patcher.GetPatchDownloadURL(resourceVersion, fileName);
+
+			// 注意：在URL末尾添加时间戳
+			if (ignoreResrouceVersion)
+				url = $"{url}?{System.DateTime.UtcNow.Ticks}";
+
+			return url;
 		}
 	}
 }
