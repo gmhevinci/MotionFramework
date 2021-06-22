@@ -205,19 +205,19 @@ namespace MotionFramework.Editor
 
 		private static void ClearCurrentShaderVariantCollection()
 		{
-			AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "ClearCurrentShaderVariantCollection");
+			EditorTools.InvokeNonPublicStaticMethod(typeof(ShaderUtil), "ClearCurrentShaderVariantCollection");
 		}
 		private static void SaveCurrentShaderVariantCollection()
 		{
-			AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "SaveCurrentShaderVariantCollection", _saveFilePath);
+			EditorTools.InvokeNonPublicStaticMethod(typeof(ShaderUtil), "SaveCurrentShaderVariantCollection", _saveFilePath);
 		}
 		public static int GetCurrentShaderVariantCollectionShaderCount()
 		{
-			return (int)AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "GetCurrentShaderVariantCollectionShaderCount");
+			return (int)EditorTools.InvokeNonPublicStaticMethod(typeof(ShaderUtil), "GetCurrentShaderVariantCollectionShaderCount");
 		}
 		public static int GetCurrentShaderVariantCollectionVariantCount()
 		{
-			return (int)AssemblyUtility.InvokeInternalStaticMethod(typeof(ShaderUtil), "GetCurrentShaderVariantCollectionVariantCount");
+			return (int)EditorTools.InvokeNonPublicStaticMethod(typeof(ShaderUtil), "GetCurrentShaderVariantCollectionVariantCount");
 		}
 	}
 }
