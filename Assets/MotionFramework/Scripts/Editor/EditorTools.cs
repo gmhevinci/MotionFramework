@@ -21,7 +21,7 @@ namespace MotionFramework.Editor
 	/// </summary>
 	public static class EditorTools
 	{
-		#region NGUI代码
+		#region NGUI
 		/// <summary>
 		/// Draw a distinctly different looking header label
 		/// </summary>
@@ -67,7 +67,43 @@ namespace MotionFramework.Editor
 		}
 		#endregion
 
-		#region EditorUtility封装
+		#region Assembly
+		/// <summary>
+		/// 调用私有的静态方法
+		/// </summary>
+		/// <param name="type">类的类型</param>
+		/// <param name="method">类里要调用的方法名</param>
+		/// <param name="parameters">调用方法传入的参数</param>
+		public static object InvokeNonPublicStaticMethod(System.Type type, string method, params object[] parameters)
+		{
+			var methodInfo = type.GetMethod(method, BindingFlags.NonPublic | BindingFlags.Static);
+			if (methodInfo == null)
+			{
+				UnityEngine.Debug.LogError($"{type.FullName} not found method : {method}");
+				return null;
+			}
+			return methodInfo.Invoke(null, parameters);
+		}
+
+		/// <summary>
+		/// 调用公开的静态方法
+		/// </summary>
+		/// <param name="type">类的类型</param>
+		/// <param name="method">类里要调用的方法名</param>
+		/// <param name="parameters">调用方法传入的参数</param>
+		public static object InvokePublicStaticMethod(System.Type type, string method, params object[] parameters)
+		{
+			var methodInfo = type.GetMethod(method, BindingFlags.Public | BindingFlags.Static);
+			if (methodInfo == null)
+			{
+				UnityEngine.Debug.LogError($"{type.FullName} not found method : {method}");
+				return null;
+			}
+			return methodInfo.Invoke(null, parameters);
+		}
+		#endregion
+
+		#region EditorUtility
 		/// <summary>
 		/// 搜集资源
 		/// </summary>
