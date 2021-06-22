@@ -16,14 +16,14 @@ namespace MotionFramework.Editor
 	public static class AssetImporterSettingData
 	{
 		/// <summary>
-		/// 导入器类型集合
+		/// 类型集合
 		/// </summary>
 		private static readonly Dictionary<string, System.Type> _cacheTypes = new Dictionary<string, System.Type>();
 
 		/// <summary>
 		/// 导入器实例集合
 		/// </summary>
-		private static readonly Dictionary<string, IAssetProcessor> _cacheProcessor = new Dictionary<string, IAssetProcessor>();
+		private static readonly Dictionary<string, IAssetProcessor> _cacheInstances = new Dictionary<string, IAssetProcessor>();
 
 		private static AssetImporterSetting _setting = null;
 		public static AssetImporterSetting Setting
@@ -59,11 +59,15 @@ namespace MotionFramework.Editor
 
 			// 清空缓存集合
 			_cacheTypes.Clear();
-			_cacheProcessor.Clear();
+			_cacheInstances.Clear();
 
-			// 获取所有资源处理器类型
-			List<Type> types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetProcessor));
-			types.Add(typeof(DefaultProcessor));
+			// 获取所有类型
+			List<Type> types = new List<Type>(100)
+			{
+				typeof(DefaultProcessor)
+			};
+			var customTypes = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetProcessor));
+			types.AddRange(customTypes);
 			for (int i = 0; i < types.Count; i++)
 			{
 				Type type = types[i];
@@ -175,14 +179,14 @@ namespace MotionFramework.Editor
 		}
 		private static IAssetProcessor GetProcessorInstance(string className)
 		{
-			if (_cacheProcessor.TryGetValue(className, out IAssetProcessor instance))
+			if (_cacheInstances.TryGetValue(className, out IAssetProcessor instance))
 				return instance;
 
 			// 如果不存在创建类的实例
 			if (_cacheTypes.TryGetValue(className, out Type type))
 			{
 				instance = (IAssetProcessor)Activator.CreateInstance(type);
-				_cacheProcessor.Add(className, instance);
+				_cacheInstances.Add(className, instance);
 				return instance;
 			}
 			else

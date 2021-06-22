@@ -31,32 +31,32 @@ namespace MotionFramework.Editor
 		private string _lastOpenFolderPath = "Assets/";
 
 		/// <summary>
-		/// 资源处理器类列表
+		/// 类列表
 		/// </summary>
-		private string[] _processorClassArray = null;
+		private string[] _classArray = null;
 
 		// 初始化相关
 		private bool _isInit = false;
 		private void Init()
 		{
 			List<string> names = AssetImporterSettingData.GetProcessorNames();
-			_processorClassArray = names.ToArray();
+			_classArray = names.ToArray();
 		}
 		private int NameToIndex(string name)
 		{
-			for (int i = 0; i < _processorClassArray.Length; i++)
+			for (int i = 0; i < _classArray.Length; i++)
 			{
-				if (_processorClassArray[i] == name)
+				if (_classArray[i] == name)
 					return i;
 			}
 			return 0;
 		}
 		private string IndexToName(int index)
 		{
-			for (int i = 0; i < _processorClassArray.Length; i++)
+			for (int i = 0; i < _classArray.Length; i++)
 			{
 				if (i == index)
-					return _processorClassArray[i];
+					return _classArray[i];
 			}
 			return string.Empty;
 		}
@@ -82,7 +82,7 @@ namespace MotionFramework.Editor
 					EditorGUILayout.LabelField(directory);
 
 					int index = NameToIndex(processorName);
-					int newIndex = EditorGUILayout.Popup(index, _processorClassArray, GUILayout.MaxWidth(150));
+					int newIndex = EditorGUILayout.Popup(index, _classArray, GUILayout.MaxWidth(150));
 					if (newIndex != index)
 					{
 						string newProcessName = IndexToName(newIndex);
