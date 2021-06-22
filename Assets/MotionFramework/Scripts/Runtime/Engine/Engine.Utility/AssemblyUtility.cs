@@ -141,22 +141,5 @@ namespace MotionFramework.Utility
 			}
 			return result;
 		}
-
-		/// <summary>
-		/// 调用内部静态方法
-		/// </summary>
-		/// <param name="type">类的类型</param>
-		/// <param name="method">类里要调用的方法名</param>
-		/// <param name="parameters">调用方法传入的参数</param>
-		public static object InvokeInternalStaticMethod(System.Type type, string method, params object[] parameters)
-		{
-			var methodInfo = type.GetMethod(method, BindingFlags.NonPublic | BindingFlags.Static);
-			if (methodInfo == null)
-			{
-				UnityEngine.Debug.LogError($"{type.FullName} not found method : {method}");
-				return null;
-			}
-			return methodInfo.Invoke(null, parameters);
-		}
 	}
 }
