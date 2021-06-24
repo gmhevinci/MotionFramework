@@ -10,7 +10,7 @@ namespace UnityEngine
 {
 	public static partial class UnityEngine_Transform_Extension
 	{
-		private static readonly List<Transform> _childStack = new List<Transform>(1000);
+		private static readonly Queue<Transform> _childStack = new Queue<Transform>(1000);
 
 		/// <summary>
 		/// 获取第一个子物体
@@ -62,13 +62,11 @@ namespace UnityEngine
 			if (root == null) return null;
 
 			_childStack.Clear();
-			_childStack.Add(root);
+			_childStack.Enqueue(root);
 
 			while (_childStack.Count != 0)
 			{
-				root = _childStack[0];
-				_childStack.RemoveAt(0);
-
+				root = _childStack.Dequeue();
 				for (int i = 0; i < root.childCount; i++)
 				{
 					Transform child = root.GetChild(i);
@@ -79,7 +77,7 @@ namespace UnityEngine
 					else
 					{
 						if (child.childCount != 0)
-							_childStack.Add(child);
+							_childStack.Enqueue(child);
 					}
 				}
 			}
