@@ -497,9 +497,9 @@ namespace MotionFramework.Patch
 		{
 			return _webPostContent;
 		}
-		public void ParseResponseContent(string content)
+		public bool ParseResponseContent(string content)
 		{
-			_gameVersionParser.ParseContent(content);
+			return _gameVersionParser.ParseContent(content);
 		}
 	}
 }

@@ -44,6 +44,8 @@ namespace MotionFramework.Patch
 			// 新安装的用户首次启动游戏（包括覆盖安装的用户）
 			// 注意：请求的补丁清单会在下载流程结束的时候，自动保存在沙盒里。
 			bool firstStartGame = PatchHelper.CheckSandboxPatchManifestFileExist() == false;
+			if (firstStartGame)
+				MotionLog.Log("First start game.");
 
 			// 检测资源版本是否变化
 			int newResourceVersion = _patcher.RequestedResourceVersion;
@@ -57,7 +59,8 @@ namespace MotionFramework.Patch
 			{
 				// 从远端请求补丁清单
 				_requestCount++;
-				string url = GetRequestURL(ignoreResourceVersion, newResourceVersion, PatchDefine.PatchManifestFileName);
+				int resourceVersion = ignoreResourceVersion ? oldResourceVersion : newResourceVersion;
+				string url = GetRequestURL(ignoreResourceVersion, resourceVersion, PatchDefine.PatchManifestFileName);
 				WebGetRequest download = new WebGetRequest(url);
 				download.SendRequest();
 				yield return download;
@@ -84,9 +87,7 @@ namespace MotionFramework.Patch
 				}
 				else
 				{
-					if (firstStartGame)
-						MotionLog.Log("First start game.");
-					if (newResourceVersion != oldResourceVersion)
+					if (ignoreResourceVersion == false && newResourceVersion != oldResourceVersion)
 						MotionLog.Log($"Resource version is change : {oldResourceVersion} -> {newResourceVersion}");
 					_patcher.SwitchNext();
 				}

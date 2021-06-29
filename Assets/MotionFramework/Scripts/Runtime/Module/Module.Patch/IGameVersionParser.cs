@@ -40,6 +40,6 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 解析WEB服务器反馈的内容
 		/// </summary>
-		void ParseContent(string content);
+		bool ParseContent(string content);
 	}
 }

@@ -44,6 +44,11 @@ namespace MotionFramework.Patch
 			PatchEventMessageDefine.GameVersionRequestFailed msg = new PatchEventMessageDefine.GameVersionRequestFailed();
 			EventManager.Instance.SendMessage(msg);
 		}
+		public static void SendGameVersionParseFailedMsg()
+		{
+			PatchEventMessageDefine.GameVersionParseFailed msg = new PatchEventMessageDefine.GameVersionParseFailed();
+			EventManager.Instance.SendMessage(msg);
+		}
 		public static void SendPatchManifestRequestFailedMsg()
 		{
 			PatchEventMessageDefine.PatchManifestRequestFailed msg = new PatchEventMessageDefine.PatchManifestRequestFailed();

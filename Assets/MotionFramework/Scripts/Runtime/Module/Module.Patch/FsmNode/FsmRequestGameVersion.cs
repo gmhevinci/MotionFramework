@@ -58,8 +58,12 @@ namespace MotionFramework.Patch
 			string responseContent = download.GetResponse();
 			MotionLog.Log($"Succeed get response from web : {responseContent}");
 			download.Dispose();
-			_patcher.ParseResponseContent(responseContent);
-			_patcher.SwitchNext();
+
+			// 如果解析成功
+			if(_patcher.ParseResponseContent(responseContent))
+				_patcher.SwitchNext();
+			else
+				PatchEventDispatcher.SendGameVersionParseFailedMsg();
 		}
 	}
 }
