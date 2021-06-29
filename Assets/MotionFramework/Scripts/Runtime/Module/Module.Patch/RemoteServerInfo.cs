@@ -12,6 +12,11 @@ namespace MotionFramework.Patch
 {
 	public class RemoteServerInfo
 	{
+		public interface IWebServerParam
+		{
+			string GetWebServerParam();
+		}
+
 		private class ServerWrapper
 		{
 			public string Server;
@@ -43,14 +48,20 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public string DefaultCDNServer { private set; get; }
 
+		/// <summary>
+		/// WEB服务器附加参数
+		/// </summary>
+		private readonly IWebServerParam WebServerParam;
 
-		public RemoteServerInfo(string defaultWebServer, string defaultCDNServer)
+
+		public RemoteServerInfo(IWebServerParam webServerParam, string defaultWebServer, string defaultCDNServer)
 		{
 			if (defaultWebServer.ToLower().StartsWith("http") == false)
 				defaultWebServer = $"http://{defaultWebServer}";
 			if (defaultCDNServer.ToLower().StartsWith("http") == false)
 				defaultCDNServer = $"http://{defaultCDNServer}";
 
+			WebServerParam = webServerParam;
 			DefaultWebServer = defaultWebServer;
 			DefaultCDNServer = defaultCDNServer;
 		}
@@ -86,9 +97,16 @@ namespace MotionFramework.Patch
 		{
 			if (_webServers.TryGetValue((int)platform, out string value))
 			{
-				return value;
+				if (WebServerParam != null)
+					return value + WebServerParam.GetWebServerParam();
+				else
+					return value;
 			}
-			return DefaultWebServer;
+
+			if (WebServerParam != null)
+				return DefaultWebServer + WebServerParam.GetWebServerParam();
+			else
+				return DefaultWebServer;
 		}
 
 		/// <summary>
