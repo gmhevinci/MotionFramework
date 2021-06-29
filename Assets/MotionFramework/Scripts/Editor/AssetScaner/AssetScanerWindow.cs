@@ -144,7 +144,7 @@ namespace MotionFramework.Editor
 					foreach (var report in valuePair.Value)
 					{
 						EditorGUILayout.BeginHorizontal();
-						EditorGUILayout.LabelField($"名称: {report.AssetObject.name} 报告: {report.ReportInfo}");
+						EditorGUILayout.LabelField($"资源: {report.AssetPath} 报告: {report.ReportInfo}");
 						if(report.AssetObject.GetType() == typeof(UnityEngine.Texture) || report.AssetObject.GetType() == typeof(UnityEngine.Texture2D))
 							EditorGUILayout.ObjectField("", report.AssetObject, typeof(UnityEngine.Texture), false, GUILayout.Width(80));
 						else
