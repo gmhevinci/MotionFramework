@@ -74,6 +74,18 @@ namespace MotionFramework.Network
 			}
 		}
 
+		/// <summary>
+		/// 获取错误信息
+		/// </summary>
+		public virtual string GetError()
+		{
+			if (_webRequest != null)
+			{
+				return _webRequest.error;
+			}
+			return string.Empty;
+		}
+
 		#region 异步相关
 		bool IEnumerator.MoveNext()
 		{
