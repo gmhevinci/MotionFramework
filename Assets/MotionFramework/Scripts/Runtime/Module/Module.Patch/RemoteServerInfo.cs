@@ -39,19 +39,19 @@ namespace MotionFramework.Patch
 		private readonly Dictionary<int, ServerWrapper> _cdnServers = new Dictionary<int, ServerWrapper>();
 
 		/// <summary>
+		/// WEB服务器附加参数
+		/// </summary>
+		private readonly IWebServerParam _webServerParam;
+
+		/// <summary>
 		/// 默认的Web服务器地址
 		/// </summary>
-		public string DefaultWebServer { private set; get; }
+		private string _defaultWebServer;
 
 		/// <summary>
 		/// 默认的CDN服务器地址
 		/// </summary>
-		public string DefaultCDNServer { private set; get; }
-
-		/// <summary>
-		/// WEB服务器附加参数
-		/// </summary>
-		private readonly IWebServerParam WebServerParam;
+		private string _defaultCDNServer;
 
 
 		public RemoteServerInfo(IWebServerParam webServerParam, string defaultWebServer, string defaultCDNServer)
@@ -61,9 +61,9 @@ namespace MotionFramework.Patch
 			if (defaultCDNServer.ToLower().StartsWith("http") == false)
 				defaultCDNServer = $"http://{defaultCDNServer}";
 
-			WebServerParam = webServerParam;
-			DefaultWebServer = defaultWebServer;
-			DefaultCDNServer = defaultCDNServer;
+			_webServerParam = webServerParam;
+			_defaultWebServer = defaultWebServer;
+			_defaultCDNServer = defaultCDNServer;
 		}
 
 		/// <summary>
@@ -97,16 +97,28 @@ namespace MotionFramework.Patch
 		{
 			if (_webServers.TryGetValue((int)platform, out string value))
 			{
-				if (WebServerParam != null)
-					return value + WebServerParam.GetWebServerParam();
+				if (_webServerParam != null)
+				{
+					if (value.EndsWith("?") == false)
+						value += "?";
+					return value + _webServerParam.GetWebServerParam();
+				}
 				else
+				{
 					return value;
+				}
 			}
 
-			if (WebServerParam != null)
-				return DefaultWebServer + WebServerParam.GetWebServerParam();
+			if (_webServerParam != null)
+			{
+				if(_defaultWebServer.EndsWith("?") == false)
+					_defaultWebServer += "?";
+				return _defaultWebServer + _webServerParam.GetWebServerParam();
+			}
 			else
-				return DefaultWebServer;
+			{
+				return _defaultWebServer;
+			}
 		}
 
 		/// <summary>
@@ -119,7 +131,7 @@ namespace MotionFramework.Patch
 			{
 				return value.Server;
 			}
-			return DefaultCDNServer;
+			return _defaultCDNServer;
 		}
 
 		/// <summary>
@@ -132,7 +144,7 @@ namespace MotionFramework.Patch
 			{
 				return value.FallbackServer;
 			}
-			return DefaultCDNServer;
+			return _defaultCDNServer;
 		}
 	}
 }
