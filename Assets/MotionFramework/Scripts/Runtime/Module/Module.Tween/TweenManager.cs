@@ -4,7 +4,6 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using MotionFramework.Console;
 
 namespace MotionFramework.Tween
@@ -83,10 +82,66 @@ namespace MotionFramework.Tween
 		/// 播放一个补间动画
 		/// </summary>
 		/// <param name="tweenRoot">补间根节点</param>
+		/// <param name="go">游戏对象</param>
+		/// <returns>补间动画唯一ID</returns>
+		public long Play(ITweenNode tweenRoot, UnityEngine.GameObject go = null)
+		{
+			int groupID = 0;
+			if (go != null)
+				groupID = go.GetInstanceID();
+			return CreateTween(tweenRoot, go, groupID);
+		}
+
+		/// <summary>
+		/// 播放一个补间动画
+		/// </summary>
+		/// <param name="tweenChain">补间根节点</param>
+		/// <param name="go">游戏对象</param>
+		/// <returns>补间动画唯一ID</returns>
+		public long Play(ITweenChain tweenChain, UnityEngine.GameObject go = null)
+		{
+			ITweenNode tweenRoot = tweenChain as ITweenNode;
+			if (tweenRoot == null)
+				throw new System.InvalidCastException();
+
+			int groupID = 0;
+			if (go != null)
+				groupID = go.GetInstanceID();
+			return CreateTween(tweenRoot, go, groupID);
+		}
+
+		/// <summary>
+		/// 中途关闭一个补间动画
+		/// </summary>
+		/// <param name="tweenUID">补间动画唯一ID</param>
+		public void Kill(long tweenUID)
+		{
+			TweenWrapper wrapper = GetTweenWrapper(tweenUID);
+			if (wrapper != null)
+				wrapper.TweenRoot.Kill();
+		}
+
+		/// <summary>
+		/// 中途关闭一组补间动画
+		/// </summary>
+		/// <param name="go">游戏对象</param>
+		public void Kill(UnityEngine.GameObject go)
+		{
+			int groupID = go.GetInstanceID();
+			TweenWrapper wrapper = GetTweenWrapper(groupID);
+			if (wrapper != null)
+				wrapper.TweenRoot.Kill();
+		}
+
+
+		/// <summary>
+		/// 创建补间动画
+		/// </summary>
+		/// <param name="tweenRoot">补间根节点</param>
 		/// <param name="safeObject">安全游戏对象：如果安全游戏对象被销毁，补间动画会自动终止</param>
 		/// <param name="groupID">补间组ID</param>
 		/// <returns>补间动画唯一ID</returns>
-		public long Play(ITweenNode tweenRoot, UnityEngine.Object safeObject = null, int groupID = 0)
+		private long CreateTween(ITweenNode tweenRoot, UnityEngine.Object safeObject, int groupID = 0)
 		{
 			if (tweenRoot == null)
 			{
@@ -106,47 +161,6 @@ namespace MotionFramework.Tween
 			return wrapper.TweenUID;
 		}
 
-		/// <summary>
-		/// 播放一个补间动画
-		/// </summary>
-		/// <param name="tweenChain">补间根节点</param>
-		/// <param name="safeObject">安全游戏对象：如果安全游戏对象被销毁，补间动画会自动终止</param>
-		/// <param name="groupID">补间组ID</param>
-		/// <returns>补间动画唯一ID</returns>
-		public long Play(ITweenChain tweenChain, UnityEngine.Object safeObject = null, int groupID = 0)
-		{
-			ITweenNode tweenRoot = tweenChain as ITweenNode;
-			if (tweenRoot == null)
-				throw new System.InvalidCastException();
-
-			return Play(tweenRoot, safeObject, groupID);
-		}
-
-		/// <summary>
-		/// 中途关闭一个补间动画
-		/// </summary>
-		/// <param name="tweenUID">补间动画唯一ID</param>
-		public void Kill(long tweenUID)
-		{
-			TweenWrapper wrapper = GetTweenWrapper(tweenUID);
-			if (wrapper != null)
-				wrapper.TweenRoot.Kill();
-		}
-
-		/// <summary>
-		/// 中途关闭一组补间动画
-		/// </summary>
-		/// <param name="groupID">补间组ID</param>
-		public void Kill(int groupID)
-		{
-			for (int i = 0; i < _wrappers.Count; i++)
-			{
-				var wrapper = _wrappers[i];
-				if (wrapper.GroupID != 0 && wrapper.GroupID == groupID)
-					wrapper.TweenRoot.Kill();
-			}
-		}
-
 		private bool Contains(ITweenNode tweenRoot)
 		{
 			for (int i = 0; i < _wrappers.Count; i++)
@@ -163,6 +177,16 @@ namespace MotionFramework.Tween
 			{
 				var wrapper = _wrappers[i];
 				if (wrapper.TweenUID == tweenUID)
+					return wrapper;
+			}
+			return null;
+		}
+		private TweenWrapper GetTweenWrapper(int groupID)
+		{
+			for (int i = 0; i < _wrappers.Count; i++)
+			{
+				var wrapper = _wrappers[i];
+				if (wrapper.GroupID != 0 && wrapper.GroupID == groupID)
 					return wrapper;
 			}
 			return null;
