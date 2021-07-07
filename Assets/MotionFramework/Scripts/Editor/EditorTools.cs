@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Animations;
 using MotionFramework.IO;
 
 namespace MotionFramework.Editor
@@ -428,6 +429,72 @@ namespace MotionFramework.Editor
 			while (sp.Next(false));
 			so.ApplyModifiedProperties();
 			return removeUnused;
+		}
+		#endregion
+
+		#region 动画控制器
+		/// <summary>
+		/// 查找动画控制器里冗余的动画状态机
+		/// </summary>
+		public static bool FindRedundantAnimationState(AnimatorController animatorController)
+		{
+			if (animatorController == null)
+				return false;
+
+			string assetPath = AssetDatabase.GetAssetPath(animatorController);
+
+			// 查找使用的状态机名称
+			List<string> usedStateNames = new List<string>();
+			foreach (var layer in animatorController.layers)
+			{
+				foreach (var state in layer.stateMachine.states)
+				{
+					usedStateNames.Add(state.state.name);
+				}
+			}
+
+			List<string> allLines = new List<string>();
+			List<int> stateIndexList = new List<int>();
+			using (StreamReader reader = File.OpenText(assetPath))
+			{
+				string content;
+				while (null != (content = reader.ReadLine()))
+				{
+					allLines.Add(content);
+					if (content.StartsWith("AnimatorState:"))
+					{
+						stateIndexList.Add(allLines.Count - 1);
+					}
+				}
+			}
+
+			List<string> allStateNames = new List<string>();
+			foreach (var index in stateIndexList)
+			{
+				for (int i = index; i < allLines.Count; i++)
+				{
+					string content = allLines[i];
+					content = content.Trim();
+					if (content.StartsWith("m_Name"))
+					{
+						string[] splits = content.Split(':');
+						string name = splits[1].TrimStart(' '); //移除前面的空格
+						allStateNames.Add(name);
+						break;
+					}
+				}
+			}
+
+			bool foundRedundantState = false;
+			foreach (var stateName in allStateNames)
+			{
+				if (usedStateNames.Contains(stateName) == false)
+				{
+					Debug.LogWarning($"发现冗余的动画文件:{assetPath}={stateName}");
+					foundRedundantState = true;
+				}
+			}
+			return foundRedundantState;
 		}
 		#endregion
 
