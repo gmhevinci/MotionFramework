@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Animations;
 
 namespace MotionFramework.Editor
 {
@@ -45,7 +46,39 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 清理无用的材质球属性
+		/// 检测所有动画控制器的冗余状态
+		/// </summary>
+		public static void FindRedundantAnimationState()
+		{
+			// 获取所有的打包路径
+			List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
+			if (collectDirectorys.Count == 0)
+				throw new Exception("打包路径列表不能为空");
+
+			// 获取所有资源列表
+			int checkCount = 0;
+			int findCount = 0;
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.RuntimeAnimatorController, collectDirectorys.ToArray());
+			foreach (string assetPath in findAssets)
+			{
+				AnimatorController animator= AssetDatabase.LoadAssetAtPath<AnimatorController>(assetPath);
+				if (EditorTools.FindRedundantAnimationState(animator))
+				{
+					findCount++;
+					Debug.LogWarning($"发现冗余的动画控制器：{assetPath}");
+				}
+				EditorTools.DisplayProgressBar("检测冗余的动画控制器", ++checkCount, findAssets.Length);
+			}
+			EditorTools.ClearProgressBar();
+
+			if (findCount == 0)
+				Debug.Log($"没有发现冗余的动画控制器");
+			else
+				AssetDatabase.SaveAssets();
+		}
+
+		/// <summary>
+		/// 清理所有材质球的冗余属性
 		/// </summary>
 		public static void ClearMaterialUnusedProperty()
 		{
@@ -61,18 +94,17 @@ namespace MotionFramework.Editor
 			foreach (string assetPath in findAssets)
 			{
 				Material mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-				bool removed = EditorTools.ClearMaterialUnusedProperty(mat);
-				if (removed)
+				if (EditorTools.ClearMaterialUnusedProperty(mat))
 				{
 					removedCount++;
 					Debug.LogWarning($"材质球已被处理：{assetPath}");
 				}
-				EditorTools.DisplayProgressBar("清理无用的材质球属性", ++checkCount, findAssets.Length);
+				EditorTools.DisplayProgressBar("清理冗余的材质球", ++checkCount, findAssets.Length);
 			}
 			EditorTools.ClearProgressBar();
 
 			if (removedCount == 0)
-				Debug.Log($"没有发现冗余的材质球属性");
+				Debug.Log($"没有发现冗余的材质球");
 			else
 				AssetDatabase.SaveAssets();
 		}

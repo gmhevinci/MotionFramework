@@ -120,19 +120,22 @@ namespace MotionFramework.Editor
 			GUILayout.Space(50);
 			using (new EditorGUI.DisabledScope(false))
 			{
-				_showToolsFoldout = EditorGUILayout.Foldout(_showToolsFoldout, "Tools");
+				_showToolsFoldout = EditorGUILayout.Foldout(_showToolsFoldout, "工具");
 				if (_showToolsFoldout)
 				{
 					EditorGUILayout.Space();
 
-					// 检测所有损坏的预制体文件
-					if (GUILayout.Button("Check Invalid Prefabs", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
+					if (GUILayout.Button("检测损坏的预制体", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
 						EditorApplication.delayCall += AssetBundleBuilderTools.CheckCorruptionPrefab;
 					}
 
-					// 清理无用的材质球属性
-					if (GUILayout.Button("Clear Material Unused Property", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
+					if (GUILayout.Button("检测动画控制器的冗余状态", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
+					{
+						EditorApplication.delayCall += AssetBundleBuilderTools.FindRedundantAnimationState;
+					}
+
+					if (GUILayout.Button("清理材质球的冗余属性", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
 						EditorApplication.delayCall += AssetBundleBuilderTools.ClearMaterialUnusedProperty;
 					}
