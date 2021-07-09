@@ -12,14 +12,19 @@ namespace MotionFramework.Pool
 		private GameObjectCollector _cacheCollector;
 
 		/// <summary>
-		/// 是否在使用中
+		/// 是否已经释放回收
 		/// </summary>
-		internal bool IsSpawning = false;
+		internal bool IsReleased = false;
 		
 		/// <summary>
 		/// 游戏对象
 		/// </summary>
 		public GameObject Go { internal set; get; }
+
+		/// <summary>
+		/// 用户自定义数据
+		/// </summary>
+		public System.Object UserData { set; get; }
 
 
 		internal SpawnGameObject(GameObjectCollector collector)
@@ -42,17 +47,17 @@ namespace MotionFramework.Pool
 		}
 
 		#region 异步相关
-		internal System.Action<GameObject> UserCallback;
+		internal System.Action<SpawnGameObject> UserCallback;
 
 		/// <summary>
 		/// 完成委托
 		/// </summary>
-		public event System.Action<GameObject> Completed
+		public event System.Action<SpawnGameObject> Completed
 		{
 			add
 			{
 				if (Go != null)
-					value.Invoke(Go);
+					value.Invoke(this);
 				else
 					UserCallback += value;
 			}

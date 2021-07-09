@@ -13,7 +13,7 @@ namespace MotionFramework.Pool
 {
 	public class GameObjectCollector : IEnumerator
 	{
-		private readonly Queue<SpawnGameObject> _collector;
+		private readonly Queue<GameObject> _cache;
 		private readonly List<SpawnGameObject> _loadingSpawn = new List<SpawnGameObject>();
 		private readonly Transform _root;
 		private AssetOperationHandle _handle;
@@ -61,7 +61,7 @@ namespace MotionFramework.Pool
 		/// </summary>
 		public int Count
 		{
-			get { return _collector.Count; }
+			get { return _cache.Count; }
 		}
 
 		/// <summary>
@@ -75,10 +75,10 @@ namespace MotionFramework.Pool
 			_root = root;
 			Location = location;
 			Capacity = capacity;
-			DontDestroy = dontDestroy;	
+			DontDestroy = dontDestroy;
 
 			// 创建缓存池
-			_collector = new Queue<SpawnGameObject>(capacity);
+			_cache = new Queue<GameObject>(capacity);
 
 			// 加载资源
 			_handle = ResourceManager.Instance.LoadAssetAsync<GameObject>(location);
@@ -99,9 +99,8 @@ namespace MotionFramework.Pool
 			for (int i = 0; i < Capacity; i++)
 			{
 				GameObject cloneObj = GameObject.Instantiate(_cloneObject);
-				SpawnGameObject spawn = new SpawnGameObject(this, cloneObj);
 				SetRestoreCloneObject(cloneObj);
-				_collector.Enqueue(spawn);
+				_cache.Enqueue(cloneObj);
 			}
 
 			// 最后返回结果
@@ -110,15 +109,16 @@ namespace MotionFramework.Pool
 				GameObject cloneObj = GameObject.Instantiate(_cloneObject);
 				SpawnGameObject spawn = _loadingSpawn[i];
 				spawn.Go = cloneObj;
-				if (spawn.IsSpawning)
+
+				// 注意：直接回收已经释放的Spawn类
+				if (spawn.IsReleased)
 				{
-					SetSpawnCloneObject(cloneObj);
-					spawn.UserCallback?.Invoke(cloneObj);
+					Restore(spawn);
 				}
 				else
 				{
-					// 注意：直接回收
-					Restore(spawn);
+					SetSpawnCloneObject(cloneObj);
+					spawn.UserCallback?.Invoke(spawn);
 				}
 			}
 			_loadingSpawn.Clear();
@@ -130,13 +130,16 @@ namespace MotionFramework.Pool
 		public void Restore(SpawnGameObject spawn)
 		{
 			SpawnCount--;
-			spawn.IsSpawning = false;
+
+			// 说明：设置回收标记，帮助未完成加载的资源自主回收
+			spawn.IsReleased = true;
 
 			// 注意：资源有可能还未加载完毕
 			if (spawn.Go != null)
+			{
 				SetRestoreCloneObject(spawn.Go);
-
-			_collector.Enqueue(spawn);
+				_cache.Enqueue(spawn.Go);
+			}
 		}
 
 		/// <summary>
@@ -146,7 +149,7 @@ namespace MotionFramework.Pool
 		{
 			SpawnGameObject spawn;
 
-			// 如果还未加载完毕
+			// 如果资源还未加载完毕
 			if (IsDone == false)
 			{
 				spawn = new SpawnGameObject(this);
@@ -154,10 +157,11 @@ namespace MotionFramework.Pool
 			}
 			else
 			{
-				if (_collector.Count > 0)
+				if (_cache.Count > 0)
 				{
-					spawn = _collector.Dequeue();
-					SetSpawnCloneObject(spawn.Go);
+					var go = _cache.Dequeue();
+					spawn = new SpawnGameObject(this, go);
+					SetSpawnCloneObject(go);
 				}
 				else
 				{
@@ -168,7 +172,6 @@ namespace MotionFramework.Pool
 			}
 
 			SpawnCount++;
-			spawn.IsSpawning = true;
 			return spawn;
 		}
 
@@ -185,12 +188,12 @@ namespace MotionFramework.Pool
 				GameObject.Destroy(_cloneObject);
 
 			// 销毁游戏对象
-			foreach (var item in _collector)
+			foreach (var go in _cache)
 			{
-				if(item.Go != null)
-					GameObject.Destroy(item.Go);
+				if (go != null)
+					GameObject.Destroy(go);
 			}
-			_collector.Clear();
+			_cache.Clear();
 
 			// 清空加载列表
 			_loadingSpawn.Clear();
