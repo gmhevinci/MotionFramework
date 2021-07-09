@@ -33,7 +33,7 @@ namespace MotionFramework.Console
 			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
 			foreach (var pair in pools)
 			{
-				string content = $"[{pair.Value.Location}] CacheCount = {pair.Value.Count} SpwanCount = {pair.Value.SpawnCount}";
+				string content = $"[{pair.Value.Location}] CacheCount = {pair.Value.CacheCount} SpwanCount = {pair.Value.SpawnCount}";
 				if (pair.Value.States == EAssetStates.Fail)
 					ConsoleGUI.RedLable(content);
 				else
