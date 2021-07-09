@@ -9,7 +9,7 @@ namespace MotionFramework.Pool
 {
 	public class SpawnGameObject
 	{
-		private GameObjectCollector _cacheCollector;
+		private readonly GameObjectCollector _cacheCollector;
 
 		/// <summary>
 		/// 是否已经释放回收
