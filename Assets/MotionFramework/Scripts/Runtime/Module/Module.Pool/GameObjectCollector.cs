@@ -18,7 +18,7 @@ namespace MotionFramework.Pool
 		private readonly Transform _root;
 		private AssetOperationHandle _handle;
 		private GameObject _cloneObject;
-		private float _lastRestoreRealTime;
+		private float _lastRestoreRealTime = -1f;
 
 		/// <summary>
 		/// 资源定位地址
@@ -70,7 +70,7 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 内部缓存总数
 		/// </summary>
-		public int Count
+		public int CacheCount
 		{
 			get { return _cache.Count; }
 		}
@@ -78,7 +78,7 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 外部使用总数
 		/// </summary>
-		public int SpawnCount { private set; get; }
+		public int SpawnCount { private set; get; } = 0;
 
 
 		public GameObjectCollector(Transform root, string location, bool dontDestroy, int initCapacity, int maxCapacity, float destroyTime)
@@ -147,7 +147,7 @@ namespace MotionFramework.Pool
 			if (DestroyTime < 0)
 				return false;
 
-			if (SpawnCount <= 0)
+			if (_lastRestoreRealTime > 0 && SpawnCount <= 0)
 				return (Time.realtimeSinceStartup - _lastRestoreRealTime) > DestroyTime;
 			else
 				return false;
