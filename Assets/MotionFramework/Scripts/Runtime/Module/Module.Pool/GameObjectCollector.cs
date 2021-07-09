@@ -18,6 +18,7 @@ namespace MotionFramework.Pool
 		private readonly Transform _root;
 		private AssetOperationHandle _handle;
 		private GameObject _cloneObject;
+		private float _lastRestoreRealTime;
 
 		/// <summary>
 		/// 资源定位地址
@@ -25,14 +26,24 @@ namespace MotionFramework.Pool
 		public string Location { private set; get; }
 
 		/// <summary>
-		/// 对象池容量
-		/// </summary>
-		public int Capacity { private set; get; }
-
-		/// <summary>
 		/// 资源常驻不销毁
 		/// </summary>
 		public bool DontDestroy { private set; get; }
+
+		/// <summary>
+		/// 对象池的初始容量
+		/// </summary>
+		public int InitCapacity { private set; get; }
+
+		/// <summary>
+		/// 对象池的最大容量
+		/// </summary>
+		public int MaxCapacity { private set; get; }
+
+		/// <summary>
+		/// 静默销毁时间
+		/// </summary>
+		public float DestroyTime { private set; get; }
 
 		/// <summary>
 		/// 是否加载完毕
@@ -70,15 +81,17 @@ namespace MotionFramework.Pool
 		public int SpawnCount { private set; get; }
 
 
-		public GameObjectCollector(Transform root, string location, int capacity, bool dontDestroy)
+		public GameObjectCollector(Transform root, string location, bool dontDestroy, int initCapacity, int maxCapacity, float destroyTime)
 		{
 			_root = root;
 			Location = location;
-			Capacity = capacity;
 			DontDestroy = dontDestroy;
+			InitCapacity = initCapacity;
+			MaxCapacity = maxCapacity;
+			DestroyTime = destroyTime;
 
 			// 创建缓存池
-			_cache = new Queue<GameObject>(capacity);
+			_cache = new Queue<GameObject>(initCapacity);
 
 			// 加载资源
 			_handle = ResourceManager.Instance.LoadAssetAsync<GameObject>(location);
@@ -96,7 +109,7 @@ namespace MotionFramework.Pool
 			SetRestoreCloneObject(_cloneObject);
 
 			// 创建初始对象
-			for (int i = 0; i < Capacity; i++)
+			for (int i = 0; i < InitCapacity; i++)
 			{
 				GameObject cloneObj = GameObject.Instantiate(_cloneObject);
 				SetRestoreCloneObject(cloneObj);
@@ -125,11 +138,31 @@ namespace MotionFramework.Pool
 		}
 
 		/// <summary>
+		/// 查询静默时间内是否可以销毁
+		/// </summary>
+		public bool CanAutoDestroy()
+		{
+			if (DontDestroy)
+				return false;
+			if (DestroyTime < 0)
+				return false;
+
+			if (SpawnCount <= 0)
+				return (Time.realtimeSinceStartup - _lastRestoreRealTime) > DestroyTime;
+			else
+				return false;
+		}
+
+		/// <summary>
 		/// 回收游戏对象
 		/// </summary>
 		public void Restore(SpawnGameObject spawn)
 		{
 			SpawnCount--;
+			if (SpawnCount <= 0)
+			{
+				_lastRestoreRealTime = Time.realtimeSinceStartup;
+			}
 
 			// 说明：设置回收标记，帮助未完成加载的资源自主回收
 			spawn.IsReleased = true;
@@ -138,7 +171,10 @@ namespace MotionFramework.Pool
 			if (spawn.Go != null)
 			{
 				SetRestoreCloneObject(spawn.Go);
-				_cache.Enqueue(spawn.Go);
+				if (_cache.Count < MaxCapacity)
+					_cache.Enqueue(spawn.Go);
+				else
+					GameObject.Destroy(spawn.Go);
 			}
 		}
 
