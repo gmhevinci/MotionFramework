@@ -287,8 +287,8 @@ namespace MotionFramework.Editor
 			List<string> result = new List<string>();
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
-				AssetBundleCollectorSetting.Collector wrapper = Setting.Collectors[i];
-				result.Add(wrapper.CollectDirectory);
+				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
+				result.Add(collector.CollectDirectory);
 			}
 			return result;
 		}
@@ -302,6 +302,11 @@ namespace MotionFramework.Editor
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
+
+				// 注意：跳过不需要写入资源路径的收集器
+				if (collector.DontWriteAssetPath)
+					continue;
+
 				string[] findAssets = EditorTools.FindAssets(EAssetSearchType.All, collector.CollectDirectory);
 				foreach (string assetPath in findAssets)
 				{
