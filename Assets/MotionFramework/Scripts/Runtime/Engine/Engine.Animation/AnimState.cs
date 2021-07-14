@@ -84,13 +84,12 @@ namespace MotionFramework.Experimental.Animation
 			_clipPlayable = AnimationClipPlayable.Create(graph, clip);
 			_clipPlayable.SetApplyFootIK(false);
 			_clipPlayable.SetApplyPlayableIK(false);
+			SetSourcePlayable(_clipPlayable);
 
 			if (clip.wrapMode == WrapMode.Once)
 			{
 				_clipPlayable.SetDuration(clip.length);
 			}
-
-			_playable = _clipPlayable;
 		}
 		public override void PlayNode()
 		{

@@ -46,23 +46,41 @@ namespace MotionFramework.Experimental.Animation
 		{
 			_graph.Destroy();
 		}
+
+		/// <summary>
+		/// Play the graph
+		/// </summary>
 		public void PlayGraph()
 		{
 			_graph.Play();
 		}
+
+		/// <summary>
+		/// Stop the graph
+		/// </summary>
 		public void StopGraph()
 		{
 			_graph.Stop();
 		}
 
+		/// <summary>
+		/// 检测动画是否正在播放
+		/// </summary>
+		/// <param name="name">动画名称</param>
 		public bool IsPlaying(string name)
 		{
 			AnimState state = GetAnimState(name);
 			if (state == null)
 				return false;
 
-			return state.IsConnect && state.States == EAnimStates.Playing;
+			return state.IsConnect && state.IsPlaying;
 		}
+
+		/// <summary>
+		/// 播放一个动画
+		/// </summary>
+		/// <param name="name">动画名称</param>
+		/// <param name="fadeLength">融合时间</param>
 		public void Play(string name, float fadeLength)
 		{
 			var animState = GetAnimState(name);
@@ -82,9 +100,14 @@ namespace MotionFramework.Experimental.Animation
 				animMixer.Connect(_mixerRoot, animMixer.Layer);
 			}
 
-			animMixer.StartFade(1f, fadeLength);
+			animMixer.StartWeightFade(1f, fadeLength);
 			animMixer.Play(animState, fadeLength);
 		}
+
+		/// <summary>
+		/// 停止一个动画
+		/// </summary>
+		/// <param name="name">动画名称</param>
 		public void Stop(string name)
 		{
 			var animState = GetAnimState(name);
@@ -103,6 +126,13 @@ namespace MotionFramework.Experimental.Animation
 
 			animMixer.Stop(animState.Name);
 		}
+
+		/// <summary>
+		/// 添加一个动画片段
+		/// </summary>
+		/// <param name="name">动画名称</param>
+		/// <param name="clip">动画片段</param>
+		/// <param name="layer">动画层级</param>
 		public bool AddAnimation(string name, AnimationClip clip, int layer = 0)
 		{
 			if (string.IsNullOrEmpty(name))
@@ -122,6 +152,11 @@ namespace MotionFramework.Experimental.Animation
 			_states.Add(stateNode);
 			return true;
 		}
+
+		/// <summary>
+		/// 移除一个动画片段
+		/// </summary>
+		/// <param name="name">动画名称</param>
 		public bool RemoveAnimation(string name)
 		{
 			if (IsContains(name) == false)
@@ -139,6 +174,11 @@ namespace MotionFramework.Experimental.Animation
 			_states.Remove(animState);
 			return true;
 		}
+
+		/// <summary>
+		/// 获取一个动画状态
+		/// </summary>
+		/// <param name="name">动画名称</param>
 		public AnimState GetAnimState(string name)
 		{
 			for (int i = 0; i < _states.Count; i++)
@@ -148,6 +188,11 @@ namespace MotionFramework.Experimental.Animation
 			}
 			return null;
 		}
+
+		/// <summary>
+		/// 是否包含一个动画状态
+		/// </summary>
+		/// <param name="name">动画名称</param>
 		public bool IsContains(string name)
 		{
 			for (int i = 0; i < _states.Count; i++)

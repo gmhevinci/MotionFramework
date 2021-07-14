@@ -13,16 +13,14 @@ namespace MotionFramework.Experimental.Animation
 {
 	public abstract class AnimNode
 	{
-		protected readonly PlayableGraph _graph;
-		protected Playable _playable;
-		protected Playable _parent;
+		private readonly PlayableGraph _graph;
+		private Playable _source;
+		private Playable _parent;
 
 		private float _fadeSpeed = 0f;
 		private float _fadeWeight = 0f;
 		private bool _isFading = false;
 
-		private float _weight = 0f;
-		private bool _isWeightDirty = true;
 
 		/// <summary>
 		/// 是否已经连接
@@ -30,24 +28,42 @@ namespace MotionFramework.Experimental.Animation
 		public bool IsConnect { get; private set; } = false;
 
 		/// <summary>
+		/// 输入端口
+		/// </summary>
+		public int InputPort { private set; get; }
+
+		/// <summary>
 		/// 是否已经完成
+		/// If the duration of the playable is set, when the time of the playable reaches its duration during playback this flag will be set to true.
 		/// </summary>
 		public bool IsDone
 		{
 			get
 			{
-				return _playable.IsDone();
+				return _source.IsDone();
 			}
 		}
 
 		/// <summary>
 		/// 是否有效
+		/// if the Playable is properly constructed by the PlayableGraph and has not been destroyed, false otherwise.
 		/// </summary>
 		public bool IsValid
 		{
 			get
 			{
-				return _playable.IsValid();
+				return _source.IsValid();
+			}
+		}
+
+		/// <summary>
+		/// 是否正在播放中
+		/// </summary>
+		public bool IsPlaying
+		{
+			get
+			{
+				return _source.GetPlayState() == PlayState.Playing;
 			}
 		}
 
@@ -58,11 +74,11 @@ namespace MotionFramework.Experimental.Animation
 		{
 			set
 			{
-				_playable.SetTime(value);
+				_source.SetTime(value);
 			}
 			get
 			{
-				return (float)_playable.GetTime();
+				return (float)_source.GetTime();
 			}
 		}
 
@@ -73,11 +89,11 @@ namespace MotionFramework.Experimental.Animation
 		{
 			set
 			{
-				_playable.SetSpeed(value);
+				_source.SetSpeed(value);
 			}
 			get
 			{
-				return (float)_playable.GetSpeed();
+				return (float)_source.GetSpeed();
 			}
 		}
 
@@ -88,36 +104,11 @@ namespace MotionFramework.Experimental.Animation
 		{
 			set
 			{
-				if (_weight != value)
-				{
-					_weight = value;
-					_isWeightDirty = true;
-				}
+				_parent.SetInputWeight(InputPort, value);
 			}
 			get
 			{
-				return _weight;
-			}
-		}
-
-		/// <summary>
-		/// 输入端口
-		/// </summary>
-		public int InputPort { private set; get; }
-
-		/// <summary>
-		/// 节点状态
-		/// </summary>
-		public EAnimStates States
-		{
-			get
-			{
-				if (_playable.GetPlayState() == PlayState.Playing)
-					return EAnimStates.Playing;
-				else if (_playable.GetPlayState() == PlayState.Paused)
-					return EAnimStates.Paused;
-				else
-					throw new System.NotImplementedException($"{_playable.GetPlayState()}");
+				return _parent.GetInputWeight(InputPort);
 			}
 		}
 
@@ -136,28 +127,31 @@ namespace MotionFramework.Experimental.Animation
 					_isFading = false;
 				}
 			}
-
-			if (_isWeightDirty)
-			{
-				_isWeightDirty = false;
-				_parent.SetInputWeight(InputPort, Weight);
-			}
 		}
 		public virtual void Destroy()
 		{
 			if (IsValid)
 			{
-				_graph.DestroySubgraph(_playable);
+				_graph.DestroySubgraph(_source);
 			}
 		}
 		public virtual void PlayNode()
 		{
-			_playable.SetDone(false);
-			_playable.Play();
+			// NOTE : When playing, the local time of this Playable will be updated during the evaluation of the PlayableGraph.
+			_source.Play();
+
+			// NOTE : Changes a flag indicating that a playable has completed its operation.
+			// Playable that reach the end of their duration are automatically marked as done.
+			_source.SetDone(false);
 		}
 		public virtual void PauseNode()
 		{
-			_playable.Pause();
+			// NOTE : When paused, the local time of this Playable will not be updated during the evaluation of the PlayableGraph.
+			_source.Pause();
+
+			// NOTE : Changes a flag indicating that a playable has completed its operation.
+			// Playable that reach the end of their duration are automatically marked as done.
+			_source.SetDone(true);
 		}
 		public virtual void ResetNode()
 		{
@@ -168,48 +162,61 @@ namespace MotionFramework.Experimental.Animation
 			Time = 0;
 			Speed = 1;
 			Weight = 0;
-
-			// 注意：需要立刻重置权重值
-			_parent.SetInputWeight(InputPort, Weight);
 		}
 
-		public void SetDone()
-		{
-			_playable.SetDone(true);
-		}
-		public void Connect(Playable parent, int inputPort)
+		/// <summary>
+		/// 连接到父节点
+		/// </summary>
+		/// <param name="parent">父节点对象</param>
+		/// <param name="inputPort">父节点上的输入端口</param>
+		public void Connect(Playable parent, int parentInputPort)
 		{
 			if (IsConnect)
 				throw new System.Exception("AnimNode is connected.");
 
-			IsConnect = true;
 			_parent = parent;
-			InputPort = inputPort;
+			InputPort = parentInputPort;
 
-			// 注意：连接之前先重置
+			// 重置节点
 			ResetNode();
-			_graph.Connect(_playable, 0, parent, inputPort);
+
+			// 连接
+			_graph.Connect(_source, 0, parent, parentInputPort);
+			IsConnect = true;
 		}
+
+		/// <summary>
+		/// 同父节点断开连接
+		/// </summary>
 		public void Disconnect()
 		{
 			if (IsConnect == false)
 				throw new System.Exception("AnimNode is disconnected.");
 
-			IsConnect = false;
+			// 断开
 			_graph.Disconnect(_parent, InputPort);
+			IsConnect = false;
 		}
-		public void StartFade(float fadeWeight, float fadeDuration)
+
+		/// <summary>
+		/// 开始权重值过渡
+		/// </summary>
+		/// <param name="destWeight">目标权重值</param>
+		/// <param name="fadeDuration">过渡时间</param>
+		public void StartWeightFade(float destWeight, float fadeDuration)
 		{
 			if (fadeDuration <= 0)
 				throw new System.ArgumentException("fade duration is invalid.");
 
-			if (Mathf.Approximately(Weight, fadeWeight))
-				return;
-
 			//注意：保持统一的渐变速度
 			_fadeSpeed = 1f / fadeDuration;
-			_fadeWeight = fadeWeight;
+			_fadeWeight = destWeight;
 			_isFading = true;
+		}
+
+		protected void SetSourcePlayable(Playable playable)
+		{
+			_source = playable;
 		}
 	}
 }

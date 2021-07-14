@@ -16,7 +16,7 @@ namespace MotionFramework.Experimental.Animation
 		private const float HIDE_DURATION = 0.25f;
 		private readonly List<AnimState> _states = new List<AnimState>(10);
 		private AnimationMixerPlayable _mixer;
-		private bool _isHiding = false;
+		private bool _isQuiting = false;
 
 		/// <summary>
 		/// 动画层级
@@ -29,60 +29,41 @@ namespace MotionFramework.Experimental.Animation
 			Layer = layer;
 
 			_mixer = AnimationMixerPlayable.Create(graph);
-			_playable = _mixer;
+			SetSourcePlayable(_mixer);
 		}
 		public override void Update(float deltaTime)
 		{
 			base.Update(deltaTime);
 
+			for (int i = 0; i < _states.Count; i++)
+			{
+				var state = _states[i];
+				if (state != null)
+					state.Update(deltaTime);
+			}
+
 			bool isAllDone = true;
 			for (int i = 0; i < _states.Count; i++)
 			{
 				var state = _states[i];
-				if (state == null)
-					continue;
-
-				state.Update(deltaTime);
-				if (state.IsDone || Mathf.Approximately(state.Weight, 0f))
+				if (state != null)
 				{
-				}
-				else
-				{
-					isAllDone = false;
+					if (state.IsDone == false)
+						isAllDone = false;
 				}
 			}
 
-			if (_isHiding == false && isAllDone)
+			// 当子节点都已经完成的时候断开连接
+			if (isAllDone && _isQuiting == false)
 			{
-				_isHiding = true;
-				StartFade(0, HIDE_DURATION);
+				_isQuiting = true;
+				StartWeightFade(0, HIDE_DURATION);
 			}
-
-			if (_isHiding)
+			if (_isQuiting)
 			{
 				if (Mathf.Approximately(Weight, 0f))
-				{
 					DisconnectMixer();
-				}
 			}
-		}
-		private void DisconnectMixer()
-		{
-			for (int i = 0; i < _states.Count; i++)
-			{
-				var state = _states[i];
-				if (state == null)
-					continue;
-
-				state.Disconnect();
-				_states[i] = null;
-			}
-
-			Disconnect();
-		}
-		private void ResetMixer()
-		{
-			_isHiding = false;
 		}
 
 		/// <summary>
@@ -120,12 +101,12 @@ namespace MotionFramework.Experimental.Animation
 
 				if (state == animState)
 				{
-					state.StartFade(1f, fadeDuration);
+					state.StartWeightFade(1f, fadeDuration);
 					state.PlayNode();
 				}
 				else
 				{
-					state.StartFade(0f, fadeDuration);
+					state.StartWeightFade(0f, fadeDuration);
 					state.PauseNode();
 				}
 			}
@@ -140,7 +121,8 @@ namespace MotionFramework.Experimental.Animation
 			if (state == null)
 				return;
 
-			state.SetDone();
+			state.PauseNode();
+			state.ResetNode();
 		}
 
 		/// <summary>
@@ -197,6 +179,26 @@ namespace MotionFramework.Experimental.Animation
 
 			MotionLog.Warning($"Animation state doesn't exist : {name}");
 			return null;
+		}
+
+		private void DisconnectMixer()
+		{
+			for (int i = 0; i < _states.Count; i++)
+			{
+				var state = _states[i];
+				if (state == null)
+					continue;
+
+				state.Disconnect();
+				_states[i] = null;
+			}
+
+			Disconnect();
+		}
+		private void ResetMixer()
+		{
+			_isQuiting = false;
+			StartWeightFade(1f, HIDE_DURATION);
 		}
 	}
 }

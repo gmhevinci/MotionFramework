@@ -20,7 +20,6 @@ public class AnimBehaviour : MonoBehaviour
 		public AnimationClip Clip;
 	}
 
-
 	private AnimPlayable _animPlayable;
 	private Animator _animator;
 
@@ -146,7 +145,6 @@ public class AnimBehaviour : MonoBehaviour
 	{
 		_animPlayable.Stop(name);
 	}
-
 
 	private AnimationWrapper GetDefaultWrapper()
 	{
