@@ -9,12 +9,28 @@ namespace MotionFramework.Pool
 {
 	public class SpawnGameObject
 	{
+		internal enum ESpawnState
+		{
+			None = 0,
+
+			/// <summary>
+			/// 已回收
+			/// </summary>
+			Restore,
+
+			/// <summary>
+			/// 已丢弃
+			/// </summary>
+			Discard,
+		}
+
+
 		private readonly GameObjectCollector _cacheCollector;
 
 		/// <summary>
 		/// 是否已经释放回收
 		/// </summary>
-		internal bool IsReleased = false;
+		internal ESpawnState SpawnState { private set; get; } = ESpawnState.None;
 		
 		/// <summary>
 		/// 游戏对象
@@ -45,7 +61,18 @@ namespace MotionFramework.Pool
 		public void Restore()
 		{
 			UserCallback = null;
+			SpawnState = ESpawnState.Restore;
 			_cacheCollector.Restore(this);
+		}
+
+		/// <summary>
+		/// 丢弃
+		/// </summary>
+		public void Discard()
+		{
+			UserCallback = null;
+			SpawnState = ESpawnState.Discard;
+			_cacheCollector.Discard(this);
 		}
 
 		#region 异步相关

@@ -146,17 +146,20 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 获取游戏对象
 		/// </summary>
-		public SpawnGameObject Spawn(string location, System.Object userData = null)
+		/// <param name="location">资源定位地址</param>
+		/// <param name="forceClone">强制克隆游戏对象，忽略缓存池里的对象</param>
+		/// <param name="userData">用户自定义数据</param>
+		public SpawnGameObject Spawn(string location, bool forceClone = false, System.Object userData = null)
 		{
 			if (_collectors.ContainsKey(location))
 			{
-				return _collectors[location].Spawn(userData);
+				return _collectors[location].Spawn(forceClone, userData);
 			}
 			else
 			{
 				// 如果不存在创建游戏对象池
 				GameObjectCollector pool = CreatePoolInternal(location, false, _defaultInitCapacity, _defaultMaxCapacity, _defaultDestroyTime);
-				return pool.Spawn(userData);
+				return pool.Spawn(forceClone, userData);
 			}
 		}
 
