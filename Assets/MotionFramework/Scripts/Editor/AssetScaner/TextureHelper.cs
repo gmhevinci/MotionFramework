@@ -26,12 +26,12 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 获取当前平台纹理的格式
 		/// </summary>
-		public static string GetTextureFormatString(Texture tex)
+		public static TextureFormat GetTextureFormatString(Texture tex)
 		{
 			var assembly = typeof(AssetDatabase).Assembly;
 			var type = assembly.GetType("UnityEditor.TextureUtil");
 			TextureFormat format = (TextureFormat)EditorTools.InvokePublicStaticMethod(type, "GetTextureFormat", tex);
-			return format.ToString();
+			return format;
 		}
 	}
 }
