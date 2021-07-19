@@ -181,28 +181,28 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 获取游戏对象
 		/// </summary>
-		public SpawnGameObject Spawn()
+		public SpawnGameObject Spawn(System.Object userData)
 		{
 			SpawnGameObject spawn;
 
 			// 如果资源还未加载完毕
 			if (IsDone == false)
 			{
-				spawn = new SpawnGameObject(this);
+				spawn = new SpawnGameObject(this, userData);
 				_loadingSpawn.Add(spawn);
 			}
 			else
 			{
 				if (_cache.Count > 0)
 				{
-					var go = _cache.Dequeue();
-					spawn = new SpawnGameObject(this, go);
+					GameObject go = _cache.Dequeue();
+					spawn = new SpawnGameObject(this, go, userData);
 					SetSpawnCloneObject(go);
 				}
 				else
 				{
 					GameObject cloneObj = GameObject.Instantiate(_cloneObject);
-					spawn = new SpawnGameObject(this, cloneObj);
+					spawn = new SpawnGameObject(this, cloneObj, userData);
 					SetSpawnCloneObject(cloneObj);
 				}
 			}

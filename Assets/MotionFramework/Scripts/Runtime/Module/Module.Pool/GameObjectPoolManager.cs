@@ -146,17 +146,17 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 获取游戏对象
 		/// </summary>
-		public SpawnGameObject Spawn(string location)
+		public SpawnGameObject Spawn(string location, System.Object userData = null)
 		{
 			if (_collectors.ContainsKey(location))
 			{
-				return _collectors[location].Spawn();
+				return _collectors[location].Spawn(userData);
 			}
 			else
 			{
 				// 如果不存在创建游戏对象池
 				GameObjectCollector pool = CreatePoolInternal(location, false, _defaultInitCapacity, _defaultMaxCapacity, _defaultDestroyTime);
-				return pool.Spawn();
+				return pool.Spawn(userData);
 			}
 		}
 

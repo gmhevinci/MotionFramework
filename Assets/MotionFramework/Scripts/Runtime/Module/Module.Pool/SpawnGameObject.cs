@@ -24,17 +24,19 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 用户自定义数据
 		/// </summary>
-		public System.Object UserData { set; get; }
+		public System.Object UserData { private set; get; }
 
 
-		internal SpawnGameObject(GameObjectCollector collector)
+		internal SpawnGameObject(GameObjectCollector collector, System.Object userData)
 		{
 			_cacheCollector = collector;
+			UserData = userData;
 		}
-		internal SpawnGameObject(GameObjectCollector collector, GameObject go)
+		internal SpawnGameObject(GameObjectCollector collector, GameObject go, System.Object userData)
 		{
 			_cacheCollector = collector;
 			Go = go;
+			UserData = userData;
 		}
 
 		/// <summary>
