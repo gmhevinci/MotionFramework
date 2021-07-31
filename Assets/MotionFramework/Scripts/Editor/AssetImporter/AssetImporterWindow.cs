@@ -14,7 +14,7 @@ namespace MotionFramework.Editor
 	{
 		static AssetImporterWindow _thisInstance;
 
-		[MenuItem("MotionTools/Asset Importer", false, 104)]
+		[MenuItem("MotionTools/Asset Importer", false, 103)]
 		static void ShowWindow()
 		{
 			if (_thisInstance == null)

@@ -15,7 +15,7 @@ namespace MotionFramework.Editor
 	{
 		static AssetSearchWindow _thisInstance;
 
-		[MenuItem("MotionTools/Asset Search", false, 103)]
+		[MenuItem("MotionTools/Asset Search", false, 104)]
 		static void ShowWindow()
 		{
 			if (_thisInstance == null)
