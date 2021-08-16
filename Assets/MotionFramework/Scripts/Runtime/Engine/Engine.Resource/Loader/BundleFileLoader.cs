@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Network;
+using MotionFramework.Patch;
 
 namespace MotionFramework.Resource
 {
@@ -40,7 +41,7 @@ namespace MotionFramework.Resource
 
 
 		private bool _isWaitForAsyncComplete = false;
-		private WebFileRequest _downloader;
+		private FileDownloader _downloader;
 		private AssetBundleCreateRequest _cacheRequest;
 		internal AssetBundle CacheBundle { private set; get; }
 
@@ -104,7 +105,7 @@ namespace MotionFramework.Resource
 			if (States == ELoaderStates.Download)
 			{
 				int failedTryAgain = 3;
-				_downloader = WebFileSystem.GetWebFileRequest(BundleInfo.RemoteURL, BundleInfo.RemoteFallbackURL, BundleInfo.LocalPath, failedTryAgain);
+				_downloader = DownloadSystem.GetFileDownloader(BundleInfo.RemoteURL, BundleInfo.RemoteFallbackURL, BundleInfo.LocalPath, failedTryAgain);
 				States = ELoaderStates.CheckDownload;
 			}
 

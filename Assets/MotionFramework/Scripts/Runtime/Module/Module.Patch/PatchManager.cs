@@ -90,12 +90,14 @@ namespace MotionFramework.Patch
 		void IModule.OnUpdate()
 		{
 			_patcher.Update();
-			WebFileSystem.Update();
+
+			// 更新下载管理系统
+			DownloadSystem.Update();
 		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(PatchManager)}] States : {_patcher.CurrentStates}");
-			ConsoleGUI.Lable($"[{nameof(PatchManager)}] Reqeust : {WebFileSystem.GetRequestTotalCount()}");
+			ConsoleGUI.Lable($"[{nameof(PatchManager)}] Dwonload Count : {DownloadSystem.GetFileDownloaderTotalCount()}");
 		}
 
 		/// <summary>

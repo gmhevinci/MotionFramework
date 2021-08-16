@@ -31,8 +31,8 @@ namespace MotionFramework.Patch
 		private readonly List<PatchBundle> _succeedList = new List<PatchBundle>();
 		private readonly List<PatchBundle> _loadFailedList = new List<PatchBundle>();
 		private readonly List<PatchBundle> _checkFailedList = new List<PatchBundle>();
-		private readonly List<WebFileRequest> _downloaders = new List<WebFileRequest>();
-		private readonly List<WebFileRequest> _removeList = new List<WebFileRequest>(MAX_LOADER_COUNT);
+		private readonly List<FileDownloader> _downloaders = new List<FileDownloader>();
+		private readonly List<FileDownloader> _removeList = new List<FileDownloader>(MAX_LOADER_COUNT);
 
 		// 数据相关
 		public EDownloaderStates DownloadStates { private set; get; }
@@ -172,7 +172,7 @@ namespace MotionFramework.Patch
 				if (_downloaders.Count < _maxNumberOnLoad)
 				{
 					int index = _downloadList.Count - 1;
-					WebFileRequest downloader = CreateDownloader(_downloadList[index]);
+					FileDownloader downloader = CreateDownloader(_downloadList[index]);
 					_downloaders.Add(downloader);
 					_downloadList.RemoveAt(index);
 				}
@@ -206,7 +206,7 @@ namespace MotionFramework.Patch
 			}
 		}
 
-		private WebFileRequest CreateDownloader(PatchBundle patchBundle)
+		private FileDownloader CreateDownloader(PatchBundle patchBundle)
 		{
 			// 注意：资源版本号只用于确定下载路径
 			string mainURL = _patcherMgr.GetPatchDownloadURL(patchBundle.Version, patchBundle.Hash);
@@ -216,7 +216,7 @@ namespace MotionFramework.Patch
 
 			// 创建下载器
 			MotionLog.Log($"Beginning to download web file : {patchBundle.BundleName} URL : {mainURL}");
-			WebFileRequest download = WebFileSystem.GetWebFileRequest(mainURL, fallbackURL, savePath, _failedTryAgain);
+			FileDownloader download = DownloadSystem.GetFileDownloader(mainURL, fallbackURL, savePath, _failedTryAgain);
 			download.UserData = patchBundle;
 			return download;
 		}
