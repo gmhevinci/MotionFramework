@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Console;
 using MotionFramework.Utility;
-using MotionFramework.Patch;
 
 namespace MotionFramework.Resource
 {
