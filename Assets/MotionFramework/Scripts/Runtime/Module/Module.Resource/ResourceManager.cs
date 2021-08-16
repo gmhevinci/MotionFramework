@@ -64,6 +64,12 @@ namespace MotionFramework.Resource
 			if (createParam == null)
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
 
+			if (createParam.SimulationOnEditor == false)
+			{
+				if (createParam.BundleServices == null)
+					throw new Exception($"{nameof(IBundleServices)} can not be null.");
+			}
+
 			// 初始化资源系统
 			AssetSystem.Initialize(createParam.LocationRoot, createParam.SimulationOnEditor, createParam.RuntimeMaxLoadingCount,
 				createParam.BundleServices, createParam.DecryptServices);
@@ -112,11 +118,12 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 获取资源的信息
+		/// 获取资源包信息
 		/// </summary>
 		public AssetBundleInfo GetAssetBundleInfo(string location)
 		{
-			return AssetSystem.GetAssetBundleInfo(location);
+			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
+			return AssetSystem.GetAssetBundleInfo(assetPath);
 		}
 
 		/// <summary>
@@ -160,9 +167,8 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public AssetOperationHandle LoadSceneAsync(string location, SceneInstanceParam instanceParam)
 		{
-			string sceneName = Path.GetFileName(location);
-			FileLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
-			var handle = cacheLoader.LoadSceneAsync(sceneName, instanceParam);
+			string scenePath = AssetSystem.ConvertLocationToAssetPath(location);
+			var handle = AssetSystem.LoadSceneAsync(scenePath, instanceParam);
 			return handle;
 		}
 
@@ -195,20 +201,18 @@ namespace MotionFramework.Resource
 
 		private AssetOperationHandle LoadAssetInternal(string location, System.Type assetType, bool waitForAsyncComplete)
 		{
-			string assetName = Path.GetFileName(location);
-			FileLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
-			var handle = cacheLoader.LoadAssetAsync(assetName, assetType, waitForAsyncComplete);
+			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
+			var handle = AssetSystem.LoadAssetAsync(assetPath, assetType);
 			if (waitForAsyncComplete)
-				cacheLoader.WaitForAsyncComplete();
+				handle.WaitForAsyncComplete();
 			return handle;
 		}
 		private AssetOperationHandle LoadSubAssetsInternal(string location, System.Type assetType, bool waitForAsyncComplete)
 		{
-			string assetName = Path.GetFileName(location);
-			FileLoaderBase cacheLoader = AssetSystem.CreateLoader(location);
-			var handle = cacheLoader.LoadSubAssetsAsync(assetName, assetType, waitForAsyncComplete);
+			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
+			var handle = AssetSystem.LoadSubAssetsAsync(assetPath, assetType);
 			if (waitForAsyncComplete)
-				cacheLoader.WaitForAsyncComplete();
+				handle.WaitForAsyncComplete();
 			return handle;
 		}
 	}
