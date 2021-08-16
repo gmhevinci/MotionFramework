@@ -18,7 +18,7 @@ namespace MotionFramework.Console
 		private class LoaderWrapper : IReference, IComparer<LoaderWrapper>, IComparable<LoaderWrapper>
 		{
 			public string BundleName;
-			public FileLoaderBase Loader;
+			public BundleFileLoader Loader;
 
 			public void OnRelease()
 			{
@@ -77,16 +77,6 @@ namespace MotionFramework.Console
 					ConsoleGUI.RedLable(loaderInfo);
 				else
 					ConsoleGUI.Lable(loaderInfo);
-
-				var providers = loaderWrapper.Loader.GetProviders();
-				foreach (var provider in providers)
-				{
-					string providerInfo = $"对象：{provider.AssetName}  引用：{provider.RefCount}";
-					if (provider.States == EAssetStates.Fail)
-						ConsoleGUI.RedLable(providerInfo);
-					else
-						ConsoleGUI.Lable(providerInfo);
-				}
 			}
 			ConsoleGUI.EndScrollView();
 		}
