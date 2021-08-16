@@ -38,16 +38,6 @@ namespace MotionFramework.Patch
 		public int Version;
 
 		/// <summary>
-		/// 收集的资源列表
-		/// </summary>
-		public string[] CollectAssets;
-
-		/// <summary>
-		/// 依赖的资源包ID列表
-		/// </summary>
-		public int[] DependIDs;
-
-		/// <summary>
 		/// Tags
 		/// </summary>
 		public string[] Tags;
@@ -68,21 +58,15 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public bool IsBuildin { private set; get; }
 
-		/// <summary>
-		/// 依赖的资源包名称列表
-		/// </summary>
-		public string[] Depends { set; get; }
 
 
-		public PatchBundle(string bundleName, string hash, string crc, long sizeBytes, int version, string[] collectAssets, string[] depends, string[] tags)
+		public PatchBundle(string bundleName, string hash, string crc, long sizeBytes, int version, string[] tags)
 		{
 			BundleName = bundleName;
 			Hash = hash;
 			CRC = crc;
 			SizeBytes = sizeBytes;
 			Version = version;
-			CollectAssets = collectAssets;
-			Depends = depends;
 			Tags = tags;
 		}
 
