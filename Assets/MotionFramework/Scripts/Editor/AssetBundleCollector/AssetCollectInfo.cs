@@ -20,16 +20,10 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public List<string> AssetTags { private set; get; }
 
-		/// <summary>
-		/// 对于那些不依赖于代码加载的主动收集资源，可以禁止写入资源路径信息到清单文件
-		/// </summary>
-		public bool DontWriteAssetPath { private set; get; }
-
-		public AssetCollectInfo(string assetPath, List<string> assetTags, bool dontWriteAssetPath)
+		public AssetCollectInfo(string assetPath, List<string> assetTags)
 		{
 			AssetPath = assetPath;
 			AssetTags = assetTags;
-			DontWriteAssetPath = dontWriteAssetPath;
 		}
 	}
 }

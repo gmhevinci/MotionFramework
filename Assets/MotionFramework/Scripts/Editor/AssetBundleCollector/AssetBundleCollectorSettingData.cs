@@ -295,6 +295,7 @@ namespace MotionFramework.Editor
 
 		/// <summary>
 		/// 获取所有收集的资源
+		/// 注意：跳过了不写入资源路径的收集器
 		/// </summary>
 		public static List<AssetCollectInfo> GetAllCollectAssets()
 		{
@@ -317,7 +318,7 @@ namespace MotionFramework.Editor
 
 					if (result.ContainsKey(assetPath) == false)
 					{
-						var assetCollectInfo = new AssetCollectInfo(assetPath, collector.GetAssetTags(), collector.DontWriteAssetPath);
+						var assetCollectInfo = new AssetCollectInfo(assetPath, collector.GetAssetTags());
 						result.Add(assetPath, assetCollectInfo);
 					}
 				}
