@@ -25,11 +25,6 @@ namespace MotionFramework.Editor
 
 		private string _saveFilePath = "Assets/MyShaderVariants.shadervariants";
 		private ShaderVariantCollection _selectSVC;
-		
-		/// <summary>
-		/// 预览所使用的场景
-		/// </summary>
-		private UnityEditor.SceneAsset _profilerScene = null;
 
 		private void OnGUI()
 		{
