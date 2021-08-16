@@ -25,6 +25,11 @@ namespace MotionFramework.Patch
 			public bool IgnoreResourceVersion = false;
 
 			/// <summary>
+			/// 当缓存池被污染的时候清理缓存池
+			/// </summary>
+			public bool ClearCacheWhenDirty = true;
+
+			/// <summary>
 			/// 远程服务器信息
 			/// </summary>
 			public RemoteServerInfo ServerInfo;
@@ -32,7 +37,7 @@ namespace MotionFramework.Patch
 			/// <summary>
 			/// 向WEB服务器投递的数据
 			/// </summary>
-			public string WebPoseContent;
+			public string WebPoseContent = string.Empty;
 
 			/// <summary>
 			/// 游戏版本解析器
@@ -52,7 +57,7 @@ namespace MotionFramework.Patch
 			/// <summary>
 			/// 首次启动游戏或更新游戏时自动下载内置DLC列表
 			/// </summary>
-			public bool AutoDownloadBuildinDLC;
+			public bool AutoDownloadBuildinDLC = true;
 
 			/// <summary>
 			/// 同时下载的最大文件数（内置下载器参数）
@@ -199,6 +204,9 @@ namespace MotionFramework.Patch
 		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)
 		{
+			if (string.IsNullOrEmpty(bundleName))
+				return new AssetBundleInfo(string.Empty, string.Empty);
+
 			return _patcher.GetAssetBundleInfo(bundleName);
 		}
 		string IBundleServices.GetAssetBundleName(string assetPath)
@@ -206,15 +214,10 @@ namespace MotionFramework.Patch
 			PatchManifest patchManifest = _patcher.GetPatchManifest();
 			return patchManifest.GetAssetBundleName(assetPath);
 		}
-		string[] IBundleServices.GetDirectDependencies(string bundleName)
+		string[] IBundleServices.GetAllDependencies(string assetPath)
 		{
 			PatchManifest patchManifest = _patcher.GetPatchManifest();
-			return patchManifest.GetDirectDependencies(bundleName);
-		}
-		string[] IBundleServices.GetAllDependencies(string bundleName)
-		{
-			PatchManifest patchManifest = _patcher.GetPatchManifest();
-			return patchManifest.GetAllDependencies(bundleName);
+			return patchManifest.GetAllDependencies(assetPath);
 		}
 		#endregion
 	}

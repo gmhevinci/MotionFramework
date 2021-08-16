@@ -23,6 +23,7 @@ namespace MotionFramework.Patch
 
 		// 参数相关
 		public bool IgnoreResourceVersion { private set; get; }
+		private bool _clearCacheWhenDirty;
 		private RemoteServerInfo _serverInfo;
 		private string _webPostContent;
 		private IGameVersionParser _gameVersionParser;
@@ -90,6 +91,7 @@ namespace MotionFramework.Patch
 		public void Create(PatchManager.CreateParameters createParam)
 		{
 			IgnoreResourceVersion = createParam.IgnoreResourceVersion;
+			_clearCacheWhenDirty = createParam.ClearCacheWhenDirty;
 			_serverInfo = createParam.ServerInfo;
 			_webPostContent = createParam.WebPoseContent;
 			_gameVersionParser = createParam.GameVersionParser;
@@ -111,25 +113,34 @@ namespace MotionFramework.Patch
 			_cache = PatchCache.LoadCache();
 
 			// 检测沙盒被污染
-			// 注意：在覆盖安装的时候，会保留沙盒目录里的文件，所以需要强制清空
 			{
 				// 如果是首次打开，记录APP版本号
 				if (PatchHelper.CheckSandboxCacheFileExist() == false)
 				{
-					_cache.CacheAppVersion = Application.version;
-					_cache.SaveCache();
+					_cache.InitCache(Application.version);
 				}
 				else
 				{
 					// 每次启动时比对APP版本号是否一致	
 					if (_cache.CacheAppVersion != Application.version)
 					{
-						MotionLog.Warning($"Cache is dirty ! Cache version is {_cache.CacheAppVersion}, APP version is {Application.version}");
-						ClearCache();
+						// 注意：在覆盖安装的时候，会保留沙盒目录里的文件，可以选择清空沙盒目录
+						if (_clearCacheWhenDirty)
+						{
+							MotionLog.Warning($"Cache is dirty ! Cache app version is {_cache.CacheAppVersion}, Current app version is {Application.version}");
+							ClearCache();
 
-						// 重新写入最新的APP版本号
-						_cache.CacheAppVersion = Application.version;
-						_cache.SaveCache();
+							// 重新写入最新的APP版本号
+							_cache.InitCache(Application.version);
+						}
+						else
+						{
+							// 删除清单文件
+							PatchHelper.DeleteSandboxPatchManifestFile();
+
+							// 重新写入最新的APP版本号
+							_cache.InitCache(Application.version);
+						}
 					}
 				}
 			}
@@ -200,7 +211,8 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public void ClearCache()
 		{
-			_cache.ClearCache();
+			MotionLog.Warning("Clear cache and remove all sandbox files.");
+			PatchHelper.ClearSandbox();
 		}
 
 		/// <summary>

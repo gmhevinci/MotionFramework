@@ -57,6 +57,9 @@ namespace MotionFramework.Patch
 		}
 		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)
 		{
+			if(string.IsNullOrEmpty(bundleName))
+				return new AssetBundleInfo(string.Empty, string.Empty);
+
 			if (_patchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(patchBundle.Hash);
@@ -74,13 +77,9 @@ namespace MotionFramework.Patch
 		{
 			return _patchManifest.GetAssetBundleName(assetPath);
 		}
-		string[] IBundleServices.GetDirectDependencies(string bundleName)
+		string[] IBundleServices.GetAllDependencies(string assetPath)
 		{
-			return _patchManifest.GetDirectDependencies(bundleName);
-		}
-		string[] IBundleServices.GetAllDependencies(string bundleName)
-		{
-			return _patchManifest.GetAllDependencies(bundleName);
+			return _patchManifest.GetAllDependencies(assetPath);
 		}
 		#endregion
 	}

@@ -41,7 +41,7 @@ namespace MotionFramework.Patch
 			string webURL = _patcher.GetWebServerURL();
 			string postContent = _patcher.GetWebPostContent();
 			MotionLog.Log($"Beginning to request from web : {webURL}");
-			MotionLog.Log($"Web post content : {postContent}");
+			MotionLog.Log($"Post content : {postContent}");
 			WebPostRequest download = new WebPostRequest(webURL);
 			download.SendRequest(postContent);
 			yield return download;
@@ -56,7 +56,7 @@ namespace MotionFramework.Patch
 			}
 
 			string responseContent = download.GetResponse();
-			MotionLog.Log($"Succeed get response from web : {responseContent}");
+			MotionLog.Log($"Response content : {responseContent}");
 			download.Dispose();
 
 			// 如果解析成功

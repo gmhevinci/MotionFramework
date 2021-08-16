@@ -50,6 +50,16 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
+		/// 删除沙盒内补丁清单文件
+		/// </summary>
+		public static void DeleteSandboxPatchManifestFile()
+		{
+			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			if (File.Exists(filePath))
+				File.Delete(filePath);
+		}
+
+		/// <summary>
 		/// 获取缓存文件的存储路径
 		/// </summary>
 		public static string MakeSandboxCacheFilePath(string fileName)

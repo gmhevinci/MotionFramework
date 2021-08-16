@@ -26,17 +26,39 @@ namespace MotionFramework.Patch
 		public List<string> CachedFileHashList = new List<string>();
 
 
-		// 缓存操作方法
+		/// <summary>
+		/// 初始化缓存
+		/// </summary>
+		/// <param name="appVersion"></param>
+		public void InitCache(string appVersion)
+		{
+			CacheAppVersion = appVersion;
+			SaveCache();
+		}
+
+		/// <summary>
+		/// 缓存文件是否已经存在
+		/// </summary>
+		public bool Contains(string hash)
+		{
+			return CachedFileHashList.Contains(hash);
+		}
+
+		/// <summary>
+		/// 缓存单个文件
+		/// </summary>
 		public void CacheDownloadPatchFile(string hash)
 		{
 			if (CachedFileHashList.Contains(hash) == false)
 			{
 				CachedFileHashList.Add(hash);
-
-				// 保存缓存
 				SaveCache();
 			}
 		}
+
+		/// <summary>
+		/// 缓存多个文件
+		/// </summary>
 		public void CacheDownloadPatchFiles(List<string> hashList)
 		{
 			bool hasCached = false;
@@ -51,40 +73,21 @@ namespace MotionFramework.Patch
 
 			if (hasCached)
 			{
-				// 保存缓存
 				SaveCache();
 			}
 		}
 
 		/// <summary>
-		/// 缓存文件是否已经存在
-		/// </summary>
-		public bool Contains(string hash)
-		{
-			return CachedFileHashList.Contains(hash);
-		}
-
-		/// <summary>
 		/// 保存缓存文件
 		/// </summary>
-		public void SaveCache()
+		private void SaveCache()
 		{
-			MotionLog.Log("Save cache to disk.");
+			MotionLog.Log("Save patch cache to disk.");
 			string filePath = PatchHelper.GetSandboxCacheFilePath();
 			string jsonData = JsonUtility.ToJson(this);
 			FileUtility.CreateFile(filePath, jsonData);
 		}
 
-		/// <summary>
-		/// 清空缓存并删除所有缓存文件
-		/// </summary>
-		public void ClearCache()
-		{
-			MotionLog.Warning("Clear cache and remove all sandbox files.");
-			CacheAppVersion = string.Empty;
-			CachedFileHashList.Clear();
-			PatchHelper.ClearSandbox();
-		}
 
 		/// <summary>
 		/// 读取缓存文件
