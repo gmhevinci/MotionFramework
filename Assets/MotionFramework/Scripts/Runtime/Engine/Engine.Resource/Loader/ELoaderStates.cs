@@ -7,14 +7,13 @@
 namespace MotionFramework.Resource
 {
 	/// <summary>
-	/// 文件加载状态
+	/// 文件加载器状态
 	/// </summary>
 	internal enum ELoaderStates
 	{
 		None = 0,
 		Download,
 		CheckDownload,
-		CheckDepends,
 		LoadFile,
 		CheckFile,
 		Success,

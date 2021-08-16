@@ -22,8 +22,8 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetDatabaseProvider(FileLoaderBase owner, string assetName, System.Type assetType)
-			: base(owner, assetName, assetType)
+		public AssetDatabaseProvider(string assetPath, System.Type assetType)
+			: base(assetPath, assetType)
 		{
 		}
 		public override void Update()
@@ -34,14 +34,22 @@ namespace MotionFramework.Resource
 
 			if (States == EAssetStates.None)
 			{
-				States = EAssetStates.Loading;
+				// 检测资源文件是否存在
+				string guid = UnityEditor.AssetDatabase.AssetPathToGUID(AssetPath);
+				if (string.IsNullOrEmpty(guid))
+					States = EAssetStates.Fail;
+				else
+					States = EAssetStates.Loading;
+
+				// 注意：模拟异步加载效果提前返回
+				if (IsWaitForAsyncComplete == false)
+					return;
 			}
 
 			// 1. 加载资源对象
 			if (States == EAssetStates.Loading)
 			{
-				string assetPath = Owner.BundleInfo.LocalPath;
-				AssetObject = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, AssetType);
+				AssetObject = UnityEditor.AssetDatabase.LoadAssetAtPath(AssetPath, AssetType);
 				States = EAssetStates.Checking;
 			}
 
@@ -50,7 +58,7 @@ namespace MotionFramework.Resource
 			{
 				States = AssetObject == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load asset object : {Owner.BundleInfo.LocalPath} : {AssetName}");
+					MotionLog.Warning($"Failed to load asset object : {AssetPath}");
 				InvokeCompletion();
 			}
 #endif

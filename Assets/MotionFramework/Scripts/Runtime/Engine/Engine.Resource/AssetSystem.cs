@@ -16,7 +16,8 @@ namespace MotionFramework.Resource
 	/// </summary>
 	internal static class AssetSystem
 	{
-		private static readonly List<FileLoaderBase> _loaders = new List<FileLoaderBase>(1000);
+		private static readonly List<BundleFileLoader> _loaders = new List<BundleFileLoader>(1000);
+		private static readonly List<AssetProviderBase> _providers = new List<AssetProviderBase>(1000);
 		private static readonly List<string> _removeKeys = new List<string>(100);
 		private static bool _isInitialize = false;
 
@@ -46,32 +47,28 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static IDecryptServices DecryptServices { private set; get; }
 
+
 		/// <summary>
 		/// 初始化资源系统
 		/// 注意：在使用AssetSystem之前需要初始化
 		/// </summary>
 		public static void Initialize(string locationRoot, bool simulationOnEditor, int runtimeMaxLoadingCount, IBundleServices bundleServices, IDecryptServices decryptServices)
 		{
-			if (_isInitialize == false)
-			{
-				_isInitialize = true;
-
-				if (runtimeMaxLoadingCount < 3)
-				{
-					runtimeMaxLoadingCount = 3;
-					MotionLog.Warning("AssetSystem RuntimeMaxLoadingCount minimum is 3");
-				}
-
-				LocationRoot = AssetPathHelper.GetRegularPath(locationRoot);
-				SimulationOnEditor = simulationOnEditor;
-				RuntimeMaxLoadingCount = runtimeMaxLoadingCount;
-				BundleServices = bundleServices;
-				DecryptServices = decryptServices;
-			}
-			else
-			{
+			if (_isInitialize)
 				throw new Exception($"{nameof(AssetSystem)} is already initialized");
+
+			if (runtimeMaxLoadingCount < 3)
+			{
+				runtimeMaxLoadingCount = 3;
+				MotionLog.Warning("AssetSystem RuntimeMaxLoadingCount minimum is 3");
 			}
+
+			_isInitialize = true;
+			LocationRoot = AssetPathHelper.GetRegularPath(locationRoot);
+			SimulationOnEditor = simulationOnEditor;
+			RuntimeMaxLoadingCount = runtimeMaxLoadingCount;
+			BundleServices = bundleServices;
+			DecryptServices = decryptServices;
 		}
 
 		/// <summary>
@@ -81,10 +78,9 @@ namespace MotionFramework.Resource
 		{
 			// 更新所有加载器
 			int loadingCount = 0;
-			for (int i = 0; i < _loaders.Count; i++)
+			foreach(var loader in _loaders)
 			{
-				var loader = _loaders[i];
-				if (loader.IsSceneLoader)
+				if (loader.IsSceneBundle)
 				{
 					loader.Update();
 				}
@@ -98,63 +94,22 @@ namespace MotionFramework.Resource
 				}
 			}
 
+			// 更新所有的资源提供者
+			for (int i = _providers.Count - 1; i >= 0; i--)
+			{
+				var provider = _providers[i];
+				provider.Update();
+
+				// 检测是否可以销毁
+				if (provider.CanDestroy())
+				{
+					provider.Destory();
+					_providers.RemoveAt(i);
+				}
+			}
+
 			// 实时销毁场景
 			UpdateDestroyScene();
-		}
-
-		/// <summary>
-		/// 获取资源信息
-		/// </summary>
-		public static AssetBundleInfo GetAssetBundleInfo(string location)
-		{
-			if (_isInitialize == false)
-				throw new Exception($"{nameof(AssetSystem)} is not initialize.");
-
-			if (SimulationOnEditor)
-			{
-#if UNITY_EDITOR
-				string assetPath = AssetPathHelper.FindDatabaseAssetPath(location);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(assetPath, assetPath);
-				return bundleInfo;
-#else
-				throw new Exception($"AssetSystem simulation only support unity editor.");
-#endif
-			}
-			else
-			{
-				if (BundleServices == null)
-					throw new Exception($"{nameof(BundleServices)} is null. Use {nameof(AssetSystem.Initialize)}");
-
-				string assetPath = AssetPathHelper.CombineAssetPath(LocationRoot, location);
-				string bundleName = BundleServices.GetAssetBundleName(assetPath);
-				return BundleServices.GetAssetBundleInfo(bundleName);
-			}
-		}
-
-		/// <summary>
-		/// 创建资源文件加载器
-		/// </summary>
-		public static FileLoaderBase CreateLoader(string location)
-		{
-			AssetBundleInfo bundleInfo = GetAssetBundleInfo(location);
-			return CreateLoaderInternal(bundleInfo);
-		}
-		internal static FileLoaderBase CreateLoaderInternal(AssetBundleInfo bundleInfo)
-		{
-			// 如果加载器已经存在
-			FileLoaderBase loader = TryGetLoader(bundleInfo.BundleName);
-			if (loader != null)
-				return loader;
-
-			// 创建加载器
-			if (SimulationOnEditor)
-				loader = new AssetDatabaseLoader(bundleInfo);
-			else
-				loader = new AssetBundleLoader(bundleInfo);
-
-			// 新增下载需求
-			_loaders.Add(loader);
-			return loader;
 		}
 
 		/// <summary>
@@ -165,8 +120,8 @@ namespace MotionFramework.Resource
 		{
 			for (int i = _loaders.Count - 1; i >= 0; i--)
 			{
-				FileLoaderBase loader = _loaders[i];
-				if (loader.IsSceneLoader && loader.CanDestroy())
+				BundleFileLoader loader = _loaders[i];
+				if (loader.IsSceneBundle && loader.CanDestroy())
 				{
 					loader.Destroy(true);
 					_loaders.RemoveAt(i);
@@ -181,7 +136,7 @@ namespace MotionFramework.Resource
 		{
 			for (int i = _loaders.Count - 1; i >= 0; i--)
 			{
-				FileLoaderBase loader = _loaders[i];
+				BundleFileLoader loader = _loaders[i];
 				if (loader.CanDestroy())
 				{
 					loader.Destroy(true);
@@ -195,26 +150,148 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static void ForceUnloadAllAssets()
 		{
-			for (int i = 0; i < _loaders.Count; i++)
+			foreach(var provider in _providers)
 			{
-				FileLoaderBase loader = _loaders[i];
+				provider.Destory();
+			}
+			_providers.Clear();
+
+			foreach (var loader in _loaders)
+			{
 				loader.Destroy(false);
 			}
 			_loaders.Clear();
 
-			// 释放所有资源
+			// 注意：调用底层接口释放所有资源
 			Resources.UnloadUnusedAssets();
 		}
 
+
 		/// <summary>
-		/// 从列表里获取加载器
+		/// 定位地址转换为资源路径
 		/// </summary>
-		private static FileLoaderBase TryGetLoader(string bundleName)
+		public static string ConvertLocationToAssetPath(string location)
 		{
-			FileLoaderBase loader = null;
+			if (SimulationOnEditor)
+			{
+#if UNITY_EDITOR
+				return AssetPathHelper.FindDatabaseAssetPath(location);
+#else
+				throw new Exception($"AssetSystem simulation only support unity editor.");
+#endif
+			}
+			else
+			{
+				return AssetPathHelper.CombineAssetPath(LocationRoot, location);
+			}
+		}
+
+		/// <summary>
+		/// 获取资源包信息
+		/// </summary>
+		public static AssetBundleInfo GetAssetBundleInfo(string assetPath)
+		{
+			if (SimulationOnEditor)
+			{
+				MotionLog.Warning($"{nameof(SimulationOnEditor)} mode can not get asset bundle info.");
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(assetPath, assetPath);
+				return bundleInfo;
+			}
+			else
+			{
+				string bundleName = BundleServices.GetAssetBundleName(assetPath);
+				return BundleServices.GetAssetBundleInfo(bundleName);
+			}
+		}
+
+		/// <summary>
+		/// 异步加载场景
+		/// </summary>
+		/// <param name="scenePath">场景名称</param>
+		public static AssetOperationHandle LoadSceneAsync(string scenePath, SceneInstanceParam instanceParam)
+		{
+			AssetProviderBase provider = TryGetProvider(scenePath);
+			if (provider == null)
+			{
+				if (SimulationOnEditor)
+					provider = new EditorSceneProvider(scenePath, instanceParam);
+				else
+					provider = new AssetSceneProvider(scenePath, instanceParam);
+				_providers.Add(provider);
+			}
+
+			// 引用计数增加
+			provider.Reference();
+			return provider.Handle;
+		}
+
+		/// <summary>
+		/// 异步加载资源对象
+		/// </summary>
+		/// <param name="assetPath">资源路径</param>
+		/// <param name="assetType">资源类型</param>
+		public static AssetOperationHandle LoadAssetAsync(string assetPath, System.Type assetType)
+		{
+			AssetProviderBase provider = TryGetProvider(assetPath);
+			if (provider == null)
+			{
+				if (SimulationOnEditor)
+					provider = new AssetDatabaseProvider(assetPath, assetType);
+				else
+					provider = new AssetBundleProvider(assetPath, assetType);
+				_providers.Add(provider);
+			}
+
+			// 引用计数增加
+			provider.Reference();
+			return provider.Handle;
+		}
+
+		/// <summary>
+		/// 异步加载所有子资源对象
+		/// </summary>
+		/// <param name="assetPath">资源路径</param>
+		/// <param name="assetType">资源类型</param>、
+		public static AssetOperationHandle LoadSubAssetsAsync(string assetPath, System.Type assetType)
+		{
+			AssetProviderBase provider = TryGetProvider(assetPath);
+			if (provider == null)
+			{
+				if (SimulationOnEditor)
+					provider = new AssetDatabaseSubProvider(assetPath, assetType);
+				else
+					provider = new AssetBundleSubProvider(assetPath, assetType);
+				_providers.Add(provider);
+			}
+
+			// 引用计数增加
+			provider.Reference();
+			return provider.Handle;
+		}
+
+
+		/// <summary>
+		/// 获取或创建一个资源包加载器
+		/// </summary>
+		internal static BundleFileLoader GetOrCreateBundleFileLoader(AssetBundleInfo bundleInfo)
+		{
+			// 如果加载器已经存在
+			BundleFileLoader loader = TryGetLoader(bundleInfo.BundleName);
+			if (loader != null)
+				return loader;
+
+			// 新增下载需求
+			loader = new BundleFileLoader(bundleInfo);
+			_loaders.Add(loader);
+			return loader;
+		}
+
+		private static BundleFileLoader TryGetLoader(string bundleName)
+		{
+			BundleFileLoader loader = null;
 			for (int i = 0; i < _loaders.Count; i++)
 			{
-				FileLoaderBase temp = _loaders[i];
+				BundleFileLoader temp = _loaders[i];
 				if (temp.BundleInfo.BundleName.Equals(bundleName))
 				{
 					loader = temp;
@@ -223,9 +300,23 @@ namespace MotionFramework.Resource
 			}
 			return loader;
 		}
+		private static AssetProviderBase TryGetProvider(string assetPath)
+		{
+			AssetProviderBase provider = null;
+			for (int i = 0; i < _providers.Count; i++)
+			{
+				AssetProviderBase temp = _providers[i];
+				if (temp.AssetPath.Equals(assetPath))
+				{
+					provider = temp;
+					break;
+				}
+			}
+			return provider;
+		}
 
 		#region 调试专属方法
-		internal static List<FileLoaderBase> GetAllLoaders()
+		internal static List<BundleFileLoader> GetAllLoaders()
 		{
 			return _loaders;
 		}

@@ -11,56 +11,78 @@ using MotionFramework.Network;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class AssetBundleLoader : FileLoaderBase
+	internal class BundleFileLoader
 	{
-		private readonly List<AssetBundleLoader> _depends = new List<AssetBundleLoader>(10);
+		/// <summary>
+		/// 资源文件信息
+		/// </summary>
+		public AssetBundleInfo BundleInfo { private set; get;  }
+
+		/// <summary>
+		/// 引用计数
+		/// </summary>
+		public int RefCount { private set; get; }
+
+		/// <summary>
+		/// 加载状态
+		/// </summary>
+		public ELoaderStates States { private set; get; }
+
+		/// <summary>
+		/// 是否为场景资源包
+		/// </summary>
+		public bool IsSceneBundle { private set; get; } = false;
+
+		/// <summary>
+		/// 是否已经销毁
+		/// </summary>
+		public bool IsDestroyed { private set; get; } = false;
+
+
+		private bool _isWaitForAsyncComplete = false;
 		private WebFileRequest _downloader;
 		private AssetBundleCreateRequest _cacheRequest;
-		private bool _isWaitForAsyncComplete = false;
 		internal AssetBundle CacheBundle { private set; get; }
 
-		public AssetBundleLoader(AssetBundleInfo bundleInfo)
-			: base(bundleInfo)
-		{
-			// 准备依赖列表
-			string[] dependencies = AssetSystem.BundleServices.GetDirectDependencies(bundleInfo.BundleName);
-			if (dependencies != null && dependencies.Length > 0)
-			{
-				foreach (string dependBundleName in dependencies)
-				{
-					AssetBundleInfo dependBundleInfo = AssetSystem.BundleServices.GetAssetBundleInfo(dependBundleName);
-					AssetBundleLoader dependLoader = AssetSystem.CreateLoaderInternal(dependBundleInfo) as AssetBundleLoader;
-					dependLoader.Reference();
-					_depends.Add(dependLoader);
-				}
-			}
-		}
-		protected override void Reference()
-		{
-			base.Reference();
 
-			// 同时引用一遍所有依赖资源
-			for (int i = 0; i < _depends.Count; i++)
-			{
-				_depends[i].Reference();
-			}
-		}
-		protected override void Release()
+		public BundleFileLoader(AssetBundleInfo bundleInfo)
 		{
-			base.Release();
-
-			// 同时释放一遍所有依赖资源
-			for (int i = 0; i < _depends.Count; i++)
-			{
-				_depends[i].Release();
-			}
+			BundleInfo = bundleInfo;
+			RefCount = 0;
+			States = ELoaderStates.None;
 		}
-		public override void Update()
-		{
-			base.Update();
 
+		/// <summary>
+		/// 设置为场景资源包
+		/// </summary>
+		public void SetSceneBundle()
+		{
+			IsSceneBundle = true;
+		}
+
+		/// <summary>
+		/// 引用（引用计数递加）
+		/// </summary>
+		public void Reference()
+		{
+			RefCount++;
+		}
+
+		/// <summary>
+		/// 释放（引用计数递减）
+		/// </summary>
+		public void Release()
+		{
+			RefCount--;
+		}
+
+		/// <summary>
+		/// 轮询更新
+		/// </summary>
+		public void Update()
+		{
 			// 如果资源文件加载完毕
-			if (CheckFileLoadDone())
+			if (IsDone())
 				return;
 
 			if (States == ELoaderStates.None)
@@ -73,7 +95,7 @@ namespace MotionFramework.Resource
 				}
 
 				if (string.IsNullOrEmpty(BundleInfo.RemoteURL))
-					States = ELoaderStates.CheckDepends;
+					States = ELoaderStates.LoadFile;
 				else
 					States = ELoaderStates.Download;
 			}
@@ -107,7 +129,7 @@ namespace MotionFramework.Resource
 					}
 					else
 					{
-						States = ELoaderStates.CheckDepends;
+						States = ELoaderStates.LoadFile;
 					}
 				}
 
@@ -119,21 +141,7 @@ namespace MotionFramework.Resource
 				}
 			}
 
-			// 3. 检测所有依赖完成状态
-			if (States == ELoaderStates.CheckDepends)
-			{
-				foreach (var dpLoader in _depends)
-				{
-					if (_isWaitForAsyncComplete)
-						dpLoader.WaitForAsyncComplete();
-
-					if (dpLoader.CheckFileLoadDone() == false)
-						return;
-				}
-				States = ELoaderStates.LoadFile;
-			}
-
-			// 4. 加载AssetBundle
+			// 3. 加载AssetBundle
 			if (States == ELoaderStates.LoadFile)
 			{
 #if UNITY_EDITOR
@@ -150,7 +158,7 @@ namespace MotionFramework.Resource
 				if (BundleInfo.IsEncrypted)
 				{
 					if (AssetSystem.DecryptServices == null)
-						throw new Exception($"{nameof(AssetBundleLoader)} need IDecryptServices : {BundleInfo.BundleName}");
+						throw new Exception($"{nameof(BundleFileLoader)} need IDecryptServices : {BundleInfo.BundleName}");
 
 					EDecryptMethod decryptType = AssetSystem.DecryptServices.DecryptType;
 					if (decryptType == EDecryptMethod.GetDecryptOffset)
@@ -184,7 +192,7 @@ namespace MotionFramework.Resource
 				States = ELoaderStates.CheckFile;
 			}
 
-			// 5. 检测AssetBundle加载结果
+			// 4. 检测AssetBundle加载结果
 			if (States == ELoaderStates.CheckFile)
 			{
 				if (_cacheRequest != null)
@@ -214,9 +222,13 @@ namespace MotionFramework.Resource
 				}
 			}
 		}
-		public override void Destroy(bool checkFatal)
+
+		/// <summary>
+		/// 销毁
+		/// </summary>
+		public void Destroy(bool checkFatal)
 		{
-			base.Destroy(checkFatal);
+			IsDestroyed = true;
 
 			// Check fatal
 			if (checkFatal)
@@ -238,21 +250,32 @@ namespace MotionFramework.Resource
 				CacheBundle.Unload(true);
 				CacheBundle = null;
 			}
-
-			foreach (var dependLoader in _depends)
-			{
-				dependLoader.Release();
-			}
-			_depends.Clear();
 		}
-		public override void WaitForAsyncComplete()
-		{
-			if (IsSceneLoader)
-			{
-				MotionLog.Warning($"Scene is not support {nameof(WaitForAsyncComplete)}.");
-				return;
-			}
 
+		/// <summary>
+		/// 是否完毕（无论成功或失败）
+		/// </summary>
+		public bool IsDone()
+		{
+			return States == ELoaderStates.Success || States == ELoaderStates.Fail;
+		}
+
+		/// <summary>
+		/// 是否可以销毁
+		/// </summary>
+		public bool CanDestroy()
+		{
+			if (IsDone() == false)
+				return false;
+
+			return RefCount <= 0;
+		}
+
+		/// <summary>
+		/// 主线程等待异步操作完毕
+		/// </summary>
+		public void WaitForAsyncComplete()
+		{
 			_isWaitForAsyncComplete = true;
 
 			int frame = 1000;
@@ -262,7 +285,7 @@ namespace MotionFramework.Resource
 				// 注意：如果需要从WEB端下载资源，可能会触发保险机制！
 				frame--;
 				if (frame == 0)
-					throw new Exception($"Should never get here ! BundleName : {BundleInfo.BundleName} States : {States}");
+					throw new Exception($"WaitForAsyncComplete failed ! BundleName : {BundleInfo.BundleName} States : {States}");
 
 				// 驱动流程
 				Update();

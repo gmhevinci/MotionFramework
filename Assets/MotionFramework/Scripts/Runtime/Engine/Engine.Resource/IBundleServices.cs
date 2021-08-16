@@ -24,13 +24,8 @@ namespace MotionFramework.Resource
 		string GetAssetBundleName(string assetPath);
 
 		/// <summary>
-		/// 获取AssetBundle的直接依赖列表
+		/// 获取资源所有AssetBundle的依赖列表
 		/// </summary>
-		string[] GetDirectDependencies(string bundleName);
-
-		/// <summary>
-		/// 获取AssetBundle的所有依赖列表
-		/// </summary>
-		string[] GetAllDependencies(string bundleName);
+		string[] GetAllDependencies(string assetPath);
 	}
 }

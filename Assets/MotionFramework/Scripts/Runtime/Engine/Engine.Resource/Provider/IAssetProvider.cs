@@ -12,6 +12,11 @@ namespace MotionFramework.Resource
 	internal interface IAssetProvider
 	{
 		/// <summary>
+		/// 资源路径
+		/// </summary>
+		string AssetPath { get; }
+
+		/// <summary>
 		/// 资源对象的名称
 		/// </summary>
 		string AssetName { get; }
@@ -102,9 +107,9 @@ namespace MotionFramework.Resource
 		bool CanDestroy();
 
 		/// <summary>
-		/// 设置同步加载模式
+		/// 等待异步执行完毕
 		/// </summary>
-		void SetSyncLoadMode();
+		void WaitForAsyncComplete();
 
 		/// <summary>
 		/// 异步操作任务

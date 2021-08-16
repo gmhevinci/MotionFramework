@@ -12,6 +12,7 @@ namespace MotionFramework.Resource
 	public enum EAssetStates
 	{
 		None = 0,
+		CheckBundle,
 		Loading,
 		Checking,
 		Success,

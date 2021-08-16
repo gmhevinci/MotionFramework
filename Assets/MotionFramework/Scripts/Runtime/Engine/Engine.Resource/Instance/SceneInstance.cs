@@ -4,6 +4,7 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MotionFramework.Resource
 {
@@ -40,10 +41,15 @@ namespace MotionFramework.Resource
 	public class SceneInstanceParam : IAssetParam
 	{
 		/// <summary>
-		/// 是否是附加场景
+		/// 加载模式
 		/// </summary>
-		public bool IsAdditive { set; get; }
+		public LoadSceneMode LoadMode { set; get; }
 
+		/// <summary>
+		/// 物理模式
+		/// </summary>
+		//public LocalPhysicsMode PhysicsMode { set; get;}
+		
 		/// <summary>
 		/// 加载完毕时是否主动激活
 		/// </summary>

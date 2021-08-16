@@ -11,7 +11,7 @@ namespace MotionFramework.Resource
 {
 	internal sealed class AssetBundleProvider : AssetProviderBase
 	{
-		private AssetBundleLoader _loader;
+		private BundleFileGrouper _bundleGrouper;
 		private AssetBundleRequest _cacheRequest;
 		public override float Progress
 		{
@@ -23,53 +23,68 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetBundleProvider(FileLoaderBase owner, string assetName, System.Type assetType)
-			: base(owner, assetName, assetType)
+		public AssetBundleProvider(string assetPath, System.Type assetType)
+			: base(assetPath, assetType)
 		{
-			_loader = owner as AssetBundleLoader;
+			_bundleGrouper = new BundleFileGrouper(assetPath);
+			_bundleGrouper.Reference();
 		}
 		public override void Update()
 		{
 			if (IsDone)
 				return;
 
-			if (_loader.CacheBundle == null)
-			{
-				States = EAssetStates.Fail;
-				InvokeCompletion();
-			}
-
 			if (States == EAssetStates.None)
 			{
-				States = EAssetStates.Loading;
+				States = EAssetStates.CheckBundle;
 			}
 
-			// 1. 加载资源对象
+			// 1. 检测资源包
+			if (States == EAssetStates.CheckBundle)
+			{
+				if (IsWaitForAsyncComplete)
+					_bundleGrouper.WaitForAsyncComplete();
+
+				if (_bundleGrouper.IsDone() == false)
+					return;
+
+				if (_bundleGrouper.OwnerAssetBundle == null)
+				{
+					States = EAssetStates.Fail;
+					InvokeCompletion();
+				}
+				else
+				{
+					States = EAssetStates.Loading;
+				}
+			}
+
+			// 2. 加载资源对象
 			if (States == EAssetStates.Loading)
 			{
-				if (SyncLoadMode)
+				if (IsWaitForAsyncComplete)
 				{
 					if (AssetType == null)
-						AssetObject = _loader.CacheBundle.LoadAsset(AssetName);
+						AssetObject = _bundleGrouper.OwnerAssetBundle.LoadAsset(AssetName);
 					else
-						AssetObject = _loader.CacheBundle.LoadAsset(AssetName, AssetType);
+						AssetObject = _bundleGrouper.OwnerAssetBundle.LoadAsset(AssetName, AssetType);
 				}
 				else
 				{
 					if (AssetType == null)
-						_cacheRequest = _loader.CacheBundle.LoadAssetAsync(AssetName);
+						_cacheRequest = _bundleGrouper.OwnerAssetBundle.LoadAssetAsync(AssetName);
 					else
-						_cacheRequest = _loader.CacheBundle.LoadAssetAsync(AssetName, AssetType);
+						_cacheRequest = _bundleGrouper.OwnerAssetBundle.LoadAssetAsync(AssetName, AssetType);
 				}
 				States = EAssetStates.Checking;
 			}
 
-			// 2. 检测加载结果
+			// 3. 检测加载结果
 			if (States == EAssetStates.Checking)
 			{
 				if (_cacheRequest != null)
 				{
-					if (SyncLoadMode)
+					if (IsWaitForAsyncComplete)
 					{
 						// 强制挂起主线程（注意：该操作会很耗时）
 						AssetObject = _cacheRequest.asset;
@@ -84,7 +99,7 @@ namespace MotionFramework.Resource
 
 				States = AssetObject == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load asset : {AssetName} from bundle : {_loader.BundleInfo.BundleName}");
+					MotionLog.Warning($"Failed to load asset : {AssetName} from bundle : {_bundleGrouper.OwnerBundleInfo.BundleName}");
 				InvokeCompletion();
 			}
 		}
@@ -92,6 +107,14 @@ namespace MotionFramework.Resource
 		{
 			base.Destory();
 
+			// 释放资源包
+			if (_bundleGrouper != null)
+			{
+				_bundleGrouper.Release();
+				_bundleGrouper = null;
+			}
+
+			// 销毁资源对象
 			if (AssetObject != null)
 			{
 				if (AssetObject is GameObject == false)

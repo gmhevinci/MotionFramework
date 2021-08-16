@@ -154,6 +154,16 @@ namespace MotionFramework.Resource
 			_provider = null;
 		}
 
+		/// <summary>
+		/// 等待异步执行完毕
+		/// </summary>
+		public void WaitForAsyncComplete()
+		{
+			if (IsValid == false)
+				return;
+			_provider.WaitForAsyncComplete();
+		}
+
 		#region 异步操作相关
 		/// <summary>
 		/// 异步操作任务

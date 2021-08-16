@@ -8,9 +8,9 @@ namespace MotionFramework.Resource
 {
 	internal abstract class AssetProviderBase : IAssetProvider
 	{
-		protected FileLoaderBase Owner { private set; get; }
-		protected bool SyncLoadMode { private set; get; } = false;
+		protected bool IsWaitForAsyncComplete { private set; get; } = false;
 		
+		public string AssetPath { private set; get; }
 		public string AssetName { private set; get; }
 		public System.Type AssetType { private set; get; }
 		public UnityEngine.Object AssetObject { protected set; get; }
@@ -32,8 +32,7 @@ namespace MotionFramework.Resource
 		{
 			get
 			{
-				//注意：当AssetBundle被强制卸载后，所有AssetProvider失效
-				return IsDestroyed == false && Owner.IsDestroyed == false;
+				return IsDestroyed == false;
 			}
 		}
 		public virtual float Progress
@@ -45,15 +44,15 @@ namespace MotionFramework.Resource
 		}
 		
 
-		public AssetProviderBase(FileLoaderBase owner, string assetName, System.Type assetType)
+		public AssetProviderBase(string assetPath, System.Type assetType)
 		{
-			Owner = owner;
-			AssetName = assetName;
+			AssetPath = assetPath;
+			AssetName = System.IO.Path.GetFileName(assetPath);
 			AssetType = assetType;
 			States = EAssetStates.None;
 			Handle = new AssetOperationHandle(this);
 		}
-		
+
 		public abstract void Update();
 		public virtual void Destory()
 		{
@@ -67,7 +66,7 @@ namespace MotionFramework.Resource
 		public void Release()
 		{
 			if (RefCount <= 0)
-				throw new System.Exception("Cannot decrement reference count, AssetProvider reference is already zero.");
+				MotionLog.Warning("Asset provider reference count is already zero. There may be resource leaks !");
 
 			RefCount--;
 		}
@@ -78,9 +77,22 @@ namespace MotionFramework.Resource
 
 			return RefCount <= 0;
 		}
-		public void SetSyncLoadMode()
+
+		/// <summary>
+		/// 等待异步执行完毕
+		/// </summary>
+		public virtual void WaitForAsyncComplete()
 		{
-			SyncLoadMode = true;
+			IsWaitForAsyncComplete = true;
+
+			// 注意：主动轮询更新完成同步加载
+			Update();
+
+			// 验证结果
+			if (IsDone == false)
+			{
+				throw new System.Exception("Should never get here.");
+			}
 		}
 
 		/// <summary>

@@ -22,8 +22,8 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetDatabaseSubProvider(FileLoaderBase owner, string assetName, System.Type assetType)
-			: base(owner, assetName, assetType)
+		public AssetDatabaseSubProvider(string assetPath, System.Type assetType)
+			: base(assetPath, assetType)
 		{
 		}
 		public override void Update()
@@ -34,14 +34,22 @@ namespace MotionFramework.Resource
 
 			if (States == EAssetStates.None)
 			{
-				States = EAssetStates.Loading;
+				// 检测资源文件是否存在
+				string guid = UnityEditor.AssetDatabase.AssetPathToGUID(AssetPath);
+				if (string.IsNullOrEmpty(guid))
+					States = EAssetStates.Fail;
+				else
+					States = EAssetStates.Loading;
+
+				// 注意：模拟异步加载效果提前返回
+				if(IsWaitForAsyncComplete == false)
+					return;
 			}
 
 			// 1. 加载资源对象
 			if (States == EAssetStates.Loading)
 			{
-				string assetPath = Owner.BundleInfo.LocalPath;
-				var findAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(assetPath);
+				var findAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AssetPath);
 				List<UnityEngine.Object> result = new List<Object>(findAssets.Length);
 				foreach (var findObj in findAssets)
 				{
@@ -57,7 +65,7 @@ namespace MotionFramework.Resource
 			{
 				States = AllAssets == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load all asset object : {Owner.BundleInfo.LocalPath}");
+					MotionLog.Warning($"Failed to load all asset object : {AssetPath}");
 				InvokeCompletion();
 			}
 #endif
