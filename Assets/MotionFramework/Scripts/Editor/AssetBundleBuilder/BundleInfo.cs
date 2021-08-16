@@ -96,7 +96,25 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public string[] GetCollectAssetPaths()
 		{
-			return Assets.Where(t => t.IsCollectAsset && t.DontWriteAssetPath == false).Select(t => t.AssetPath).ToArray();
+			return Assets.Where(t => t.IsCollectAsset).Select(t => t.AssetPath).ToArray();
+		}
+
+		/// <summary>
+		/// 获取构建的资源路径列表
+		/// </summary>
+		public string[] GetBuildinAssetPaths()
+		{
+			// 注意：对于非主动收集的零依赖资源，不会出现在AssetBundle的Assets列表里。
+			// Unity在构建AssetBundle的时候，也会根据主动收集资源的依赖关系将它们打包到文件里。
+			return Assets.Where(t => t.IsCollectAsset || t.DependCount > 0).Select(t => t.AssetPath).ToArray();
+		}
+
+		/// <summary>
+		/// 获取主动收集的资源信息列表
+		/// </summary>
+		public AssetInfo[] GetCollectAssetInfos()
+		{
+			return Assets.Where(t => t.IsCollectAsset).ToArray();
 		}
 
 		/// <summary>
@@ -110,10 +128,6 @@ namespace MotionFramework.Editor
 			build.assetBundleVariant = string.Empty;
 			build.assetNames = GetBuildinAssetPaths();
 			return build;
-		}
-		private string[] GetBuildinAssetPaths()
-		{
-			return Assets.Where(t => t.IsCollectAsset || t.DependCount > 0).Select(t => t.AssetPath).ToArray();
 		}
 	}
 }

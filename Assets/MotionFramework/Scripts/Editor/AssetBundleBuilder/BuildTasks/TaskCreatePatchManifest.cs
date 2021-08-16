@@ -22,24 +22,23 @@ namespace MotionFramework.Editor
 		void IBuildTask.Run(BuildContext context)
 		{
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-			var unityManifestContext = context.GetContextObject<TaskBuilding.UnityManifestContext>();
 			var encryptionContext = context.GetContextObject<TaskEncryption.EncryptionContext>();
 			var buildMapContext = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
-			CreatePatchManifestFile(buildParameters, buildMapContext, encryptionContext, unityManifestContext.Manifest);
+			CreatePatchManifestFile(buildParameters, buildMapContext, encryptionContext);
 		}
 
 		/// <summary>
 		/// 创建补丁清单文件到输出目录
 		/// </summary>
 		private void CreatePatchManifestFile(AssetBundleBuilder.BuildParametersContext buildParameters,
-			TaskGetBuildMap.BuildMapContext buildMapContext, TaskEncryption.EncryptionContext encryptionContext,
-			AssetBundleManifest unityManifest)
+			TaskGetBuildMap.BuildMapContext buildMapContext, TaskEncryption.EncryptionContext encryptionContext)
 		{
 			// 创建新补丁清单
 			PatchManifest patchManifest = new PatchManifest();
 			patchManifest.ResourceVersion = buildParameters.Parameters.BuildVersion;
 			patchManifest.BuildinTags = buildParameters.Parameters.BuildinTags;
-			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext, unityManifest);
+			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext);
+			patchManifest.AssetList = GetAllPatchAsset(buildMapContext, patchManifest.BundleList);
 
 			// 创建新文件
 			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestFileName}";
@@ -51,31 +50,28 @@ namespace MotionFramework.Editor
 		/// 获取资源包列表
 		/// </summary>
 		private List<PatchBundle> GetAllPatchBundle(AssetBundleBuilder.BuildParametersContext buildParameters,
-			TaskGetBuildMap.BuildMapContext buildMapContext, TaskEncryption.EncryptionContext encryptionContext,
-			AssetBundleManifest unityManifest)
+			TaskGetBuildMap.BuildMapContext buildMapContext, TaskEncryption.EncryptionContext encryptionContext)
 		{
-			List<PatchBundle> result = new List<PatchBundle>();
+			List<PatchBundle> result = new List<PatchBundle>(1000);
 
 			// 内置标记列表
 			List<string> buildinTags = buildParameters.Parameters.GetBuildinTags();
 
 			// 加载旧补丁清单
 			PatchManifest oldPatchManifest = null;
-			if(buildParameters.Parameters.IsForceRebuild == false)
+			if (buildParameters.Parameters.IsForceRebuild == false)
 			{
 				oldPatchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
 			}
 
-			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
-			foreach (var bundleName in allAssetBundles)
+			foreach (var bundleInfo in buildMapContext.BundleInfos)
 			{
+				var bundleName = bundleInfo.AssetBundleFullName;
 				string path = $"{buildParameters.PipelineOutputDirectory}/{bundleName}";
 				string hash = HashUtility.FileMD5(path);
 				string crc = HashUtility.FileCRC32(path);
 				long size = FileUtility.GetFileSize(path);
 				int version = buildParameters.Parameters.BuildVersion;
-				string[] collectAssets = buildMapContext.GetCollectAssetPaths(bundleName);
-				string[] depends = unityManifest.GetDirectDependencies(bundleName);
 				string[] tags = buildMapContext.GetAssetTags(bundleName);
 				bool isEncrypted = encryptionContext.IsEncryptFile(bundleName);
 				bool isBuildin = IsBuildinBundle(tags, buildinTags);
@@ -87,7 +83,7 @@ namespace MotionFramework.Editor
 						version = value.Version;
 				}
 
-				PatchBundle patchBundle = new PatchBundle(bundleName, hash, crc, size, version, collectAssets, depends, tags);
+				PatchBundle patchBundle = new PatchBundle(bundleName, hash, crc, size, version, tags);
 				patchBundle.SetFlagsValue(isEncrypted, isBuildin);
 				result.Add(patchBundle);
 			}
@@ -100,12 +96,53 @@ namespace MotionFramework.Editor
 			if (bundleTags.Length == 0)
 				return true;
 
-			foreach(var tag in bundleTags)
+			foreach (var tag in bundleTags)
 			{
 				if (buildinTags.Contains(tag))
 					return true;
 			}
 			return false;
+		}
+
+		/// <summary>
+		/// 获取资源列表
+		/// </summary>
+		private List<PatchAsset> GetAllPatchAsset(TaskGetBuildMap.BuildMapContext buildMapContext, List<PatchBundle> bundleList)
+		{
+			List<PatchAsset> result = new List<PatchAsset>(1000);
+			foreach(var bundleInfo in buildMapContext.BundleInfos)
+			{
+				var assetInfos = bundleInfo.GetCollectAssetInfos();
+				foreach (var assetInfo in assetInfos)
+				{
+					PatchAsset patchAsset = new PatchAsset();
+					patchAsset.AssetPath = assetInfo.AssetPath;
+					patchAsset.BundleID = GetAssetBundleID(assetInfo.GetAssetBundleFullName(), bundleList);
+					patchAsset.DependIDs = GetAssetBundleDependIDs(assetInfo, bundleList);
+					result.Add(patchAsset);
+				}
+			}
+			return result;
+		}
+		private int[] GetAssetBundleDependIDs(AssetInfo assetInfo, List<PatchBundle> bundleList)
+		{
+			List<int> result = new List<int>();
+			foreach (var dependAssetInfo in assetInfo.AllDependAssetInfos)
+			{
+				int bundleID = GetAssetBundleID(dependAssetInfo.GetAssetBundleFullName(), bundleList);
+				if(result.Contains(bundleID) == false)
+					result.Add(bundleID);
+			}
+			return result.ToArray();
+		}
+		private int GetAssetBundleID(string bundleName, List<PatchBundle> bundleList)
+		{
+			for (int index = 0; index < bundleList.Count; index++)
+			{
+				if (bundleList[index].BundleName == bundleName)
+					return index;
+			}
+			throw new Exception($"Not found bundle name : {bundleName}");
 		}
 	}
 }

@@ -20,6 +20,11 @@ namespace MotionFramework.Editor
 		public class BuildParameters
 		{
 			/// <summary>
+			/// 是否验证构建结果
+			/// </summary>
+			public bool IsVerifyBuildingResult = false;
+
+			/// <summary>
 			/// 输出的根目录
 			/// </summary>
 			public string OutputRoot;
@@ -157,7 +162,6 @@ namespace MotionFramework.Editor
 				new TaskPrepare(), //前期准备工作
 				new TaskGetBuildMap(), //获取构建列表
 				new TaskBuilding(), //开始执行构建			
-				new TaskCheckCycle(), //检测循环依赖
 				new TaskEncryption(), //加密资源文件
 				new TaskCreatePatchManifest(), //创建清单文件
 				new TaskCreateReadme(), //创建说明文件

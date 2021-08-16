@@ -32,10 +32,10 @@ namespace MotionFramework.Editor
 		void IBuildTask.Run(BuildContext context)
 		{
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-			var unityManifestContext = context.GetContextObject<TaskBuilding.UnityManifestContext>();
+			var buildMapContext = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
 
 			var encrypter = CreateAssetEncrypter();
-			List<string> encryptList = EncryptFiles(encrypter, unityManifestContext.Manifest, buildParameters);
+			List<string> encryptList = EncryptFiles(encrypter, buildParameters, buildMapContext);
 
 			EncryptionContext encryptionContext = new EncryptionContext();
 			encryptionContext.EncryptList = encryptList;
@@ -61,7 +61,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 加密文件
 		/// </summary>
-		private List<string> EncryptFiles(IAssetEncrypter encrypter, AssetBundleManifest unityManifest, AssetBundleBuilder.BuildParametersContext buildParameters)
+		private List<string> EncryptFiles(IAssetEncrypter encrypter, AssetBundleBuilder.BuildParametersContext buildParameters, TaskGetBuildMap.BuildMapContext buildMapContext)
 		{
 			// 加密资源列表
 			List<string> encryptList = new List<string>();
@@ -71,10 +71,10 @@ namespace MotionFramework.Editor
 				return encryptList;
 
 			BuildLogger.Log($"开始加密资源文件");
-			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 			int progressValue = 0;
-			foreach (string bundleName in allAssetBundles)
+			foreach (var bundleInfo in buildMapContext.BundleInfos)
 			{
+				var bundleName = bundleInfo.AssetBundleFullName;
 				string filePath = $"{buildParameters.PipelineOutputDirectory}/{bundleName}";
 				if (encrypter.Check(filePath))
 				{
@@ -91,7 +91,7 @@ namespace MotionFramework.Editor
 				}
 
 				// 进度条
-				EditorTools.DisplayProgressBar("加密资源包", ++progressValue, allAssetBundles.Length);
+				EditorTools.DisplayProgressBar("加密资源包", ++progressValue, buildMapContext.BundleInfos.Count);
 			}
 			EditorTools.ClearProgressBar();
 

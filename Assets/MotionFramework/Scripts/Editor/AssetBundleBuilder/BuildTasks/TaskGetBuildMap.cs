@@ -86,6 +86,18 @@ namespace MotionFramework.Editor
 			}
 
 			/// <summary>
+			/// 获取AssetBundle内构建的资源路径列表
+			/// </summary>
+			public string[] GetBuildinAssetPaths(string bundleFullName)
+			{
+				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
+				{
+					return bundleInfo.GetBuildinAssetPaths();
+				}
+				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
+			}
+
+			/// <summary>
 			/// 获取构建管线里需要的数据
 			/// </summary>
 			public UnityEditor.AssetBundleBuild[] GetPipelineBuilds()
@@ -96,6 +108,14 @@ namespace MotionFramework.Editor
 					builds.Add(bundleInfo.CreatePipelineBuild());
 				}
 				return builds.ToArray();
+			}
+
+			/// <summary>
+			/// 检测是否包含BundleName
+			/// </summary>
+			public bool IsContainsBundle(string bundleFullName)
+			{
+				return TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo);
 			}
 
 			private bool TryGetBundleInfo(string bundleFullName, out BundleInfo result)
@@ -134,8 +154,8 @@ namespace MotionFramework.Editor
 		private List<AssetInfo> GetBuildAssets()
 		{
 			Dictionary<string, AssetInfo> buildAssets = new Dictionary<string, AssetInfo>();
-			Dictionary<string, string> references = new Dictionary<string, string>();
-
+			Dictionary<string, string> latestMainAssetPath = new Dictionary<string, string>();
+			
 			// 1. 获取主动收集的资源
 			List<AssetCollectInfo> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
@@ -144,11 +164,10 @@ namespace MotionFramework.Editor
 			foreach (AssetCollectInfo collectInfo in allCollectAssets)
 			{
 				string mainAssetPath = collectInfo.AssetPath;
-				List<AssetInfo> depends = GetDependencies(mainAssetPath);
+				List<AssetInfo> depends = GetAllDependencies(mainAssetPath);
 				for (int i = 0; i < depends.Count; i++)
 				{
-					AssetInfo assetInfo = depends[i];
-					string assetPath = assetInfo.AssetPath;
+					string assetPath = depends[i].AssetPath;
 
 					// 如果已经存在，则增加该资源的依赖计数
 					if (buildAssets.ContainsKey(assetPath))
@@ -157,8 +176,8 @@ namespace MotionFramework.Editor
 					}
 					else
 					{
-						buildAssets.Add(assetPath, assetInfo);
-						references.Add(assetPath, mainAssetPath);
+						buildAssets.Add(assetPath, depends[i]);
+						latestMainAssetPath.Add(assetPath, mainAssetPath);
 					}
 
 					// 添加资源标记
@@ -168,56 +187,53 @@ namespace MotionFramework.Editor
 					if (assetPath == mainAssetPath)
 					{
 						buildAssets[assetPath].IsCollectAsset = true;
-						buildAssets[assetPath].DontWriteAssetPath = collectInfo.DontWriteAssetPath;
 					}
 				}
+
+				// 添加所有的依赖资源列表
+				// 注意：不包括自己
+				var allDependAssetInfos = new List<AssetInfo>(depends.Count);
+				for (int i = 0; i < depends.Count; i++)
+				{
+					string assetPath = depends[i].AssetPath;
+					if (assetPath != mainAssetPath)
+						allDependAssetInfos.Add(buildAssets[assetPath]);
+				}
+				buildAssets[mainAssetPath].SetAllDependAssetInfos(allDependAssetInfos);
+
 				EditorTools.DisplayProgressBar("依赖文件分析", ++progressValue, allCollectAssets.Count);
 			}
 			EditorTools.ClearProgressBar();
 
-			// 3. 移除零依赖的资源
-			List<AssetInfo> undependentAssets = new List<AssetInfo>();
-			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
-			{
-				if (pair.Value.IsCollectAsset)
-					continue;
-				if (pair.Value.DependCount == 0)
-					undependentAssets.Add(pair.Value);
-			}
-			foreach (var assetInfo in undependentAssets)
-			{
-				buildAssets.Remove(assetInfo.AssetPath);
-			}
-
-			// 4. 设置资源标签和变种
+			// 3. 设置资源标签和变种
 			progressValue = 0;
 			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
 			{
 				var assetInfo = pair.Value;
-				var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
-				assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);
+				if(assetInfo.IsCollectAsset == false && assetInfo.DependCount == 0)
+				{
+					string mainAssetPath = latestMainAssetPath[assetInfo.AssetPath];
+					var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(mainAssetPath);
+					assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);
+				}
+				else
+				{
+					var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
+					assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);
+				}
 				EditorTools.DisplayProgressBar("设置资源标签", ++progressValue, buildAssets.Count);
 			}
 			EditorTools.ClearProgressBar();
 
-			// 5. 补充零依赖的资源
-			foreach (var assetInfo in undependentAssets)
-			{
-				var referenceAssetPath = references[assetInfo.AssetPath];
-				var referenceAssetInfo = buildAssets[referenceAssetPath];
-				assetInfo.SetBundleLabelAndVariant(referenceAssetInfo.AssetBundleLabel, referenceAssetInfo.AssetBundleVariant);
-				buildAssets.Add(assetInfo.AssetPath, assetInfo);
-			}
-
-			// 6. 返回结果
+			// 4. 返回结果
 			return buildAssets.Values.ToList();
 		}
 
 		/// <summary>
-		/// 获取指定资源依赖的资源列表
+		/// 获取指定资源依赖的所有资源列表
 		/// 注意：返回列表里已经包括主资源自己
 		/// </summary>
-		private List<AssetInfo> GetDependencies(string mainAssetPath)
+		private List<AssetInfo> GetAllDependencies(string mainAssetPath)
 		{
 			List<AssetInfo> result = new List<AssetInfo>();
 			string[] depends = AssetDatabase.GetDependencies(mainAssetPath, true);

@@ -22,17 +22,15 @@ namespace MotionFramework.Editor
 		void IBuildTask.Run(BuildContext context)
 		{
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-			var unityManifestContext = context.GetContextObject<TaskBuilding.UnityManifestContext>();
-			CreateReadmeFile(buildParameters, unityManifestContext.Manifest);
+			var buildMapContext = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
+			CreateReadmeFile(buildParameters, buildMapContext);
 		}
 
 		/// <summary>
 		/// 创建Readme文件到输出目录
 		/// </summary>
-		private void CreateReadmeFile(AssetBundleBuilder.BuildParametersContext buildParameters, AssetBundleManifest unityManifest)
+		private void CreateReadmeFile(AssetBundleBuilder.BuildParametersContext buildParameters, TaskGetBuildMap.BuildMapContext buildMapContext)
 		{
-			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
-
 			// 删除旧文件
 			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.ReadmeFileName}";
 			if (File.Exists(filePath))
@@ -69,9 +67,10 @@ namespace MotionFramework.Editor
 
 			AppendData(content, "");
 			AppendData(content, $"--构建列表--");
-			for (int i = 0; i < allAssetBundles.Length; i++)
+			for (int i = 0; i < buildMapContext.BundleInfos.Count; i++)
 			{
-				AppendData(content, allAssetBundles[i]);
+				string bundleName = buildMapContext.BundleInfos[i].AssetBundleFullName;
+				AppendData(content, bundleName);
 			}
 
 			PatchManifest patchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);

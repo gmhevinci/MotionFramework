@@ -150,6 +150,7 @@ namespace MotionFramework.Editor
 		{
 			string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRoot();
 			AssetBundleBuilder.BuildParameters buildParameters = new AssetBundleBuilder.BuildParameters();
+			buildParameters.IsVerifyBuildingResult = true;
 			buildParameters.OutputRoot = defaultOutputRoot;
 			buildParameters.BuildTarget = _buildTarget;
 			buildParameters.BuildVersion = _buildVersion;

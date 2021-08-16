@@ -34,11 +34,6 @@ namespace MotionFramework.Editor
 		public bool IsCollectAsset = false;
 
 		/// <summary>
-		/// 不写入资源路径信息到清单文件
-		/// </summary>
-		public bool DontWriteAssetPath = false;
-
-		/// <summary>
 		/// 资源标记列表
 		/// </summary>
 		public List<string> AssetTags = new List<string>();
@@ -48,10 +43,26 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public int DependCount = 0;
 
+		/// <summary>
+		/// 依赖的所有资源信息
+		/// </summary>
+		public List<AssetInfo> AllDependAssetInfos { private set; get; } = null;
+
 
 		public AssetInfo(string assetPath)
 		{
 			AssetPath = assetPath;
+		}
+		
+		/// <summary>
+		/// 设置所有依赖的资源
+		/// </summary>
+		public void SetAllDependAssetInfos(List<AssetInfo> dependAssetInfos)
+		{
+			if(AllDependAssetInfos != null)
+				throw new System.Exception("Should never get here !");
+
+			AllDependAssetInfos = dependAssetInfos;
 		}
 
 		/// <summary>
@@ -59,6 +70,9 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public void SetBundleLabelAndVariant(string bundleLabel, string bundleVariant)
 		{
+			if (string.IsNullOrEmpty(AssetBundleLabel) == false || string.IsNullOrEmpty(AssetBundleVariant) == false)
+				throw new System.Exception("Should never get here !");
+
 			AssetBundleLabel = bundleLabel;
 			AssetBundleVariant = bundleVariant;
 		}
@@ -68,7 +82,7 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public void AddAssetTags(List<string> tags)
 		{
-			foreach(var tag in tags)
+			foreach (var tag in tags)
 			{
 				if (AssetTags.Contains(tag) == false)
 				{
