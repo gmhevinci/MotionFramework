@@ -53,7 +53,7 @@ namespace MotionFramework.Scene
 			// 场景加载参数
 			SceneInstanceParam param = new SceneInstanceParam
 			{
-				IsAdditive = isAdditive,
+				LoadMode = isAdditive ? UnityEngine.SceneManagement.LoadSceneMode.Additive : UnityEngine.SceneManagement.LoadSceneMode.Single,
 				ActivateOnLoad = activeOnLoad
 			};
 
