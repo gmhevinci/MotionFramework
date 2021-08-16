@@ -16,6 +16,10 @@ namespace MotionFramework.Network
 		{
 		}
 
+		/// <summary>
+		/// 发送GET请求
+		/// </summary>
+		/// <param name="timeout">超时：从请求开始计时</param>
 		public void SendRequest(int timeout = 0)
 		{
 			if (_webRequest == null)

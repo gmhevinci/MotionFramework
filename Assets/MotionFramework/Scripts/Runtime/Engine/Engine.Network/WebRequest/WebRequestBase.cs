@@ -32,7 +32,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 释放下载器
 		/// </summary>
-		public virtual void Dispose()
+		public void Dispose()
 		{
 			if (_webRequest != null)
 			{
@@ -45,7 +45,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 是否完毕（无论成功失败）
 		/// </summary>
-		public virtual bool IsDone()
+		public bool IsDone()
 		{
 			if (_operationHandle == null)
 				return false;
@@ -55,7 +55,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 下载是否发生错误
 		/// </summary>
-		public virtual bool HasError()
+		public bool HasError()
 		{
 			if (_webRequest.isNetworkError || _webRequest.isHttpError)
 				return true;
@@ -66,7 +66,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 报告错误
 		/// </summary>
-		public virtual void ReportError()
+		public void ReportError()
 		{
 			if (_webRequest != null)
 			{
@@ -77,7 +77,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 获取错误信息
 		/// </summary>
-		public virtual string GetError()
+		public string GetError()
 		{
 			if (_webRequest != null)
 			{

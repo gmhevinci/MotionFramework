@@ -17,6 +17,11 @@ namespace MotionFramework.Network
 		{
 		}
 
+		/// <summary>
+		/// 发送POST请求
+		/// </summary>
+		/// <param name="post">POST的文本内容</param>
+		/// <param name="timeout">超时：从请求开始计时</param>
 		public void SendRequest(string post, int timeout = 0)
 		{
 			// Check error
@@ -29,6 +34,12 @@ namespace MotionFramework.Network
 				SendRequestInternal(timeout);
 			}
 		}
+
+		/// <summary>
+		/// 发送POST请求
+		/// </summary>
+		/// <param name="form">POST的表单数据</param>
+		/// <param name="timeout">超时：从请求开始计时</param>
 		public void SendRequest(WWWForm form, int timeout = 0)
 		{
 			// Check error
@@ -41,14 +52,6 @@ namespace MotionFramework.Network
 				SendRequestInternal(timeout);
 			}
 		}
-		private void SendRequestInternal(int timeout)
-		{
-			DownloadHandlerBuffer handler = new DownloadHandlerBuffer();
-			_webRequest.downloadHandler = handler;
-			_webRequest.disposeDownloadHandlerOnDispose = true;
-			_webRequest.timeout = timeout;
-			_operationHandle = _webRequest.SendWebRequest();
-		}
 
 		/// <summary>
 		/// 获取响应的文本数据
@@ -59,6 +62,15 @@ namespace MotionFramework.Network
 				return _webRequest.downloadHandler.text;
 			else
 				return null;
+		}
+
+		private void SendRequestInternal(int timeout)
+		{
+			DownloadHandlerBuffer handler = new DownloadHandlerBuffer();
+			_webRequest.downloadHandler = handler;
+			_webRequest.disposeDownloadHandlerOnDispose = true;
+			_webRequest.timeout = timeout;
+			_operationHandle = _webRequest.SendWebRequest();
 		}
 	}
 }
