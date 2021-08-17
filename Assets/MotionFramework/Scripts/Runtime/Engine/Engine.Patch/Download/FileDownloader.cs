@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace MotionFramework.Patch
 {
-	public sealed class FileDownloader : IEnumerator
+	internal sealed class FileDownloader : IEnumerator
 	{
 		private UnityWebRequest _webRequest;
 		private UnityWebRequestAsyncOperation _operationHandle;

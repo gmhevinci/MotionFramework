@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace MotionFramework.Patch
 {
-	public static class DownloadSystem
+	internal static class DownloadSystem
 	{
 		private static readonly Dictionary<string, FileDownloader> _downloaderDic = new Dictionary<string, FileDownloader>();
 		private static readonly List<string> _removeList = new List<string>(100);
