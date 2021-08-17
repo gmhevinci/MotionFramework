@@ -45,6 +45,10 @@ namespace MotionFramework.Console
 		private bool _showError = true;
 		private Vector2 _scrollPos = Vector2.zero;
 
+		// 过滤的关键字
+		private string _filterKey = string.Empty;
+
+
 		public GameLogWindow()
 		{
 			// 注册UnityEngine日志系统
@@ -53,9 +57,20 @@ namespace MotionFramework.Console
 		void IConsoleWindow.OnGUI()
 		{
 			GUILayout.BeginHorizontal();
+			if (GUILayout.Button("Clear", ConsoleGUI.ButtonStyle, GUILayout.Width(100)))
+			{
+				_logs.Clear();
+			}
 			_showLog = ConsoleGUI.Toggle($"Log ({_logCount})", _showLog);
 			_showWarning = ConsoleGUI.Toggle($"Warning ({_warningCount})", _showWarning);
 			_showError = ConsoleGUI.Toggle($"Error ({_errorCount})", _showError);
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			{
+				GUILayout.Label("搜索关键字 : ", ConsoleGUI.LableStyle, GUILayout.Width(200));
+				_filterKey = GUILayout.TextField(_filterKey, ConsoleGUI.TextFieldStyle, GUILayout.Width(500));
+			}
 			GUILayout.EndHorizontal();
 
 			float offset = ConsoleGUI.ToolbarStyle.fixedHeight;
@@ -63,6 +78,14 @@ namespace MotionFramework.Console
 			for (int i = 0; i < _logs.Count; i++)
 			{
 				LogWrapper wrapper = _logs[i];
+
+				// 只搜索关键字
+				if (string.IsNullOrEmpty(_filterKey) == false)
+				{
+					if (wrapper.Log.Contains(_filterKey) == false)
+						continue;
+				}
+
 				if (wrapper.Type == LogType.Log)
 				{
 					if (_showLog)
