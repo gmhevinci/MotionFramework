@@ -43,7 +43,8 @@ namespace MotionFramework.Patch
 			MotionLog.Log($"Beginning to request from web : {webURL}");
 			MotionLog.Log($"Post content : {postContent}");
 			WebPostRequest download = new WebPostRequest(webURL);
-			download.SendRequest(postContent);
+			int timeout = _patcher.GetGameVersionRequestTimeout();
+			download.SendRequest(postContent, timeout);
 			yield return download;
 
 			// Check fatal

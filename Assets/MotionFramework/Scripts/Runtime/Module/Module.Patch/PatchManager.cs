@@ -60,6 +60,16 @@ namespace MotionFramework.Patch
 			public bool AutoDownloadBuildinDLC = true;
 
 			/// <summary>
+			/// 游戏版本的网络请求超时时间
+			/// </summary>
+			public int GameVersionRequestTimeout = 0;
+
+			/// <summary>
+			/// 补丁清单的网络请求超时时间
+			/// </summary>
+			public int PatchManifestRequestTimeout = 0;
+
+			/// <summary>
 			/// 同时下载的最大文件数（内置下载器参数）
 			/// </summary>
 			public int MaxNumberOnLoad = 1;

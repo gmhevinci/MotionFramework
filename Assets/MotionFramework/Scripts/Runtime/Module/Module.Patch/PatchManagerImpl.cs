@@ -30,6 +30,8 @@ namespace MotionFramework.Patch
 		private EVerifyLevel _verifyLevel;
 		private string[] _autoDownloadDLC;
 		private bool _autoDownloadBuildinDLC;
+		private int _gameVersionRequestTimeout;
+		private int _patchManifestRequestTimeout;
 		private int _maxNumberOnLoad;
 		private int _failedTryAgain;
 
@@ -50,7 +52,7 @@ namespace MotionFramework.Patch
 		{
 			get { return _gameVersionParser.ResourceVersion; }
 		}
-		public bool FoundNewApp 
+		public bool FoundNewApp
 		{
 			get { return _gameVersionParser.FoundNewApp; }
 		}
@@ -98,6 +100,8 @@ namespace MotionFramework.Patch
 			_verifyLevel = createParam.VerifyLevel;
 			_autoDownloadDLC = createParam.AutoDownloadDLC;
 			_autoDownloadBuildinDLC = createParam.AutoDownloadBuildinDLC;
+			_gameVersionRequestTimeout = createParam.GameVersionRequestTimeout;
+			_patchManifestRequestTimeout = createParam.PatchManifestRequestTimeout;
 			_maxNumberOnLoad = createParam.MaxNumberOnLoad;
 			_failedTryAgain = createParam.FailedTryAgain;
 		}
@@ -488,6 +492,14 @@ namespace MotionFramework.Patch
 		}
 
 		// WEB相关
+		public int GetGameVersionRequestTimeout()
+		{
+			return _gameVersionRequestTimeout;
+		}
+		public int GetPatchManifestRequestTimeout()
+		{
+			return _patchManifestRequestTimeout;
+		}
 		public string GetPatchDownloadURL(int resourceVersion, string fileName)
 		{
 			RuntimePlatform runtimePlatform = Application.platform;
