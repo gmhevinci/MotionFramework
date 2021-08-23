@@ -6,6 +6,7 @@
 using System.IO;
 using System.Text;
 using MotionFramework.Resource;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Patch
 {
@@ -13,14 +14,14 @@ namespace MotionFramework.Patch
 	{
 		private const string StrCacheFileName = "Cache.bytes";
 		private const string StrCacheFolderName = "CacheFiles";
-		
+
 		/// <summary>
 		/// 清空沙盒目录
 		/// </summary>
 		public static void ClearSandbox()
 		{
 			string directoryPath = AssetPathHelper.MakePersistentLoadPath(string.Empty);
-			if(Directory.Exists(directoryPath))
+			if (Directory.Exists(directoryPath))
 				Directory.Delete(directoryPath, true);
 		}
 
@@ -69,6 +70,20 @@ namespace MotionFramework.Patch
 		{
 			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
 			return File.Exists(filePath);
+		}
+
+		/// <summary>
+		/// 获取沙盒内补丁清单文件的哈希值
+		/// 注意：如果沙盒内补丁清单文件不存在，返回空字符串
+		/// </summary>
+		/// <returns></returns>
+		public static string GetSandboxPatchManifestFileHash()
+		{
+			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			if (File.Exists(filePath))
+				return HashUtility.FileMD5(filePath);
+			else
+				return string.Empty;
 		}
 
 		/// <summary>

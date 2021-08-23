@@ -24,7 +24,11 @@ namespace MotionFramework.Patch
 		void IFsmNode.OnEnter()
 		{
 			PatchEventDispatcher.SendPatchStepsChangeMsg(EPatchStates.RequestPatchManifest);
-			MotionEngine.StartCoroutine(Download());
+
+			if (_patcher.IgnoreResourceVersion)
+				MotionEngine.StartCoroutine(DownloadWithoutResourceVersion());
+			else
+				MotionEngine.StartCoroutine(DownloadByResourceVersion());
 		}
 		void IFsmNode.OnUpdate()
 		{
@@ -36,30 +40,48 @@ namespace MotionFramework.Patch
 		{
 		}
 
-		private IEnumerator Download()
+		private IEnumerator DownloadWithoutResourceVersion()
 		{
-			// 如果忽略资源版本，那么每次启动都会下载补丁清单
-			bool ignoreResourceVersion = _patcher.IgnoreResourceVersion;
-
-			// 新安装的用户首次启动游戏（包括覆盖安装的用户）
-			// 注意：请求的补丁清单会在下载流程结束的时候，自动保存在沙盒里。
-			bool firstStartGame = PatchHelper.CheckSandboxPatchManifestFileExist() == false;
-			if (firstStartGame)
-				MotionLog.Log("First start game.");
-
-			// 检测资源版本是否变化
-			int newResourceVersion = _patcher.RequestedResourceVersion;
-			int oldResourceVersion = _patcher.LocalResourceVersion;
-			if (ignoreResourceVersion == false && firstStartGame == false && newResourceVersion == oldResourceVersion)
+			// 从远端请求补丁清单文件的哈希值，并比对沙盒内的补丁清单文件的哈希值
 			{
-				MotionLog.Log($"Resource version is not change.");
-				_patcher.Switch(EPatchStates.PatchDone);
-			}
-			else
-			{
-				// 从远端请求补丁清单
 				_requestCount++;
-				string webURL = GetRequestURL(ignoreResourceVersion, newResourceVersion, PatchDefine.PatchManifestFileName);
+				string webURL = GetRequestURL(true, 0, PatchDefine.PatchManifestHashFileName);
+				MotionLog.Log($"Beginning to request patch manifest hash : {webURL}");
+				WebGetRequest download = new WebGetRequest(webURL);
+				int timeout = _patcher.GetPatchManifestRequestTimeout();
+				download.SendRequest(timeout);
+				yield return download;
+
+				// Check fatal
+				if (download.HasError())
+				{
+					download.ReportError();
+					download.Dispose();
+					PatchEventDispatcher.SendPatchManifestRequestFailedMsg();
+					yield break;
+				}
+
+				// 获取补丁清单文件的哈希值
+				string patchManifestHash = download.GetText();
+				download.Dispose();
+
+				// 如果补丁清单文件的哈希值相同
+				string currentFileHash = PatchHelper.GetSandboxPatchManifestFileHash();
+				if (currentFileHash == patchManifestHash)
+				{
+					MotionLog.Log($"Patch manifest file hash is not change : {patchManifestHash}");
+					_patcher.Switch(EPatchStates.PatchDone);
+					yield break;
+				}
+				else
+				{
+					MotionLog.Log($"New patch manifest hash : {patchManifestHash}, Current patch manifest hash : {currentFileHash}");
+				}
+			}
+
+			// 从远端请求补丁清单
+			{
+				string webURL = GetRequestURL(true, 0, PatchDefine.PatchManifestFileName);
 				MotionLog.Log($"Beginning to request patch manifest : {webURL}");
 				WebGetRequest download = new WebGetRequest(webURL);
 				int timeout = _patcher.GetPatchManifestRequestTimeout();
@@ -88,7 +110,60 @@ namespace MotionFramework.Patch
 				}
 				else
 				{
-					if (ignoreResourceVersion == false && newResourceVersion != oldResourceVersion)
+					_patcher.SwitchNext();
+				}
+			}
+		}
+		private IEnumerator DownloadByResourceVersion()
+		{
+			// 新安装的用户首次启动游戏（包括覆盖安装的用户）
+			// 注意：请求的补丁清单会在下载流程结束的时候，自动保存在沙盒里。
+			bool firstStartGame = PatchHelper.CheckSandboxPatchManifestFileExist() == false;
+			if (firstStartGame)
+				MotionLog.Log("First start game.");
+
+			// 检测资源版本是否变化
+			int newResourceVersion = _patcher.RequestedResourceVersion;
+			int oldResourceVersion = _patcher.LocalResourceVersion;
+			if (firstStartGame == false && newResourceVersion == oldResourceVersion)
+			{
+				MotionLog.Log($"Resource version is not change.");
+				_patcher.Switch(EPatchStates.PatchDone);
+			}
+			else
+			{
+				// 从远端请求补丁清单
+				_requestCount++;
+				string webURL = GetRequestURL(false, newResourceVersion, PatchDefine.PatchManifestFileName);
+				MotionLog.Log($"Beginning to request patch manifest : {webURL}");
+				WebGetRequest download = new WebGetRequest(webURL);
+				int timeout = _patcher.GetPatchManifestRequestTimeout();
+				download.SendRequest(timeout);
+				yield return download;
+
+				// Check fatal
+				if (download.HasError())
+				{
+					download.ReportError();
+					download.Dispose();
+					PatchEventDispatcher.SendPatchManifestRequestFailedMsg();
+					yield break;
+				}
+
+				// 解析补丁清单
+				_patcher.ParseRemotePatchManifest(download.GetText());
+				download.Dispose();
+
+				// 如果发现了新的安装包
+				if (_patcher.FoundNewApp)
+				{
+					string requestedGameVersion = _patcher.RequestedGameVersion.ToString();
+					MotionLog.Log($"Found new APP can be install : {requestedGameVersion}");
+					PatchEventDispatcher.SendFoundNewAppMsg(_patcher.ForceInstall, _patcher.AppURL, requestedGameVersion);
+				}
+				else
+				{
+					if (newResourceVersion != oldResourceVersion)
 						MotionLog.Log($"Resource version is change : {oldResourceVersion} -> {newResourceVersion}");
 					_patcher.SwitchNext();
 				}

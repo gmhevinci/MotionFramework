@@ -24,6 +24,11 @@ namespace MotionFramework.Patch
 		public const string PatchManifestFileName = "PatchManifest.bytes";
 
 		/// <summary>
+		/// 构建输出的补丁清单哈希文件名称
+		/// </summary>
+		public const string PatchManifestHashFileName = "PatchManifestHash.bytes";
+
+		/// <summary>
 		/// 构建输出的说明文件
 		/// </summary>
 		public const string ReadmeFileName = "readme.txt";
