@@ -113,39 +113,30 @@ namespace MotionFramework.Patch
 		{
 			MotionLog.Log($"Beginning to initialize patch manager.");
 
-			// 加载缓存
-			_cache = PatchCache.LoadCache();
-
-			// 检测沙盒被污染
+			// 如果缓存文件不存在
+			if (PatchHelper.CheckSandboxCacheFileExist() == false)
 			{
-				// 如果是首次打开，记录APP版本号
-				if (PatchHelper.CheckSandboxCacheFileExist() == false)
+				_cache = new PatchCache();
+				_cache.InitAppVersion(Application.version);
+			}
+			else
+			{
+				// 加载缓存
+				_cache = PatchCache.LoadCache();
+
+				// 每次启动时比对APP版本号是否一致	
+				if (_cache.CacheAppVersion != Application.version)
 				{
-					_cache.InitCache(Application.version);
-				}
-				else
-				{
-					// 每次启动时比对APP版本号是否一致	
-					if (_cache.CacheAppVersion != Application.version)
+					// 注意：在覆盖安装的时候，会保留APP沙盒目录，可以选择清空缓存目录
+					if (_clearCacheWhenDirty)
 					{
-						// 注意：在覆盖安装的时候，会保留沙盒目录里的文件，可以选择清空沙盒目录
-						if (_clearCacheWhenDirty)
-						{
-							MotionLog.Warning($"Cache is dirty ! Cache app version is {_cache.CacheAppVersion}, Current app version is {Application.version}");
-							ClearCache();
-
-							// 重新写入最新的APP版本号
-							_cache.InitCache(Application.version);
-						}
-						else
-						{
-							// 删除清单文件
-							PatchHelper.DeleteSandboxPatchManifestFile();
-
-							// 重新写入最新的APP版本号
-							_cache.InitCache(Application.version);
-						}
+						MotionLog.Warning($"Cache is dirty ! Cache app version is {_cache.CacheAppVersion}, Current app version is {Application.version}");
+						_cache.ClearCache();
 					}
+
+					// 注意：一定要删除清单文件
+					PatchHelper.DeleteSandboxPatchManifestFile();
+					_cache.InitAppVersion(Application.version);
 				}
 			}
 
@@ -211,11 +202,11 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 清空缓存并删除所有沙盒文件
+		/// 清空沙盒目录
 		/// </summary>
-		public void ClearCache()
+		public void ClearSandbox()
 		{
-			MotionLog.Warning("Clear cache and remove all sandbox files.");
+			MotionLog.Warning("Clear sandbox.");
 			PatchHelper.ClearSandbox();
 		}
 
@@ -504,13 +495,19 @@ namespace MotionFramework.Patch
 		{
 			RuntimePlatform runtimePlatform = Application.platform;
 			string cdnServer = _serverInfo.GetCDNServer(runtimePlatform);
-			return $"{cdnServer}/{resourceVersion}/{fileName}";
+			if (IgnoreResourceVersion)
+				return $"{cdnServer}/{fileName}";
+			else
+				return $"{cdnServer}/{resourceVersion}/{fileName}";
 		}
 		public string GetPatchDownloadFallbackURL(int resourceVersion, string fileName)
 		{
 			RuntimePlatform runtimePlatform = Application.platform;
 			string cdnFallbackServer = _serverInfo.GetCDNFallbackServer(runtimePlatform);
-			return $"{cdnFallbackServer}/{resourceVersion}/{fileName}";
+			if (IgnoreResourceVersion)
+				return $"{cdnFallbackServer}/{fileName}";
+			else
+				return $"{cdnFallbackServer}/{resourceVersion}/{fileName}";
 		}
 		public string GetWebServerURL()
 		{

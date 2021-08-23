@@ -139,12 +139,12 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 清空缓存
+		/// 清空沙盒
 		/// 注意：可以使用该方法修复我们本地的客户端
 		/// </summary>
-		public void ClearCache()
+		public void ClearSandbox()
 		{
-			_patcher.ClearCache();
+			_patcher.ClearSandbox();
 		}
 
 		/// <summary>

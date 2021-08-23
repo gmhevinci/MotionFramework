@@ -12,7 +12,8 @@ namespace MotionFramework.Patch
 	internal static class PatchHelper
 	{
 		private const string StrCacheFileName = "Cache.bytes";
-
+		private const string StrCacheFolderName = "CacheFiles";
+		
 		/// <summary>
 		/// 清空沙盒目录
 		/// </summary>
@@ -22,6 +23,27 @@ namespace MotionFramework.Patch
 			if(Directory.Exists(directoryPath))
 				Directory.Delete(directoryPath, true);
 		}
+
+		/// <summary>
+		/// 删除沙盒内补丁清单文件
+		/// </summary>
+		public static void DeleteSandboxPatchManifestFile()
+		{
+			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			if (File.Exists(filePath))
+				File.Delete(filePath);
+		}
+
+		/// <summary>
+		/// 删除沙盒内的缓存文件夹
+		/// </summary>
+		public static void DeleteSandboxCacheFolder()
+		{
+			string directoryPath = AssetPathHelper.MakePersistentLoadPath(StrCacheFolderName);
+			if (Directory.Exists(directoryPath))
+				Directory.Delete(directoryPath, true);
+		}
+
 
 		/// <summary>
 		/// 获取沙盒内缓存文件的路径
@@ -50,21 +72,11 @@ namespace MotionFramework.Patch
 		}
 
 		/// <summary>
-		/// 删除沙盒内补丁清单文件
-		/// </summary>
-		public static void DeleteSandboxPatchManifestFile()
-		{
-			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
-			if (File.Exists(filePath))
-				File.Delete(filePath);
-		}
-
-		/// <summary>
 		/// 获取缓存文件的存储路径
 		/// </summary>
 		public static string MakeSandboxCacheFilePath(string fileName)
 		{
-			return AssetPathHelper.MakePersistentLoadPath($"Cache/{fileName}");
+			return AssetPathHelper.MakePersistentLoadPath($"{StrCacheFolderName}/{fileName}");
 		}
 	}
 }

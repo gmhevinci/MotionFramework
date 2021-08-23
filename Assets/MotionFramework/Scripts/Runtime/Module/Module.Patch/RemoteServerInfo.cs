@@ -51,10 +51,15 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 默认的CDN服务器地址
 		/// </summary>
-		private string _defaultCDNServer;
+		private readonly string _defaultCDNServer;
+
+		/// <summary>
+		/// 默认的CDN服务器备用地址
+		/// </summary>
+		private readonly string _defaultFallbackCDNServer;
 
 
-		public RemoteServerInfo(IWebServerParam webServerParam, string defaultWebServer, string defaultCDNServer)
+		public RemoteServerInfo(IWebServerParam webServerParam, string defaultWebServer, string defaultCDNServer, string defaultFallbackCDNServer)
 		{
 			if (defaultWebServer.ToLower().StartsWith("http") == false)
 				defaultWebServer = $"http://{defaultWebServer}";
@@ -64,6 +69,7 @@ namespace MotionFramework.Patch
 			_webServerParam = webServerParam;
 			_defaultWebServer = defaultWebServer;
 			_defaultCDNServer = defaultCDNServer;
+			_defaultFallbackCDNServer = defaultFallbackCDNServer;
 		}
 
 		/// <summary>
@@ -136,7 +142,7 @@ namespace MotionFramework.Patch
 
 		/// <summary>
 		/// 获取CDN服务器备用地址
-		/// 注意：在没有相关平台的信息时，返回默认的CDN服务器地址
+		/// 注意：在没有相关平台的信息时，返回默认的CDN服务器备用地址
 		/// </summary>
 		public string GetCDNFallbackServer(RuntimePlatform platform)
 		{
@@ -144,7 +150,7 @@ namespace MotionFramework.Patch
 			{
 				return value.FallbackServer;
 			}
-			return _defaultCDNServer;
+			return _defaultFallbackCDNServer;
 		}
 	}
 }

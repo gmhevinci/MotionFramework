@@ -27,13 +27,24 @@ namespace MotionFramework.Patch
 
 
 		/// <summary>
-		/// 初始化缓存
+		/// 初始化APP版本号
 		/// </summary>
 		/// <param name="appVersion"></param>
-		public void InitCache(string appVersion)
+		public void InitAppVersion(string appVersion)
 		{
 			CacheAppVersion = appVersion;
 			SaveCache();
+		}
+
+		/// <summary>
+		/// 清理缓存
+		/// </summary>
+		public void ClearCache()
+		{
+			MotionLog.Warning("Clear cache and delete cache folder.");
+			CacheAppVersion = string.Empty;
+			CachedFileHashList.Clear();
+			PatchHelper.DeleteSandboxCacheFolder();
 		}
 
 		/// <summary>
@@ -88,15 +99,11 @@ namespace MotionFramework.Patch
 			FileUtility.CreateFile(filePath, jsonData);
 		}
 
-
 		/// <summary>
 		/// 读取缓存文件
 		/// </summary>
 		public static PatchCache LoadCache()
 		{
-			if (PatchHelper.CheckSandboxCacheFileExist() == false)
-				return new PatchCache();
-
 			MotionLog.Log("Load cache from disk.");
 			string filePath = PatchHelper.GetSandboxCacheFilePath();
 			string jsonData = FileUtility.ReadFile(filePath);

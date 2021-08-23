@@ -59,8 +59,7 @@ namespace MotionFramework.Patch
 			{
 				// 从远端请求补丁清单
 				_requestCount++;
-				int resourceVersion = ignoreResourceVersion ? oldResourceVersion : newResourceVersion;
-				string webURL = GetRequestURL(ignoreResourceVersion, resourceVersion, PatchDefine.PatchManifestFileName);
+				string webURL = GetRequestURL(ignoreResourceVersion, newResourceVersion, PatchDefine.PatchManifestFileName);
 				MotionLog.Log($"Beginning to request patch manifest : {webURL}");
 				WebGetRequest download = new WebGetRequest(webURL);
 				int timeout = _patcher.GetPatchManifestRequestTimeout();
