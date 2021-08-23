@@ -40,10 +40,16 @@ namespace MotionFramework.Editor
 			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext);
 			patchManifest.AssetList = GetAllPatchAsset(buildMapContext, patchManifest.BundleList);
 
-			// 创建新文件
-			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestFileName}";
-			BuildLogger.Log($"创建补丁清单文件：{filePath}");
-			PatchManifest.Serialize(filePath, patchManifest);
+			// 创建补丁清单文件
+			string manifestFilePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestFileName}";
+			BuildLogger.Log($"创建补丁清单文件：{manifestFilePath}");
+			PatchManifest.Serialize(manifestFilePath, patchManifest);
+
+			// 创建补丁清单哈希文件
+			string manifestHashFilePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestHashFileName}";
+			string manifestHash = HashUtility.FileMD5(manifestFilePath);
+			BuildLogger.Log($"创建补丁清单哈希文件：{manifestHashFilePath}");
+			FileUtility.CreateFile(manifestHashFilePath, manifestHash);
 		}
 
 		/// <summary>

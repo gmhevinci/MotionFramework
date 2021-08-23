@@ -46,6 +46,14 @@ namespace MotionFramework.Editor
 				BuildLogger.Log($"拷贝PatchManifest文件到：{destPath}");
 			}
 
+			// 拷贝PatchManifest哈希文件
+			{
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestHashFileName}";
+				string destPath = $"{packageDirectory}/{PatchDefine.PatchManifestHashFileName}";
+				EditorTools.CopyFile(sourcePath, destPath, true);
+				BuildLogger.Log($"拷贝PatchManifest哈希文件到：{destPath}");
+			}
+
 			// 拷贝UnityManifest序列化文件
 			{
 				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.UnityManifestFileName}";
