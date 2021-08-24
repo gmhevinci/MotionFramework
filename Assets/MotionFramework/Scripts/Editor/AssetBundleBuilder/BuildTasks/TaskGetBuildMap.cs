@@ -62,18 +62,6 @@ namespace MotionFramework.Editor
 			}
 
 			/// <summary>
-			/// 获取AssetBundle内包含的资源路径列表
-			/// </summary>
-			public string[] GetIncludeAssetPaths(string bundleFullName)
-			{
-				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
-				{
-					return bundleInfo.GetIncludeAssetPaths();
-				}
-				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
-			}
-
-			/// <summary>
 			/// 获取AssetBundle内收集的资源路径列表
 			/// </summary>
 			public string[] GetCollectAssetPaths(string bundleFullName)
@@ -154,7 +142,6 @@ namespace MotionFramework.Editor
 		private List<AssetInfo> GetBuildAssets()
 		{
 			Dictionary<string, AssetInfo> buildAssets = new Dictionary<string, AssetInfo>();
-			Dictionary<string, string> latestMainAssetPath = new Dictionary<string, string>();
 			
 			// 1. 获取主动收集的资源
 			List<AssetCollectInfo> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
@@ -177,7 +164,6 @@ namespace MotionFramework.Editor
 					else
 					{
 						buildAssets.Add(assetPath, depends[i]);
-						latestMainAssetPath.Add(assetPath, mainAssetPath);
 					}
 
 					// 添加资源标记
@@ -210,17 +196,8 @@ namespace MotionFramework.Editor
 			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
 			{
 				var assetInfo = pair.Value;
-				if(assetInfo.IsCollectAsset == false && assetInfo.DependCount == 0)
-				{
-					string mainAssetPath = latestMainAssetPath[assetInfo.AssetPath];
-					var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(mainAssetPath);
-					assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);
-				}
-				else
-				{
-					var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
-					assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);
-				}
+				var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
+				assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);				
 				EditorTools.DisplayProgressBar("设置资源标签", ++progressValue, buildAssets.Count);
 			}
 			EditorTools.ClearProgressBar();
