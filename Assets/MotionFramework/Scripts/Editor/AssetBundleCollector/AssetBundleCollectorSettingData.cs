@@ -393,7 +393,7 @@ namespace MotionFramework.Editor
 			string bundleLabel;
 			if (findCollector == null)
 			{
-				IPackRule defaultInstance = new PackExplicit();
+				IPackRule defaultInstance = new PackDirectory();
 				bundleLabel = defaultInstance.GetAssetBundleLabel(assetPath);
 			}
 			else

@@ -32,7 +32,8 @@ namespace MotionFramework.Editor
 			public string FilterRuleName = string.Empty;
 
 			/// <summary>
-			/// 对于不依赖于代码加载的收集资源，可以禁止写入资源路径信息到清单文件
+			/// 不写入资源路径到清单文件
+			/// 注意：对于不依赖于代码加载的收集资源，可以禁止写入资源路径信息到清单文件
 			/// </summary>
 			public bool DontWriteAssetPath = false;
 
