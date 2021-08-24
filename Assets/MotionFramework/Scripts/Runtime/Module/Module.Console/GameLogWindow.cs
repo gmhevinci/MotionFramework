@@ -59,6 +59,10 @@ namespace MotionFramework.Console
 			GUILayout.BeginHorizontal();
 			if (GUILayout.Button("Clear", ConsoleGUI.ButtonStyle, GUILayout.Width(100)))
 			{
+				_totalCount = 0;
+				_logCount = 0;
+				_warningCount = 0;
+				_errorCount = 0;
 				_logs.Clear();
 			}
 			_showLog = ConsoleGUI.Toggle($"Log ({_logCount})", _showLog);
@@ -73,7 +77,7 @@ namespace MotionFramework.Console
 			}
 			GUILayout.EndHorizontal();
 
-			float offset = ConsoleGUI.ToolbarStyle.fixedHeight;
+			float offset = ConsoleGUI.ToolbarStyle.fixedHeight * 3;
 			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
 			for (int i = 0; i < _logs.Count; i++)
 			{
