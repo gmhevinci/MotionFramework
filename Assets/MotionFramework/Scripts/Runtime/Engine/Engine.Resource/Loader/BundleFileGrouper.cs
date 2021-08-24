@@ -15,12 +15,12 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 所属的资源包加载器
 		/// </summary>
-		private BundleFileLoader _ownerLoader;
+		private readonly BundleFileLoader _ownerLoader;
 
 		/// <summary>
 		/// 依赖的资源包加载器列表
 		/// </summary>
-		private List<BundleFileLoader> _dependLoaders;
+		private readonly List<BundleFileLoader> _dependLoaders;
 
 
 		/// <summary>
@@ -65,14 +65,14 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsDone()
 		{
-			if (_ownerLoader.IsDone() == false)
-				return false;
-
 			foreach (var dpLoader in _dependLoaders)
 			{
 				if (dpLoader.IsDone() == false)
 					return false;
 			}
+
+			if (_ownerLoader.IsDone() == false)
+				return false;
 
 			return true;
 		}
@@ -82,14 +82,14 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public void WaitForAsyncComplete()
 		{
-			if(_ownerLoader.IsDone() == false)
-				_ownerLoader.WaitForAsyncComplete();
-
 			foreach (var dpLoader in _dependLoaders)
 			{
 				if(dpLoader.IsDone() == false)
 					dpLoader.WaitForAsyncComplete();
 			}
+
+			if (_ownerLoader.IsDone() == false)
+				_ownerLoader.WaitForAsyncComplete();
 		}
 
 		/// <summary>

@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using MotionFramework.Network;
 using MotionFramework.Patch;
 
 namespace MotionFramework.Resource
@@ -201,6 +200,7 @@ namespace MotionFramework.Resource
 					if (_isWaitForAsyncComplete)
 					{
 						// 强制挂起主线程（注意：该操作会很耗时）
+						MotionLog.Warning("Suspend the main thread to load unity bundle.");
 						CacheBundle = _cacheRequest.assetBundle;
 					}
 					else

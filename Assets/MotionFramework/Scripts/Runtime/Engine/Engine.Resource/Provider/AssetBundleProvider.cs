@@ -87,6 +87,7 @@ namespace MotionFramework.Resource
 					if (IsWaitForAsyncComplete)
 					{
 						// 强制挂起主线程（注意：该操作会很耗时）
+						MotionLog.Warning("Suspend the main thread to load unity asset.");
 						AssetObject = _cacheRequest.asset;
 					}
 					else
@@ -107,18 +108,18 @@ namespace MotionFramework.Resource
 		{
 			base.Destory();
 
-			// 释放资源包
-			if (_bundleGrouper != null)
-			{
-				_bundleGrouper.Release();
-				_bundleGrouper = null;
-			}
-
 			// 销毁资源对象
 			if (AssetObject != null)
 			{
 				if (AssetObject is GameObject == false)
 					Resources.UnloadAsset(AssetObject);
+			}
+
+			// 释放资源包
+			if (_bundleGrouper != null)
+			{
+				_bundleGrouper.Release();
+				_bundleGrouper = null;
 			}
 		}
 	}
