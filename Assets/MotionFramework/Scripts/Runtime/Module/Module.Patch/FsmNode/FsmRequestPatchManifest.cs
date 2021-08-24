@@ -75,7 +75,7 @@ namespace MotionFramework.Patch
 				}
 				else
 				{
-					MotionLog.Log($"New patch manifest hash : {patchManifestHash}, Current patch manifest hash : {currentFileHash}");
+					MotionLog.Log($"Patch manifest hash is change : {patchManifestHash} -> {currentFileHash}");
 				}
 			}
 

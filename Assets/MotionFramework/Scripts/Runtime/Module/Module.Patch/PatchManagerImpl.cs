@@ -127,10 +127,11 @@ namespace MotionFramework.Patch
 				// 每次启动时比对APP版本号是否一致	
 				if (_cache.CacheAppVersion != Application.version)
 				{
+					MotionLog.Warning($"Cache is dirty ! Cache app version is {_cache.CacheAppVersion}, Current app version is {Application.version}");
+
 					// 注意：在覆盖安装的时候，会保留APP沙盒目录，可以选择清空缓存目录
 					if (_clearCacheWhenDirty)
 					{
-						MotionLog.Warning($"Cache is dirty ! Cache app version is {_cache.CacheAppVersion}, Current app version is {Application.version}");
 						_cache.ClearCache();
 					}
 
