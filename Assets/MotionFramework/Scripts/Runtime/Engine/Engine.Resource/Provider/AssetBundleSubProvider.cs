@@ -27,6 +27,7 @@ namespace MotionFramework.Resource
 			: base(assetPath, assetType)
 		{
 			_bundleGrouper = new BundleFileGrouper(assetPath);
+			_bundleGrouper.Reference();
 		}
 		public override void Update()
 		{
