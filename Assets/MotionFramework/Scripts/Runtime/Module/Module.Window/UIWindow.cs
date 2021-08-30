@@ -17,6 +17,7 @@ namespace MotionFramework.Window
 		private AssetOperationHandle _handle;
 		private System.Action<UIWindow> _prepareCallback;
 		private bool _isLoadAsset = false;
+		private System.Object[] _userDatas;
 
 		/// <summary>
 		/// 是否已经创建
@@ -52,7 +53,24 @@ namespace MotionFramework.Window
 		/// <summary>
 		/// 自定义数据
 		/// </summary>
-		public System.Object UserData { private set; get; }
+		public System.Object UserData
+		{
+			get
+			{
+				if (_userDatas != null && _userDatas.Length >= 1)
+					return _userDatas[0];
+				else
+					return null;
+			}
+		}
+
+		/// <summary>
+		/// 自定义数据集
+		/// </summary>
+		public System.Object[] UserDatas
+		{
+			get { return _userDatas; }
+		}
 
 		/// <summary>
 		/// 是否加载完毕
@@ -86,20 +104,20 @@ namespace MotionFramework.Window
 		public abstract void OnUpdate();
 		public abstract void OnDestroy();
 
-		internal void TryInvoke(System.Action<UIWindow> prepareCallback, System.Object userData)
+		internal void TryInvoke(System.Action<UIWindow> prepareCallback, System.Object[] userDatas)
 		{
-			UserData = userData;
+			_userDatas = userDatas;
 			if (IsPrepare)
 				prepareCallback?.Invoke(this);
 			else
 				_prepareCallback = prepareCallback;
 		}
-		internal void InternalLoad(string location, System.Action<UIWindow> prepareCallback, System.Object userData)
+		internal void InternalLoad(string location, System.Action<UIWindow> prepareCallback, System.Object[] userDatas)
 		{
 			if (_isLoadAsset)
 				return;
 
-			UserData = userData;
+			_userDatas = userDatas;
 			_isLoadAsset = true;
 			_prepareCallback = prepareCallback;
 			_handle = ResourceManager.Instance.LoadAssetAsync<GameObject>(location);
@@ -107,7 +125,7 @@ namespace MotionFramework.Window
 		}
 		internal void InternalCreate()
 		{
-			if(IsCreate == false)
+			if (IsCreate == false)
 			{
 				IsCreate = true;
 				OnCreate();
@@ -136,7 +154,7 @@ namespace MotionFramework.Window
 			}
 
 			// 卸载面板资源
-			_handle.Release();		
+			_handle.Release();
 
 			// 移除所有缓存的事件监听
 			EventGrouper.RemoveAllListener();

@@ -167,7 +167,11 @@ namespace MotionFramework.Window
 		{
 			return OpenWindow(typeof(T), location, userData);
 		}
-		public UIWindow OpenWindow(Type type, string location, System.Object userData = null)
+		public UIWindow OpenWindow<T>(string location, params System.Object[] userDatas) where T : UIWindow
+		{
+			return OpenWindow(typeof(T), location, userDatas);
+		}
+		public UIWindow OpenWindow(Type type, string location, params System.Object[] userDatas)
 		{
 			string windowName = type.FullName;
 
@@ -177,14 +181,14 @@ namespace MotionFramework.Window
 				UIWindow window = GetWindow(windowName);
 				Pop(window); //弹出窗口
 				Push(window); //重新压入
-				window.TryInvoke(OnWindowPrepare, userData);
+				window.TryInvoke(OnWindowPrepare, userDatas);
 				return window;
 			}
 			else
 			{
 				UIWindow window = CreateInstance(type);
 				Push(window); //首次压入
-				window.InternalLoad(location, OnWindowPrepare, userData);
+				window.InternalLoad(location, OnWindowPrepare, userDatas);
 				return window;
 			}
 		}
