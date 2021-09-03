@@ -344,7 +344,7 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public static bool IsValidateAsset(string assetPath)
 		{
-			if (!assetPath.StartsWith("Assets/"))
+			if (assetPath.StartsWith("Assets/") == false && assetPath.StartsWith("Packages/") == false)
 				return false;
 
 			if (AssetDatabase.IsValidFolder(assetPath))
