@@ -17,7 +17,6 @@ namespace MotionFramework.Pool
 		private readonly List<SpawnGameObject> _loadingSpawn = new List<SpawnGameObject>();
 		private readonly Transform _root;
 		private AssetOperationHandle _handle;
-		private GameObject _cloneObject;
 		private float _lastRestoreRealTime = -1f;
 
 		/// <summary>
@@ -99,19 +98,10 @@ namespace MotionFramework.Pool
 		}
 		private void Handle_Completed(AssetOperationHandle obj)
 		{
-			_cloneObject = _handle.InstantiateObject;
-
-			// 如果加载失败，创建临时对象
-			if (_cloneObject == null)
-				_cloneObject = new GameObject(Location);
-
-			// 设置克隆对象
-			SetRestoreCloneObject(_cloneObject);
-
 			// 创建初始对象
 			for (int i = 0; i < InitCapacity; i++)
 			{
-				GameObject cloneObj = GameObject.Instantiate(_cloneObject);
+				GameObject cloneObj = InstantiateGameObject();
 				SetRestoreCloneObject(cloneObj);
 				_cache.Enqueue(cloneObj);
 			}
@@ -119,7 +109,7 @@ namespace MotionFramework.Pool
 			// 最后返回结果
 			for (int i = 0; i < _loadingSpawn.Count; i++)
 			{
-				GameObject cloneObj = GameObject.Instantiate(_cloneObject);
+				GameObject cloneObj = InstantiateGameObject();
 				SpawnGameObject spawn = _loadingSpawn[i];
 				spawn.Go = cloneObj;
 
@@ -141,6 +131,16 @@ namespace MotionFramework.Pool
 				}
 			}
 			_loadingSpawn.Clear();
+		}
+		private GameObject InstantiateGameObject()
+		{
+			var cloneObject = _handle.InstantiateObject;
+
+			// 如果加载失败，创建临时对象
+			if (cloneObject == null)
+				cloneObject = new GameObject(Location);
+
+			return cloneObject;
 		}
 
 		/// <summary>
@@ -182,7 +182,7 @@ namespace MotionFramework.Pool
 				}
 				else
 				{
-					GameObject go = GameObject.Instantiate(_cloneObject);
+					GameObject go = InstantiateGameObject();
 					spawn = new SpawnGameObject(this, go, userData);
 					SetSpawnCloneObject(go);
 				}
@@ -199,10 +199,6 @@ namespace MotionFramework.Pool
 		{
 			// 卸载资源对象
 			_handle.Release();
-
-			// 销毁克隆对象
-			if (_cloneObject != null)
-				GameObject.Destroy(_cloneObject);
 
 			// 销毁游戏对象
 			foreach (var go in _cache)
