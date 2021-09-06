@@ -29,9 +29,7 @@ namespace MotionFramework.Resource
 			: base(scenePath, null)
 		{
 			_param = param;
-
 			_bundleGrouper = new BundleFileGrouper(scenePath);
-			_bundleGrouper.SetSceneBundle();
 			_bundleGrouper.Reference();
 		}
 		public override void Update()
@@ -109,6 +107,14 @@ namespace MotionFramework.Resource
 		public override void WaitForAsyncComplete()
 		{
 			throw new System.Exception($"Unity scene is not support {nameof(WaitForAsyncComplete)}.");
+		}
+
+		/// <summary>
+		/// 获取资源包的调试信息列表
+		/// </summary>
+		internal void GetBundleDebugInfos(List<BundleDebugInfo> output)
+		{
+			_bundleGrouper.GetBundleDebugInfos(output);
 		}
 	}
 }

@@ -113,18 +113,6 @@ namespace MotionFramework.Resource
 					_providers.RemoveAt(i);
 				}
 			}
-
-			// 实时销毁场景
-			// 注意：需要立刻回收场景
-			for (int i = _loaders.Count - 1; i >= 0; i--)
-			{
-				BundleFileLoader loader = _loaders[i];
-				if (loader.IsSceneBundle && loader.CanDestroy())
-				{
-					loader.Destroy(true);
-					_loaders.RemoveAt(i);
-				}
-			}
 		}
 
 		/// <summary>
@@ -321,6 +309,15 @@ namespace MotionFramework.Resource
 		internal static int GetLoaderCount()
 		{
 			return _loaders.Count;
+		}
+
+		internal static List<AssetProviderBase> GetAllProviders()
+		{
+			return _providers;
+		}
+		internal static int GetProviderCount()
+		{
+			return _providers.Count;
 		}
 		#endregion
 	}

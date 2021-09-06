@@ -125,5 +125,13 @@ namespace MotionFramework.Resource
 				_bundleGrouper = null;
 			}
 		}
+
+		/// <summary>
+		/// 获取资源包的调试信息列表
+		/// </summary>
+		internal void GetBundleDebugInfos(List<BundleDebugInfo> output)
+		{
+			_bundleGrouper.GetBundleDebugInfos(output);
+		}
 	}
 }

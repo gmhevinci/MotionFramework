@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using MotionFramework.Reference;
 
 namespace MotionFramework.Resource
 {
@@ -53,14 +54,6 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 设置为所属资源包为场景资源包
-		/// </summary>
-		public void SetSceneBundle()
-		{
-			_ownerLoader.SetSceneBundle();
-		}
-
-		/// <summary>
 		/// 是否已经完成（无论成功或失败）
 		/// </summary>
 		public bool IsDone()
@@ -84,7 +77,7 @@ namespace MotionFramework.Resource
 		{
 			foreach (var dpLoader in _dependLoaders)
 			{
-				if(dpLoader.IsDone() == false)
+				if (dpLoader.IsDone() == false)
 					dpLoader.WaitForAsyncComplete();
 			}
 
@@ -113,6 +106,29 @@ namespace MotionFramework.Resource
 			foreach (var dpLoader in _dependLoaders)
 			{
 				dpLoader.Release();
+			}
+		}
+
+		/// <summary>
+		/// 获取资源包的调试信息列表
+		/// </summary>
+		internal void GetBundleDebugInfos(List<BundleDebugInfo> output)
+		{
+			var ownerInfo = ReferencePool.Spawn<BundleDebugInfo>();
+			ownerInfo.BundleName = _ownerLoader.BundleInfo.BundleName;
+			ownerInfo.Version = _ownerLoader.BundleInfo.Version;
+			ownerInfo.RefCount = _ownerLoader.RefCount;
+			ownerInfo.States = _ownerLoader.States;
+			output.Add(ownerInfo);
+
+			foreach (var loader in _dependLoaders)
+			{
+				var debugInfo = ReferencePool.Spawn<BundleDebugInfo>();
+				debugInfo.BundleName = loader.BundleInfo.BundleName;
+				debugInfo.Version = loader.BundleInfo.Version;
+				debugInfo.RefCount = loader.RefCount;
+				debugInfo.States = loader.States;
+				output.Add(debugInfo);
 			}
 		}
 

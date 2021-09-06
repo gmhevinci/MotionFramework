@@ -29,11 +29,6 @@ namespace MotionFramework.Resource
 		public ELoaderStates States { private set; get; }
 
 		/// <summary>
-		/// 是否为场景资源包
-		/// </summary>
-		public bool IsSceneBundle { private set; get; } = false;
-
-		/// <summary>
 		/// 是否已经销毁
 		/// </summary>
 		public bool IsDestroyed { private set; get; } = false;
@@ -50,14 +45,6 @@ namespace MotionFramework.Resource
 			BundleInfo = bundleInfo;
 			RefCount = 0;
 			States = ELoaderStates.None;
-		}
-
-		/// <summary>
-		/// 设置为场景资源包
-		/// </summary>
-		public void SetSceneBundle()
-		{
-			IsSceneBundle = true;
 		}
 
 		/// <summary>

@@ -90,9 +90,9 @@ namespace MotionFramework.Resource
 		}
 		void IModule.OnGUI()
 		{
-			int totalCount = AssetSystem.GetLoaderCount();
 			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Virtual simulation : {AssetSystem.SimulationOnEditor}");
-			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Loader count : {totalCount}");
+			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Bundle count : {AssetSystem.GetLoaderCount()}");
+			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Asset loader count : {AssetSystem.GetProviderCount()}");
 		}
 
 		/// <summary>
