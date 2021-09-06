@@ -76,31 +76,37 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static void UpdatePoll()
 		{
-			// 更新所有加载器
-			int loadingCount = 0;
+			// 更新加载器	
 			foreach(var loader in _loaders)
 			{
-				if (loader.IsSceneBundle)
+				loader.Update();
+			}
+
+			// 更新资源提供者
+			// 注意：循环更新的时候，可能会扩展列表
+			// 注意：不能限制场景对象的加载
+			int loadingCount = 0;
+			for(int i=0; i<_providers.Count; i++)
+			{
+				var provider = _providers[i];
+				if (provider is BundledSceneProvider || provider is EditorSceneProvider)
 				{
-					loader.Update();
+					provider.Update();
 				}
 				else
 				{
 					if (loadingCount < RuntimeMaxLoadingCount)
-						loader.Update();
+						provider.Update();
 
-					if (loader.IsDone() == false)
+					if (provider.IsDone == false)
 						loadingCount++;
 				}
 			}
 
-			// 更新所有的资源提供者
+			// 销毁资源提供者
 			for (int i = _providers.Count - 1; i >= 0; i--)
 			{
 				var provider = _providers[i];
-				provider.Update();
-
-				// 检测是否可以销毁
 				if (provider.CanDestroy())
 				{
 					provider.Destory();
@@ -109,15 +115,7 @@ namespace MotionFramework.Resource
 			}
 
 			// 实时销毁场景
-			UpdateDestroyScene();
-		}
-
-		/// <summary>
-		/// 实时销毁场景
-		/// 注意：因为场景比较特殊，需要立刻回收
-		/// </summary>
-		private static void UpdateDestroyScene()
-		{
+			// 注意：需要立刻回收场景
 			for (int i = _loaders.Count - 1; i >= 0; i--)
 			{
 				BundleFileLoader loader = _loaders[i];
@@ -216,7 +214,7 @@ namespace MotionFramework.Resource
 				if (SimulationOnEditor)
 					provider = new EditorSceneProvider(scenePath, instanceParam);
 				else
-					provider = new AssetSceneProvider(scenePath, instanceParam);
+					provider = new BundledSceneProvider(scenePath, instanceParam);
 				_providers.Add(provider);
 			}
 
