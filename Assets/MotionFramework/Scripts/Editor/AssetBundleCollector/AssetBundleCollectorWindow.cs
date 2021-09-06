@@ -194,11 +194,18 @@ namespace MotionFramework.Editor
 
 					// AssetTags
 					{
-						string newTextValue = EditorGUILayout.TextField(assetTags, GUILayout.MinWidth(GuiAssetTagsMinSize), GUILayout.MaxWidth(GuiAssetTagsMaxSize));
-						if (newTextValue != assetTags)
+						if (collector.DontWriteAssetPath)
 						{
-							assetTags = newTextValue;
-							AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleName, filterRuleName, dontWriteAssetPath, assetTags);
+							EditorGUILayout.LabelField(assetTags, GUILayout.MinWidth(GuiAssetTagsMinSize), GUILayout.MaxWidth(GuiAssetTagsMaxSize));
+						}
+						else
+						{
+							string newTextValue = EditorGUILayout.TextField(assetTags, GUILayout.MinWidth(GuiAssetTagsMinSize), GUILayout.MaxWidth(GuiAssetTagsMaxSize));
+							if (newTextValue != assetTags)
+							{
+								assetTags = newTextValue;
+								AssetBundleCollectorSettingData.ModifyCollector(directory, packRuleName, filterRuleName, dontWriteAssetPath, assetTags);
+							}
 						}
 					}
 

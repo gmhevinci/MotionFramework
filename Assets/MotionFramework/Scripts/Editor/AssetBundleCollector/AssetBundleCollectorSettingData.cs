@@ -196,6 +196,10 @@ namespace MotionFramework.Editor
 			if (CheckConflict(directory))
 				return;
 
+			// 检测资源标签
+			if (dontWriteAssetPath && string.IsNullOrEmpty(assetTags) == false)
+				Debug.LogWarning($"Collector {directory} has asset tags : {assetTags}, It is not vliad when enable dontWriteAssetPath.");
+
 			AssetBundleCollectorSetting.Collector element = new AssetBundleCollectorSetting.Collector();
 			element.CollectDirectory = directory;
 			element.PackRuleName = packRuleName;
@@ -221,6 +225,10 @@ namespace MotionFramework.Editor
 		}
 		public static void ModifyCollector(string directory, string packRuleName, string filterRuleName, bool dontWriteAssetPath, string assetTags)
 		{
+			// 检测资源标签
+			if (dontWriteAssetPath && string.IsNullOrEmpty(assetTags) == false)
+				Debug.LogWarning($"Collector '{directory}' has asset tags '{assetTags}', It is invalid when enable dontWriteAssetPath.");
+
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				var collector = Setting.Collectors[i];
