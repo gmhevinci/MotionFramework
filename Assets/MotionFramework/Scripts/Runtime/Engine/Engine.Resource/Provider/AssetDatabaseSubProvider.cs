@@ -37,12 +37,18 @@ namespace MotionFramework.Resource
 				// 检测资源文件是否存在
 				string guid = UnityEditor.AssetDatabase.AssetPathToGUID(AssetPath);
 				if (string.IsNullOrEmpty(guid))
+				{
 					States = EAssetStates.Fail;
+					InvokeCompletion();
+					return;
+				}
 				else
+				{
 					States = EAssetStates.Loading;
+				}		
 
 				// 注意：模拟异步加载效果提前返回
-				if(IsWaitForAsyncComplete == false)
+				if (IsWaitForAsyncComplete == false)
 					return;
 			}
 

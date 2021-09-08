@@ -112,9 +112,9 @@ namespace MotionFramework.Console
 					AssetBundleSubProvider temp = provider as AssetBundleSubProvider;
 					temp.GetBundleDebugInfos(wrapper.BundleDebugInfos);
 				}
-				else if(provider is BundledSceneProvider)
+				else if(provider is SceneProvider)
 				{
-					BundledSceneProvider temp = provider as BundledSceneProvider;
+					SceneProvider temp = provider as SceneProvider;
 					temp.GetBundleDebugInfos(wrapper.BundleDebugInfos);
 				}
 			}

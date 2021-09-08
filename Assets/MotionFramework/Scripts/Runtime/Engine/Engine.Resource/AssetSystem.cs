@@ -89,7 +89,7 @@ namespace MotionFramework.Resource
 			for(int i=0; i<_providers.Count; i++)
 			{
 				var provider = _providers[i];
-				if (provider is BundledSceneProvider || provider is EditorSceneProvider)
+				if (provider is SceneProvider || provider is EditorSceneProvider)
 				{
 					provider.Update();
 				}
@@ -202,7 +202,7 @@ namespace MotionFramework.Resource
 				if (SimulationOnEditor)
 					provider = new EditorSceneProvider(scenePath, instanceParam);
 				else
-					provider = new BundledSceneProvider(scenePath, instanceParam);
+					provider = new SceneProvider(scenePath, instanceParam);
 				_providers.Add(provider);
 			}
 

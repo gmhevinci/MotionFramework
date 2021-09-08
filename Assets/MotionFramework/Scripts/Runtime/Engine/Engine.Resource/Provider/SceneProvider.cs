@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class BundledSceneProvider : AssetProviderBase
+	internal sealed class SceneProvider : AssetProviderBase
 	{
 		private BundleFileGrouper _bundleGrouper;
 		private SceneInstanceParam _param;
@@ -25,7 +25,7 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public BundledSceneProvider(string scenePath, SceneInstanceParam param)
+		public SceneProvider(string scenePath, SceneInstanceParam param)
 			: base(scenePath, null)
 		{
 			_param = param;
