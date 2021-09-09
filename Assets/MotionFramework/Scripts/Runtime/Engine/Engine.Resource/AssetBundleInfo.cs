@@ -38,7 +38,12 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsEncrypted { private set; get; }
 
-		public AssetBundleInfo(string bundleName, string localPath, string remoteURL, string remoteFallbackURL, int version, bool isEncrypted)
+		/// <summary>
+		/// 是否为原生文件
+		/// </summary>
+		public bool IsRawFile { private set; get; }
+
+		public AssetBundleInfo(string bundleName, string localPath, string remoteURL, string remoteFallbackURL, int version, bool isEncrypted, bool isRawFile)
 		{
 			BundleName = bundleName;
 			LocalPath = localPath;
@@ -46,8 +51,9 @@ namespace MotionFramework.Resource
 			RemoteFallbackURL = remoteFallbackURL;
 			Version = version;
 			IsEncrypted = isEncrypted;
+			IsRawFile = isRawFile;
 		}
-		public AssetBundleInfo(string bundleName, string localPath, int version, bool isEncrypted)
+		public AssetBundleInfo(string bundleName, string localPath, int version, bool isEncrypted, bool isRawFile)
 		{
 			BundleName = bundleName;
 			LocalPath = localPath;
@@ -55,6 +61,7 @@ namespace MotionFramework.Resource
 			RemoteFallbackURL = string.Empty;
 			Version = version;
 			IsEncrypted = isEncrypted;
+			IsRawFile = isRawFile;
 		}
 		public AssetBundleInfo(string bundleName, string localPath)
 		{
@@ -64,6 +71,7 @@ namespace MotionFramework.Resource
 			RemoteFallbackURL = string.Empty;
 			Version = 0;
 			IsEncrypted = false;
+			IsRawFile = false;
 		}
 	}
 }
