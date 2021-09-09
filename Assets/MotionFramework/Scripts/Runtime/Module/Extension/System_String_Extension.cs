@@ -35,7 +35,12 @@ namespace System
 		{
 			if (string.IsNullOrEmpty(str))
 				return str;
-			return str.Remove(str.LastIndexOf(".")); //"assets/config/test.unity3d" --> "assets/config/test"
+
+			int index = str.LastIndexOf(".");
+			if (index == -1)
+				return str;
+			else
+				return str.Remove(index); //"assets/config/test.unity3d" --> "assets/config/test"
 		}
 	}
 }
