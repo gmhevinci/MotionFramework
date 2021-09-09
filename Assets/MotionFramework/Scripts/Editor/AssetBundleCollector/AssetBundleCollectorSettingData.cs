@@ -11,24 +11,11 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using MotionFramework.Utility;
-using MotionFramework.Patch;
 
 namespace MotionFramework.Editor
 {
 	public static class AssetBundleCollectorSettingData
 	{
-		public struct BundleLabelAndVariant
-		{
-			public string BundleLabel { private set; get; }
-			public string BundleVariant { private set; get; }
-
-			public BundleLabelAndVariant(string label, string variant)
-			{
-				BundleLabel = EditorTools.GetRegularPath(label);
-				BundleVariant = variant;
-			}
-		}
-
 		private static readonly Dictionary<string, System.Type> _cachePackRuleTypes = new Dictionary<string, System.Type>();
 		private static readonly Dictionary<string, IPackRule> _cachePackRuleInstance = new Dictionary<string, IPackRule>();
 
@@ -121,7 +108,8 @@ namespace MotionFramework.Editor
 				List<Type> types = new List<Type>(100)
 				{
 					typeof(PackExplicit),
-					typeof(PackDirectory)
+					typeof(PackDirectory),
+					typeof(PackRawFile),
 				};
 				var customTypes = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IPackRule));
 				types.AddRange(customTypes);
@@ -316,6 +304,7 @@ namespace MotionFramework.Editor
 				if (collector.DontWriteAssetPath)
 					continue;
 
+				bool isRawAsset = collector.PackRuleName == nameof(PackRawFile);
 				string[] findAssets = EditorTools.FindAssets(EAssetSearchType.All, collector.CollectDirectory);
 				foreach (string assetPath in findAssets)
 				{
@@ -326,7 +315,7 @@ namespace MotionFramework.Editor
 
 					if (result.ContainsKey(assetPath) == false)
 					{
-						var assetCollectInfo = new AssetCollectInfo(assetPath, collector.GetAssetTags());
+						var assetCollectInfo = new AssetCollectInfo(assetPath, collector.GetAssetTags(), isRawAsset);
 						result.Add(assetPath, assetCollectInfo);
 					}
 				}
@@ -371,17 +360,17 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 获取资源的打包信息
+		/// 获取资源包名
 		/// </summary>
-		public static BundleLabelAndVariant GetBundleLabelAndVariant(string assetPath)
+		public static string GetBundleLabel(string assetPath)
 		{
-			// 如果收集全路径着色器		
+			// 如果收集全路径着色器
 			if (Setting.IsCollectAllShaders)
 			{
 				System.Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
 				if (assetType == typeof(UnityEngine.Shader))
 				{
-					return new BundleLabelAndVariant(Setting.ShadersBundleName, PatchDefine.AssetBundleDefaultVariant);
+					return EditorTools.GetRegularPath(Setting.ShadersBundleName);
 				}
 			}
 
@@ -411,7 +400,8 @@ namespace MotionFramework.Editor
 				bundleLabel = getInstance.GetAssetBundleLabel(assetPath);
 			}
 
-			return new BundleLabelAndVariant(bundleLabel, PatchDefine.AssetBundleDefaultVariant);
+			// 返回包名
+			return EditorTools.GetRegularPath(bundleLabel);
 		}
 
 		private static IPackRule GetPackRuleInstance(string ruleName)

@@ -20,10 +20,16 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public List<string> AssetTags { private set; get; }
 
-		public AssetCollectInfo(string assetPath, List<string> assetTags)
+		/// <summary>
+		/// 是否为原生资源
+		/// </summary>
+		public bool IsRawAsset { private set; get; }
+
+		public AssetCollectInfo(string assetPath, List<string> assetTags, bool isRawAsset)
 		{
 			AssetPath = assetPath;
 			AssetTags = assetTags;
+			IsRawAsset = isRawAsset;
 		}
 	}
 }
