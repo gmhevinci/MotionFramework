@@ -275,7 +275,7 @@ namespace MotionFramework.Patch
 					if (appPatchBundle.IsBuildin && appPatchBundle.Hash == patchBundle.Hash)
 					{
 						string appLoadPath = AssetPathHelper.MakeStreamingLoadPath(appPatchBundle.Hash);
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, appLoadPath, appPatchBundle.Version, appPatchBundle.IsEncrypted);
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, appLoadPath, appPatchBundle.Version, appPatchBundle.IsEncrypted, appPatchBundle.IsRawFile);
 						return bundleInfo;
 					}
 				}
@@ -285,14 +285,14 @@ namespace MotionFramework.Patch
 				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 				if (_cache.Contains(patchBundle.Hash))
 				{
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, patchBundle.Version, patchBundle.IsEncrypted);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, patchBundle.Version, patchBundle.IsEncrypted, patchBundle.IsRawFile);
 					return bundleInfo;
 				}
 				else
 				{
 					string remoteURL = GetPatchDownloadURL(patchBundle.Version, patchBundle.Hash);
 					string remoteFallbackURL = GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, remoteURL, remoteFallbackURL, patchBundle.Version, patchBundle.IsEncrypted);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, remoteURL, remoteFallbackURL, patchBundle.Version, patchBundle.IsEncrypted, patchBundle.IsRawFile);
 					return bundleInfo;
 				}
 			}

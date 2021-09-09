@@ -9,9 +9,14 @@ namespace MotionFramework.Patch
 	public class PatchDefine
 	{
 		/// <summary>
-		/// AssetBundle文件默认的后缀名
+		/// AssetBundle文件的后缀名
 		/// </summary>
-		public const string AssetBundleDefaultVariant = "bundle";
+		public const string AssetBundleFileVariant = "bundle";
+
+		/// <summary>
+		/// 原生文件的后缀名
+		/// </summary>
+		public const string RawFileVariant = "rawfile";
 
 		/// <summary>
 		/// 构建输出的Unity清单文件名称

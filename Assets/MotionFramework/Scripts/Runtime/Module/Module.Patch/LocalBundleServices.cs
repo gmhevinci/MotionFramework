@@ -63,7 +63,7 @@ namespace MotionFramework.Patch
 			if (_patchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(patchBundle.Hash);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, patchBundle.Version, patchBundle.IsEncrypted);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, patchBundle.Version, patchBundle.IsEncrypted, patchBundle.IsRawFile);
 				return bundleInfo;
 			}
 			else

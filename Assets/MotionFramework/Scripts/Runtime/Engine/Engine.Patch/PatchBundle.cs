@@ -58,6 +58,11 @@ namespace MotionFramework.Patch
 		/// </summary>
 		public bool IsBuildin { private set; get; }
 
+		/// <summary>
+		/// 是否为原生文件
+		/// </summary>
+		public bool IsRawFile { private set; get; }
+
 
 
 		public PatchBundle(string bundleName, string hash, string crc, long sizeBytes, int version, string[] tags)
@@ -73,14 +78,16 @@ namespace MotionFramework.Patch
 		/// <summary>
 		/// 设置Flags
 		/// </summary>
-		public void SetFlagsValue(bool isEncrypted, bool isBuildin)
+		public void SetFlagsValue(bool isEncrypted, bool isBuildin, bool isRawFile)
 		{
 			IsEncrypted = isEncrypted;
 			IsBuildin = isBuildin;
+			IsRawFile = isRawFile;
 
 			BitMask32 mask = new BitMask32(0);
 			if (isEncrypted) mask.Open(0);
 			if (isBuildin) mask.Open(1);
+			if (isRawFile) mask.Open(2);
 			Flags = mask;
 		}
 
@@ -92,6 +99,7 @@ namespace MotionFramework.Patch
 			BitMask32 value = Flags;
 			IsEncrypted = value.Test(0);
 			IsBuildin = value.Test(1);
+			IsRawFile = value.Test(2);
 		}
 
 		/// <summary>
