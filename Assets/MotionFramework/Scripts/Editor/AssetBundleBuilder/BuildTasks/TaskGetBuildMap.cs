@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using MotionFramework.Patch;
 
 namespace MotionFramework.Editor
 {
@@ -93,7 +94,8 @@ namespace MotionFramework.Editor
 				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BundleInfos.Count);
 				foreach (var bundleInfo in BundleInfos)
 				{
-					builds.Add(bundleInfo.CreatePipelineBuild());
+					if (bundleInfo.IsRawFile == false)
+						builds.Add(bundleInfo.CreatePipelineBuild());
 				}
 				return builds.ToArray();
 			}
@@ -121,6 +123,7 @@ namespace MotionFramework.Editor
 			}
 		}
 
+
 		void IBuildTask.Run(BuildContext context)
 		{
 			List<AssetInfo> allAssets = GetBuildAssets();
@@ -134,6 +137,9 @@ namespace MotionFramework.Editor
 				buildMapContext.PackAsset(assetInfo);
 			}
 			context.SetContextObject(buildMapContext);
+
+			// 检测构建结果
+			CheckBuildMapContent(buildMapContext);
 		}
 
 		/// <summary>
@@ -142,15 +148,17 @@ namespace MotionFramework.Editor
 		private List<AssetInfo> GetBuildAssets()
 		{
 			Dictionary<string, AssetInfo> buildAssets = new Dictionary<string, AssetInfo>();
-			
+
 			// 1. 获取主动收集的资源
-			List<AssetCollectInfo> allCollectAssets = AssetBundleCollectorSettingData.GetAllCollectAssets();
+			List<AssetCollectInfo> allCollectInfos = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
 			// 2. 对收集的资源进行依赖分析
 			int progressValue = 0;
-			foreach (AssetCollectInfo collectInfo in allCollectAssets)
+			foreach (AssetCollectInfo collectInfo in allCollectInfos)
 			{
 				string mainAssetPath = collectInfo.AssetPath;
+
+				// 获取所有依赖资源
 				List<AssetInfo> depends = GetAllDependencies(mainAssetPath);
 				for (int i = 0; i < depends.Count; i++)
 				{
@@ -173,6 +181,7 @@ namespace MotionFramework.Editor
 					if (assetPath == mainAssetPath)
 					{
 						buildAssets[assetPath].IsCollectAsset = true;
+						buildAssets[assetPath].IsRawAsset = collectInfo.IsRawAsset;
 					}
 				}
 
@@ -187,18 +196,21 @@ namespace MotionFramework.Editor
 				}
 				buildAssets[mainAssetPath].SetAllDependAssetInfos(allDependAssetInfos);
 
-				EditorTools.DisplayProgressBar("依赖文件分析", ++progressValue, allCollectAssets.Count);
+				EditorTools.DisplayProgressBar("依赖文件分析", ++progressValue, allCollectInfos.Count);
 			}
 			EditorTools.ClearProgressBar();
 
-			// 3. 设置资源标签和变种
+			// 3. 设置资源包名
 			progressValue = 0;
 			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
 			{
 				var assetInfo = pair.Value;
-				var bundleLabelAndVariant = AssetBundleCollectorSettingData.GetBundleLabelAndVariant(assetInfo.AssetPath);
-				assetInfo.SetBundleLabelAndVariant(bundleLabelAndVariant.BundleLabel, bundleLabelAndVariant.BundleVariant);				
-				EditorTools.DisplayProgressBar("设置资源标签", ++progressValue, buildAssets.Count);
+				var bundleLabel = AssetBundleCollectorSettingData.GetBundleLabel(assetInfo.AssetPath);
+				if(assetInfo.IsRawAsset)
+					assetInfo.SetBundleLabelAndVariant(bundleLabel, PatchDefine.RawFileVariant);
+				else
+					assetInfo.SetBundleLabelAndVariant(bundleLabel, PatchDefine.AssetBundleFileVariant);
+				EditorTools.DisplayProgressBar("设置资源包名", ++progressValue, buildAssets.Count);
 			}
 			EditorTools.ClearProgressBar();
 
@@ -223,6 +235,37 @@ namespace MotionFramework.Editor
 				}
 			}
 			return result;
+		}
+
+		/// <summary>
+		/// 检测构建结果
+		/// </summary>
+		private void CheckBuildMapContent(BuildMapContext buildMapContext)
+		{
+			foreach (var bundleInfo in buildMapContext.BundleInfos)
+			{
+				// 注意：原生文件资源包只能包含一个原生文件
+				bool isRawFile = bundleInfo.IsRawFile;
+				if (isRawFile)
+				{			
+					if (bundleInfo.Assets.Count != 1)
+						throw new Exception("Should never get here !");
+					continue;
+				}
+
+				// 注意：原生文件不能被其它资源文件依赖
+				foreach (var assetInfo in bundleInfo.Assets)
+				{				
+					if (assetInfo.AllDependAssetInfos != null)
+					{
+						foreach (var dependAssetInfo in assetInfo.AllDependAssetInfos)
+						{						
+							if (dependAssetInfo.IsRawAsset)
+								throw new Exception($"{assetInfo.AssetPath} can not depend raw asset : {dependAssetInfo.AssetPath}");
+						}
+					}
+				}
+			}
 		}
 	}
 }

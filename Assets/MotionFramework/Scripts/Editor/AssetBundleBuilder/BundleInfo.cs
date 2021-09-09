@@ -32,6 +32,22 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public readonly List<AssetInfo> Assets = new List<AssetInfo>();
 
+		/// <summary>
+		/// 是否为原生文件
+		/// </summary>
+		public bool IsRawFile
+		{
+			get 
+			{
+				foreach(var asset in Assets)
+				{
+					if (asset.IsRawAsset)
+						return true;
+				}
+				return false;
+			}
+		}
+
 
 		public BundleInfo(string bundleLabel, string bundleVariant)
 		{
@@ -60,11 +76,12 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public void PackAsset(AssetInfo assetInfo)
 		{
-			if(IsContainsAsset(assetInfo.AssetPath))
+			if (IsContainsAsset(assetInfo.AssetPath))
 				throw new System.Exception($"Asset is existed : {assetInfo.AssetPath}");
 
 			Assets.Add(assetInfo);
 		}
+
 
 		/// <summary>
 		/// 获取资源标记列表
@@ -72,9 +89,9 @@ namespace MotionFramework.Editor
 		public string[] GetAssetTags()
 		{
 			List<string> result = new List<string>(Assets.Count);
-			foreach(var assetInfo in Assets)
+			foreach (var assetInfo in Assets)
 			{
-				foreach(var assetTag in assetInfo.AssetTags)
+				foreach (var assetTag in assetInfo.AssetTags)
 				{
 					if (result.Contains(assetTag) == false)
 						result.Add(assetTag);

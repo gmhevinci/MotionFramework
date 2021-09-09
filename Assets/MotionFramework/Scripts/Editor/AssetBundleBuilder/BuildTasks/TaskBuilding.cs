@@ -26,6 +26,20 @@ namespace MotionFramework.Editor
 			if (unityManifest == null)
 				throw new Exception("构建过程中发生错误！");
 
+			// 拷贝原生文件
+			foreach (var bundleInfo in buildMapContext.BundleInfos)
+			{
+				if (bundleInfo.IsRawFile)
+				{
+					string dest = $"{buildParametersContext.PipelineOutputDirectory}/{bundleInfo.AssetBundleFullName}";
+					foreach(var buildAsset in bundleInfo.Assets)
+					{
+						if(buildAsset.IsRawAsset)
+							EditorTools.CopyFile(buildAsset.AssetPath, dest, true);
+					}
+				}
+			}
+
 			// 验证构建结果
 			if (buildParametersContext.Parameters.IsVerifyBuildingResult)
 			{
@@ -42,13 +56,21 @@ namespace MotionFramework.Editor
 			var buildMapContext = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 
-			// 验证数量
-			if (allAssetBundles.Length != buildMapContext.BundleInfos.Count)
+			// 1. 过滤掉原生Bundle
+			List<BundleInfo> buildBundles = new List<BundleInfo>(allAssetBundles.Length);
+			foreach(var bundleInfo in buildMapContext.BundleInfos)
+			{
+				if (bundleInfo.IsRawFile == false)
+					buildBundles.Add(bundleInfo);
+			}
+
+			// 2. 验证数量		
+			if (allAssetBundles.Length != buildBundles.Count)
 			{
 				BuildLogger.Warning($"构建过程中可能发现了无效的资源，导致Bundle数量不一致！");
 			}
 
-			// 正向验证Bundle
+			// 3. 正向验证Bundle
 			foreach (var bundleName in allAssetBundles)
 			{
 				if (buildMapContext.IsContainsBundle(bundleName) == false)
@@ -57,8 +79,8 @@ namespace MotionFramework.Editor
 				}
 			}
 
-			// 反向验证Bundle
-			foreach (var bundleInfo in buildMapContext.BundleInfos)
+			// 4. 反向验证Bundle
+			foreach (var bundleInfo in buildBundles)
 			{
 				bool isMatch = false;
 				foreach (var bundleName in allAssetBundles)
@@ -73,7 +95,7 @@ namespace MotionFramework.Editor
 					throw new Exception($"无效的Bundle文件 : {bundleInfo.AssetBundleFullName}");
 			}
 
-			// 验证Asset
+			// 5. 验证Asset
 			int progressValue = 0;
 			foreach (var bundleName in allAssetBundles)
 			{
@@ -87,7 +109,7 @@ namespace MotionFramework.Editor
 				foreach (var assetName in allAssetNames)
 				{
 					var guid = AssetDatabase.AssetPathToGUID(assetName);
-					if(string.IsNullOrEmpty(guid))
+					if (string.IsNullOrEmpty(guid))
 						throw new Exception($"无效的资源路径，请检查路径是否带有特殊符号或中文：{assetName}");
 
 					bool isMatch = false;
@@ -109,7 +131,6 @@ namespace MotionFramework.Editor
 			EditorTools.ClearProgressBar();
 
 			// 卸载所有加载的Bundle
-			AssetBundle.UnloadAllAssetBundles(true);
 			BuildLogger.Log("构建结果验证成功！");
 		}
 

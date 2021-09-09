@@ -81,6 +81,7 @@ namespace MotionFramework.Editor
 				string[] tags = buildMapContext.GetAssetTags(bundleName);
 				bool isEncrypted = encryptionContext.IsEncryptFile(bundleName);
 				bool isBuildin = IsBuildinBundle(tags, buildinTags);
+				bool isRawFile = bundleInfo.IsRawFile;
 
 				// 注意：如果文件没有变化使用旧版本号
 				if (oldPatchManifest != null && oldPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle value))
@@ -90,7 +91,7 @@ namespace MotionFramework.Editor
 				}
 
 				PatchBundle patchBundle = new PatchBundle(bundleName, hash, crc, size, version, tags);
-				patchBundle.SetFlagsValue(isEncrypted, isBuildin);
+				patchBundle.SetFlagsValue(isEncrypted, isBuildin, isRawFile);
 				result.Add(patchBundle);
 			}
 

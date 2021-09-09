@@ -29,6 +29,11 @@ namespace MotionFramework.Editor
 		public string AssetBundleVariant { private set; get; }
 
 		/// <summary>
+		/// 是否为原生资源
+		/// </summary>
+		public bool IsRawAsset = false;
+
+		/// <summary>
 		/// 是否为主动收集资源
 		/// </summary>
 		public bool IsCollectAsset = false;
