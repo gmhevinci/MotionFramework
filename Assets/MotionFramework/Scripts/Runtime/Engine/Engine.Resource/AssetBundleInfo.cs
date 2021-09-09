@@ -73,5 +73,13 @@ namespace MotionFramework.Resource
 			IsEncrypted = false;
 			IsRawFile = false;
 		}
+
+		/// <summary>
+		/// 是否为JAR包内文件
+		/// </summary>
+		public bool IsBuildinJarFile()
+		{
+			return LocalPath.StartsWith("jar:");
+		}
 	}
 }
