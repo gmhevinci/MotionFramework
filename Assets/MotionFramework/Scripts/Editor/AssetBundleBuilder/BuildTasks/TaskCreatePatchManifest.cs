@@ -72,7 +72,7 @@ namespace MotionFramework.Editor
 
 			foreach (var bundleInfo in buildMapContext.BundleInfos)
 			{
-				var bundleName = bundleInfo.AssetBundleFullName;
+				var bundleName = bundleInfo.BundleName;
 				string path = $"{buildParameters.PipelineOutputDirectory}/{bundleName}";
 				string hash = HashUtility.FileMD5(path);
 				string crc = HashUtility.FileCRC32(path);
@@ -124,19 +124,19 @@ namespace MotionFramework.Editor
 				{
 					PatchAsset patchAsset = new PatchAsset();
 					patchAsset.AssetPath = assetInfo.AssetPath;
-					patchAsset.BundleID = GetAssetBundleID(assetInfo.GetAssetBundleFullName(), bundleList);
+					patchAsset.BundleID = GetAssetBundleID(assetInfo.GetBundleName(), bundleList);
 					patchAsset.DependIDs = GetAssetBundleDependIDs(assetInfo, bundleList);
 					result.Add(patchAsset);
 				}
 			}
 			return result;
 		}
-		private int[] GetAssetBundleDependIDs(AssetInfo assetInfo, List<PatchBundle> bundleList)
+		private int[] GetAssetBundleDependIDs(BuildAssetInfo assetInfo, List<PatchBundle> bundleList)
 		{
 			List<int> result = new List<int>();
 			foreach (var dependAssetInfo in assetInfo.AllDependAssetInfos)
 			{
-				int bundleID = GetAssetBundleID(dependAssetInfo.GetAssetBundleFullName(), bundleList);
+				int bundleID = GetAssetBundleID(dependAssetInfo.GetBundleName(), bundleList);
 				if(result.Contains(bundleID) == false)
 					result.Add(bundleID);
 			}

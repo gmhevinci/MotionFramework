@@ -36,7 +36,7 @@ namespace MotionFramework.Editor
 		/// 制作AssetBundle的完整名称
 		/// 注意：名称为全部小写并且包含后缀名
 		/// </summary>
-		public static string MakeAssetBundleFullName(string bundleLabel, string bundleVariant)
+		public static string MakeBundleName(string bundleLabel, string bundleVariant)
 		{
 			if (string.IsNullOrEmpty(bundleVariant))
 				return bundleLabel.ToLower();

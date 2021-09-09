@@ -66,10 +66,16 @@ namespace MotionFramework.Editor
 			AppendData(content, $"IsIgnoreTypeTreeChanges：{buildParameters.Parameters.IsIgnoreTypeTreeChanges}");
 
 			AppendData(content, "");
+			AppendData(content, $"--构建信息--");
+			AppendData(content, $"参与构建的资源总数：{buildMapContext.GetAllAssets().Count}");
+			AppendData(content, $"构建的AB资源包总数：{buildMapContext.GetBuildAssetBundleCount()}");
+			AppendData(content, $"构建的原生资源包总数：{buildMapContext.GetBuildRawBundleCount()}");
+
+			AppendData(content, "");
 			AppendData(content, $"--构建列表--");
 			for (int i = 0; i < buildMapContext.BundleInfos.Count; i++)
 			{
-				string bundleName = buildMapContext.BundleInfos[i].AssetBundleFullName;
+				string bundleName = buildMapContext.BundleInfos[i].BundleName;
 				AppendData(content, bundleName);
 			}
 

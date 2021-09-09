@@ -9,9 +9,9 @@ using System.Collections.Generic;
 namespace MotionFramework.Editor
 {
 	/// <summary>
-	/// 资源信息类
+	/// 构建的资源信息类
 	/// </summary>
-	public class AssetInfo
+	public class BuildAssetInfo
 	{
 		/// <summary>
 		/// 资源路径
@@ -19,14 +19,14 @@ namespace MotionFramework.Editor
 		public string AssetPath { private set; get; }
 
 		/// <summary>
-		/// AssetBundle标签
+		/// 资源包标签
 		/// </summary>
-		public string AssetBundleLabel { private set; get; }
+		public string BundleLabel { private set; get; }
 
 		/// <summary>
-		/// AssetBundle变体
+		/// 资源包文件格式
 		/// </summary>
-		public string AssetBundleVariant { private set; get; }
+		public string BundleVariant { private set; get; }
 
 		/// <summary>
 		/// 是否为原生资源
@@ -51,10 +51,10 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 依赖的所有资源信息
 		/// </summary>
-		public List<AssetInfo> AllDependAssetInfos { private set; get; } = null;
+		public List<BuildAssetInfo> AllDependAssetInfos { private set; get; } = null;
 
 
-		public AssetInfo(string assetPath)
+		public BuildAssetInfo(string assetPath)
 		{
 			AssetPath = assetPath;
 		}
@@ -62,7 +62,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 设置所有依赖的资源
 		/// </summary>
-		public void SetAllDependAssetInfos(List<AssetInfo> dependAssetInfos)
+		public void SetAllDependAssetInfos(List<BuildAssetInfo> dependAssetInfos)
 		{
 			if(AllDependAssetInfos != null)
 				throw new System.Exception("Should never get here !");
@@ -71,15 +71,15 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 设置资源包的标签和变种
+		/// 设置资源包的标签和文件格式
 		/// </summary>
 		public void SetBundleLabelAndVariant(string bundleLabel, string bundleVariant)
 		{
-			if (string.IsNullOrEmpty(AssetBundleLabel) == false || string.IsNullOrEmpty(AssetBundleVariant) == false)
+			if (string.IsNullOrEmpty(BundleLabel) == false || string.IsNullOrEmpty(BundleVariant) == false)
 				throw new System.Exception("Should never get here !");
 
-			AssetBundleLabel = bundleLabel;
-			AssetBundleVariant = bundleVariant;
+			BundleLabel = bundleLabel;
+			BundleVariant = bundleVariant;
 		}
 
 		/// <summary>
@@ -97,14 +97,14 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
-		/// 获取AssetBundle的完整名称
+		/// 获取资源包的完整名称
 		/// </summary>
-		public string GetAssetBundleFullName()
+		public string GetBundleName()
 		{
-			if (string.IsNullOrEmpty(AssetBundleLabel) || string.IsNullOrEmpty(AssetBundleVariant))
+			if (string.IsNullOrEmpty(BundleLabel) || string.IsNullOrEmpty(BundleVariant))
 				throw new System.ArgumentNullException();
 
-			return AssetBundleBuilderHelper.MakeAssetBundleFullName(AssetBundleLabel, AssetBundleVariant);
+			return AssetBundleBuilderHelper.MakeBundleName(BundleLabel, BundleVariant);
 		}
 	}
 }

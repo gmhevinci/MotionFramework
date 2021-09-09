@@ -74,7 +74,7 @@ namespace MotionFramework.Editor
 			int progressValue = 0;
 			foreach (var bundleInfo in buildMapContext.BundleInfos)
 			{
-				var bundleName = bundleInfo.AssetBundleFullName;
+				var bundleName = bundleInfo.BundleName;
 				string filePath = $"{buildParameters.PipelineOutputDirectory}/{bundleName}";
 				if (encrypter.Check(filePath))
 				{

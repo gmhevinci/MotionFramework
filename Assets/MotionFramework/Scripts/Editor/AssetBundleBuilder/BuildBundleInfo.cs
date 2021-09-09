@@ -10,27 +10,30 @@ using UnityEditor;
 
 namespace MotionFramework.Editor
 {
-	public class BundleInfo
+	/// <summary>
+	/// 构建的资源包信息类
+	/// </summary>
+	public class BuildBundleInfo
 	{
 		/// <summary>
-		/// AssetBundle完整名称
+		/// 资源包完整名称
 		/// </summary>
-		public string AssetBundleFullName { private set; get; }
+		public string BundleName { private set; get; }
 
 		/// <summary>
-		/// AssetBundle标签
+		/// 资源包标签名
 		/// </summary>
-		public string AssetBundleLabel { private set; get; }
+		public string BundleLabel { private set; get; }
 
 		/// <summary>
-		/// AssetBundle变体
+		/// 资源包文件格式
 		/// </summary>
-		public string AssetBundleVariant { private set; get; }
+		public string BundleVariant { private set; get; }
 
 		/// <summary>
 		/// 包含的资源列表
 		/// </summary>
-		public readonly List<AssetInfo> Assets = new List<AssetInfo>();
+		public readonly List<BuildAssetInfo> Assets = new List<BuildAssetInfo>();
 
 		/// <summary>
 		/// 是否为原生文件
@@ -49,11 +52,11 @@ namespace MotionFramework.Editor
 		}
 
 
-		public BundleInfo(string bundleLabel, string bundleVariant)
+		public BuildBundleInfo(string bundleLabel, string bundleVariant)
 		{
-			AssetBundleLabel = bundleLabel;
-			AssetBundleVariant = bundleVariant;
-			AssetBundleFullName = AssetBundleBuilderHelper.MakeAssetBundleFullName(bundleLabel, bundleVariant);
+			BundleLabel = bundleLabel;
+			BundleVariant = bundleVariant;
+			BundleName = AssetBundleBuilderHelper.MakeBundleName(bundleLabel, bundleVariant);
 		}
 
 		/// <summary>
@@ -74,7 +77,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 添加一个打包资源
 		/// </summary>
-		public void PackAsset(AssetInfo assetInfo)
+		public void PackAsset(BuildAssetInfo assetInfo)
 		{
 			if (IsContainsAsset(assetInfo.AssetPath))
 				throw new System.Exception($"Asset is existed : {assetInfo.AssetPath}");
@@ -119,7 +122,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 获取主动收集的资源信息列表
 		/// </summary>
-		public AssetInfo[] GetCollectAssetInfos()
+		public BuildAssetInfo[] GetCollectAssetInfos()
 		{
 			return Assets.Where(t => t.IsCollectAsset).ToArray();
 		}
@@ -131,7 +134,7 @@ namespace MotionFramework.Editor
 		{
 			// 注意：我们不在支持AssetBundle的变种机制
 			AssetBundleBuild build = new AssetBundleBuild();
-			build.assetBundleName = AssetBundleFullName;
+			build.assetBundleName = BundleName;
 			build.assetBundleVariant = string.Empty;
 			build.assetNames = GetBuildinAssetPaths();
 			return build;

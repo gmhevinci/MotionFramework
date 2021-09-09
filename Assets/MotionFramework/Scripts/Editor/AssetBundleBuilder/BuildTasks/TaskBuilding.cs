@@ -31,7 +31,7 @@ namespace MotionFramework.Editor
 			{
 				if (bundleInfo.IsRawFile)
 				{
-					string dest = $"{buildParametersContext.PipelineOutputDirectory}/{bundleInfo.AssetBundleFullName}";
+					string dest = $"{buildParametersContext.PipelineOutputDirectory}/{bundleInfo.BundleName}";
 					foreach(var buildAsset in bundleInfo.Assets)
 					{
 						if(buildAsset.IsRawAsset)
@@ -57,15 +57,15 @@ namespace MotionFramework.Editor
 			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
 
 			// 1. 过滤掉原生Bundle
-			List<BundleInfo> buildBundles = new List<BundleInfo>(allAssetBundles.Length);
+			List<BuildBundleInfo> buildBundleInfos = new List<BuildBundleInfo>(allAssetBundles.Length);
 			foreach(var bundleInfo in buildMapContext.BundleInfos)
 			{
 				if (bundleInfo.IsRawFile == false)
-					buildBundles.Add(bundleInfo);
+					buildBundleInfos.Add(bundleInfo);
 			}
 
 			// 2. 验证数量		
-			if (allAssetBundles.Length != buildBundles.Count)
+			if (allAssetBundles.Length != buildBundleInfos.Count)
 			{
 				BuildLogger.Warning($"构建过程中可能发现了无效的资源，导致Bundle数量不一致！");
 			}
@@ -80,19 +80,19 @@ namespace MotionFramework.Editor
 			}
 
 			// 4. 反向验证Bundle
-			foreach (var bundleInfo in buildBundles)
+			foreach (var bundleInfo in buildBundleInfos)
 			{
 				bool isMatch = false;
 				foreach (var bundleName in allAssetBundles)
 				{
-					if (bundleName == bundleInfo.AssetBundleFullName)
+					if (bundleName == bundleInfo.BundleName)
 					{
 						isMatch = true;
 						break;
 					}
 				}
 				if (isMatch == false)
-					throw new Exception($"无效的Bundle文件 : {bundleInfo.AssetBundleFullName}");
+					throw new Exception($"无效的Bundle文件 : {bundleInfo.BundleName}");
 			}
 
 			// 5. 验证Asset

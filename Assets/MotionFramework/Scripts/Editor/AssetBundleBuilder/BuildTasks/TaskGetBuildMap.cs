@@ -18,20 +18,20 @@ namespace MotionFramework.Editor
 	{
 		public class BuildMapContext : IContextObject
 		{
-			public readonly List<BundleInfo> BundleInfos = new List<BundleInfo>();
+			public readonly List<BuildBundleInfo> BundleInfos = new List<BuildBundleInfo>();
 
 			/// <summary>
 			/// 添加一个打包资源
 			/// </summary>
-			public void PackAsset(AssetInfo assetInfo)
+			public void PackAsset(BuildAssetInfo assetInfo)
 			{
-				if (TryGetBundleInfo(assetInfo.GetAssetBundleFullName(), out BundleInfo bundleInfo))
+				if (TryGetBundleInfo(assetInfo.GetBundleName(), out BuildBundleInfo bundleInfo))
 				{
 					bundleInfo.PackAsset(assetInfo);
 				}
 				else
 				{
-					BundleInfo newBundleInfo = new BundleInfo(assetInfo.AssetBundleLabel, assetInfo.AssetBundleVariant);
+					BuildBundleInfo newBundleInfo = new BuildBundleInfo(assetInfo.BundleLabel, assetInfo.BundleVariant);
 					newBundleInfo.PackAsset(assetInfo);
 					BundleInfos.Add(newBundleInfo);
 				}
@@ -40,9 +40,9 @@ namespace MotionFramework.Editor
 			/// <summary>
 			/// 获取所有的打包资源
 			/// </summary>
-			public List<AssetInfo> GetAllAssets()
+			public List<BuildAssetInfo> GetAllAssets()
 			{
-				List<AssetInfo> result = new List<AssetInfo>(BundleInfos.Count);
+				List<BuildAssetInfo> result = new List<BuildAssetInfo>(BundleInfos.Count);
 				foreach (var bundleInfo in BundleInfos)
 				{
 					result.AddRange(bundleInfo.Assets);
@@ -55,11 +55,11 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public string[] GetAssetTags(string bundleFullName)
 			{
-				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
+				if (TryGetBundleInfo(bundleFullName, out BuildBundleInfo bundleInfo))
 				{
 					return bundleInfo.GetAssetTags();
 				}
-				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
+				throw new Exception($"Not found {nameof(BuildBundleInfo)} : {bundleFullName}");
 			}
 
 			/// <summary>
@@ -67,11 +67,11 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public string[] GetCollectAssetPaths(string bundleFullName)
 			{
-				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
+				if (TryGetBundleInfo(bundleFullName, out BuildBundleInfo bundleInfo))
 				{
 					return bundleInfo.GetCollectAssetPaths();
 				}
-				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
+				throw new Exception($"Not found {nameof(BuildBundleInfo)} : {bundleFullName}");
 			}
 
 			/// <summary>
@@ -79,11 +79,11 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public string[] GetBuildinAssetPaths(string bundleFullName)
 			{
-				if (TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo))
+				if (TryGetBundleInfo(bundleFullName, out BuildBundleInfo bundleInfo))
 				{
 					return bundleInfo.GetBuildinAssetPaths();
 				}
-				throw new Exception($"Not found {nameof(BundleInfo)} : {bundleFullName}");
+				throw new Exception($"Not found {nameof(BuildBundleInfo)} : {bundleFullName}");
 			}
 
 			/// <summary>
@@ -105,14 +105,42 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public bool IsContainsBundle(string bundleFullName)
 			{
-				return TryGetBundleInfo(bundleFullName, out BundleInfo bundleInfo);
+				return TryGetBundleInfo(bundleFullName, out BuildBundleInfo bundleInfo);
 			}
 
-			private bool TryGetBundleInfo(string bundleFullName, out BundleInfo result)
+			/// <summary>
+			/// 获取构建的AB资源包总数
+			/// </summary>
+			public int GetBuildAssetBundleCount()
+			{
+				int count = 0;
+				foreach (var bunldInfo in BundleInfos)
+				{
+					if (bunldInfo.IsRawFile == false)
+						count++;
+				}
+				return count;
+			}
+
+			/// <summary>
+			/// 获取构建的原生资源包总数
+			/// </summary>
+			public int GetBuildRawBundleCount()
+			{
+				int count = 0;
+				foreach (var bunldInfo in BundleInfos)
+				{
+					if (bunldInfo.IsRawFile)
+						count++;
+				}
+				return count;
+			}
+
+			private bool TryGetBundleInfo(string bundleFullName, out BuildBundleInfo result)
 			{
 				foreach (var bundleInfo in BundleInfos)
 				{
-					if (bundleInfo.AssetBundleFullName == bundleFullName)
+					if (bundleInfo.BundleName == bundleFullName)
 					{
 						result = bundleInfo;
 						return true;
@@ -126,7 +154,7 @@ namespace MotionFramework.Editor
 
 		void IBuildTask.Run(BuildContext context)
 		{
-			List<AssetInfo> allAssets = GetBuildAssets();
+			List<BuildAssetInfo> allAssets = GetBuildAssets();
 			if (allAssets.Count == 0)
 				throw new Exception("构建的资源列表不能为空");
 
@@ -145,9 +173,9 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 获取构建的资源列表
 		/// </summary>
-		private List<AssetInfo> GetBuildAssets()
+		private List<BuildAssetInfo> GetBuildAssets()
 		{
-			Dictionary<string, AssetInfo> buildAssets = new Dictionary<string, AssetInfo>();
+			Dictionary<string, BuildAssetInfo> buildAssets = new Dictionary<string, BuildAssetInfo>();
 
 			// 1. 获取主动收集的资源
 			List<AssetCollectInfo> allCollectInfos = AssetBundleCollectorSettingData.GetAllCollectAssets();
@@ -159,7 +187,7 @@ namespace MotionFramework.Editor
 				string mainAssetPath = collectInfo.AssetPath;
 
 				// 获取所有依赖资源
-				List<AssetInfo> depends = GetAllDependencies(mainAssetPath);
+				List<BuildAssetInfo> depends = GetAllDependencies(mainAssetPath);
 				for (int i = 0; i < depends.Count; i++)
 				{
 					string assetPath = depends[i].AssetPath;
@@ -187,7 +215,7 @@ namespace MotionFramework.Editor
 
 				// 添加所有的依赖资源列表
 				// 注意：不包括自己
-				var allDependAssetInfos = new List<AssetInfo>(depends.Count);
+				var allDependAssetInfos = new List<BuildAssetInfo>(depends.Count);
 				for (int i = 0; i < depends.Count; i++)
 				{
 					string assetPath = depends[i].AssetPath;
@@ -202,11 +230,11 @@ namespace MotionFramework.Editor
 
 			// 3. 设置资源包名
 			progressValue = 0;
-			foreach (KeyValuePair<string, AssetInfo> pair in buildAssets)
+			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssets)
 			{
 				var assetInfo = pair.Value;
 				var bundleLabel = AssetBundleCollectorSettingData.GetBundleLabel(assetInfo.AssetPath);
-				if(assetInfo.IsRawAsset)
+				if (assetInfo.IsRawAsset)
 					assetInfo.SetBundleLabelAndVariant(bundleLabel, PatchDefine.RawFileVariant);
 				else
 					assetInfo.SetBundleLabelAndVariant(bundleLabel, PatchDefine.AssetBundleFileVariant);
@@ -222,15 +250,15 @@ namespace MotionFramework.Editor
 		/// 获取指定资源依赖的所有资源列表
 		/// 注意：返回列表里已经包括主资源自己
 		/// </summary>
-		private List<AssetInfo> GetAllDependencies(string mainAssetPath)
+		private List<BuildAssetInfo> GetAllDependencies(string mainAssetPath)
 		{
-			List<AssetInfo> result = new List<AssetInfo>();
+			List<BuildAssetInfo> result = new List<BuildAssetInfo>();
 			string[] depends = AssetDatabase.GetDependencies(mainAssetPath, true);
 			foreach (string assetPath in depends)
 			{
 				if (AssetBundleCollectorSettingData.IsValidateAsset(assetPath))
 				{
-					AssetInfo assetInfo = new AssetInfo(assetPath);
+					BuildAssetInfo assetInfo = new BuildAssetInfo(assetPath);
 					result.Add(assetInfo);
 				}
 			}
@@ -247,7 +275,7 @@ namespace MotionFramework.Editor
 				// 注意：原生文件资源包只能包含一个原生文件
 				bool isRawFile = bundleInfo.IsRawFile;
 				if (isRawFile)
-				{			
+				{
 					if (bundleInfo.Assets.Count != 1)
 						throw new Exception("Should never get here !");
 					continue;
@@ -255,11 +283,11 @@ namespace MotionFramework.Editor
 
 				// 注意：原生文件不能被其它资源文件依赖
 				foreach (var assetInfo in bundleInfo.Assets)
-				{				
+				{
 					if (assetInfo.AllDependAssetInfos != null)
 					{
 						foreach (var dependAssetInfo in assetInfo.AllDependAssetInfos)
-						{						
+						{
 							if (dependAssetInfo.IsRawAsset)
 								throw new Exception($"{assetInfo.AssetPath} can not depend raw asset : {dependAssetInfo.AssetPath}");
 						}
