@@ -13,6 +13,8 @@ namespace MotionFramework.Resource
 {
 	internal class BundleFileLoader
 	{
+		private readonly List<BundleFileLoader> _masters = new List<BundleFileLoader>();
+
 		/// <summary>
 		/// 资源文件信息
 		/// </summary>
@@ -45,6 +47,15 @@ namespace MotionFramework.Resource
 			BundleInfo = bundleInfo;
 			RefCount = 0;
 			States = ELoaderStates.None;
+		}
+
+		/// <summary>
+		/// 设置主资源加载器
+		/// </summary>
+		public void SetupMaster(BundleFileLoader master)
+		{
+			if (_masters.Contains(master) == false)
+				_masters.Add(master);
 		}
 
 		/// <summary>
@@ -238,6 +249,8 @@ namespace MotionFramework.Resource
 				CacheBundle.Unload(true);
 				CacheBundle = null;
 			}
+
+			_masters.Clear();
 		}
 
 		/// <summary>
@@ -255,6 +268,17 @@ namespace MotionFramework.Resource
 		{
 			if (IsDone() == false)
 				return false;
+
+			// 注意：我们必须等待主资源已经可以销毁的时候，才可以销毁依赖资源
+			// 从AssetBundle里加载的GameObject对象是无法回收的，并且会缓存在Native内存里，直到调用AssetBundle.Unload(true)才会释放。
+			// 所以我们要保证主资源生存周期内依赖资源不会被卸载了。
+			foreach (var masterLoader in _masters)
+			{
+				if (masterLoader.IsDestroyed)
+					continue;
+				if (masterLoader.CanDestroy() == false)
+					return false;
+			}
 
 			return RefCount <= 0;
 		}

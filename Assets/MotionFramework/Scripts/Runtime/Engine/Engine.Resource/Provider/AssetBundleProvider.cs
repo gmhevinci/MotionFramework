@@ -111,7 +111,7 @@ namespace MotionFramework.Resource
 			// 销毁资源对象
 			if (AssetObject != null)
 			{
-				if (AssetObject is GameObject == false)
+				if (AssetObject is GameObject == false && AssetObject is Component == false)
 					Resources.UnloadAsset(AssetObject);
 			}
 

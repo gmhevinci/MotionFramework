@@ -51,6 +51,10 @@ namespace MotionFramework.Resource
 		{
 			_ownerLoader = CreateOwnerLoader(assetPath);
 			_dependLoaders = CreateDependLoader(assetPath);
+			foreach(var depend in _dependLoaders)
+			{
+				depend.SetupMaster(_ownerLoader);
+			}
 		}
 
 		/// <summary>
