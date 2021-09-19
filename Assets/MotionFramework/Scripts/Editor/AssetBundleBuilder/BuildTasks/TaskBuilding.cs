@@ -54,24 +54,24 @@ namespace MotionFramework.Editor
 		{
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
 			var buildMapContext = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
-			string[] allAssetBundles = unityManifest.GetAllAssetBundles();
+			string[] buildedBundles = unityManifest.GetAllAssetBundles();
 
 			// 1. 过滤掉原生Bundle
-			List<BuildBundleInfo> buildBundleInfos = new List<BuildBundleInfo>(allAssetBundles.Length);
+			List<BuildBundleInfo> expectBundles = new List<BuildBundleInfo>(buildedBundles.Length);
 			foreach(var bundleInfo in buildMapContext.BundleInfos)
 			{
 				if (bundleInfo.IsRawFile == false)
-					buildBundleInfos.Add(bundleInfo);
+					expectBundles.Add(bundleInfo);
 			}
 
 			// 2. 验证数量		
-			if (allAssetBundles.Length != buildBundleInfos.Count)
+			if (buildedBundles.Length != expectBundles.Count)
 			{
-				BuildLogger.Warning($"构建过程中可能发现了无效的资源，导致Bundle数量不一致！");
+				BuildLogger.Warning($"构建过程中可能存在无效的资源，导致和预期构建的Bundle数量不一致！");
 			}
 
 			// 3. 正向验证Bundle
-			foreach (var bundleName in allAssetBundles)
+			foreach (var bundleName in buildedBundles)
 			{
 				if (buildMapContext.IsContainsBundle(bundleName) == false)
 				{
@@ -80,55 +80,78 @@ namespace MotionFramework.Editor
 			}
 
 			// 4. 反向验证Bundle
-			foreach (var bundleInfo in buildBundleInfos)
+			bool isPass = true;
+			foreach (var expectBundle in expectBundles)
 			{
 				bool isMatch = false;
-				foreach (var bundleName in allAssetBundles)
+				foreach (var buildedBundle in buildedBundles)
 				{
-					if (bundleName == bundleInfo.BundleName)
+					if (buildedBundle == expectBundle.BundleName)
 					{
 						isMatch = true;
 						break;
 					}
 				}
 				if (isMatch == false)
-					throw new Exception($"无效的Bundle文件 : {bundleInfo.BundleName}");
+				{
+					isPass = false;
+					BuildLogger.Warning($"没有找到预期构建的Bundle文件 : {expectBundle.BundleName}");
+				}
+			}
+			if(isPass == false)
+			{
+				throw new Exception("构建结果验证没有通过，请参考警告日志！");
 			}
 
 			// 5. 验证Asset
 			int progressValue = 0;
-			foreach (var bundleName in allAssetBundles)
+			foreach (var buildedBundle in buildedBundles)
 			{
-				string filePath = $"{buildParameters.PipelineOutputDirectory}/{bundleName}";
-
-				string[] allAssetNames = GetAssetBundleAllAssets(filePath);
-				string[] buildinAssetPaths = buildMapContext.GetBuildinAssetPaths(bundleName);
-				if (buildinAssetPaths.Length != allAssetNames.Length)
-					throw new Exception($"Should never get here !");
-
-				foreach (var assetName in allAssetNames)
+				string filePath = $"{buildParameters.PipelineOutputDirectory}/{buildedBundle}";
+				string[] allBuildinAssetPaths = GetAssetBundleAllAssets(filePath);
+				string[] expectBuildinAssetPaths = buildMapContext.GetBuildinAssetPaths(buildedBundle);
+				if (expectBuildinAssetPaths.Length != allBuildinAssetPaths.Length)
 				{
-					var guid = AssetDatabase.AssetPathToGUID(assetName);
+					BuildLogger.Warning($"构建的Bundle文件内的资源对象数量和预期不匹配 : {buildedBundle}");
+					isPass = false;
+					continue;
+				}
+
+				foreach (var buildinAssetPath in allBuildinAssetPaths)
+				{
+					var guid = AssetDatabase.AssetPathToGUID(buildinAssetPath);
 					if (string.IsNullOrEmpty(guid))
-						throw new Exception($"无效的资源路径，请检查路径是否带有特殊符号或中文：{assetName}");
+					{
+						BuildLogger.Warning($"无效的资源路径，请检查路径是否带有特殊符号或中文：{buildinAssetPath}");
+						isPass = false;
+						continue;
+					}
 
 					bool isMatch = false;
-					foreach (var buildinAssetPath in buildinAssetPaths)
+					foreach (var exceptBuildAssetPath in expectBuildinAssetPaths)
 					{
-						var guidTemp = AssetDatabase.AssetPathToGUID(buildinAssetPath);
-						if (guid == guidTemp)
+						var guidExcept = AssetDatabase.AssetPathToGUID(exceptBuildAssetPath);
+						if (guid == guidExcept)
 						{
 							isMatch = true;
 							break;
 						}
 					}
 					if (isMatch == false)
-						throw new Exception($"Should never get here !");
+					{
+						BuildLogger.Warning($"在构建的Bundle文件里发现了没有匹配的资源对象：{buildinAssetPath}");
+						isPass = false;
+						continue;
+					}
 				}
 
-				EditorTools.DisplayProgressBar("验证构建结果", ++progressValue, allAssetBundles.Length);
+				EditorTools.DisplayProgressBar("验证构建结果", ++progressValue, buildedBundles.Length);
 			}
 			EditorTools.ClearProgressBar();
+			if (isPass == false)
+			{
+				throw new Exception("构建结果验证没有通过，请参考警告日志！");
+			}
 
 			// 卸载所有加载的Bundle
 			BuildLogger.Log("构建结果验证成功！");
