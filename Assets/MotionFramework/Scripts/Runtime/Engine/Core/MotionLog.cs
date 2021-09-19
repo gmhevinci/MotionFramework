@@ -18,14 +18,14 @@ namespace MotionFramework
 		{
 			_callback += callback;
 		}
-		
+
 		/// <summary>
 		/// 日志
 		/// </summary>
 		[Conditional("DEBUG")]
 		public static void Log(string info)
 		{
-			_callback?.Invoke(ELogLevel.Log, info);
+			_callback?.Invoke(ELogLevel.Log, $"[MotionLog] {info}");
 		}
 
 		/// <summary>
@@ -33,7 +33,7 @@ namespace MotionFramework
 		/// </summary>
 		public static void Warning(string info)
 		{
-			_callback?.Invoke(ELogLevel.Warning, info);
+			_callback?.Invoke(ELogLevel.Warning, $"[MotionLog] {info}");
 		}
 
 		/// <summary>
@@ -41,7 +41,7 @@ namespace MotionFramework
 		/// </summary>
 		public static void Error(string info)
 		{
-			_callback?.Invoke(ELogLevel.Error, info);
+			_callback?.Invoke(ELogLevel.Error, $"[MotionLog] {info}");
 		}
 
 		/// <summary>
@@ -49,7 +49,7 @@ namespace MotionFramework
 		/// </summary>
 		public static void Exception(string info)
 		{
-			_callback?.Invoke(ELogLevel.Exception, info);
+			_callback?.Invoke(ELogLevel.Exception, $"[MotionLog] {info}");
 		}
 	}
 }
