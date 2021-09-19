@@ -1,18 +1,15 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2021 何冠峰
+// Copyright©2021-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class SceneProvider : AssetProviderBase
+	internal sealed class DatabaseSceneProvider : AssetProviderBase
 	{
-		private BundleFileGrouper _bundleGrouper;
 		private SceneInstanceParam _param;
 		private AsyncOperation _asyncOp;
 		public override float Progress
@@ -25,44 +22,28 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public SceneProvider(string scenePath, SceneInstanceParam param)
+		public DatabaseSceneProvider(string scenePath, SceneInstanceParam param)
 			: base(scenePath, null)
 		{
 			_param = param;
-			_bundleGrouper = new BundleFileGrouper(scenePath);
-			_bundleGrouper.Reference();
 		}
 		public override void Update()
 		{
+#if UNITY_EDITOR
 			if (IsDone)
 				return;
 
 			if (States == EAssetStates.None)
 			{
-				States = EAssetStates.CheckBundle;
-			}
-
-			// 1. 检测资源包
-			if (States == EAssetStates.CheckBundle)
-			{
-				if (_bundleGrouper.IsDone() == false)
-					return;
-
-				if (_bundleGrouper.OwnerAssetBundle == null)
-				{
-					States = EAssetStates.Fail;
-					InvokeCompletion();
-				}
-				else
-				{
-					States = EAssetStates.Loading;
-				}
+				States = EAssetStates.Loading;
 			}
 
 			// 1. 加载资源对象
 			if (States == EAssetStates.Loading)
 			{
-				_asyncOp = SceneManager.LoadSceneAsync(AssetName, _param.LoadMode);		
+				LoadSceneParameters loadSceneParameters = new LoadSceneParameters();
+				loadSceneParameters.loadSceneMode = _param.LoadMode;			
+				_asyncOp = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(AssetPath, loadSceneParameters);
 				if (_asyncOp != null)
 				{
 					_asyncOp.allowSceneActivation = _param.ActivateOnLoad;
@@ -88,33 +69,21 @@ namespace MotionFramework.Resource
 					InvokeCompletion();
 				}
 			}
+#endif
 		}
 		public override void Destory()
 		{
+#if UNITY_EDITOR
 			base.Destory();
 
-			// 释放资源包
-			if (_bundleGrouper != null)
-			{
-				_bundleGrouper.Release();
-				_bundleGrouper = null;
-			}
-
-			// 卸载附加场景
+			// 卸载附加场景（异步方式卸载）
 			if (_param.LoadMode == LoadSceneMode.Additive)
 				SceneManager.UnloadSceneAsync(AssetName);
+#endif
 		}
 		public override void WaitForAsyncComplete()
 		{
 			throw new System.Exception($"Unity scene is not support {nameof(WaitForAsyncComplete)}.");
-		}
-
-		/// <summary>
-		/// 获取资源包的调试信息列表
-		/// </summary>
-		internal void GetBundleDebugInfos(List<BundleDebugInfo> output)
-		{
-			_bundleGrouper.GetBundleDebugInfos(output);
 		}
 	}
 }

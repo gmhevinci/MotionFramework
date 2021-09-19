@@ -18,7 +18,6 @@ namespace MotionFramework.Resource
 	{
 		private static readonly List<BundleFileLoader> _loaders = new List<BundleFileLoader>(1000);
 		private static readonly List<AssetProviderBase> _providers = new List<AssetProviderBase>(1000);
-		private static readonly List<string> _removeKeys = new List<string>(100);
 		private static bool _isInitialize = false;
 
 
@@ -77,7 +76,7 @@ namespace MotionFramework.Resource
 		public static void UpdatePoll()
 		{
 			// 更新加载器	
-			foreach(var loader in _loaders)
+			foreach (var loader in _loaders)
 			{
 				loader.Update();
 			}
@@ -86,10 +85,10 @@ namespace MotionFramework.Resource
 			// 注意：循环更新的时候，可能会扩展列表
 			// 注意：不能限制场景对象的加载
 			int loadingCount = 0;
-			for(int i=0; i<_providers.Count; i++)
+			for (int i = 0; i < _providers.Count; i++)
 			{
 				var provider = _providers[i];
-				if (provider is SceneProvider || provider is EditorSceneProvider)
+				if (provider is BundledSceneProvider || provider is DatabaseSceneProvider)
 				{
 					provider.Update();
 				}
@@ -103,14 +102,22 @@ namespace MotionFramework.Resource
 				}
 			}
 
-			// 销毁资源提供者
-			for (int i = _providers.Count - 1; i >= 0; i--)
+			// 注意：需要立刻卸载场景
+			for (int i = _loaders.Count - 1; i >= 0; i--)
 			{
-				var provider = _providers[i];
-				if (provider.CanDestroy())
+				BundleFileLoader loader = _loaders[i];
+				if (loader.IsSceneLoader())
 				{
-					provider.Destory();
-					_providers.RemoveAt(i);
+					loader.TryDestroyAllProviders();
+				}
+			}
+			for (int i = _loaders.Count - 1; i >= 0; i--)
+			{
+				BundleFileLoader loader = _loaders[i];
+				if (loader.IsSceneLoader() && loader.CanDestroy())
+				{
+					loader.Destroy(false);
+					_loaders.RemoveAt(i);
 				}
 			}
 		}
@@ -120,13 +127,32 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static void UnloadUnusedAssets()
 		{
-			for (int i = _loaders.Count - 1; i >= 0; i--)
+			if (SimulationOnEditor)
 			{
-				BundleFileLoader loader = _loaders[i];
-				if (loader.CanDestroy())
+				for (int i = _providers.Count - 1; i >= 0; i--)
 				{
-					loader.Destroy(true);
-					_loaders.RemoveAt(i);
+					if (_providers[i].CanDestroy())
+					{
+						_providers[i].Destory();
+						_providers.RemoveAt(i);
+					}
+				}
+			}
+			else
+			{
+				for (int i = _loaders.Count - 1; i >= 0; i--)
+				{
+					BundleFileLoader loader = _loaders[i];
+					loader.TryDestroyAllProviders();
+				}
+				for (int i = _loaders.Count - 1; i >= 0; i--)
+				{
+					BundleFileLoader loader = _loaders[i];
+					if (loader.CanDestroy())
+					{
+						loader.Destroy(false);
+						_loaders.RemoveAt(i);
+					}
 				}
 			}
 		}
@@ -136,7 +162,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static void ForceUnloadAllAssets()
 		{
-			foreach(var provider in _providers)
+			foreach (var provider in _providers)
 			{
 				provider.Destory();
 			}
@@ -144,12 +170,23 @@ namespace MotionFramework.Resource
 
 			foreach (var loader in _loaders)
 			{
-				loader.Destroy(false);
+				loader.Destroy(true);
 			}
 			_loaders.Clear();
 
 			// 注意：调用底层接口释放所有资源
 			Resources.UnloadUnusedAssets();
+		}
+
+		/// <summary>
+		/// 移除加载器里所有的资源提供者
+		/// </summary>
+		public static void RemoveBundleProviders(List<AssetProviderBase> providers)
+		{
+			foreach (var provider in providers)
+			{
+				_providers.Remove(provider);
+			}
 		}
 
 
@@ -196,13 +233,13 @@ namespace MotionFramework.Resource
 		/// <param name="scenePath">场景名称</param>
 		public static AssetOperationHandle LoadSceneAsync(string scenePath, SceneInstanceParam instanceParam)
 		{
-			AssetProviderBase provider = TryGetProvider(scenePath);
+			AssetProviderBase provider = TryGetAssetProvider(scenePath);
 			if (provider == null)
 			{
 				if (SimulationOnEditor)
-					provider = new EditorSceneProvider(scenePath, instanceParam);
+					provider = new DatabaseSceneProvider(scenePath, instanceParam);
 				else
-					provider = new SceneProvider(scenePath, instanceParam);
+					provider = new BundledSceneProvider(scenePath, instanceParam);
 				_providers.Add(provider);
 			}
 
@@ -218,13 +255,13 @@ namespace MotionFramework.Resource
 		/// <param name="assetType">资源类型</param>
 		public static AssetOperationHandle LoadAssetAsync(string assetPath, System.Type assetType)
 		{
-			AssetProviderBase provider = TryGetProvider(assetPath);
+			AssetProviderBase provider = TryGetAssetProvider(assetPath);
 			if (provider == null)
 			{
 				if (SimulationOnEditor)
-					provider = new AssetDatabaseProvider(assetPath, assetType);
+					provider = new DatabaseAssetProvider(assetPath, assetType);
 				else
-					provider = new AssetBundleProvider(assetPath, assetType);
+					provider = new BundledAssetProvider(assetPath, assetType);
 				_providers.Add(provider);
 			}
 
@@ -240,13 +277,13 @@ namespace MotionFramework.Resource
 		/// <param name="assetType">资源类型</param>、
 		public static AssetOperationHandle LoadSubAssetsAsync(string assetPath, System.Type assetType)
 		{
-			AssetProviderBase provider = TryGetProvider(assetPath);
+			AssetProviderBase provider = TryGetAssetProvider(assetPath);
 			if (provider == null)
 			{
 				if (SimulationOnEditor)
-					provider = new AssetDatabaseSubProvider(assetPath, assetType);
+					provider = new DatabaseSubAssetsProvider(assetPath, assetType);
 				else
-					provider = new AssetBundleSubProvider(assetPath, assetType);
+					provider = new BundledSubAssetsProvider(assetPath, assetType);
 				_providers.Add(provider);
 			}
 
@@ -255,14 +292,32 @@ namespace MotionFramework.Resource
 			return provider.Handle;
 		}
 
+		internal static BundleFileLoader CreateOwnerBundleLoader(string assetPath)
+		{
+			string bundleName = BundleServices.GetAssetBundleName(assetPath);
+			AssetBundleInfo bundleInfo = BundleServices.GetAssetBundleInfo(bundleName);
+			return CreateBundleFileLoaderInternal(bundleInfo);
+		}
+		internal static List<BundleFileLoader> CreateDependBundleLoaders(string assetPath)
+		{
+			List<BundleFileLoader> result = new List<BundleFileLoader>();
+			string[] depends = BundleServices.GetAllDependencies(assetPath);
+			if (depends != null)
+			{
+				foreach (var dependBundleName in depends)
+				{
+					AssetBundleInfo dependBundleInfo = BundleServices.GetAssetBundleInfo(dependBundleName);
+					BundleFileLoader dependLoader = CreateBundleFileLoaderInternal(dependBundleInfo);
+					result.Add(dependLoader);
+				}
+			}
+			return result;
+		}
 
-		/// <summary>
-		/// 获取或创建一个资源包加载器
-		/// </summary>
-		internal static BundleFileLoader GetOrCreateBundleFileLoader(AssetBundleInfo bundleInfo)
+		private static BundleFileLoader CreateBundleFileLoaderInternal(AssetBundleInfo bundleInfo)
 		{
 			// 如果加载器已经存在
-			BundleFileLoader loader = TryGetLoader(bundleInfo.BundleName);
+			BundleFileLoader loader = TryGetBundleFileLoader(bundleInfo.BundleName);
 			if (loader != null)
 				return loader;
 
@@ -271,8 +326,7 @@ namespace MotionFramework.Resource
 			_loaders.Add(loader);
 			return loader;
 		}
-
-		private static BundleFileLoader TryGetLoader(string bundleName)
+		private static BundleFileLoader TryGetBundleFileLoader(string bundleName)
 		{
 			BundleFileLoader loader = null;
 			for (int i = 0; i < _loaders.Count; i++)
@@ -286,7 +340,7 @@ namespace MotionFramework.Resource
 			}
 			return loader;
 		}
-		private static AssetProviderBase TryGetProvider(string assetPath)
+		private static AssetProviderBase TryGetAssetProvider(string assetPath)
 		{
 			AssetProviderBase provider = null;
 			for (int i = 0; i < _providers.Count; i++)

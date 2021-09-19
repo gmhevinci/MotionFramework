@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class AssetDatabaseSubProvider : AssetProviderBase
+	internal sealed class DatabaseSubAssetsProvider : AssetProviderBase
 	{
 		public override float Progress
 		{
@@ -22,7 +22,7 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetDatabaseSubProvider(string assetPath, System.Type assetType)
+		public DatabaseSubAssetsProvider(string assetPath, System.Type assetType)
 			: base(assetPath, assetType)
 		{
 		}
@@ -75,19 +75,6 @@ namespace MotionFramework.Resource
 				InvokeCompletion();
 			}
 #endif
-		}
-		public override void Destory()
-		{
-			base.Destory();
-
-			if (AllAssets != null)
-			{
-				foreach (var assetObject in AllAssets)
-				{
-					if (assetObject is GameObject == false)
-						Resources.UnloadAsset(assetObject);
-				}
-			}
 		}
 	}
 }

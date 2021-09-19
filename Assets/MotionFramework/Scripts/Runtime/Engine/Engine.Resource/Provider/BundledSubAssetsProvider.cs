@@ -9,9 +9,8 @@ using UnityEngine;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class AssetBundleSubProvider : AssetProviderBase
+	internal sealed class BundledSubAssetsProvider : BundledProvider
 	{
-		private BundleFileGrouper _bundleGrouper;
 		private AssetBundleRequest _cacheRequest;
 		public override float Progress
 		{
@@ -23,11 +22,9 @@ namespace MotionFramework.Resource
 			}
 		}
 
-		public AssetBundleSubProvider(string assetPath, System.Type assetType)
+		public BundledSubAssetsProvider(string assetPath, System.Type assetType)
 			: base(assetPath, assetType)
 		{
-			_bundleGrouper = new BundleFileGrouper(assetPath);
-			_bundleGrouper.Reference();
 		}
 		public override void Update()
 		{
@@ -43,12 +40,17 @@ namespace MotionFramework.Resource
 			if (States == EAssetStates.CheckBundle)
 			{
 				if (IsWaitForAsyncComplete)
-					_bundleGrouper.WaitForAsyncComplete();
+				{
+					DependBundles.WaitForAsyncComplete();
+					OwnerBundle.WaitForAsyncComplete();
+				}
 
-				if (_bundleGrouper.IsDone() == false)
+				if (DependBundles.IsDone() == false)
+					return;
+				if (OwnerBundle.IsDone() == false)
 					return;
 
-				if (_bundleGrouper.OwnerAssetBundle == null)
+				if (OwnerBundle.CacheBundle == null)
 				{
 					States = EAssetStates.Fail;
 					InvokeCompletion();
@@ -65,16 +67,16 @@ namespace MotionFramework.Resource
 				if (IsWaitForAsyncComplete)
 				{
 					if (AssetType == null)
-						AllAssets = _bundleGrouper.OwnerAssetBundle.LoadAssetWithSubAssets(AssetName);
+						AllAssets = OwnerBundle.CacheBundle.LoadAssetWithSubAssets(AssetName);
 					else
-						AllAssets = _bundleGrouper.OwnerAssetBundle.LoadAssetWithSubAssets(AssetName, AssetType);
+						AllAssets = OwnerBundle.CacheBundle.LoadAssetWithSubAssets(AssetName, AssetType);
 				}
 				else
 				{
 					if (AssetType == null)
-						_cacheRequest = _bundleGrouper.OwnerAssetBundle.LoadAssetWithSubAssetsAsync(AssetName);
+						_cacheRequest = OwnerBundle.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName);
 					else
-						_cacheRequest = _bundleGrouper.OwnerAssetBundle.LoadAssetWithSubAssetsAsync(AssetName, AssetType);
+						_cacheRequest = OwnerBundle.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName, AssetType);
 				}
 				States = EAssetStates.Checking;
 			}
@@ -100,38 +102,9 @@ namespace MotionFramework.Resource
 
 				States = AllAssets == null ? EAssetStates.Fail : EAssetStates.Success;
 				if (States == EAssetStates.Fail)
-					MotionLog.Warning($"Failed to load sub assets : {AssetName} from bundle : {_bundleGrouper.OwnerBundleInfo.BundleName}");
+					MotionLog.Warning($"Failed to load sub assets : {AssetName} from bundle : {OwnerBundle.BundleInfo.BundleName}");
 				InvokeCompletion();
 			}
-		}
-		public override void Destory()
-		{
-			base.Destory();
-
-			// 销毁资源对象
-			if (AllAssets != null)
-			{
-				foreach (var assetObject in AllAssets)
-				{
-					if (assetObject is GameObject == false)
-						Resources.UnloadAsset(assetObject);
-				}
-			}
-
-			// 释放资源包
-			if (_bundleGrouper != null)
-			{
-				_bundleGrouper.Release();
-				_bundleGrouper = null;
-			}
-		}
-
-		/// <summary>
-		/// 获取资源包的调试信息列表
-		/// </summary>
-		internal void GetBundleDebugInfos(List<BundleDebugInfo> output)
-		{
-			_bundleGrouper.GetBundleDebugInfos(output);
 		}
 	}
 }

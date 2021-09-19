@@ -13,8 +13,6 @@ namespace MotionFramework.Resource
 {
 	internal class BundleFileLoader
 	{
-		private readonly List<BundleFileLoader> _masters = new List<BundleFileLoader>();
-
 		/// <summary>
 		/// 资源文件信息
 		/// </summary>
@@ -35,7 +33,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsDestroyed { private set; get; } = false;
 
-
+		private readonly List<AssetProviderBase> _providers = new List<AssetProviderBase>(100);
 		private bool _isWaitForAsyncComplete = false;
 		private FileDownloader _downloader;
 		private AssetBundleCreateRequest _cacheRequest;
@@ -50,12 +48,25 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 设置主资源加载器
+		/// 是否为场景加载器
 		/// </summary>
-		public void SetupMaster(BundleFileLoader master)
+		public bool IsSceneLoader()
 		{
-			if (_masters.Contains(master) == false)
-				_masters.Add(master);
+			foreach(var provider in _providers)
+			{
+				if (provider is BundledSceneProvider)
+					return true;
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// 添加附属的资源提供者
+		/// </summary>
+		public void AddProvider(AssetProviderBase provider)
+		{
+			if (_providers.Contains(provider) == false)
+				_providers.Add(provider);
 		}
 
 		/// <summary>
@@ -225,12 +236,12 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 销毁
 		/// </summary>
-		public void Destroy(bool checkFatal)
+		public void Destroy(bool forceDestroy)
 		{
 			IsDestroyed = true;
 
 			// Check fatal
-			if (checkFatal)
+			if (forceDestroy == false)
 			{
 				if (RefCount > 0)
 					throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.BundleName}");
@@ -249,8 +260,6 @@ namespace MotionFramework.Resource
 				CacheBundle.Unload(true);
 				CacheBundle = null;
 			}
-
-			_masters.Clear();
 		}
 
 		/// <summary>
@@ -269,18 +278,37 @@ namespace MotionFramework.Resource
 			if (IsDone() == false)
 				return false;
 
-			// 注意：我们必须等待主资源已经可以销毁的时候，才可以销毁依赖资源
-			// 从AssetBundle里加载的GameObject对象是无法回收的，并且会缓存在Native内存里，直到调用AssetBundle.Unload(true)才会释放。
-			// 所以我们要保证主资源生存周期内依赖资源不会被卸载了。
-			foreach (var masterLoader in _masters)
+			return RefCount <= 0;
+		}
+		
+		/// <summary>
+		/// 在满足条件的前提下，销毁所有资源提供者
+		/// </summary>
+		public void TryDestroyAllProviders()
+		{
+			if (IsDone() == false)
+				return;
+
+			// 注意：必须等待所有Provider可以销毁的时候，才可以释放Bundle文件。
+			foreach (var provider in _providers)
 			{
-				if (masterLoader.IsDestroyed)
-					continue;
-				if (masterLoader.CanDestroy() == false)
-					return false;
+				if (provider.CanDestroy() == false)
+					return;
 			}
 
-			return RefCount <= 0;
+			// 除了自己没有其它引用
+			if(RefCount > _providers.Count)
+				return;
+
+			// 销毁所有Providers
+			foreach (var provider in _providers)
+			{
+				provider.Destory();
+			}
+
+			// 从列表里移除Providers
+			AssetSystem.RemoveBundleProviders(_providers);
+			_providers.Clear();
 		}
 
 		/// <summary>
