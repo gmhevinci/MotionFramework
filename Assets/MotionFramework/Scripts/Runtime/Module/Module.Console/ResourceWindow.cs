@@ -102,19 +102,9 @@ namespace MotionFramework.Console
 				wrapper.Provider = provider;
 				_cacheProviders.Add(wrapper);
 
-				if (provider is AssetBundleProvider)
+				if (provider is BundledProvider)
 				{
-					AssetBundleProvider temp = provider as AssetBundleProvider;
-					temp.GetBundleDebugInfos(wrapper.BundleDebugInfos);
-				}
-				else if(provider is AssetBundleSubProvider)
-				{
-					AssetBundleSubProvider temp = provider as AssetBundleSubProvider;
-					temp.GetBundleDebugInfos(wrapper.BundleDebugInfos);
-				}
-				else if(provider is SceneProvider)
-				{
-					SceneProvider temp = provider as SceneProvider;
+					BundledProvider temp = provider as BundledProvider;
 					temp.GetBundleDebugInfos(wrapper.BundleDebugInfos);
 				}
 			}
