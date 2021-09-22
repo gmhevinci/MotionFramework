@@ -40,6 +40,12 @@ namespace MotionFramework.Scene
 		/// <param name="callback">场景加载完毕的回调</param>
 		public void ChangeMainScene(string location, bool activeOnLoad, System.Action<SceneInstance> callback)
 		{
+			if (_mainScene != null && _mainScene.IsDone == false)
+			{
+				MotionLog.Warning($"The current main scene {_mainScene.Location} is not loading done.");
+				return;
+			}
+
 			if (_mainScene != null)
 			{
 				UnLoadAllAdditionScenes();
