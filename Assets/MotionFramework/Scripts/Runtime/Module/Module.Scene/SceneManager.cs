@@ -41,10 +41,7 @@ namespace MotionFramework.Scene
 		public void ChangeMainScene(string location, bool activeOnLoad, System.Action<SceneInstance> callback)
 		{
 			if (_mainScene != null && _mainScene.IsDone == false)
-			{
 				MotionLog.Warning($"The current main scene {_mainScene.Location} is not loading done.");
-				return;
-			}
 
 			if (_mainScene != null)
 			{

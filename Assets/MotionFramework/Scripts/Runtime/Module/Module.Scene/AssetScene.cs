@@ -36,7 +36,7 @@ namespace MotionFramework.Scene
 		{
 			get
 			{
-				return Progress == 100;
+				return _handle.IsDone;
 			}
 		}
 
