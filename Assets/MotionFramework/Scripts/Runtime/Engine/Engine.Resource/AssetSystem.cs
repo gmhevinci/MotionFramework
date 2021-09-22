@@ -88,7 +88,7 @@ namespace MotionFramework.Resource
 			for (int i = 0; i < _providers.Count; i++)
 			{
 				var provider = _providers[i];
-				if (provider is BundledSceneProvider || provider is DatabaseSceneProvider)
+				if (provider.IsSceneProvider())
 				{
 					provider.Update();
 				}
@@ -103,21 +103,36 @@ namespace MotionFramework.Resource
 			}
 
 			// 注意：需要立刻卸载场景
-			for (int i = _loaders.Count - 1; i >= 0; i--)
+			if (SimulationOnEditor)
 			{
-				BundleFileLoader loader = _loaders[i];
-				if (loader.IsSceneLoader())
+				for (int i = _providers.Count - 1; i >= 0; i--)
 				{
-					loader.TryDestroyAllProviders();
+					AssetProviderBase provider = _providers[i];
+					if (provider.IsSceneProvider() && provider.CanDestroy())
+					{
+						provider.Destory();
+						_providers.RemoveAt(i);
+					}
 				}
 			}
-			for (int i = _loaders.Count - 1; i >= 0; i--)
+			else
 			{
-				BundleFileLoader loader = _loaders[i];
-				if (loader.IsSceneLoader() && loader.CanDestroy())
+				for (int i = _loaders.Count - 1; i >= 0; i--)
 				{
-					loader.Destroy(false);
-					_loaders.RemoveAt(i);
+					BundleFileLoader loader = _loaders[i];
+					if (loader.IsSceneLoader())
+					{
+						loader.TryDestroyAllProviders();
+					}
+				}
+				for (int i = _loaders.Count - 1; i >= 0; i--)
+				{
+					BundleFileLoader loader = _loaders[i];
+					if (loader.IsSceneLoader() && loader.CanDestroy())
+					{
+						loader.Destroy(false);
+						_loaders.RemoveAt(i);
+					}
 				}
 			}
 		}
