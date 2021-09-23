@@ -31,6 +31,8 @@ namespace MotionFramework.Editor
 		/// </summary>
 		private void CreateReadmeFile(AssetBundleBuilder.BuildParametersContext buildParameters, TaskGetBuildMap.BuildMapContext buildMapContext)
 		{
+			PatchManifest patchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
+
 			// 删除旧文件
 			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.ReadmeFileName}";
 			if (File.Exists(filePath))
@@ -68,8 +70,16 @@ namespace MotionFramework.Editor
 			AppendData(content, "");
 			AppendData(content, $"--构建信息--");
 			AppendData(content, $"参与构建的资源总数：{buildMapContext.GetAllAssets().Count}");
-			AppendData(content, $"构建的AB资源包总数：{buildMapContext.GetBuildAssetBundleCount()}");
-			AppendData(content, $"构建的原生资源包总数：{buildMapContext.GetBuildRawBundleCount()}");
+			GetBundleFileCountAndTotalSize(patchManifest, out int fileCount1, out long fileTotalSize1);
+			AppendData(content, $"构建的资源包总数：{fileCount1} 文件总大小：{fileTotalSize1 / (1024 * 1024)}MB");
+			GetBuildinFileCountAndTotalSize(patchManifest, out int fileCount2, out long fileTotalSize2);
+			AppendData(content, $"内置的资源包总数：{fileCount2} 文件总大小：{fileTotalSize2 / (1024 * 1024)}MB");
+			GetNotBuildinFileCountAndTotalSize(patchManifest, out int fileCount3, out long fileTotalSize3);
+			AppendData(content, $"非内置的资源包总数：{fileCount3} 文件总大小：{fileTotalSize3 / (1024 * 1024)}MB");
+			GetEncryptedFileCountAndTotalSize(patchManifest, out int fileCount4, out long fileTotalSize4);
+			AppendData(content, $"加密的资源包总数：{fileCount4} 文件总大小：{fileTotalSize4 / (1024 * 1024)}MB");
+			GetRawFileCountAndTotalSize(patchManifest, out int fileCount5, out long fileTotalSize5);
+			AppendData(content, $"原生的资源包总数：{fileCount5} 文件总大小：{fileTotalSize5 / (1024 * 1024)}MB");
 
 			AppendData(content, "");
 			AppendData(content, $"--构建列表--");
@@ -79,36 +89,43 @@ namespace MotionFramework.Editor
 				AppendData(content, bundleName);
 			}
 
-			PatchManifest patchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
+			AppendData(content, "");
+			AppendData(content, $"--内置文件列表--");
+			foreach (var patchBundle in patchManifest.BundleList)
 			{
-				AppendData(content, "");
-				AppendData(content, $"--内置列表--");
-				foreach (var patchBundle in patchManifest.BundleList)
+				if (patchBundle.IsBuildin)
 				{
-					if (patchBundle.IsBuildin)
-					{
-						AppendData(content, patchBundle.BundleName);
-					}
+					AppendData(content, patchBundle.BundleName);
 				}
+			}
 
-				AppendData(content, "");
-				AppendData(content, $"--更新列表--");
-				foreach (var patchBundle in patchManifest.BundleList)
+			AppendData(content, "");
+			AppendData(content, $"--非内置文件列表--");
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				if (patchBundle.IsBuildin == false)
 				{
-					if (patchBundle.Version == buildParameters.Parameters.BuildVersion)
-					{
-						AppendData(content, patchBundle.BundleName);
-					}
+					AppendData(content, patchBundle.BundleName);
 				}
+			}
 
-				AppendData(content, "");
-				AppendData(content, $"--加密列表--");
-				foreach (var patchBundle in patchManifest.BundleList)
+			AppendData(content, "");
+			AppendData(content, $"--加密文件列表--");
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				if (patchBundle.IsEncrypted)
 				{
-					if (patchBundle.IsEncrypted)
-					{
-						AppendData(content, patchBundle.BundleName);
-					}
+					AppendData(content, patchBundle.BundleName);
+				}
+			}
+
+			AppendData(content, "");
+			AppendData(content, $"--原生文件列表--");
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				if (patchBundle.IsRawFile)
+				{
+					AppendData(content, patchBundle.BundleName);
 				}
 			}
 
@@ -119,6 +136,68 @@ namespace MotionFramework.Editor
 		{
 			sb.Append(data);
 			sb.Append("\r\n");
+		}
+
+		private void GetBundleFileCountAndTotalSize(PatchManifest patchManifest, out int fileCount, out long fileBytes)
+		{
+			fileCount = patchManifest.BundleList.Count;
+			fileBytes = 0;
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				fileBytes += patchBundle.SizeBytes;
+			}
+		}
+		private void GetBuildinFileCountAndTotalSize(PatchManifest patchManifest, out int fileCount, out long fileBytes)
+		{
+			fileCount = 0;
+			fileBytes = 0;
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				if (patchBundle.IsBuildin)
+				{
+					fileCount++;
+					fileBytes += patchBundle.SizeBytes;
+				}
+			}
+		}
+		private void GetNotBuildinFileCountAndTotalSize(PatchManifest patchManifest, out int fileCount, out long fileBytes)
+		{
+			fileCount = 0;
+			fileBytes = 0;
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				if (patchBundle.IsBuildin == false)
+				{
+					fileCount++;
+					fileBytes += patchBundle.SizeBytes;
+				}
+			}
+		}
+		private void GetEncryptedFileCountAndTotalSize(PatchManifest patchManifest, out int fileCount, out long fileBytes)
+		{
+			fileCount = 0;
+			fileBytes = 0;
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				if (patchBundle.IsEncrypted)
+				{
+					fileCount++;
+					fileBytes += patchBundle.SizeBytes;
+				}
+			}
+		}
+		private void GetRawFileCountAndTotalSize(PatchManifest patchManifest, out int fileCount, out long fileBytes)
+		{
+			fileCount = 0;
+			fileBytes = 0;
+			foreach (var patchBundle in patchManifest.BundleList)
+			{
+				if (patchBundle.IsRawFile)
+				{
+					fileCount++;
+					fileBytes += patchBundle.SizeBytes;
+				}
+			}
 		}
 	}
 }

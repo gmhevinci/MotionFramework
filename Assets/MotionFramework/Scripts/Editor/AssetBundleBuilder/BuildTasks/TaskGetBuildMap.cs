@@ -108,34 +108,6 @@ namespace MotionFramework.Editor
 				return TryGetBundleInfo(bundleFullName, out BuildBundleInfo bundleInfo);
 			}
 
-			/// <summary>
-			/// 获取构建的AB资源包总数
-			/// </summary>
-			public int GetBuildAssetBundleCount()
-			{
-				int count = 0;
-				foreach (var bunldInfo in BundleInfos)
-				{
-					if (bunldInfo.IsRawFile == false)
-						count++;
-				}
-				return count;
-			}
-
-			/// <summary>
-			/// 获取构建的原生资源包总数
-			/// </summary>
-			public int GetBuildRawBundleCount()
-			{
-				int count = 0;
-				foreach (var bunldInfo in BundleInfos)
-				{
-					if (bunldInfo.IsRawFile)
-						count++;
-				}
-				return count;
-			}
-
 			private bool TryGetBundleInfo(string bundleFullName, out BuildBundleInfo result)
 			{
 				foreach (var bundleInfo in BundleInfos)
