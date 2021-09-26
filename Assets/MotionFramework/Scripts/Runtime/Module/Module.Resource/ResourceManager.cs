@@ -55,6 +55,7 @@ namespace MotionFramework.Resource
 			public float AutoReleaseInterval;
 		}
 
+		private string _bundleServicesName;
 		private Timer _releaseTimer;
 
 		void IModule.OnCreate(System.Object param)
@@ -76,6 +77,8 @@ namespace MotionFramework.Resource
 			// 创建间隔计时器
 			if (createParam.AutoReleaseInterval > 0)
 				_releaseTimer = Timer.CreatePepeatTimer(0, createParam.AutoReleaseInterval);
+
+			_bundleServicesName = createParam.BundleServices.GetType().Name;
 		}
 		void IModule.OnUpdate()
 		{
@@ -91,6 +94,7 @@ namespace MotionFramework.Resource
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Virtual simulation : {AssetSystem.SimulationOnEditor}");
+			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] IBundleServices : {_bundleServicesName}");
 			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Bundle count : {AssetSystem.GetLoaderCount()}");
 			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Asset loader count : {AssetSystem.GetProviderCount()}");
 		}
