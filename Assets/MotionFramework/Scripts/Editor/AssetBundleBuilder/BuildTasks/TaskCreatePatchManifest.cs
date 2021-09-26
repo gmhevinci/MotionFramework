@@ -136,6 +136,8 @@ namespace MotionFramework.Editor
 			List<int> result = new List<int>();
 			foreach (var dependAssetInfo in assetInfo.AllDependAssetInfos)
 			{
+				if (dependAssetInfo.CheckBundleNameValid() == false)
+					continue;
 				int bundleID = GetAssetBundleID(dependAssetInfo.GetBundleName(), bundleList);
 				if(result.Contains(bundleID) == false)
 					result.Add(bundleID);

@@ -50,6 +50,7 @@ namespace MotionFramework.Editor
 
 		/// <summary>
 		/// 依赖的所有资源信息
+		/// 注意：包括零依赖资源（零依赖资源的资源包名无效）
 		/// </summary>
 		public List<BuildAssetInfo> AllDependAssetInfos { private set; get; } = null;
 
@@ -58,13 +59,13 @@ namespace MotionFramework.Editor
 		{
 			AssetPath = assetPath;
 		}
-		
+
 		/// <summary>
 		/// 设置所有依赖的资源
 		/// </summary>
 		public void SetAllDependAssetInfos(List<BuildAssetInfo> dependAssetInfos)
 		{
-			if(AllDependAssetInfos != null)
+			if (AllDependAssetInfos != null)
 				throw new System.Exception("Should never get here !");
 
 			AllDependAssetInfos = dependAssetInfos;
@@ -105,6 +106,17 @@ namespace MotionFramework.Editor
 				throw new System.ArgumentNullException();
 
 			return AssetBundleBuilderHelper.MakeBundleName(BundleLabel, BundleVariant);
+		}
+
+		/// <summary>
+		/// 检测资源包名是否有效
+		/// </summary>
+		public bool CheckBundleNameValid()
+		{
+			if (string.IsNullOrEmpty(BundleLabel) == false && string.IsNullOrEmpty(BundleVariant) == false)
+				return true;
+			else
+				return false;
 		}
 	}
 }

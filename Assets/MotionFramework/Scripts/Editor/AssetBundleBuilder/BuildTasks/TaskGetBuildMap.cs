@@ -180,8 +180,8 @@ namespace MotionFramework.Editor
 					// 注意：检测是否为主动收集资源
 					if (assetPath == mainAssetPath)
 					{
-						buildAssets[assetPath].IsCollectAsset = true;
-						buildAssets[assetPath].IsRawAsset = collectInfo.IsRawAsset;
+						buildAssets[mainAssetPath].IsCollectAsset = true;
+						buildAssets[mainAssetPath].IsRawAsset = collectInfo.IsRawAsset;
 					}
 				}
 
@@ -200,7 +200,21 @@ namespace MotionFramework.Editor
 			}
 			EditorTools.ClearProgressBar();
 
-			// 3. 设置资源包名
+			// 3. 移除零依赖的资源
+			List<BuildAssetInfo> undependentAssets = new List<BuildAssetInfo>();
+			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssets)
+			{
+				if (pair.Value.IsCollectAsset)
+					continue;
+				if (pair.Value.DependCount == 0)
+					undependentAssets.Add(pair.Value);
+			}
+			foreach (var assetInfo in undependentAssets)
+			{
+				buildAssets.Remove(assetInfo.AssetPath);
+			}
+
+			// 4. 设置资源包名
 			progressValue = 0;
 			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssets)
 			{
