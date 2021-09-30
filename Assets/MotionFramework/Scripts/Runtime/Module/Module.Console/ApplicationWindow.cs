@@ -90,12 +90,10 @@ namespace MotionFramework.Console
 			ConsoleGUI.Lable($"Graphics Quality : {QualitySettings.names[QualitySettings.GetQualityLevel()]}");
 
 			GUILayout.Space(space);
-			ConsoleGUI.Lable($"Reserved Total Memory : {Profiler.GetTotalReservedMemoryLong() / 1048576}MB");
-			ConsoleGUI.Lable($"Allocated Graphics Memory : {Profiler.GetAllocatedMemoryForGraphicsDriver() / 1048576}MB");
-			ConsoleGUI.Lable($"Used Memory Pool : {Profiler.GetTotalAllocatedMemoryLong() / 1048576}MB");
-			ConsoleGUI.Lable($"Unused Memory Pool : {Profiler.GetTotalUnusedReservedMemoryLong() / 1048576}MB");
-			ConsoleGUI.Lable($"Total Mono Memory : {Profiler.GetMonoHeapSizeLong() / 1048576}MB");
-			ConsoleGUI.Lable($"Used Mono Memory : {Profiler.GetMonoUsedSizeLong() / 1048576}MB");
+			ConsoleGUI.Lable($"Total Memory : {GetTotalMemory() / 1048576}MB");			
+			ConsoleGUI.Lable($" - Unity Memory : {Profiler.GetTotalReservedMemoryLong() / 1048576}MB");
+			ConsoleGUI.Lable($" - Mono Memory : {Profiler.GetMonoHeapSizeLong() / 1048576}MB");
+			ConsoleGUI.Lable($" - GfxDriver Memory : {Profiler.GetAllocatedMemoryForGraphicsDriver() / 1048576}MB");
 
 			GUILayout.Space(space);
 			ConsoleGUI.Lable($"Battery Level : {SystemInfo.batteryLevel}");
@@ -105,6 +103,11 @@ namespace MotionFramework.Console
 			ConsoleGUI.EndScrollView();
 		}
 
+		private long GetTotalMemory()
+		{
+			// Total: Unity+Mono+GfxDriver（未包含Audio+Video）
+			return Profiler.GetTotalReservedMemoryLong() + Profiler.GetMonoHeapSizeLong() + Profiler.GetAllocatedMemoryForGraphicsDriver();
+		}
 		private string GetNetworkState()
 		{
 			string internetState = string.Empty;
