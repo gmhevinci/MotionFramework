@@ -66,6 +66,7 @@ namespace MotionFramework.Editor
 			AppendData(content, $"IsAppendHash：{buildParameters.Parameters.IsAppendHash}");
 			AppendData(content, $"IsDisableWriteTypeTree：{buildParameters.Parameters.IsDisableWriteTypeTree}");
 			AppendData(content, $"IsIgnoreTypeTreeChanges：{buildParameters.Parameters.IsIgnoreTypeTreeChanges}");
+			AppendData(content, $"IsDisableLoadAssetByFileName : {buildParameters.Parameters.IsDisableLoadAssetByFileName}");
 
 			AppendData(content, "");
 			AppendData(content, $"--构建信息--");

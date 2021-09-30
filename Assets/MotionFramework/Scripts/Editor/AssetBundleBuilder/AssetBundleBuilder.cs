@@ -62,7 +62,7 @@ namespace MotionFramework.Editor
 			public bool IsAppendHash = false;
 
 			/// <summary>
-			/// 禁止写入类型树结构
+			/// 禁止写入类型树结构（可以降低包体和内存并提高加载效率）
 			/// </summary>
 			public bool IsDisableWriteTypeTree = false;
 
@@ -70,6 +70,11 @@ namespace MotionFramework.Editor
 			/// 忽略类型树变化
 			/// </summary>
 			public bool IsIgnoreTypeTreeChanges = true;
+
+			/// <summary>
+			/// 禁用名称查找资源（可以降内存并提高加载效率）
+			/// </summary>
+			public bool IsDisableLoadAssetByFileName = false;
 			#endregion
 
 
@@ -136,6 +141,11 @@ namespace MotionFramework.Editor
 					opt |= BuildAssetBundleOptions.DisableWriteTypeTree; //Do not include type information within the asset bundle (don't write type tree).
 				if (Parameters.IsIgnoreTypeTreeChanges)
 					opt |= BuildAssetBundleOptions.IgnoreTypeTreeChanges; //Ignore the type tree changes when doing the incremental build check.
+				if (Parameters.IsDisableLoadAssetByFileName)
+				{
+					opt |= BuildAssetBundleOptions.DisableLoadAssetByFileName; //Disables Asset Bundle LoadAsset by file name.
+					opt |= BuildAssetBundleOptions.DisableLoadAssetByFileNameWithExtension; //Disables Asset Bundle LoadAsset by file name with extension.
+				}
 
 				return opt;
 			}
