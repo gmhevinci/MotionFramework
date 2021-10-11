@@ -18,7 +18,16 @@ namespace MotionFramework.Editor
 	{
 		public class BuildMapContext : IContextObject
 		{
-			public readonly List<BuildBundleInfo> BundleInfos = new List<BuildBundleInfo>();
+			/// <summary>
+			/// 资源包列表
+			/// </summary>
+			public readonly List<BuildBundleInfo> BundleInfos = new List<BuildBundleInfo>(1000);
+
+			/// <summary>
+			/// 冗余的资源列表
+			/// </summary>
+			public readonly List<string> RedundancyList = new List<string>(1000);
+
 
 			/// <summary>
 			/// 添加一个打包资源
@@ -126,26 +135,19 @@ namespace MotionFramework.Editor
 
 		void IBuildTask.Run(BuildContext context)
 		{
-			List<BuildAssetInfo> allAssets = GetBuildAssets();
-			if (allAssets.Count == 0)
-				throw new Exception("构建的资源列表不能为空");
-
-			BuildLogger.Log($"构建的资源列表里总共有{allAssets.Count}个资源");
+			var buildParametersContext = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
 			BuildMapContext buildMapContext = new BuildMapContext();
-			foreach (var assetInfo in allAssets)
-			{
-				buildMapContext.PackAsset(assetInfo);
-			}
 			context.SetContextObject(buildMapContext);
+			SetupBuildMap(buildMapContext, buildParametersContext);
 
 			// 检测构建结果
 			CheckBuildMapContent(buildMapContext);
 		}
 
 		/// <summary>
-		/// 获取构建的资源列表
+		/// 组织构建的资源包
 		/// </summary>
-		private List<BuildAssetInfo> GetBuildAssets()
+		private void SetupBuildMap(BuildMapContext buildMapContext, AssetBundleBuilder.BuildParametersContext buildParameters)
 		{
 			Dictionary<string, BuildAssetInfo> buildAssets = new Dictionary<string, BuildAssetInfo>();
 
@@ -204,10 +206,25 @@ namespace MotionFramework.Editor
 			List<BuildAssetInfo> undependentAssets = new List<BuildAssetInfo>();
 			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssets)
 			{
-				if (pair.Value.IsCollectAsset)
+				var buildAssetInfo = pair.Value;
+				if (buildAssetInfo.IsCollectAsset)
 					continue;
-				if (pair.Value.DependCount == 0)
-					undependentAssets.Add(pair.Value);
+
+				if (buildAssetInfo.DependCount == 0)
+				{
+					undependentAssets.Add(buildAssetInfo);
+					continue;
+				}
+	
+				// 冗余机制
+				if (buildParameters.Parameters.ApplyRedundancy)
+				{
+					if (AssetBundleCollectorSettingData.HasCollector(buildAssetInfo.AssetPath) == false)
+					{
+						undependentAssets.Add(buildAssetInfo);
+						buildMapContext.RedundancyList.Add(buildAssetInfo.AssetPath);
+					}
+				}
 			}
 			foreach (var assetInfo in undependentAssets)
 			{
@@ -228,8 +245,15 @@ namespace MotionFramework.Editor
 			}
 			EditorTools.ClearProgressBar();
 
-			// 4. 返回结果
-			return buildAssets.Values.ToList();
+			// 4. 构建资源包
+			var allAssets = buildAssets.Values.ToList();
+			if (allAssets.Count == 0)
+				throw new Exception("构建的资源列表不能为空");
+			BuildLogger.Log($"构建的资源列表里总共有{allAssets.Count}个资源");
+			foreach (var assetInfo in allAssets)
+			{
+				buildMapContext.PackAsset(assetInfo);
+			}
 		}
 
 		/// <summary>

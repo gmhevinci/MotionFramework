@@ -23,7 +23,7 @@ namespace MotionFramework.Editor
 			/// 是否验证构建结果
 			/// </summary>
 			public bool IsVerifyBuildingResult = false;
-
+			
 			/// <summary>
 			/// 输出的根目录
 			/// </summary>
@@ -38,6 +38,13 @@ namespace MotionFramework.Editor
 			/// 构建的版本（资源版本号）
 			/// </summary>
 			public int BuildVersion;
+
+			/// <summary>
+			/// 是否允许冗余机制
+			/// 说明：冗余机制可以帮助我们减少包体数量
+			/// </summary>
+			public bool ApplyRedundancy = false;
+
 
 			/// <summary>
 			/// 压缩选项

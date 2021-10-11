@@ -41,9 +41,10 @@ namespace MotionFramework.Editor
 			BuildLogger.Log($"创建说明文件：{filePath}");
 
 			StringBuilder content = new StringBuilder();
+			AppendData(content, $"构建时间：{DateTime.Now}");
 			AppendData(content, $"构建平台：{buildParameters.Parameters.BuildTarget}");
 			AppendData(content, $"构建版本：{buildParameters.Parameters.BuildVersion}");
-			AppendData(content, $"构建时间：{DateTime.Now}");
+			AppendData(content, $"冗余机制：{buildParameters.Parameters.ApplyRedundancy}");
 
 			AppendData(content, "");
 			AppendData(content, $"--着色器--");
@@ -81,6 +82,14 @@ namespace MotionFramework.Editor
 			AppendData(content, $"加密的资源包总数：{fileCount4} 文件总大小：{fileTotalSize4 / (1024 * 1024)}MB");
 			GetRawFileCountAndTotalSize(patchManifest, out int fileCount5, out long fileTotalSize5);
 			AppendData(content, $"原生的资源包总数：{fileCount5} 文件总大小：{fileTotalSize5 / (1024 * 1024)}MB");
+
+			AppendData(content, "");
+			AppendData(content, $"--冗余列表--");
+			for (int i = 0; i < buildMapContext.RedundancyList.Count; i++)
+			{
+				string redundancyAssetPath = buildMapContext.RedundancyList[i];
+				AppendData(content, redundancyAssetPath);
+			}
 
 			AppendData(content, "");
 			AppendData(content, $"--构建列表--");
