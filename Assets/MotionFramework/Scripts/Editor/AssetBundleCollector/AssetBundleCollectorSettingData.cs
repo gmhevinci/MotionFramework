@@ -337,6 +337,29 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
+		/// 检测资源路径是否被收集器覆盖
+		/// </summary>
+		public static bool HasCollector(string assetPath)
+		{
+			// 如果收集全路径着色器
+			if (Setting.IsCollectAllShaders)
+			{
+				System.Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+				if (assetType == typeof(UnityEngine.Shader))
+					return true;
+			}
+
+			for (int i = 0; i < Setting.Collectors.Count; i++)
+			{
+				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
+				if (assetPath.StartsWith(collector.CollectDirectory))
+					return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
 		/// 检测资源是否有效
 		/// </summary>
 		public static bool IsValidateAsset(string assetPath)
