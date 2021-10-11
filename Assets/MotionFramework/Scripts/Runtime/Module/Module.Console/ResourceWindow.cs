@@ -64,19 +64,33 @@ namespace MotionFramework.Console
 			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
 			for (int i = 0; i < _cacheProviders.Count; i++)
 			{
+				GUILayout.Space(10);
 				var wrapper = _cacheProviders[i];
 				string loaderInfo = $"Asset：{wrapper.AssetPath} 引用：{wrapper.Provider.RefCount}";
 				if (wrapper.Provider.States == EAssetStates.Fail)
 					ConsoleGUI.RedLable(loaderInfo);
 				else
 					ConsoleGUI.Lable(loaderInfo);
+				bool showOwner = false;
 				foreach(var debugInfo in wrapper.BundleDebugInfos)
 				{
-					string bundleInfo = $"       --- Bundle：{debugInfo.BundleName}  引用：{debugInfo.RefCount} 版本：{debugInfo.Version}";
-					if (debugInfo.States == ELoaderStates.Fail)
-						ConsoleGUI.RedLable(bundleInfo);
+					if(showOwner == false)
+					{
+						showOwner = true;
+						string bundleInfo = $"Bundle：{debugInfo.BundleName}  引用：{debugInfo.RefCount} 版本：{debugInfo.Version}";
+						if (debugInfo.States == ELoaderStates.Fail)
+							ConsoleGUI.RedLable(bundleInfo);
+						else
+							ConsoleGUI.Lable(bundleInfo);
+					}
 					else
-						ConsoleGUI.Lable(bundleInfo);
+					{
+						string bundleInfo = $"---Depend：{debugInfo.BundleName}  引用：{debugInfo.RefCount} 版本：{debugInfo.Version}";
+						if (debugInfo.States == ELoaderStates.Fail)
+							ConsoleGUI.RedLable(bundleInfo);
+						else
+							ConsoleGUI.Lable(bundleInfo);
+					}
 				}
 			}
 			ConsoleGUI.EndScrollView();
