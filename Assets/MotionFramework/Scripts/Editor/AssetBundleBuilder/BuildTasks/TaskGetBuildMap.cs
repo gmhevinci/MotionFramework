@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using MotionFramework.Patch;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Editor
 {
@@ -203,6 +204,7 @@ namespace MotionFramework.Editor
 			EditorTools.ClearProgressBar();
 
 			// 3. 移除零依赖的资源
+			var redundancy = CreateAssetRedundancy();
 			List<BuildAssetInfo> undependentAssets = new List<BuildAssetInfo>();
 			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssets)
 			{
@@ -215,7 +217,18 @@ namespace MotionFramework.Editor
 					undependentAssets.Add(buildAssetInfo);
 					continue;
 				}
-	
+
+				// 冗余扩展
+				if(redundancy != null)
+				{
+					if(redundancy.Check(buildAssetInfo.AssetPath))
+					{
+						undependentAssets.Add(buildAssetInfo);
+						buildMapContext.RedundancyList.Add(buildAssetInfo.AssetPath);
+						continue;
+					}
+				}
+
 				// 冗余机制
 				if (buildParameters.Parameters.ApplyRedundancy)
 				{
@@ -304,6 +317,22 @@ namespace MotionFramework.Editor
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// 创建冗余类
+		/// </summary>
+		/// <returns>如果没有定义类型，则返回NULL</returns>
+		private IAssetRedundancy CreateAssetRedundancy()
+		{
+			var types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetRedundancy));
+			if (types.Count == 0)
+				return null;
+			if (types.Count != 1)
+				throw new Exception($"Found more {nameof(IAssetRedundancy)} types. We only support one.");
+
+			BuildLogger.Log($"创建实例类 : {types[0].FullName}");
+			return (IAssetRedundancy)Activator.CreateInstance(types[0]);
 		}
 	}
 }

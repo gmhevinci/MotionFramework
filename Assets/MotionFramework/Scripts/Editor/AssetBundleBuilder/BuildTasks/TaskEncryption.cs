@@ -45,7 +45,7 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 创建加密类
 		/// </summary>
-		/// <returns>如果没有定义加密类型，则返回NULL</returns>
+		/// <returns>如果没有定义类型，则返回NULL</returns>
 		private IAssetEncrypter CreateAssetEncrypter()
 		{
 			var types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetEncrypter));
@@ -54,7 +54,7 @@ namespace MotionFramework.Editor
 			if (types.Count != 1)
 				throw new Exception($"Found more {nameof(IAssetEncrypter)} types. We only support one.");
 
-			BuildLogger.Log($"创建加密类 : {types[0].FullName}");
+			BuildLogger.Log($"创建实例类 : {types[0].FullName}");
 			return (IAssetEncrypter)Activator.CreateInstance(types[0]);
 		}
 
