@@ -104,10 +104,22 @@ namespace MotionFramework.Tween
 			if (tweenRoot == null)
 				throw new System.InvalidCastException();
 
-			int groupID = 0;
-			if (go != null)
-				groupID = go.GetInstanceID();
-			return CreateTween(tweenRoot, go, groupID);
+			return Play(tweenRoot, go);
+		}
+
+		/// <summary>
+		/// 播放一个补间动画
+		/// </summary>
+		/// <param name="tweenChain">补间根节点</param>
+		/// <param name="go">游戏对象</param>
+		/// <returns>补间动画唯一ID</returns>
+		public long Play(ChainNode chainNode, UnityEngine.GameObject go = null)
+		{
+			ITweenNode tweenRoot = chainNode as ITweenNode;
+			if (tweenRoot == null)
+				throw new System.InvalidCastException();
+
+			return Play(tweenRoot, go);
 		}
 
 		/// <summary>

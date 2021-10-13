@@ -17,5 +17,9 @@ namespace UnityEngine
         {
             return TweenManager.Instance.Play(tween, go);
         }
+        public static long PlayTween(this GameObject go, ChainNode tween)
+		{
+            return TweenManager.Instance.Play(tween, go);
+        }
     }
 }
