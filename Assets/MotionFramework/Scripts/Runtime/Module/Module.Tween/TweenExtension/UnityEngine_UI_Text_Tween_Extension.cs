@@ -9,19 +9,19 @@ namespace UnityEngine.UI
 {
     public static class UnityEngine_UI_Text_Tween_Extension
     {
-        public static ColorTween TweenAlpha(this Text obj, float duration, Color from, Color to)
+        public static ColorTween TweenColor(this Text obj, float duration, Color from, Color to)
         {
             ColorTween node = ColorTween.Allocate(duration, from, to);
             node.SetUpdate((result) => { obj.color = result; });
             return node;
         }
-        public static ColorTween TweenAlphaTo(this Text obj, float duration, Color to)
+        public static ColorTween TweenColorTo(this Text obj, float duration, Color to)
 		{
-            return TweenAlpha(obj, duration, obj.color, to);
+            return TweenColor(obj, duration, obj.color, to);
 		}
-        public static ColorTween TweenAlphaFrom(this Text obj, float duration, Color from)
+        public static ColorTween TweenColorFrom(this Text obj, float duration, Color from)
 		{
-            return TweenAlpha(obj, duration, from, obj.color);
+            return TweenColor(obj, duration, from, obj.color);
         }
     }
 }
