@@ -222,7 +222,7 @@ namespace MotionFramework.Tween
 		protected override Vector2 UpdateResultValue(Vector2 from, Vector2 to, float progress)
 		{
 			if (_lerpFun == null)
-				return Vector2.Lerp(from, to, progress);
+				return Vector2.LerpUnclamped(from, to, progress);
 			else
 				return _lerpFun.Invoke(from, to, progress);
 		}

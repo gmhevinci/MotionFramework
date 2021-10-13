@@ -1,9 +1,8 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2020-2020 何冠峰
+// Copyright©2020-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
-using System.Collections.Generic;
 
 namespace MotionFramework.Tween
 {
@@ -11,32 +10,22 @@ namespace MotionFramework.Tween
 	/// 随机执行的复合节点
 	/// 说明：节点列表随机执行，在随机节点结束后复合节点结束。
 	/// </summary>
-	public class SelectorNode : ITweenNode, ITweenChain
+	public class SelectorNode : ChainNode
 	{
-		protected List<ITweenNode> _nodes = new List<ITweenNode>();
+		public static SelectorNode Allocate(params ITweenNode[] nodes)
+		{
+			SelectorNode sequence = new SelectorNode();
+			sequence.AddNode(nodes);
+			return sequence;
+		}
+
 		protected ITweenNode _selectNode;
-
-		public bool IsDone { private set; get; } = false;
-
 		public ITweenNode SelectNode
 		{
 			get { return _selectNode; }
 		}
 
-		public void AddNode(ITweenNode node)
-		{
-			if (_nodes.Contains(node) == false)
-				_nodes.Add(node);
-		}
-		public void AddNode(params ITweenNode[] nodes)
-		{
-			foreach (var node in nodes)
-			{
-				AddNode(node);
-			}
-		}
-
-		void ITweenNode.OnUpdate()
+		protected override void UpdateChain()
 		{
 			if(_selectNode == null)
 			{
@@ -56,24 +45,6 @@ namespace MotionFramework.Tween
 				_selectNode.OnUpdate();
 				IsDone = _selectNode.IsDone;
 			}
-		}
-		void ITweenNode.OnDispose()
-		{
-			foreach (var node in _nodes)
-			{
-				node.OnDispose();
-			}
-			_nodes.Clear();
-		}
-		void ITweenNode.Kill()
-		{
-			IsDone = true;
-		}
-
-		ITweenChain ITweenChain.Append(ITweenNode node)
-		{
-			AddNode(node);
-			return this;
 		}
 	}
 }
