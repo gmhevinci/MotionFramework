@@ -46,6 +46,11 @@ namespace MotionFramework.Tween
 		/// </summary>
 		public bool IgnoreTimeScale { set; get; } = false;
 
+		/// <summary>
+		/// 所有补间动画的播放速度
+		/// </summary>
+		public float PlaySpeed { set; get; } = 1f;
+
 
 		void IModule.OnCreate(object createParam)
 		{
@@ -56,6 +61,7 @@ namespace MotionFramework.Tween
 
 			// 更新所有补间动画
 			float delatTime = IgnoreTimeScale ? UnityEngine.Time.unscaledDeltaTime : UnityEngine.Time.deltaTime;
+			delatTime *= PlaySpeed;
 			for (int i = 0; i < _wrappers.Count; i++)
 			{
 				var wrapper = _wrappers[i];
