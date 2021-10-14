@@ -12,20 +12,13 @@ namespace MotionFramework.Tween
 	/// </summary>
 	public class SequenceNode : ChainNode
 	{
-		public static SequenceNode Allocate(params ITweenNode[] nodes)
-		{
-			SequenceNode sequence = new SequenceNode();
-			sequence.AddNode(nodes);	
-			return sequence;
-		}
-
 		protected ITweenNode _currentNode;
 		public ITweenNode CurrentNode
 		{
 			get { return _currentNode; }
 		}
 
-		protected override void UpdateChain()
+		protected override void UpdateChain(float deltaTime)
 		{
 			bool isAllDone = false;
 			for (int index = 0; index < _nodes.Count; index++)
@@ -34,7 +27,7 @@ namespace MotionFramework.Tween
 				if (_currentNode.IsDone)
 					continue;
 
-				_currentNode.OnUpdate();
+				_currentNode.OnUpdate(deltaTime);
 				if (_currentNode.IsDone == false)
 					break;
 

@@ -10,7 +10,7 @@ namespace MotionFramework.Tween
 	{
 		bool IsDone { get; }
 
-		void OnUpdate();
+		void OnUpdate(float deltaTime);
 		void OnDispose();
 		void Kill();
 	}

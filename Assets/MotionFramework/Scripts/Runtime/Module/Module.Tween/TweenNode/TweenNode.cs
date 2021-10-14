@@ -36,7 +36,6 @@ namespace MotionFramework.Tween
 		private int _loopCounter = 0;
 		private float _timeReverse = 1f;
 		private float _running = 0;
-		private bool _ignoreTimeScale = false;
 		private System.Action<T> _onUpdate = null;
 		private System.Action _onDispose = null;
 		protected TweenEaseDelegate _easeFun = null;
@@ -63,10 +62,9 @@ namespace MotionFramework.Tween
 		{
 			_onDispose?.Invoke();
 		}
-		void ITweenNode.OnUpdate()
+		void ITweenNode.OnUpdate(float deltaTime)
 		{
-			float delatTime = _ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
-			_running += (delatTime * _timeReverse);
+			_running += (deltaTime * _timeReverse);
 			if (_duration > 0 && _running > 0 && _running < _duration)
 			{
 				float progress = _easeFun.Invoke(_running, 0, 1, _duration);
@@ -123,11 +121,6 @@ namespace MotionFramework.Tween
 			IsDone = true;
 		}
 
-		public TweenNode<T> IgnoreTimeScale(bool value)
-		{
-			_ignoreTimeScale = value;
-			return this;
-		}
 		public TweenNode<T> SetLoop(ETweenLoop tweenLoop, int loopCount = -1)
 		{
 			_tweenLoop = tweenLoop;

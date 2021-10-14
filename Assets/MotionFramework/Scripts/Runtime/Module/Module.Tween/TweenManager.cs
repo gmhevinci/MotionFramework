@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2020-2020 何冠峰
+// Copyright©2020-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System.Collections.Generic;
@@ -41,6 +41,12 @@ namespace MotionFramework.Tween
 		private readonly List<TweenWrapper> _wrappers = new List<TweenWrapper>(1000);
 		private readonly List<TweenWrapper> _remover = new List<TweenWrapper>(1000);
 
+		/// <summary>
+		/// 是否忽略时间戳缩放
+		/// </summary>
+		public bool IgnoreTimeScale { set; get; } = false;
+
+
 		void IModule.OnCreate(object createParam)
 		{
 		}
@@ -49,6 +55,7 @@ namespace MotionFramework.Tween
 			_remover.Clear();
 
 			// 更新所有补间动画
+			float delatTime = IgnoreTimeScale ? UnityEngine.Time.unscaledDeltaTime : UnityEngine.Time.deltaTime;
 			for (int i = 0; i < _wrappers.Count; i++)
 			{
 				var wrapper = _wrappers[i];
@@ -62,7 +69,7 @@ namespace MotionFramework.Tween
 				if (wrapper.TweenRoot.IsDone)
 					_remover.Add(wrapper);
 				else
-					wrapper.TweenRoot.OnUpdate();
+					wrapper.TweenRoot.OnUpdate(delatTime);
 			}
 
 			// 移除完成的补间动画

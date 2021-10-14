@@ -12,14 +12,7 @@ namespace MotionFramework.Tween
 	/// </summary>
 	public class ParallelNode : ChainNode
 	{
-		public static ParallelNode Allocate(params ITweenNode[] nodes)
-		{
-			ParallelNode sequence = new ParallelNode();
-			sequence.AddNode(nodes);
-			return sequence;
-		}
-		
-		protected override void UpdateChain()
+		protected override void UpdateChain(float deltaTime)
 		{
 			bool isAllDone = true;
 			for (int index = 0; index < _nodes.Count; index++)
@@ -28,7 +21,7 @@ namespace MotionFramework.Tween
 				if (node.IsDone)
 					continue;
 
-				node.OnUpdate();
+				node.OnUpdate(deltaTime);
 				if (node.IsDone == false)
 				{
 					isAllDone = false;

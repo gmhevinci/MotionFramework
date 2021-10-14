@@ -21,7 +21,7 @@ namespace MotionFramework.Tween
 		/// </summary>
 		public static ITweenChain Until(this ITweenChain chain, System.Func<bool> condition)
 		{
-			return chain.Append(UntilNode.Allocate(condition));
+			return chain.Append(TweenAllocate.Until(condition));
 		}
 
 		/// <summary>
@@ -29,7 +29,7 @@ namespace MotionFramework.Tween
 		/// </summary>
 		public static ITweenChain Execute(this ITweenChain chain, System.Action execute)
 		{
-			return chain.Append(ExecuteNode.Allocate(execute));
+			return chain.Append(TweenAllocate.Execute(execute));
 		}
 
 
@@ -38,7 +38,7 @@ namespace MotionFramework.Tween
 		/// </summary>
 		public static ITweenChain Delay(this ITweenChain chain, float delay, System.Action triggerCallback = null)
 		{
-			return chain.Append(TimerNode.AllocateDelay(delay, triggerCallback));
+			return chain.Append(TweenAllocate.Delay(delay, triggerCallback));
 		}
 
 		/// <summary>
@@ -47,7 +47,7 @@ namespace MotionFramework.Tween
 		/// </summary>
 		public static ITweenChain Repeat(this ITweenChain chain, float delay, float interval, System.Action triggerCallback = null)
 		{
-			return chain.Append(TimerNode.AllocateRepeat(delay, interval, triggerCallback));
+			return chain.Append(TweenAllocate.Repeat(delay, interval, triggerCallback));
 		}
 
 		/// <summary>
@@ -55,7 +55,7 @@ namespace MotionFramework.Tween
 		/// </summary>
 		public static ITweenChain Repeat(this ITweenChain chain, float delay, float interval, float duration, System.Action triggerCallback = null)
 		{
-			return chain.Append(TimerNode.AllocateRepeat(delay, interval, duration, triggerCallback));
+			return chain.Append(TweenAllocate.Repeat(delay, interval, duration, triggerCallback));
 		}
 
 		/// <summary>
@@ -63,7 +63,7 @@ namespace MotionFramework.Tween
 		/// </summary>
 		public static ITweenChain Repeat(this ITweenChain chain, float delay, float interval, long maxTriggerCount, System.Action triggerCallback = null)
 		{
-			return chain.Append(TimerNode.AllocateRepeat(delay, interval, maxTriggerCount, triggerCallback));
+			return chain.Append(TweenAllocate.Repeat(delay, interval, maxTriggerCount, triggerCallback));
 		}
 
 		/// <summary>
@@ -71,7 +71,7 @@ namespace MotionFramework.Tween
 		/// </summary>
 		public static ITweenChain Duration(this ITweenChain chain, float delay, float duration, System.Action triggerCallback = null)
 		{
-			return chain.Append(TimerNode.AllocateDuration(delay, duration, triggerCallback));
+			return chain.Append(TweenAllocate.Duration(delay, duration, triggerCallback));
 		}
 	}
 }

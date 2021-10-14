@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2020-2020 何冠峰
+// Copyright©2020-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 
@@ -11,19 +11,10 @@ namespace MotionFramework.Tween
 	/// </summary>
 	public class UntilNode : ITweenNode
 	{
-		public static UntilNode Allocate(System.Func<bool> condition)
-		{
-			UntilNode node = new UntilNode
-			{
-				Condition = condition,
-			};
-			return node;
-		}
-
 		public bool IsDone { private set; get; } = false;
 		public System.Func<bool> Condition { set; get; }
 
-		void ITweenNode.OnUpdate()
+		void ITweenNode.OnUpdate(float deltaTime)
 		{
 			IsDone = Condition.Invoke();
 		}

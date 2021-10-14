@@ -35,9 +35,9 @@ namespace MotionFramework.Tween
 			return this;
 		}
 
-		void ITweenNode.OnUpdate()
+		void ITweenNode.OnUpdate(float deltaTime)
 		{
-			UpdateChain();
+			UpdateChain(deltaTime);
 		}
 		void ITweenNode.OnDispose()
 		{
@@ -59,6 +59,6 @@ namespace MotionFramework.Tween
 			return this;
 		}
 
-		protected abstract void UpdateChain();
+		protected abstract void UpdateChain(float deltaTime);
 	}
 }

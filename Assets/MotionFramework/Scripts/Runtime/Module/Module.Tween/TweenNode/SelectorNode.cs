@@ -12,20 +12,13 @@ namespace MotionFramework.Tween
 	/// </summary>
 	public class SelectorNode : ChainNode
 	{
-		public static SelectorNode Allocate(params ITweenNode[] nodes)
-		{
-			SelectorNode sequence = new SelectorNode();
-			sequence.AddNode(nodes);
-			return sequence;
-		}
-
 		protected ITweenNode _selectNode;
 		public ITweenNode SelectNode
 		{
 			get { return _selectNode; }
 		}
 
-		protected override void UpdateChain()
+		protected override void UpdateChain(float deltaTime)
 		{
 			if(_selectNode == null)
 			{
@@ -42,7 +35,7 @@ namespace MotionFramework.Tween
 
 			if(_selectNode != null)
 			{
-				_selectNode.OnUpdate();
+				_selectNode.OnUpdate(deltaTime);
 				IsDone = _selectNode.IsDone;
 			}
 		}
