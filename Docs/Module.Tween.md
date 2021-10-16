@@ -11,6 +11,35 @@ public void Start()
 }
 ```
 
+传统编程
+```C#
+public void PlayWindowOpenAnim()
+{
+  // 先放大UI元素，然后再缩小的时候向上位移。同时UI元素渐变消失
+  var tween = TweenAllocate.Parallel
+    (
+      TweenAllocate.Sequence
+      (
+        this.go.transform.TweenScaleTo(0.15f, new Vector3(1.2f, 1.2f, 1f)),
+        TweenAllocate.Parallel
+        (
+           this.go.transform.TweenScaleTo(0.1f, new Vector3(0.8f, 0.8f, 1f)),
+           this.go.transform.TweenPositionTo(0.6f, new Vector3(0, 256, 0))
+        )
+      ),
+      TweenAllocate.Sequence
+      (
+        TweenAllocate.Delay(0.5f),
+        text.TweenColorTo(0.25f, new Color(1f, 1f, 1f, 0f))
+      )
+    );
+
+    // 在补间动画结束后，销毁UI元素
+    tween.SetDispose(() => { GameObject.Destroy(this.go); });
+    this.go.PlayTween(tween as ITweenNode);
+}
+```
+
 链式编程
 ```C#
 public void PlayWindowOpenAnim()

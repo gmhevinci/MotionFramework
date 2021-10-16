@@ -8,6 +8,7 @@ public void Start()
 	// 注意：ProtoPackageCoder是自定义的网络包编码解码器
 	var createParam = new NetworkManager.CreateParameters();
 	createParam.PackageCoderType = typeof(ProtoNetworkPackageCoder);
+	createParam.PackageMaxSize = ushort.MaxValue;
 	MotionEngine.CreateModule<NetworkManager>(createParam);
 }
 ```

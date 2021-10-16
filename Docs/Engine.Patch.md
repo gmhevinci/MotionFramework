@@ -25,6 +25,7 @@ PatchEventMessageDefine.FoundNewApp //发现了新的安装包
 PatchEventMessageDefine.FoundUpdateFiles //发现更新文件
 PatchEventMessageDefine.DownloadProgressUpdate //下载进度更新
 PatchEventMessageDefine.GameVersionRequestFailed //游戏版本请求失败
+PatchEventMessageDefine.GameVersionParseFailed //游戏版本号解析失败
 PatchEventMessageDefine.PatchManifestRequestFailed //远端的补丁清单请求失败
 PatchEventMessageDefine.WebFileDownloadFailed //网络文件下载失败
 PatchEventMessageDefine.WebFileCheckFailed //网络文件验证失败

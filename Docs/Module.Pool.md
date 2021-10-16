@@ -5,7 +5,11 @@
 public void Start()
 {
 	// 创建模块
-	MotionEngine.CreateModule<GameObjectPoolManager>();
+	GameObjectPoolManager.CreateParameters createParam = new GameObjectPoolManager.CreateParameters();
+	createParam.DefaultInitCapacity = 0;
+	createParam.DefaultMaxCapacity = 9999;
+	createParam.DefaultDestroyTime = 5f;
+	MotionEngine.CreateModule<GameObjectPoolManager>(createParam);
 }
 ```
 
@@ -15,18 +19,18 @@ using MotionFramework.Pool;
 
 public class Test
 {
-	private SpawnGameObject _spawnObj;
+	private SpawnGameObject _spawnGo;
 
 	public void Start()
 	{
 		// 获取对象
-		_spawnObj = GameObjectPoolManager.Instance.Spawn("Model/Npc001");
-		_spawnObj.Completed += OnAssetLoad;
+		_spawnGo = GameObjectPoolManager.Instance.Spawn("Model/Npc001");
+		_spawnGo.Completed += OnAssetLoad;
 	}
 	public void Destroy()
 	{
 		// 回收对象
-		_spawnObj.Restore();
+		_spawnGo.Restore();
 	}
 	private void OnAssetLoad(GameObject go)
 	{

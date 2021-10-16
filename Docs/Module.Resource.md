@@ -12,6 +12,7 @@ public IEnumerator Start()
 	var createParam = new ResourceManager.CreateParameters();
 	createParam.LocationRoot = "Assets/GameRes";
 	createParam.SimulationOnEditor = SimulationOnEditor;
+	createParam.RuntimeMaxLoadingCount = 999;
 	createParam.BundleServices = bundleServices;
 	createParam.DecryptServices = null;
 	createParam.AutoReleaseInterval = 10;
@@ -31,6 +32,7 @@ public IEnumerator Start()
 	var createParam = new ResourceManager.CreateParameters();
 	createParam.LocationRoot = "Assets/GameRes";
 	createParam.SimulationOnEditor = SimulationOnEditor;
+	createParam.RuntimeMaxLoadingCount = 999;
 	createParam.BundleServices = localBundleServices;
 	createParam.DecryptServices = null;
 	createParam.AutoReleaseInterval = 10;

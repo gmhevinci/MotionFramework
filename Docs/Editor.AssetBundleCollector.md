@@ -55,12 +55,5 @@ public class CollectSprite : IFilterRule
 }
 ```
 
-**什么是变体**  
-通过构建变体AssetBundle文件，我们可以使用不同变体的AssetBundle并自由切换它们。例如：高清特效纹理，普通特效纹理；中文艺术字，日文艺术字，韩文艺术字。  
-在游戏运行时，可以通过MotionFramework提供的接口设置要使用的变体类型，开发者不用关心这些变体资源的引用关系。
-
-**构建变体的注意事项**  
-1. 资源的文件名和文件格式必须一致，否则会造成构建包内该资源的唯一ID不一致，资源关联会失败。
-
-**变体相关的进阶教程**  
+**相关的进阶教程**  
 请参考[Project-Patch](https://github.com/gmhevinci/Projects/tree/master/Project-Patch)工程

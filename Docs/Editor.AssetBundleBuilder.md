@@ -62,6 +62,7 @@ private static void BuildInternal(BuildTarget buildTarget)
 	// 构建参数
 	string defaultOutputRoot = AssetBundleBuilderHelper.GetDefaultOutputRoot();
 	AssetBundleBuilder.BuildParameters buildParameters = new AssetBundleBuilder.BuildParameters();
+	buildParameters.IsVerifyBuildingResult = true;
 	buildParameters.OutputRoot = defaultOutputRoot;
 	buildParameters.BuildTarget = buildTarget;
 	buildParameters.BuildVersion = buildVersion;
@@ -73,7 +74,7 @@ private static void BuildInternal(BuildTarget buildTarget)
 	AssetBundleBuilder builder = new AssetBundleBuilder();
 	builder.Run(buildParameters);
 
-	// 构建成功
+	// 构建完成
 	Debug.Log("[Build] 构建完成");
 }
 

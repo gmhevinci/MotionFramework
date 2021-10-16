@@ -75,7 +75,7 @@ private void Start()
 {
 	// 场景加载参数
 	SceneInstanceParam param = new SceneInstanceParam();
-	param.IsAdditive = false;
+	param.LoadMode = UnityEngine.SceneManagement.LoadSceneMode.Single;
 	param.ActivateOnLoad = true;
 
 	AssetOperationHandle handle = ResourceManager.Instance.LoadSceneAsync("Scene/Login", param);
