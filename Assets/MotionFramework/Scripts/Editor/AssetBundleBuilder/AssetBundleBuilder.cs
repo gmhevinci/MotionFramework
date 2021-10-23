@@ -127,7 +127,7 @@ namespace MotionFramework.Editor
 			/// <summary>
 			/// 获取构建选项
 			/// </summary>
-			public BuildAssetBundleOptions GetPiplineBuildOptions()
+			public BuildAssetBundleOptions GetPipelineBuildOptions()
 			{
 				// For the new build system, unity always need BuildAssetBundleOptions.CollectDependencies and BuildAssetBundleOptions.DeterministicAssetBundle
 				// 除非设置ForceRebuildAssetBundle标记，否则会进行增量打包
