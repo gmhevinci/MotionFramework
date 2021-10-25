@@ -83,7 +83,7 @@ namespace MotionFramework.Editor
 			// 构建参数
 			_buildVersion = EditorGUILayout.IntField("Build Version", _buildVersion, GUILayout.MaxWidth(250));
 			_compressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", _compressOption, GUILayout.MaxWidth(250));
-			_isForceRebuild = GUILayout.Toggle(_isForceRebuild, "Froce Rebuild", GUILayout.MaxWidth(120));
+			_isForceRebuild = GUILayout.Toggle(_isForceRebuild, "Force Rebuild", GUILayout.MaxWidth(120));
 			if(_isForceRebuild)
 				_buildinTags = EditorGUILayout.TextField("Buildin Tags", _buildinTags);
 
