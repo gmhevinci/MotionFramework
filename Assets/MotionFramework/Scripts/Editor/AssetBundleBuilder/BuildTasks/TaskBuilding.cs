@@ -21,7 +21,7 @@ namespace MotionFramework.Editor
 			var buildMapContext = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
 
 			BuildLogger.Log($"开始构建......");
-			BuildAssetBundleOptions opt = buildParametersContext.GetPiplineBuildOptions();
+			BuildAssetBundleOptions opt = buildParametersContext.GetPipelineBuildOptions();
 			AssetBundleManifest unityManifest = BuildPipeline.BuildAssetBundles(buildParametersContext.PipelineOutputDirectory, buildMapContext.GetPipelineBuilds(), opt, buildParametersContext.Parameters.BuildTarget);
 			if (unityManifest == null)
 				throw new Exception("构建过程中发生错误！");
