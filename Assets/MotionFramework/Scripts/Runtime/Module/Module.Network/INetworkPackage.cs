@@ -11,6 +11,6 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 是否为热更消息
 		/// </summary>
-		bool IsHotfixPackage { set; get; }
+		bool IsHotPackage { set; get; }
 	}
 }

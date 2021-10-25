@@ -53,7 +53,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 热更层网络消息接收回调
 		/// </summary>
-		public Action<INetworkPackage> HotfixPackageCallback;
+		public Action<INetworkPackage> HotPackageCallback;
 
 
 		void IModule.OnCreate(System.Object param)
@@ -79,8 +79,8 @@ namespace MotionFramework.Network
 				INetworkPackage package = (INetworkPackage)_client.PickPackage();
 				if (package == null)
 					break;
-				if (package.IsHotfixPackage)
-					HotfixPackageCallback.Invoke(package);
+				if (package.IsHotPackage)
+					HotPackageCallback.Invoke(package);
 				else
 					MonoPackageCallback.Invoke(package);
 			}
@@ -175,8 +175,8 @@ namespace MotionFramework.Network
 		{
 			if (package != null)
 			{
-				if (package.IsHotfixPackage)
-					HotfixPackageCallback.Invoke(package);
+				if (package.IsHotPackage)
+					HotPackageCallback.Invoke(package);
 				else
 					MonoPackageCallback.Invoke(package);
 			}

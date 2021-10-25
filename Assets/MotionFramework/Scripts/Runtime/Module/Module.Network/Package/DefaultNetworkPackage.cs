@@ -8,7 +8,7 @@ namespace MotionFramework.Network
 {
 	public class DefaultNetworkPackage : INetworkPackage
 	{
-		public bool IsHotfixPackage { set; get; }
+		public bool IsHotPackage { set; get; }
 
 		/// <summary>
 		/// 消息ID

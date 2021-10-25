@@ -84,7 +84,7 @@ namespace MotionFramework.Network
 			}
 
 			// 检测逻辑是否合法
-			if (package.IsHotfixPackage)
+			if (package.IsHotPackage)
 			{
 				if (package.BodyBytes == null)
 				{
@@ -103,7 +103,7 @@ namespace MotionFramework.Network
 
 			// 获取包体数据
 			byte[] bodyData;
-			if (package.IsHotfixPackage)
+			if (package.IsHotPackage)
 				bodyData = package.BodyBytes;
 			else
 				bodyData = EncodeInternal(package.MsgObj);
@@ -219,7 +219,7 @@ namespace MotionFramework.Network
 					else
 					{
 						// 热更协议
-						package.IsHotfixPackage = true;
+						package.IsHotPackage = true;
 						package.BodyBytes = bodyData;
 						outputResult.Add(package);
 					}
