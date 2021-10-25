@@ -53,7 +53,7 @@ public class Test
 	public void Update()
 	{
 		// 等待所有对象池资源加载完毕
-		if(GameObjectPoolManager.Instance.IsAllPrepare())
+		if(GameObjectPoolManager.Instance.IsAllDone())
 		{
 			// Do somthing
 		}
