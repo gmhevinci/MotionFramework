@@ -11,7 +11,7 @@ namespace MotionFramework.Reference
 {
 	internal class ReferenceCollector
 	{
-		private readonly Queue<IReference> _collector;
+		private readonly Stack<IReference> _collector;
 
 		/// <summary>
 		/// 引用类型
@@ -37,7 +37,7 @@ namespace MotionFramework.Reference
 			ClassType = type;
 
 			// 创建缓存池
-			_collector = new Queue<IReference>(capacity);
+			_collector = new Stack<IReference>(capacity);
 
 			// 检测是否继承了专属接口
 			Type temp = type.GetInterface(nameof(IReference));
@@ -53,7 +53,7 @@ namespace MotionFramework.Reference
 			IReference item;
 			if (_collector.Count > 0)
 			{
-				item = _collector.Dequeue();
+				item = _collector.Pop();
 			}
 			else
 			{
@@ -79,7 +79,7 @@ namespace MotionFramework.Reference
 
 			SpawnCount--;
 			item.OnRelease();
-			_collector.Enqueue(item);
+			_collector.Push(item);
 		}
 
 		/// <summary>

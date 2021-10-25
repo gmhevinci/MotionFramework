@@ -38,10 +38,6 @@ namespace MotionFramework.Reference
 		/// </summary>
 		public static void ClearAll()
 		{
-			foreach (KeyValuePair<Type, ReferenceCollector> pair in _collectors)
-			{
-				pair.Value.Clear();
-			}
 			_collectors.Clear();
 		}
 
