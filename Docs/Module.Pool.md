@@ -32,7 +32,7 @@ public class Test
 		// 回收对象
 		_spawnGo.Restore();
 	}
-	private void OnAssetLoad(GameObject go)
+	private void OnAssetLoad(SpawnGameObject spawn)
 	{
 	}
 }
