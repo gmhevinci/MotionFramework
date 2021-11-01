@@ -38,6 +38,10 @@ namespace MotionFramework.Console
 		/// </summary>
 		private readonly static List<WindowWrapper> _wrappers = new List<WindowWrapper>();
 
+		// FPS相关
+		private static FPSCounter _fpsCounter = null;
+		private static int _lastFrame = 0;
+
 		// GUI相关
 		private static bool _visible = false;
 		private static int _showIndex = 0;
@@ -48,8 +52,13 @@ namespace MotionFramework.Console
 		/// 初始化控制台
 		/// </summary>
 		/// <param name="assemblyName">扩展的控制台窗口所在的程序集</param>
-		public static void Initialize(string assemblyName = AssemblyUtility.UnityDefaultAssemblyName)
+		public static void Initialize(bool showFPS = true, string assemblyName = AssemblyUtility.UnityDefaultAssemblyName)
 		{
+			if (showFPS)
+			{
+				_fpsCounter = new FPSCounter();
+			}
+
 			// 加载背景纹理
 			string textureName = "console_background";
 			_bgTexture = Resources.Load<Texture>(textureName);
@@ -97,6 +106,15 @@ namespace MotionFramework.Console
 		/// </summary>
 		public static void Draw()
 		{
+			if (_fpsCounter != null)
+			{
+				if (_lastFrame != Time.frameCount)
+				{
+					_lastFrame = Time.frameCount;
+					_fpsCounter.Update();
+				}
+			}
+
 			// 注意：GUI接口只能在OnGUI内部使用
 			ConsoleGUI.InitGlobalStyle();
 
@@ -105,9 +123,20 @@ namespace MotionFramework.Console
 
 			if (_visible == false)
 			{
+				float wdith = ConsoleGUI.XStyle.fixedWidth;
+				float height = ConsoleGUI.XStyle.fixedHeight;
+
 				// 显示按钮
-				if (GUI.Button(new Rect(posX + 10, posY + 10, ConsoleGUI.XStyle.fixedWidth, ConsoleGUI.XStyle.fixedHeight), "X", ConsoleGUI.XStyle))
+				if (GUI.Button(new Rect(posX + 10, posY + 10, wdith, height), "X", ConsoleGUI.XStyle))
 					_visible = true;
+
+				// FPS
+				if (_fpsCounter != null)
+				{
+					int fps = _fpsCounter.GetFPS();
+					string text = $"<size={ConsoleGUI.RichLabelFontSize * 2}><color=red>{fps}</color></size>";
+					GUI.Label(new Rect(posX + wdith * 1.5f, posY + 5, wdith * 2, height * 2), text, ConsoleGUI.RichLabelStyle);
+				}
 			}
 			else
 			{
