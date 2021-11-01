@@ -16,18 +16,44 @@ namespace MotionFramework.Event
 	/// </summary>
 	public sealed class EventManager : ModuleSingleton<EventManager>, IModule
 	{
-		private readonly Dictionary<int, List<Action<IEventMessage>>> _listeners = new Dictionary<int, List<Action<IEventMessage>>>();
+		private class PostWrapper : IReference
+		{
+			public int PostFrame;
+			public int EventID;
+			public IEventMessage Message;
+
+			public void OnRelease()
+			{
+				PostFrame = 0;
+				EventID = 0;
+				Message = null;
+			}
+		}
+
+		private readonly Dictionary<int, List<Action<IEventMessage>>> _listeners = new Dictionary<int, List<Action<IEventMessage>>>(1000);
+		private readonly List<PostWrapper> _postWrappers = new List<PostWrapper>(1000);
 
 		void IModule.OnCreate(System.Object param)
 		{
 		}
 		void IModule.OnUpdate()
 		{
+			for (int i = _postWrappers.Count - 1; i >= 0; i--)
+			{
+				var wrapper = _postWrappers[i];
+				if (UnityEngine.Time.frameCount > wrapper.PostFrame)
+				{
+					SendMessage(wrapper.EventID, wrapper.Message);
+					_postWrappers.RemoveAt(i);
+					ReferencePool.Release(wrapper);
+				}
+			}
 		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(EventManager)}] Listener total count : {GetAllListenerCount()}");
 		}
+
 
 		/// <summary>
 		/// 添加监听
@@ -56,6 +82,7 @@ namespace MotionFramework.Event
 			if (_listeners[eventId].Contains(listener) == false)
 				_listeners[eventId].Add(listener);
 		}
+
 
 		/// <summary>
 		/// 移除监听
@@ -86,8 +113,9 @@ namespace MotionFramework.Event
 			}
 		}
 
+
 		/// <summary>
-		/// 广播事件
+		/// 实时广播事件
 		/// </summary>
 		public void SendMessage(IEventMessage message)
 		{
@@ -96,7 +124,7 @@ namespace MotionFramework.Event
 		}
 
 		/// <summary>
-		/// 广播事件
+		/// 实时广播事件
 		/// </summary>
 		public void SendMessage(int eventId, IEventMessage message)
 		{
@@ -114,6 +142,28 @@ namespace MotionFramework.Event
 			if (refClass != null)
 				ReferencePool.Release(refClass);
 		}
+
+		/// <summary>
+		/// 延迟广播事件
+		/// </summary>
+		public void PostMessage(IEventMessage message)
+		{
+			int eventId = message.GetType().GetHashCode();
+			PostMessage(eventId, message);
+		}
+
+		/// <summary>
+		/// 延迟广播事件
+		/// </summary>
+		public void PostMessage(int eventId, IEventMessage message)
+		{
+			var wrapper = ReferencePool.Spawn<PostWrapper>();
+			wrapper.PostFrame = UnityEngine.Time.frameCount;
+			wrapper.EventID = eventId;
+			wrapper.Message = message;
+			_postWrappers.Add(wrapper);
+		}
+
 
 		/// <summary>
 		/// 清空所有监听
