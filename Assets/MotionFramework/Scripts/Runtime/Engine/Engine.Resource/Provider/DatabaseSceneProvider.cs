@@ -78,7 +78,14 @@ namespace MotionFramework.Resource
 
 			// 卸载附加场景（异步方式卸载）
 			if (_param.LoadMode == LoadSceneMode.Additive)
-				SceneManager.UnloadSceneAsync(AssetName);
+			{
+				var instance = AssetInstance as SceneInstance;
+				if(instance != null && instance.Scene != null)
+				{
+					if (instance.Scene.IsValid() && instance.Scene.isLoaded)
+						SceneManager.UnloadSceneAsync(instance.Scene);
+				}
+			}
 #endif
 		}
 		public override void WaitForAsyncComplete()
