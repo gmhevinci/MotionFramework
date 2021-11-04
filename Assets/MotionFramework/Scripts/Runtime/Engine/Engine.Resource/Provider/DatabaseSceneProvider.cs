@@ -63,7 +63,7 @@ namespace MotionFramework.Resource
 				if (_asyncOp.isDone || (_param.ActivateOnLoad == false && _asyncOp.progress == 0.9f))
 				{
 					SceneInstance instance = new SceneInstance(_asyncOp);
-					instance.Scene = SceneManager.GetSceneByName(AssetName);
+					instance.Scene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
 					AssetInstance = instance;
 					States = EAssetStates.Success;
 					InvokeCompletion();
