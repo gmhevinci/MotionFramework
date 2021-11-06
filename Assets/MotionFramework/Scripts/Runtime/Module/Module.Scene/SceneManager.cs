@@ -36,9 +36,8 @@ namespace MotionFramework.Scene
 		/// 切换主场景，之前的主场景以及附加场景将会被卸载
 		/// </summary>
 		/// <param name="location">场景资源地址</param>
-		/// <param name="activeOnLoad">加载完成时是否激活场景</param>
 		/// <param name="callback">场景加载完毕的回调</param>
-		public void ChangeMainScene(string location, bool activeOnLoad, System.Action<SceneInstance> callback)
+		public void ChangeMainScene(string location, System.Action<SceneInstance> callback)
 		{
 			if (_mainScene != null && _mainScene.IsDone == false)
 				MotionLog.Warning($"The current main scene {_mainScene.Location} is not loading done.");
@@ -51,7 +50,7 @@ namespace MotionFramework.Scene
 			}
 
 			_mainScene = new AssetScene(location);
-			_mainScene.Load(false, activeOnLoad, callback);
+			_mainScene.Load(false, true, callback);
 		}
 
 		/// <summary>
