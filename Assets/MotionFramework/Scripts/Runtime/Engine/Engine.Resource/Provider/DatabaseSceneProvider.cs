@@ -46,7 +46,7 @@ namespace MotionFramework.Resource
 				_asyncOp = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(AssetPath, loadSceneParameters);
 				if (_asyncOp != null)
 				{
-					_asyncOp.allowSceneActivation = _param.ActivateOnLoad;
+					_asyncOp.allowSceneActivation = true;
 					States = EAssetStates.Checking;
 				}
 				else
@@ -60,11 +60,14 @@ namespace MotionFramework.Resource
 			// 2. 检测加载结果
 			if (States == EAssetStates.Checking)
 			{
-				if (_asyncOp.isDone || (_param.ActivateOnLoad == false && _asyncOp.progress == 0.9f))
+				if (_asyncOp.isDone)
 				{
 					SceneInstance instance = new SceneInstance(_asyncOp);
 					instance.Scene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
 					AssetInstance = instance;
+					if(_param.ActivateOnLoad)
+						instance.Activate();
+
 					States = EAssetStates.Success;
 					InvokeCompletion();
 				}

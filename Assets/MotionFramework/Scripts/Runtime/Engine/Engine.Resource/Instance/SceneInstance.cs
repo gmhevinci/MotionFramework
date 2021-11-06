@@ -27,11 +27,21 @@ namespace MotionFramework.Resource
 
 		/// <summary>
 		/// 激活场景
-		/// 注意：如果传入的参数SceneInstanceParam.ActivateOnLoad=false，需要手动激活场景
 		/// </summary>
-		public void Activate()
+		public bool Activate()
 		{
-			_asyncOp.allowSceneActivation = true;
+			if (Scene == null)
+				return false;
+
+			if (Scene.IsValid() && Scene.isLoaded)
+			{
+				return SceneManager.SetActiveScene(Scene);
+			}
+			else
+			{
+				MotionLog.Warning($"Scene is invalid or not loaded : {Scene.name}");
+				return false;
+			}
 		}
 	}
 
@@ -49,7 +59,7 @@ namespace MotionFramework.Resource
 		/// 物理模式
 		/// </summary>
 		//public LocalPhysicsMode PhysicsMode { set; get;}
-		
+
 		/// <summary>
 		/// 加载完毕时是否主动激活
 		/// </summary>

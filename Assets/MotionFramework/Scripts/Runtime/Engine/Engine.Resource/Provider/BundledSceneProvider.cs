@@ -64,7 +64,7 @@ namespace MotionFramework.Resource
 				_asyncOp = SceneManager.LoadSceneAsync(AssetName, _param.LoadMode);		
 				if (_asyncOp != null)
 				{
-					_asyncOp.allowSceneActivation = _param.ActivateOnLoad;
+					_asyncOp.allowSceneActivation = true;
 					States = EAssetStates.Checking;
 				}
 				else
@@ -78,11 +78,14 @@ namespace MotionFramework.Resource
 			// 3. 检测加载结果
 			if (States == EAssetStates.Checking)
 			{
-				if (_asyncOp.isDone || (_param.ActivateOnLoad == false && _asyncOp.progress == 0.9f))
+				if (_asyncOp.isDone)
 				{
 					SceneInstance instance = new SceneInstance(_asyncOp);
 					instance.Scene = SceneManager.GetSceneByName(AssetName);
 					AssetInstance = instance;
+					if (_param.ActivateOnLoad)
+						instance.Activate();
+
 					States = EAssetStates.Success;
 					InvokeCompletion();
 				}
@@ -94,7 +97,14 @@ namespace MotionFramework.Resource
 
 			// 卸载附加场景（异步方式卸载）
 			if (_param.LoadMode == LoadSceneMode.Additive)
-				SceneManager.UnloadSceneAsync(AssetName);
+			{
+				var instance = AssetInstance as SceneInstance;
+				if (instance != null && instance.Scene != null)
+				{
+					if (instance.Scene.IsValid() && instance.Scene.isLoaded)
+						SceneManager.UnloadSceneAsync(instance.Scene);
+				}
+			}
 		}
 		public override void WaitForAsyncComplete()
 		{
