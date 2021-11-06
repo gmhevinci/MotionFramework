@@ -32,6 +32,12 @@ namespace MotionFramework.Scene
 			ConsoleGUI.Lable($"[{nameof(SceneManager)}] Addition scene count : {_additionScenes.Count}");
 		}
 
+		[System.Obsolete("The param activeOnLoad is not work. User other method instead")]
+		public void ChangeMainScene(string location, bool activeOnLoad, System.Action<SceneInstance> callback)
+		{
+			ChangeMainScene(location, callback);
+		}
+
 		/// <summary>
 		/// 切换主场景，之前的主场景以及附加场景将会被卸载
 		/// </summary>
@@ -57,7 +63,7 @@ namespace MotionFramework.Scene
 		/// 在当前主场景上加载附加场景
 		/// </summary>
 		/// <param name="location">场景资源地址</param>
-		/// <param name="activeOnLoad">加载完成时是否激活场景</param>
+		/// <param name="activeOnLoad">加载完成时是否激活附加场景</param>
 		/// <param name="callback">场景加载完毕的回调</param>
 		public void LoadAdditionScene(string location, bool activeOnLoad, System.Action<SceneInstance> callback)
 		{
@@ -76,7 +82,6 @@ namespace MotionFramework.Scene
 		/// <summary>
 		/// 卸载当前主场景的附加场景
 		/// </summary>
-		/// <param name="location"></param>
 		public void UnLoadAdditionScene(string location)
 		{
 			for (int i = _additionScenes.Count - 1; i >= 0; i--)
