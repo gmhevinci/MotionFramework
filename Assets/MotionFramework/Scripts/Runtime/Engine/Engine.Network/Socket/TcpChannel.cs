@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -8,7 +8,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using MotionFramework.IO;
 
 namespace MotionFramework.Network
@@ -18,9 +17,9 @@ namespace MotionFramework.Network
 		private readonly SocketAsyncEventArgs _receiveArgs = new SocketAsyncEventArgs();
 		private readonly SocketAsyncEventArgs _sendArgs = new SocketAsyncEventArgs();
 
-		private readonly Queue<System.Object> _sendQueue = new Queue<System.Object>(10000);
-		private readonly Queue<System.Object> _receiveQueue = new Queue<System.Object>(10000);
-		private readonly List<System.Object> _decodeTempList = new List<object>(100);
+		private readonly Queue<INetworkPackage> _sendQueue = new Queue<INetworkPackage>(10000);
+		private readonly Queue<INetworkPackage> _receiveQueue = new Queue<INetworkPackage>(10000);
+		private readonly List<INetworkPackage> _decodeTempList = new List<INetworkPackage>(100);
 
 		private int _packageMaxSize;
 		private byte[] _receiveBuffer;
@@ -168,8 +167,8 @@ namespace MotionFramework.Network
 						break;
 
 					// 数据压码
-					System.Object packet = _sendQueue.Dequeue();
-					_packageCoder.Encode(_sendBuffer, packet);
+					INetworkPackage package = _sendQueue.Dequeue();
+					_packageCoder.Encode(_sendBuffer, package);
 				}
 
 				// 请求操作
@@ -185,20 +184,20 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 发送网络包
 		/// </summary>
-		public void SendPackage(System.Object packet)
+		public void SendPackage(INetworkPackage package)
 		{
 			lock (_sendQueue)
 			{
-				_sendQueue.Enqueue(packet);
+				_sendQueue.Enqueue(package);
 			}
 		}
 
 		/// <summary>
 		/// 获取网络包
 		/// </summary>
-		public System.Object PickPackage()
+		public INetworkPackage PickPackage()
 		{
-			System.Object package = null;
+			INetworkPackage package = null;
 			lock (_receiveQueue)
 			{
 				if (_receiveQueue.Count > 0)

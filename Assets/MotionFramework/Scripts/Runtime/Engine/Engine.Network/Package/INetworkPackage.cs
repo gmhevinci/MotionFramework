@@ -1,7 +1,12 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 
-// 蓝图计划项目
+namespace MotionFramework.Network
+{
+	public interface INetworkPackage
+	{
+	}
+}

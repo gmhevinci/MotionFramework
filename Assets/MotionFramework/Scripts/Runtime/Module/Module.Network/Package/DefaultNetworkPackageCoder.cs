@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -74,39 +74,24 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 编码
 		/// </summary>
-		public override void Encode(ByteBuffer sendBuffer, System.Object packageObj)
+		public override void Encode(ByteBuffer sendBuffer, INetworkPackage sendPackage)
 		{
-			DefaultNetworkPackage package = (DefaultNetworkPackage)packageObj;
+			DefaultNetworkPackage package = (DefaultNetworkPackage)sendPackage;
 			if (package == null)
 			{
-				HandleError(false, $"The package object is invalid : {packageObj.GetType()}");
+				HandleError(false, $"The package object is invalid : {sendPackage.GetType()}");
 				return;
 			}
 
 			// 检测逻辑是否合法
-			if (package.IsHotPackage)
+			if (package.BodyBytes == null)
 			{
-				if (package.BodyBytes == null)
-				{
-					HandleError(false, $"The package BodyBytes field is null : {packageObj.GetType()}");
-					return;
-				}
+				HandleError(false, $"The package BodyBytes field is null : {sendPackage.GetType()}");
+				return;
 			}
-			else
-			{
-				if (package.MsgObj == null)
-				{
-					HandleError(false, $"The package MsgObj field is null : {packageObj.GetType()}");
-					return;
-				}
-			}
-
+			
 			// 获取包体数据
-			byte[] bodyData;
-			if (package.IsHotPackage)
-				bodyData = package.BodyBytes;
-			else
-				bodyData = EncodeInternal(package.MsgObj);
+			byte[] bodyData = package.BodyBytes;
 
 			// 检测包体长度
 			if (bodyData.Length > PackageBodyMaxSize)
@@ -158,7 +143,7 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 解码
 		/// </summary>
-		public override void Decode(ByteBuffer receiveBuffer, List<System.Object> outputResult)
+		public override void Decode(ByteBuffer receiveBuffer, List<INetworkPackage> receivePackages)
 		{
 			// 循环解包
 			while (true)
@@ -202,27 +187,11 @@ namespace MotionFramework.Network
 					break;
 				}
 
-				// 正常解包
+				// 读取包体
 				try
 				{
-					// 读取包体
-					byte[] bodyData = receiveBuffer.ReadBytes(bodySize);
-
-					Type classType = NetworkMessageRegister.TryGetMessageType(package.MsgID);
-					if (classType != null)
-					{
-						// 非热更协议
-						package.MsgObj = DecodeInternal(classType, bodyData);
-						if (package.MsgObj != null)
-							outputResult.Add(package);
-					}
-					else
-					{
-						// 热更协议
-						package.IsHotPackage = true;
-						package.BodyBytes = bodyData;
-						outputResult.Add(package);
-					}
+					package.BodyBytes = receiveBuffer.ReadBytes(bodySize);
+					receivePackages.Add(package);
 				}
 				catch (Exception ex)
 				{
@@ -234,20 +203,5 @@ namespace MotionFramework.Network
 			// 注意：将剩余数据移至起始
 			receiveBuffer.DiscardReadBytes();
 		}
-
-		/// <summary>
-		/// 消息内部编码
-		/// </summary>
-		/// <param name="msgObj">消息对象</param>
-		/// <returns>返回序列化后的包体数据</returns>
-		protected abstract byte[] EncodeInternal(System.Object msgObj);
-
-		/// <summary>
-		/// 消息内部解码
-		/// </summary>
-		/// <param name="classType">消息类的类型</param>
-		/// <param name="bodyBytes">包体数据</param>
-		/// <returns>返回反序列化后的消息对象</returns>
-		protected abstract System.Object DecodeInternal(System.Type classType, byte[] bodyBytes);
 	}
 }

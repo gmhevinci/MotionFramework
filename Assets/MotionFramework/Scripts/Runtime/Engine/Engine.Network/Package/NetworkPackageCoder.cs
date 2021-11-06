@@ -39,15 +39,15 @@ namespace MotionFramework.Network
 		/// 编码
 		/// </summary>
 		/// <param name="sendBuffer">编码填充的字节缓冲区</param>
-		/// <param name="packageObj">需要编码的包裹对象</param>
-		public abstract void Encode(ByteBuffer sendBuffer, System.Object packageObj);
+		/// <param name="sendPackage">发送的包裹</param>
+		public abstract void Encode(ByteBuffer sendBuffer, INetworkPackage sendPackage);
 
 		/// <summary>
 		/// 解码
 		/// </summary>
 		/// <param name="receiveBuffer">解码需要的字节缓冲区</param>
-		/// <param name="outputResult">解码成功后的包裹对象列表</param>
-		public abstract void Decode(ByteBuffer receiveBuffer, List<System.Object> outputResult);
+		/// <param name="receivePackages">接收的包裹列表</param>
+		public abstract void Decode(ByteBuffer receiveBuffer, List<INetworkPackage> receivePackages);
 
 		/// <summary>
 		/// 捕捉错误异常

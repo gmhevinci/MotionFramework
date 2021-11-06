@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -8,7 +8,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace MotionFramework.Network
 {
@@ -63,16 +62,16 @@ namespace MotionFramework.Network
 		/// <summary>
 		/// 发送网络包
 		/// </summary>
-		public void SendPackage(System.Object packet)
+		public void SendPackage(INetworkPackage package)
 		{
 			if (_channel != null)
-				_channel.SendPackage(packet);
+				_channel.SendPackage(package);
 		}
 
 		/// <summary>
 		/// 获取网络包
 		/// </summary>
-		public System.Object PickPackage()
+		public INetworkPackage PickPackage()
 		{
 			if (_channel == null)
 				return null;

@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 
@@ -8,17 +8,10 @@ namespace MotionFramework.Network
 {
 	public class DefaultNetworkPackage : INetworkPackage
 	{
-		public bool IsHotPackage { set; get; }
-
 		/// <summary>
 		/// 消息ID
 		/// </summary>
 		public int MsgID { set; get; }
-
-		/// <summary>
-		/// 消息对象
-		/// </summary>
-		public System.Object MsgObj { set; get; }
 
 		/// <summary>
 		/// 包体数据

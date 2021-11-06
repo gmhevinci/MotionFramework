@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -46,14 +46,9 @@ namespace MotionFramework.Network
 		public ENetworkStates States { private set; get; } = ENetworkStates.Disconnect;
 
 		/// <summary>
-		/// Mono层网络消息接收回调
+		/// 网络包裹接收回调
 		/// </summary>
-		public Action<INetworkPackage> MonoPackageCallback;
-
-		/// <summary>
-		/// 热更层网络消息接收回调
-		/// </summary>
-		public Action<INetworkPackage> HotPackageCallback;
+		public Action<INetworkPackage> NetworkPackageCallback;
 
 
 		void IModule.OnCreate(System.Object param)
@@ -79,10 +74,8 @@ namespace MotionFramework.Network
 				INetworkPackage package = (INetworkPackage)_client.PickPackage();
 				if (package == null)
 					break;
-				if (package.IsHotPackage)
-					HotPackageCallback.Invoke(package);
-				else
-					MonoPackageCallback.Invoke(package);
+
+				NetworkPackageCallback?.Invoke(package);
 			}
 
 			// 侦测服务器主动断开连接
@@ -175,10 +168,7 @@ namespace MotionFramework.Network
 		{
 			if (package != null)
 			{
-				if (package.IsHotPackage)
-					HotPackageCallback.Invoke(package);
-				else
-					MonoPackageCallback.Invoke(package);
+				NetworkPackageCallback?.Invoke(package);
 			}
 		}
 
