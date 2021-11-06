@@ -83,6 +83,12 @@ namespace MotionFramework.Editor
 				bool isBuildin = IsBuildinBundle(tags, buildinTags);
 				bool isRawFile = bundleInfo.IsRawFile;
 
+				// 附加文件扩展名
+				if (buildParameters.Parameters.AppendFileExtension)
+				{
+					hash += bundleInfo.GetAppendExtension();
+				}
+
 				// 注意：如果文件没有变化使用旧版本号
 				if (oldPatchManifest != null && oldPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle value))
 				{
@@ -117,7 +123,7 @@ namespace MotionFramework.Editor
 		private List<PatchAsset> GetAllPatchAsset(TaskGetBuildMap.BuildMapContext buildMapContext, List<PatchBundle> bundleList)
 		{
 			List<PatchAsset> result = new List<PatchAsset>(1000);
-			foreach(var bundleInfo in buildMapContext.BundleInfos)
+			foreach (var bundleInfo in buildMapContext.BundleInfos)
 			{
 				var assetInfos = bundleInfo.GetCollectAssetInfos();
 				foreach (var assetInfo in assetInfos)
@@ -139,7 +145,7 @@ namespace MotionFramework.Editor
 				if (dependAssetInfo.CheckBundleNameValid() == false)
 					continue;
 				int bundleID = GetAssetBundleID(dependAssetInfo.GetBundleName(), bundleList);
-				if(result.Contains(bundleID) == false)
+				if (result.Contains(bundleID) == false)
 					result.Add(bundleID);
 			}
 			return result.ToArray();

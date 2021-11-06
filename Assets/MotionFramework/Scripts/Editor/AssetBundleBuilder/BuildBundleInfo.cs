@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using MotionFramework.Patch;
 
 namespace MotionFramework.Editor
 {
@@ -40,9 +41,9 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public bool IsRawFile
 		{
-			get 
+			get
 			{
-				foreach(var asset in Assets)
+				foreach (var asset in Assets)
 				{
 					if (asset.IsRawAsset)
 						return true;
@@ -85,6 +86,16 @@ namespace MotionFramework.Editor
 			Assets.Add(assetInfo);
 		}
 
+		/// <summary>
+		/// 获取文件的扩展名
+		/// </summary>
+		public string GetAppendExtension()
+		{
+			if (IsRawFile)
+				return $".{PatchDefine.RawFileVariant}";
+			else
+				return $".{PatchDefine.AssetBundleFileVariant}";
+		}
 
 		/// <summary>
 		/// 获取资源标记列表

@@ -45,6 +45,11 @@ namespace MotionFramework.Editor
 			/// </summary>
 			public bool ApplyRedundancy = false;
 
+			/// <summary>
+			/// 是否附加上文件扩展名
+			/// </summary>
+			public bool AppendFileExtension = false;
+
 
 			/// <summary>
 			/// 压缩选项
