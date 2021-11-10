@@ -33,6 +33,7 @@ namespace MotionFramework.Editor
 		private int _buildVersion;
 		private BuildTarget _buildTarget;
 		private ECompressOption _compressOption = ECompressOption.Uncompressed;
+		private bool _isAppendExtension = false;
 		private bool _isForceRebuild = false;
 		private string _buildinTags = string.Empty;
 
@@ -83,6 +84,7 @@ namespace MotionFramework.Editor
 			// 构建参数
 			_buildVersion = EditorGUILayout.IntField("Build Version", _buildVersion, GUILayout.MaxWidth(250));
 			_compressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", _compressOption, GUILayout.MaxWidth(250));
+			_isAppendExtension = GUILayout.Toggle(_isAppendExtension, "Append Extension", GUILayout.MaxWidth(120));
 			_isForceRebuild = GUILayout.Toggle(_isForceRebuild, "Force Rebuild", GUILayout.MaxWidth(120));
 			if(_isForceRebuild)
 				_buildinTags = EditorGUILayout.TextField("Buildin Tags", _buildinTags);
@@ -155,6 +157,7 @@ namespace MotionFramework.Editor
 			buildParameters.BuildTarget = _buildTarget;
 			buildParameters.BuildVersion = _buildVersion;
 			buildParameters.CompressOption = _compressOption;
+			buildParameters.AppendFileExtension = _isAppendExtension;
 			buildParameters.IsForceRebuild = _isForceRebuild;
 			buildParameters.BuildinTags = _buildinTags;
 			_assetBuilder.Run(buildParameters);
@@ -162,6 +165,7 @@ namespace MotionFramework.Editor
 
 		#region 配置相关
 		private const string StrEditorCompressOption = "StrEditorCompressOption";
+		private const string StrEditorIsAppendExtension = "StrEditorIsAppendExtension";
 		private const string StrEditorIsForceRebuild = "StrEditorIsForceRebuild";
 		private const string StrEditorBuildinTags = "StrEditorBuildinTags";
 
@@ -171,6 +175,7 @@ namespace MotionFramework.Editor
 		private void SaveSettingsToPlayerPrefs()
 		{
 			EditorTools.PlayerSetEnum<ECompressOption>(StrEditorCompressOption, _compressOption);
+			EditorPrefs.SetBool(StrEditorIsAppendExtension, _isAppendExtension);
 			EditorPrefs.SetBool(StrEditorIsForceRebuild, _isForceRebuild);
 			EditorPrefs.SetString(StrEditorBuildinTags, _buildinTags);
 		}
@@ -181,6 +186,7 @@ namespace MotionFramework.Editor
 		private void LoadSettingsFromPlayerPrefs()
 		{
 			_compressOption = EditorTools.PlayerGetEnum<ECompressOption>(StrEditorCompressOption, ECompressOption.Uncompressed);
+			_isAppendExtension = EditorPrefs.GetBool(StrEditorIsAppendExtension, false);
 			_isForceRebuild = EditorPrefs.GetBool(StrEditorIsForceRebuild, false);
 			_buildinTags = EditorPrefs.GetString(StrEditorBuildinTags, string.Empty);
 		}
