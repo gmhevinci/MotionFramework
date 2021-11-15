@@ -3,7 +3,6 @@
 // Copyright©2018-2020 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
-using System.Diagnostics;
 
 namespace MotionFramework
 {
@@ -22,7 +21,6 @@ namespace MotionFramework
 		/// <summary>
 		/// 日志
 		/// </summary>
-		[Conditional("DEBUG")]
 		public static void Log(string info)
 		{
 			_callback?.Invoke(ELogLevel.Log, $"[MotionLog] {info}");
