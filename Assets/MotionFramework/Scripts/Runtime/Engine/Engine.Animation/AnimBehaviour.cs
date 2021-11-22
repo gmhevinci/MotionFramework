@@ -90,7 +90,10 @@ public class AnimBehaviour : MonoBehaviour
 		if (PlayAutomatically)
 		{
 			var wrapper = GetDefaultWrapper();
-			Play(wrapper.Clip.name);
+			if (wrapper != null)
+			{
+				Play(wrapper.Clip.name);
+			}
 		}
 	}
 	public void OnDisable()
