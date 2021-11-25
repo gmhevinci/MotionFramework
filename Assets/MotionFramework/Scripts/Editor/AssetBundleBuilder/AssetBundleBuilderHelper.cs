@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
-using MotionFramework.Patch;
+using MotionFramework.Resource;
 using MotionFramework.Utility;
 
 namespace MotionFramework.Editor

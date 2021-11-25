@@ -5,6 +5,7 @@
 //--------------------------------------------------
 using System;
 using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Console;
@@ -23,30 +24,30 @@ namespace MotionFramework.Resource
 		public class CreateParameters
 		{
 			/// <summary>
+			/// 在编辑器下模拟运行
+			/// </summary>
+			public bool SimulationOnEditor;
+
+			/// <summary>
 			/// 资源定位的根路径
 			/// 例如：Assets/MyResource
 			/// </summary>
 			public string LocationRoot;
 
 			/// <summary>
-			/// 在编辑器下模拟运行
+			/// 资源加载的最大数量
 			/// </summary>
-			public bool SimulationOnEditor;
+			public int AssetLoadingMaxNumber;
 
 			/// <summary>
-			/// 运行时的最大加载个数
-			/// </summary>
-			public int RuntimeMaxLoadingCount = int.MaxValue;
-
-			/// <summary>
-			/// AssetBundle服务接口
-			/// </summary>
-			public IBundleServices BundleServices;
-
-			/// <summary>
-			/// 文件解密服务器接口
+			/// 文件解密接口
 			/// </summary>
 			public IDecryptServices DecryptServices;
+
+			/// <summary>
+			/// 资源包接口
+			/// </summary>
+			public IBundleServices BundleServices;
 
 			/// <summary>
 			/// 资源系统自动释放零引用资源的间隔秒数
@@ -55,8 +56,8 @@ namespace MotionFramework.Resource
 			public float AutoReleaseInterval;
 		}
 
-		private string _bundleServicesName;
 		private Timer _releaseTimer;
+
 
 		void IModule.OnCreate(System.Object param)
 		{
@@ -64,21 +65,19 @@ namespace MotionFramework.Resource
 			if (createParam == null)
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
 
-			if (createParam.SimulationOnEditor == false)
+			if (createParam.AssetLoadingMaxNumber < 3)
 			{
-				if (createParam.BundleServices == null)
-					throw new Exception($"{nameof(IBundleServices)} can not be null.");
+				createParam.AssetLoadingMaxNumber = 3;
+				MotionLog.Warning($"{nameof(createParam.AssetLoadingMaxNumber)} minimum is 3");
 			}
-
-			// 初始化资源系统
-			AssetSystem.Initialize(createParam.LocationRoot, createParam.SimulationOnEditor, createParam.RuntimeMaxLoadingCount,
-				createParam.BundleServices, createParam.DecryptServices);
 
 			// 创建间隔计时器
 			if (createParam.AutoReleaseInterval > 0)
 				_releaseTimer = Timer.CreatePepeatTimer(0, createParam.AutoReleaseInterval);
 
-			_bundleServicesName = createParam.BundleServices.GetType().Name;
+			// 初始化资源系统
+			AssetSystem.Initialize(createParam.SimulationOnEditor, createParam.LocationRoot,
+				createParam.AssetLoadingMaxNumber, createParam.DecryptServices, createParam.BundleServices);
 		}
 		void IModule.OnUpdate()
 		{
@@ -93,22 +92,16 @@ namespace MotionFramework.Resource
 		}
 		void IModule.OnGUI()
 		{
-			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Virtual simulation : {AssetSystem.SimulationOnEditor}");
-			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] IBundleServices : {_bundleServicesName}");
 			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Bundle count : {AssetSystem.GetLoaderCount()}");
 			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Asset loader count : {AssetSystem.GetProviderCount()}");
 		}
 
 		/// <summary>
-		/// 资源回收
-		/// 卸载引用计数为零的资源
+		/// 资源回收（卸载引用计数为零的资源）
 		/// </summary>
 		public void UnloadUnusedAssets()
 		{
-			// 轮询更新资源系统
 			AssetSystem.UpdatePoll();
-
-			// 主动释放零引用资源
 			AssetSystem.UnloadUnusedAssets();
 		}
 
@@ -137,7 +130,7 @@ namespace MotionFramework.Resource
 			handle.Release();
 		}
 
-
+		#region 资源加载接口
 		/// <summary>
 		/// 同步加载资源对象
 		/// </summary>
@@ -201,7 +194,6 @@ namespace MotionFramework.Resource
 			return LoadSubAssetsInternal(location, type, false);
 		}
 
-
 		private AssetOperationHandle LoadAssetInternal(string location, System.Type assetType, bool waitForAsyncComplete)
 		{
 			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
@@ -218,5 +210,6 @@ namespace MotionFramework.Resource
 				handle.WaitForAsyncComplete();
 			return handle;
 		}
+		#endregion
 	}
 }
