@@ -35,11 +35,6 @@ namespace MotionFramework.Resource
 			public string LocationRoot;
 
 			/// <summary>
-			/// 资源加载的最大数量
-			/// </summary>
-			public int AssetLoadingMaxNumber;
-
-			/// <summary>
 			/// 文件解密接口
 			/// </summary>
 			public IDecryptServices DecryptServices;
@@ -53,7 +48,12 @@ namespace MotionFramework.Resource
 			/// 资源系统自动释放零引用资源的间隔秒数
 			/// 注意：如果小于等于零代表不自动释放，可以使用ResourceManager.UnloadUnusedAssets接口主动释放
 			/// </summary>
-			public float AutoReleaseInterval;
+			public float AutoReleaseInterval = -1;
+
+			/// <summary>
+			/// 资源加载的最大数量
+			/// </summary>
+			public int AssetLoadingMaxNumber = int.MaxValue;
 		}
 
 		private Timer _releaseTimer;
@@ -64,6 +64,9 @@ namespace MotionFramework.Resource
 			CreateParameters createParam = param as CreateParameters;
 			if (createParam == null)
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
+
+			if (createParam.BundleServices == null)
+				throw new Exception($"{nameof(IBundleServices)} is null.");
 
 			if (createParam.AssetLoadingMaxNumber < 3)
 			{
