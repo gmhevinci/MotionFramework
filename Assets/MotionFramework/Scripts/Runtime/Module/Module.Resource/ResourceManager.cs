@@ -65,7 +65,7 @@ namespace MotionFramework.Resource
 			if (createParam == null)
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
 
-			if (createParam.BundleServices == null)
+			if (createParam.SimulationOnEditor == false && createParam.BundleServices == null)
 				throw new Exception($"{nameof(IBundleServices)} is null.");
 
 			if (createParam.AssetLoadingMaxNumber < 3)
