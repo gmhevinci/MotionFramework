@@ -2,7 +2,6 @@
 
 创建资源管理器
 ```C#
-//需要热更资源（网络游戏为主）
 public IEnumerator Start()
 {
 	// 创建补丁管理器
