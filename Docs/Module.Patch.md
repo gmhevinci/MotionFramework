@@ -1,99 +1,137 @@
 ### 补丁管理器 (PatchManager)
 
 创建补丁管理器  
+
+##### 离线运行模式（适合单机游戏）
+
 ```C#
-private class WebPost
+public IEnumerator Initialize()
 {
-	public string AppVersion; //应用程序内置版本
-	public int ServerID; //最近登录的服务器ID
-	public int ChannelID; //渠道ID
-	public string DeviceUID; //设备唯一ID
-	public int TestFlag; //测试标记
-}
+	// 创建补丁管理器
+    var createParam = new PatchManager.OfflinePlayModeParameters();
+    createParam.SimulationOnEditor = SimulationOnEditor;
+    MotionEngine.CreateModule<PatchManager>(createParam);
 
-private class WebResponse
-{
-#pragma warning disable 0649
-	public string GameVersion; //当前游戏版本号
-	public int ResourceVersion; //当前资源版本
-	public bool FoundNewApp; //是否发现了新的安装包
-	public bool ForceInstall; //是否需要强制用户安装
-	public string AppURL; //App安装的地址
-#pragma warning restore 0649
-}
-
-private class MyGameVersionParser : IGameVersionParser
-{
-	public Version GameVersion { private set; get; }
-	public int ResourceVersion { private set; get; }
-	public bool FoundNewApp { private set; get; }
-	public bool ForceInstall { private set; get; }
-	public string AppURL { private set; get; }
-
-	bool IGameVersionParser.ParseContent(string content)
-	{
-		try
-		{
-			WebResponse response = JsonUtility.FromJson<WebResponse>(content);
-			GameVersion = new Version(response.GameVersion);
-			ResourceVersion = response.ResourceVersion;
-			FoundNewApp = response.FoundNewApp;
-			ForceInstall = response.ForceInstall;
-			AppURL = response.AppURL;
-			return true;
-		}
-		catch(Exception)
-		{
-			Debug.LogError($"Parse web response failed : {content}");
-			return false;
-		}
-	}
-}
-
-public IEnumerator Start()
-{
-	// 远程服务器信息
-	// 默认配置：在没有配置的平台上会走默认的地址。
-	string webServerIP = "http://127.0.0.1";
-	string cdnServerIP = "http://127.0.0.1";
-	string defaultWebServer = $"{webServerIP}/WEB/PC/GameVersion.php";
-	string defaultCDNServer = $"{cdnServerIP}/CDN/PC";
-	RemoteServerInfo serverInfo = new RemoteServerInfo(null, defaultWebServer, defaultCDNServer, defaultCDNServer);
-	serverInfo.AddServerInfo(RuntimePlatform.Android, $"{webServerIP}/WEB/Android/GameVersion.php", $"{cdnServerIP}/CDN/Android", $"{cdnServerIP}/CDN/Android");
-	serverInfo.AddServerInfo(RuntimePlatform.IPhonePlayer, $"{webServerIP}/WEB/Iphone/GameVersion.php", $"{cdnServerIP}/CDN/Iphone", $"{cdnServerIP}/CDN/Iphone");
-
-	// 向WEB服务器投递的数据
-	WebPost post = new WebPost
-	{
-		AppVersion = Application.version, //应用程序版本
-		ServerID = PlayerPrefs.GetInt("SERVER_ID_KEY", 0), //最近登录的服务器ID
-		ChannelID = 0, //渠道ID
-		DeviceUID = string.Empty, //设备唯一ID
-		TestFlag = PlayerPrefs.GetInt("TEST_FLAG_KEY", 0) //测试包标记
-	};
-
-	// 设置参数
-	var createParam = new PatchManager.CreateParameters();
-	createParam.IgnoreResourceVersion = false;
-	createParam.ClearCacheWhenDirty = false;
-	createParam.GameVersionParser = new MyGameVersionParser();
-	createParam.WebPoseContent = JsonUtility.ToJson(post); 
-	createParam.VerifyLevel = EVerifyLevel.CRC;
-	createParam.ServerInfo = serverInfo;
-	createParam.AutoDownloadDLC = new string[] { "level1" };
-	createParam.AutoDownloadBuildinDLC = true;
-	createParam.MaxNumberOnLoad = 4;
-	
-	// 创建模块
-	var patchManager = MotionEngine.CreateModule<PatchManager>(createParam);
+    // 初始化补丁系统
 	yield return patchManager.InitializeAync();
 	
-	...
-
-	// 开启补丁更新流程
-	PatchManager.Instance.Download();
+	// 开始游戏
+	......
 }
 ```
 
+
+
+##### 网络运行模式（适合有资源更新需求的游戏）
+
+```C#
+public IEnumerator Initialize()
+{
+	// 创建补丁管理器
+    var createParam = new PatchManager.HostPlayModeParameters();
+    createParam.SimulationOnEditor = SimulationOnEditor;
+    createParam.ClearCacheWhenDirty = false;
+    createParam.IgnoreResourceVersion = false;
+    createParam.VerifyLevel = EVerifyLevel.CRC;
+    createParam.DefaultHostServer = GetHostServerURL();
+    createParam.FallbackHostServer = GetHostServerURL();
+    MotionEngine.CreateModule<PatchManager>(createParam);
+	
+    // 初始化补丁系统
+	yield return PatchManager.Instance.InitializeAync();
+}
+
+// 1. 获取资源版本
+private int _resourceVersion = 0;
+public IEnumerator UpdateResourceVersion()
+{
+    // 开发者可以通过HTTP向服务器请求最新的资源版本号
+    // 备注：如果忽略了资源版本（IgnoreResourceVersion），那么可以跳过这一步    
+	......
+}
+
+// 2. 更新资源清单文件
+public IEnumerator UpdateManifest()
+{
+    // 更新资源清单文件
+	yield return PatchManager.Instance.UpdateManifestAsync(_resourceVersion, 30);
+
+    // 验证资源清单更新结果
+    var result = PatchManager.Instance.GetUpdateManifestResult();
+    if(result.States == UpdateManifestResult.EStates.Failed)
+    {
+        // 如果更新失败，可以重新尝试下载
+        Debug.Log($"资源清单下载失败:{result.Error}");
+    }
+    else if(result.States == UpdateManifestResult.EStates.Succeed)
+	{
+		Debug.Log("资源清单下载成功");
+	}
+}
+
+// 3. 创建DLC下载器
+private PatchDownloader _downloader;
+public void CreateDownloader()
+{
+    string[] tags = new string[] {"buildin"};
+    int fileLoadingMaxNumber = 10;
+    int failedTryAgain = 3;
+	_downloader = PatchManager.Instance.CreateDLCDownloader(tags, fileLoadingMaxNumber, failedTryAgain);
+    
+    if (_downloader.TotalDownloadCount == 0)
+	{
+		Debug.Log("没有发现更新文件");
+        StartGame();
+	}
+    else
+    {
+        int totalDownloadCount = _downloader.TotalDownloadCount;
+		long totalDownloadBytes = _downloader.TotalDownloadBytes;
+        Debug.Log($"一共有{totalDownloadCount}个文件需要更新，总共文件大小：{totalDownloadBytes}字节");
+    }
+}
+
+// 4. 下载游戏内容(DLC)
+public IEnumerator DownloadFiles()
+{
+    // 注册相关委托
+    _downloader.OnPatchFileCheckFailedCallback = OnWebFileCheckFailed;
+    _downloader.OnPatchFileDownloadFailedCallback = OnWebFileDownloadFailed;
+    _downloader.OnDownloadProgressCallback = OnDownloadProgressUpdate;
+    _downloader.Download();
+    yield return _downloader;
+
+    // 检测下载结果
+    if (_downloader.DownloadStates != EDownloaderStates.Succeed)
+    {
+        // 如果中途下载失败，那么可以返回步骤3重新下载
+        Debug.Log("游戏内容更新失败")
+    }
+    else
+    {
+        Debug.Log("游戏内容更新成功")
+        StartGame();
+    }
+}
+public void UpdateDownloader()
+{
+    // 注意：下载器需要开发者自己维护更新
+    if(_downloader != null)
+        _downloader.Update();
+}
+public void DestroyDownloader()
+{
+    if(_downloader != null)
+    {
+        _downloader.Forbid();
+        _downloader = null;
+    }
+}
+
+```
+
+
+
 更详细的教程请参考示例代码
+
 1. [Module.Patch/PatchManager.cs](https://github.com/gmhevinci/MotionFramework/blob/master/Assets/MotionFramework/Scripts/Runtime/Module/Module.Patch/PatchManager.cs)

@@ -5,37 +5,17 @@
 //需要热更资源（网络游戏为主）
 public IEnumerator Start()
 {
-	// 直接使用通用的补丁管理器
-	IBundleServices bundleServices = MotionEngine.GetMoudle<PatchManager>();
+	// 创建补丁管理器
+	......
 
 	// 设置参数
 	var createParam = new ResourceManager.CreateParameters();
+    createParam.SimulationOnEditor = SimulationOnEditor;
 	createParam.LocationRoot = "Assets/GameRes";
-	createParam.SimulationOnEditor = SimulationOnEditor;
-	createParam.RuntimeMaxLoadingCount = 999;
-	createParam.BundleServices = bundleServices;
+	createParam.BundleServices = PatchManager.Instance.BundleServices;
 	createParam.DecryptServices = null;
-	createParam.AutoReleaseInterval = 10;
-
-	// 创建模块
-	MotionEngine.CreateModule<ResourceManager>(createParam);
-}
-
-//不需要热更资源（单机游戏为主）
-public IEnumerator Start()
-{
-	// 直接使用本地资源服务接口
-	LocalBundleServices localBundleServices = new LocalBundleServices();
-	yield return localBundleServices.InitializeAsync(SimulationOnEditor);
-
-	// 设置参数
-	var createParam = new ResourceManager.CreateParameters();
-	createParam.LocationRoot = "Assets/GameRes";
-	createParam.SimulationOnEditor = SimulationOnEditor;
-	createParam.RuntimeMaxLoadingCount = 999;
-	createParam.BundleServices = localBundleServices;
-	createParam.DecryptServices = null;
-	createParam.AutoReleaseInterval = 10;
+	createParam.AutoReleaseInterval = -1;
+	createParam.AssetLoadingMaxNumber = int.MaxValue;
 
 	// 创建模块
 	MotionEngine.CreateModule<ResourceManager>(createParam);
