@@ -18,18 +18,6 @@ public class ProtoNetworkPackageCoder : DefaultNetworkPackageCoder
 		PackageSizeFieldType = EPackageSizeFieldType.UShort;
 		MessageIDFieldType = EMessageIDFieldType.UShort;
 	}
-
-	// 编码
-	protected override byte[] EncodeInternal(object msgObj)
-	{
-		return ProtobufHelper.Encode(msgObj);
-	}
-
-	// 解码
-	protected override object DecodeInternal(Type classType, byte[] bodyBytes)
-	{
-		return ProtobufHelper.Decode(classType, bodyBytes);
-	}
 }
 ```
 
