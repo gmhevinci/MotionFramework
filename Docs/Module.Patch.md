@@ -7,16 +7,16 @@
 ```C#
 public IEnumerator Initialize()
 {
-	// 创建补丁管理器
+    // 创建补丁管理器
     var createParam = new PatchManager.OfflinePlayModeParameters();
     createParam.SimulationOnEditor = SimulationOnEditor;
     MotionEngine.CreateModule<PatchManager>(createParam);
 
     // 初始化补丁系统
-	yield return patchManager.InitializeAync();
-	
-	// 开始游戏
-	......
+    yield return patchManager.InitializeAync();
+
+    // 开始游戏
+    ......
 }
 ```
 
@@ -27,7 +27,7 @@ public IEnumerator Initialize()
 ```C#
 public IEnumerator Initialize()
 {
-	// 创建补丁管理器
+    // 创建补丁管理器
     var createParam = new PatchManager.HostPlayModeParameters();
     createParam.SimulationOnEditor = SimulationOnEditor;
     createParam.ClearCacheWhenDirty = false;
@@ -36,9 +36,9 @@ public IEnumerator Initialize()
     createParam.DefaultHostServer = GetHostServerURL();
     createParam.FallbackHostServer = GetHostServerURL();
     MotionEngine.CreateModule<PatchManager>(createParam);
-	
+
     // 初始化补丁系统
-	yield return PatchManager.Instance.InitializeAync();
+    yield return PatchManager.Instance.InitializeAync();
 }
 
 // 1. 获取资源版本
@@ -47,14 +47,14 @@ public IEnumerator UpdateResourceVersion()
 {
     // 开发者可以通过HTTP向服务器请求最新的资源版本号
     // 备注：如果忽略了资源版本（IgnoreResourceVersion），那么可以跳过这一步    
-	......
+    ......
 }
 
 // 2. 更新资源清单文件
 public IEnumerator UpdateManifest()
 {
     // 更新资源清单文件
-	yield return PatchManager.Instance.UpdateManifestAsync(_resourceVersion, 30);
+    yield return PatchManager.Instance.UpdateManifestAsync(_resourceVersion, 30);
 
     // 验证资源清单更新结果
     var result = PatchManager.Instance.GetUpdateManifestResult();
@@ -64,9 +64,9 @@ public IEnumerator UpdateManifest()
         Debug.Log($"资源清单下载失败:{result.Error}");
     }
     else if(result.States == UpdateManifestResult.EStates.Succeed)
-	{
-		Debug.Log("资源清单下载成功");
-	}
+    {
+        Debug.Log("资源清单下载成功");
+    }
 }
 
 // 3. 创建DLC下载器
@@ -76,17 +76,17 @@ public void CreateDownloader()
     string[] tags = new string[] {"buildin"};
     int fileLoadingMaxNumber = 10;
     int failedTryAgain = 3;
-	_downloader = PatchManager.Instance.CreateDLCDownloader(tags, fileLoadingMaxNumber, failedTryAgain);
-    
+    _downloader = PatchManager.Instance.CreateDLCDownloader(tags, fileLoadingMaxNumber, failedTryAgain);
+
     if (_downloader.TotalDownloadCount == 0)
-	{
-		Debug.Log("没有发现更新文件");
+    {
+        Debug.Log("没有发现更新文件");
         StartGame();
-	}
+    }
     else
     {
         int totalDownloadCount = _downloader.TotalDownloadCount;
-		long totalDownloadBytes = _downloader.TotalDownloadBytes;
+        long totalDownloadBytes = _downloader.TotalDownloadBytes;
         Debug.Log($"一共有{totalDownloadCount}个文件需要更新，总共文件大小：{totalDownloadBytes}字节");
     }
 }
@@ -127,7 +127,6 @@ public void DestroyDownloader()
         _downloader = null;
     }
 }
-
 ```
 
 

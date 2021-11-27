@@ -4,20 +4,20 @@
 ```C#
 public IEnumerator Start()
 {
-	// 创建补丁管理器
-	......
+    // 创建补丁管理器
+    ......
 
-	// 设置参数
-	var createParam = new ResourceManager.CreateParameters();
+    // 设置参数
+    var createParam = new ResourceManager.CreateParameters();
     createParam.SimulationOnEditor = SimulationOnEditor;
-	createParam.LocationRoot = "Assets/GameRes";
-	createParam.BundleServices = PatchManager.Instance.BundleServices;
-	createParam.DecryptServices = null;
-	createParam.AutoReleaseInterval = -1;
-	createParam.AssetLoadingMaxNumber = int.MaxValue;
+    createParam.LocationRoot = "Assets/GameRes";
+    createParam.BundleServices = PatchManager.Instance.BundleServices;
+    createParam.DecryptServices = null;
+    createParam.AutoReleaseInterval = -1;
+    createParam.AssetLoadingMaxNumber = int.MaxValue;
 
-	// 创建模块
-	MotionEngine.CreateModule<ResourceManager>(createParam);
+    // 创建模块
+    MotionEngine.CreateModule<ResourceManager>(createParam);
 }
 ```
 
