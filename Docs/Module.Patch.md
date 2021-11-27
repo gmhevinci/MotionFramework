@@ -33,8 +33,8 @@ public IEnumerator Initialize()
     createParam.ClearCacheWhenDirty = false;
     createParam.IgnoreResourceVersion = false;
     createParam.VerifyLevel = EVerifyLevel.CRC;
-    createParam.DefaultHostServer = GetHostServerURL();
-    createParam.FallbackHostServer = GetHostServerURL();
+    createParam.DefaultHostServer = "http://127.0.0.1/CDN/Android";
+    createParam.FallbackHostServer = "http://127.0.0.1/CDN/Android";
     MotionEngine.CreateModule<PatchManager>(createParam);
 
     // 初始化补丁系统
