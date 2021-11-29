@@ -98,7 +98,10 @@ namespace MotionFramework.Resource
 		public void Download()
 		{
 			if (DownloadStates != EDownloaderStates.None)
-				throw new System.Exception($"{nameof(PatchDownloader)} is already running.");
+			{
+				MotionLog.Warning($"{nameof(PatchDownloader)} is already running.");
+				return;
+			}
 
 			MotionLog.Log($"Begine to download : {TotalDownloadCount} files and {TotalDownloadBytes} bytes");
 			DownloadStates = EDownloaderStates.Loading;
