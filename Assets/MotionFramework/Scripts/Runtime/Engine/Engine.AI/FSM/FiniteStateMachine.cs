@@ -108,7 +108,7 @@ namespace MotionFramework.AI
 				}
 			}
 
-			MotionLog.Log($"Transition {_curNode.Name} to {node.Name}");
+			MotionLog.Log($"FSM transition {_curNode.Name} to {node.Name}");
 			_preNode = _curNode;
 			_curNode.OnExit();
 			_curNode = node;
