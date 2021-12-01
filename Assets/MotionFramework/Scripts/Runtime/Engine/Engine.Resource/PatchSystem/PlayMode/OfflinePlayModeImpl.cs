@@ -20,7 +20,7 @@ namespace MotionFramework.Resource
 		public IEnumerator InitializeAsync()
 		{
 			// 解析APP里的补丁清单
-			string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
+			string filePath = AssetPathHelper.MakeStreamingLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 			string url = AssetPathHelper.ConvertToWWWPath(filePath);
 			WebGetRequest downloader = new WebGetRequest(url);
 			downloader.SendRequest();

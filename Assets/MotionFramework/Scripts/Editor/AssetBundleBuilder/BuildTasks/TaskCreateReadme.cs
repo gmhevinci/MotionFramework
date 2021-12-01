@@ -32,7 +32,7 @@ namespace MotionFramework.Editor
 			PatchManifest patchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
 
 			// 删除旧文件
-			string filePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.ReadmeFileName}";
+			string filePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.ReadmeFileName}";
 			if (File.Exists(filePath))
 				File.Delete(filePath);
 

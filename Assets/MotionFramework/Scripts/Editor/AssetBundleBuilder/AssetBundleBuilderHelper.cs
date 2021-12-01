@@ -29,7 +29,7 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public static string MakePipelineOutputDirectory(string outputRoot, BuildTarget buildTarget)
 		{
-			return $"{outputRoot}/{buildTarget}/{PatchDefine.UnityManifestFileName}";
+			return $"{outputRoot}/{buildTarget}/{ResourceSettingData.Setting.UnityManifestFileName}";
 		}
 
 		/// <summary>
@@ -133,7 +133,7 @@ namespace MotionFramework.Editor
 		/// </summary>
 		public static PatchManifest LoadPatchManifestFile(string fileDirectory)
 		{
-			string filePath = $"{fileDirectory}/{PatchDefine.PatchManifestFileName}";
+			string filePath = $"{fileDirectory}/{ResourceSettingData.Setting.PatchManifestFileName}";
 			if (File.Exists(filePath) == false)
 			{
 				throw new System.Exception($"Not found patch manifest file : {filePath}");

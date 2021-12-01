@@ -30,40 +30,40 @@ namespace MotionFramework.Editor
 
 			// 拷贝Readme文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.ReadmeFileName}";
-				string destPath = $"{packageDirectory}/{PatchDefine.ReadmeFileName}";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.ReadmeFileName}";
+				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.ReadmeFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 				BuildLogger.Log($"拷贝Readme文件到：{destPath}");
 			}
 
 			// 拷贝PatchManifest文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestFileName}";
-				string destPath = $"{packageDirectory}/{PatchDefine.PatchManifestFileName}";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestFileName}";
+				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.PatchManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 				BuildLogger.Log($"拷贝PatchManifest文件到：{destPath}");
 			}
 
 			// 拷贝PatchManifest哈希文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.PatchManifestHashFileName}";
-				string destPath = $"{packageDirectory}/{PatchDefine.PatchManifestHashFileName}";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestHashFileName}";
+				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.PatchManifestHashFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 				BuildLogger.Log($"拷贝PatchManifest哈希文件到：{destPath}");
 			}
 
 			// 拷贝UnityManifest序列化文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.UnityManifestFileName}";
-				string destPath = $"{packageDirectory}/{PatchDefine.UnityManifestFileName}";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.UnityManifestFileName}";
+				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.UnityManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 				BuildLogger.Log($"拷贝UnityManifest文件到：{destPath}");
 			}
 
 			// 拷贝UnityManifest文本文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{PatchDefine.UnityManifestFileName}.manifest";
-				string destPath = $"{packageDirectory}/{PatchDefine.UnityManifestFileName}.manifest";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.UnityManifestFileName}.manifest";
+				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.UnityManifestFileName}.manifest";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
 

@@ -51,15 +51,15 @@ namespace MotionFramework.Editor
 
 			// 拷贝清单文件
 			{
-				string sourcePath = $"{pipelineOutputDirectory}/{PatchDefine.PatchManifestFileName}";
-				string destPath = $"{Application.dataPath}/StreamingAssets/{PatchDefine.PatchManifestFileName}";
+				string sourcePath = $"{pipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestFileName}";
+				string destPath = $"{Application.dataPath}/StreamingAssets/{ResourceSettingData.Setting.PatchManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
 
 			// 拷贝清单哈希文件
 			{
-				string sourcePath = $"{pipelineOutputDirectory}/{PatchDefine.PatchManifestHashFileName}";
-				string destPath = $"{Application.dataPath}/StreamingAssets/{PatchDefine.PatchManifestHashFileName}";
+				string sourcePath = $"{pipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestHashFileName}";
+				string destPath = $"{Application.dataPath}/StreamingAssets/{ResourceSettingData.Setting.PatchManifestHashFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
 

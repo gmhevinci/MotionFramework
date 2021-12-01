@@ -92,9 +92,9 @@ namespace MotionFramework.Editor
 		public string GetAppendExtension()
 		{
 			if (IsRawFile)
-				return $".{PatchDefine.RawFileVariant}";
+				return $".{ResourceSettingData.Setting.RawFileVariant}";
 			else
-				return $".{PatchDefine.AssetBundleFileVariant}";
+				return $".{ResourceSettingData.Setting.AssetBundleFileVariant}";
 		}
 
 		/// <summary>

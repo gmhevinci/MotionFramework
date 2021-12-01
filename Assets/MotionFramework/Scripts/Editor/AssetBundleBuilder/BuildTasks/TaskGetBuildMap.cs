@@ -250,9 +250,9 @@ namespace MotionFramework.Editor
 				var assetInfo = pair.Value;
 				var bundleLabel = AssetBundleCollectorSettingData.GetBundleLabel(assetInfo.AssetPath);
 				if (assetInfo.IsRawAsset)
-					assetInfo.SetBundleLabelAndVariant(bundleLabel, PatchDefine.RawFileVariant);
+					assetInfo.SetBundleLabelAndVariant(bundleLabel, ResourceSettingData.Setting.RawFileVariant);
 				else
-					assetInfo.SetBundleLabelAndVariant(bundleLabel, PatchDefine.AssetBundleFileVariant);
+					assetInfo.SetBundleLabelAndVariant(bundleLabel, ResourceSettingData.Setting.AssetBundleFileVariant);
 				EditorTools.DisplayProgressBar("设置资源包名", ++progressValue, buildAssets.Count);
 			}
 			EditorTools.ClearProgressBar();

@@ -78,7 +78,7 @@ namespace MotionFramework.Resource
 			// 加载APP内的补丁清单
 			MotionLog.Log($"Load application patch manifest.");
 			{
-				string filePath = AssetPathHelper.MakeStreamingLoadPath(PatchDefine.PatchManifestFileName);
+				string filePath = AssetPathHelper.MakeStreamingLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 				string url = AssetPathHelper.ConvertToWWWPath(filePath);
 				WebGetRequest downloader = new WebGetRequest(url);
 				downloader.SendRequest();
@@ -102,7 +102,7 @@ namespace MotionFramework.Resource
 			if (PatchHelper.CheckSandboxPatchManifestFileExist())
 			{
 				MotionLog.Log($"Load sandbox patch manifest.");
-				string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+				string filePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 				string jsonData = File.ReadAllText(filePath);
 				_localPatchManifest = PatchManifest.Deserialize(jsonData);
 			}
@@ -128,7 +128,7 @@ namespace MotionFramework.Resource
 
 			// 从远端请求补丁清单文件的哈希值，并比对沙盒内的补丁清单文件的哈希值
 			{
-				string webURL = GetPatchManifestRequestURL(updateResourceVersion, PatchDefine.PatchManifestHashFileName);
+				string webURL = GetPatchManifestRequestURL(updateResourceVersion, ResourceSettingData.Setting.PatchManifestHashFileName);
 				MotionLog.Log($"Beginning to request patch manifest hash : {webURL}");
 				WebGetRequest download = new WebGetRequest(webURL);
 				download.SendRequest(timeout);
@@ -163,7 +163,7 @@ namespace MotionFramework.Resource
 
 			// 从远端请求补丁清单
 			{
-				string webURL = GetPatchManifestRequestURL(updateResourceVersion, PatchDefine.PatchManifestFileName);
+				string webURL = GetPatchManifestRequestURL(updateResourceVersion, ResourceSettingData.Setting.PatchManifestFileName);
 				MotionLog.Log($"Beginning to request patch manifest : {webURL}");
 				WebGetRequest download = new WebGetRequest(webURL);
 				download.SendRequest(timeout);
@@ -367,7 +367,7 @@ namespace MotionFramework.Resource
 
 			// 注意：这里会覆盖掉沙盒内的补丁清单文件
 			MotionLog.Log("Save remote patch manifest file.");
-			string savePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			string savePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 			PatchManifest.Serialize(savePath, _localPatchManifest);
 		}
 

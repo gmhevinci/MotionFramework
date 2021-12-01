@@ -29,7 +29,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static void DeleteSandboxPatchManifestFile()
 		{
-			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			string filePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 			if (File.Exists(filePath))
 				File.Delete(filePath);
 		}
@@ -67,7 +67,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static bool CheckSandboxPatchManifestFileExist()
 		{
-			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			string filePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 			return File.Exists(filePath);
 		}
 
@@ -78,7 +78,7 @@ namespace MotionFramework.Resource
 		/// <returns></returns>
 		public static string GetSandboxPatchManifestFileHash()
 		{
-			string filePath = AssetPathHelper.MakePersistentLoadPath(PatchDefine.PatchManifestFileName);
+			string filePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 			if (File.Exists(filePath))
 				return HashUtility.FileMD5(filePath);
 			else
