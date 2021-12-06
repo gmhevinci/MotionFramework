@@ -62,7 +62,12 @@ C# && .Net4.x
 ![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/icon2.jpg)  
 ![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/icon3.jpg)  
 
+## 代码规范
+
+[请参考代码规范](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/CdoeStyle.md)
+
 ## 贡献者
+
 [何冠峰](https://github.com/gmhevinci) [任志勇](https://github.com/renruoyu1989) [ZensYue](https://github.com/ZensYue) [徐烜](https://github.com/mayaxu) [张飞涛](https://github.com/zhangfeitao)  
 
 ## 声明
