@@ -18,7 +18,7 @@ public class Test
 	{
 		// 改变主场景
 		// 注意：当改变主场景的时候，之前加载的附加场景将会被卸载
-		SceneManager.Instance.ChangeMainScene("Scene/Town", true，null);
+		SceneManager.Instance.ChangeMainScene("Scene/Town", null);
 
 		// 加载新的附加场景
 		SceneManager.Instance.LoadAdditionScene("Scene/Town_sky", true, null);
