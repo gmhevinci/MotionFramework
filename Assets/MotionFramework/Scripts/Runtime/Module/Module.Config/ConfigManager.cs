@@ -1,11 +1,12 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MotionFramework.Resource;
 
 namespace MotionFramework.Config
 {
@@ -34,6 +35,9 @@ namespace MotionFramework.Config
 
 		void IModule.OnCreate(System.Object param)
 		{
+			// 检测依赖模块
+			if (MotionEngine.Contains(typeof(ResourceManager)) == false)
+				throw new Exception($"{nameof(ConfigManager)} depends on {nameof(ResourceManager)}");
 		}
 		void IModule.OnUpdate()
 		{

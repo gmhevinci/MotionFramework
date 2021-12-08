@@ -1,13 +1,13 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MotionFramework.Tween;
 using MotionFramework.Console;
+using MotionFramework.Resource;
 
 namespace MotionFramework.Window
 {
@@ -22,6 +22,9 @@ namespace MotionFramework.Window
 
 		void IModule.OnCreate(object createParam)
 		{
+			// 检测依赖模块
+			if (MotionEngine.Contains(typeof(ResourceManager)) == false)
+				throw new Exception($"{nameof(WindowManager)} depends on {nameof(ResourceManager)}");
 		}
 		void IModule.OnUpdate()
 		{
