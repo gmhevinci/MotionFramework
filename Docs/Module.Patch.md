@@ -14,7 +14,7 @@ public IEnumerator Initialize()
 
     // 初始化补丁系统
     var operation = patchManager.InitializeAync();
-	yield return operation;
+    yield return operation;
     
     // 开始游戏
     ......
@@ -57,7 +57,7 @@ public IEnumerator UpdateManifest()
 {
     // 更新资源清单文件
     var operation = PatchManager.Instance.UpdateManifestAsync(_resourceVersion, 30);
-	yield return operation;
+    yield return operation;
     
     // 验证资源清单更新结果
     if(operation.Status == EOperationStatus.Succeed)
