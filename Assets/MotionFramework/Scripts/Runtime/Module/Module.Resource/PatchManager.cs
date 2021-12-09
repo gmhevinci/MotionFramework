@@ -113,6 +113,9 @@ namespace MotionFramework.Resource
 		}
 		void IModule.OnUpdate()
 		{
+			// 更新异步请求操作
+			OperationUpdater.Update();
+
 			// 更新下载管理系统
 			DownloadSystem.Update();
 		}
@@ -125,31 +128,33 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 异步初始化
 		/// </summary>
-		public IEnumerator InitializeAsync()
+		public InitializationOperation InitializeAsync()
 		{
 			if (_runMode == ERunMode.SimulationOnEditor)
 			{
-				yield break;
+				var operation = new EditorModeInitializationOperation();
+				OperationUpdater.ProcessOperaiton(operation);
+				return operation;
 			}
 			else if (_runMode == ERunMode.OfflinePlayMode)
 			{
-				var playModeImpl = new OfflinePlayModeImpl();
-				yield return playModeImpl.InitializeAsync();
+				var playModeImpl = new OfflinePlayModeImpl();	
 				_offlinePlayModeImpl = playModeImpl;
 				BundleServices = playModeImpl;
+				return playModeImpl.InitializeAsync();
 			}
 			else if (_runMode == ERunMode.HostPlayMode)
 			{
 				var playModeImpl = new HostPlayModeImpl();
+				_hostPlayModeImpl = playModeImpl;
+				BundleServices = playModeImpl;
 				var hostPlayModeParameters = _createParameters as HostPlayModeParameters;
-				yield return playModeImpl.InitializeAsync(
+				return playModeImpl.InitializeAsync(
 					hostPlayModeParameters.ClearCacheWhenDirty,
 					hostPlayModeParameters.IgnoreResourceVersion,
 					hostPlayModeParameters.VerifyLevel,
 					hostPlayModeParameters.DefaultHostServer,
 					hostPlayModeParameters.FallbackHostServer);
-				_hostPlayModeImpl = playModeImpl;
-				BundleServices = playModeImpl;
 			}
 			else
 			{
@@ -162,46 +167,25 @@ namespace MotionFramework.Resource
 		/// </summary>
 		/// <param name="updateResourceVersion">更新的资源版本号</param>
 		/// <param name="timeout">超时时间</param>
-		public IEnumerator UpdateManifestAsync(int updateResourceVersion, int timeout)
+		public UpdateManifestOperation UpdateManifestAsync(int updateResourceVersion, int timeout)
 		{
 			if (_runMode == ERunMode.SimulationOnEditor)
 			{
-				yield break;
+				var operation = new EditorModeUpdateManifestOperation();
+				OperationUpdater.ProcessOperaiton(operation);
+				return operation;
 			}
 			else if (_runMode == ERunMode.OfflinePlayMode)
 			{
-				yield break;
+				var operation = new OfflinePlayModeUpdateManifestOperation();
+				OperationUpdater.ProcessOperaiton(operation);
+				return operation;
 			}
 			else if (_runMode == ERunMode.HostPlayMode)
 			{
 				if (_hostPlayModeImpl == null)
 					throw new Exception("PatchManager is not initialized.");
-				yield return _hostPlayModeImpl.UpdatePatchManifestAsync(updateResourceVersion, timeout);
-			}
-			else
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		/// <summary>
-		/// 补丁清单更新结果
-		/// </summary>
-		public UpdateManifestResult GetUpdateManifestResult()
-		{
-			if (_runMode == ERunMode.SimulationOnEditor)
-			{
-				return UpdateManifestResult.CreateSucceedResult();
-			}
-			else if (_runMode == ERunMode.OfflinePlayMode)
-			{
-				return UpdateManifestResult.CreateSucceedResult();
-			}
-			else if (_runMode == ERunMode.HostPlayMode)
-			{
-				if (_hostPlayModeImpl == null)
-					throw new Exception("PatchManager is not initialized.");
-				return _hostPlayModeImpl.ManifestResult;
+				return _hostPlayModeImpl.UpdatePatchManifestAsync(updateResourceVersion, timeout);
 			}
 			else
 			{

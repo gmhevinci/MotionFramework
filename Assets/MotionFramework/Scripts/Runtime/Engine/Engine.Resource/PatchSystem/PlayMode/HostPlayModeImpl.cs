@@ -7,182 +7,51 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using MotionFramework.Utility;
-using MotionFramework.Network;
 
 namespace MotionFramework.Resource
 {
 	internal class HostPlayModeImpl : IBundleServices
 	{
 		// 缓存器
-		private PatchCache _cache;
+		internal PatchCache Cache;
 
 		// 补丁清单
-		private PatchManifest _appPatchManifest;
-		private PatchManifest _localPatchManifest;
+		internal PatchManifest AppPatchManifest;
+		internal PatchManifest LocalPatchManifest;
 
 		// 参数相关
-		private bool _clearCacheWhenDirty;
-		private bool _ignoreResourceVersion;
+		internal bool ClearCacheWhenDirty { private set; get; }
+		internal bool IgnoreResourceVersion { private set; get; }
 		private EVerifyLevel _verifyLevel;
 		private string _defaultHostServer;
 		private string _fallbackHostServer;
 
 		/// <summary>
-		/// 清单更新结果
-		/// </summary>
-		public UpdateManifestResult ManifestResult { private set; get; }
-
-		
-		/// <summary>
 		/// 异步初始化
 		/// </summary>
-		public IEnumerator InitializeAsync(bool clearCacheWhenDirty, bool ignoreResourceVersion,
+		public InitializationOperation InitializeAsync(bool clearCacheWhenDirty, bool ignoreResourceVersion,
 			EVerifyLevel verifyLevel, string defaultHostServer, string fallbackHostServer)
 		{
-			_clearCacheWhenDirty = clearCacheWhenDirty;
-			_ignoreResourceVersion = ignoreResourceVersion;
+			ClearCacheWhenDirty = clearCacheWhenDirty;
+			IgnoreResourceVersion = ignoreResourceVersion;
 			_verifyLevel = verifyLevel;
 			_defaultHostServer = defaultHostServer;
 			_fallbackHostServer = fallbackHostServer;
 
-			// 如果缓存文件不存在
-			if (PatchHelper.CheckSandboxCacheFileExist() == false)
-			{
-				_cache = new PatchCache();
-				_cache.InitAppVersion(Application.version);
-			}
-			else
-			{
-				// 加载缓存
-				_cache = PatchCache.LoadCache();
-
-				// 每次启动时比对APP版本号是否一致	
-				if (_cache.CacheAppVersion != Application.version)
-				{
-					MotionLog.Warning($"Cache is dirty ! Cache app version is {_cache.CacheAppVersion}, Current app version is {Application.version}");
-
-					// 注意：在覆盖安装的时候，会保留APP沙盒目录，可以选择清空缓存目录
-					if (_clearCacheWhenDirty)
-					{
-						_cache.ClearCache();
-					}
-
-					// 注意：一定要删除清单文件
-					PatchHelper.DeleteSandboxPatchManifestFile();
-					_cache.InitAppVersion(Application.version);
-				}
-			}
-
-			// 加载APP内的补丁清单
-			MotionLog.Log($"Load application patch manifest.");
-			{
-				string filePath = AssetPathHelper.MakeStreamingLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
-				string url = AssetPathHelper.ConvertToWWWPath(filePath);
-				WebGetRequest downloader = new WebGetRequest(url);
-				downloader.SendRequest();
-				yield return downloader;
-
-				if (downloader.HasError())
-				{
-					downloader.ReportError();
-					downloader.Dispose();
-					throw new Exception($"Fatal error : Failed load application patch manifest file : {url}");
-				}
-
-				// 解析补丁清单
-				string jsonData = downloader.GetText();
-				_appPatchManifest = PatchManifest.Deserialize(jsonData);
-				_localPatchManifest = _appPatchManifest;
-				downloader.Dispose();
-			}
-
-			// 加载沙盒内的补丁清单	
-			if (PatchHelper.CheckSandboxPatchManifestFileExist())
-			{
-				MotionLog.Log($"Load sandbox patch manifest.");
-				string filePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
-				string jsonData = File.ReadAllText(filePath);
-				_localPatchManifest = PatchManifest.Deserialize(jsonData);
-			}
+			var operation = new HostPlayModeInitializationOperation(this);
+			OperationUpdater.ProcessOperaiton(operation);
+			return operation;
 		}
 
 		/// <summary>
-		/// 更新补丁清单
+		/// 异步更新补丁清单
 		/// </summary>
-		public IEnumerator UpdatePatchManifestAsync(int updateResourceVersion, int timeout)
+		public UpdateManifestOperation UpdatePatchManifestAsync(int updateResourceVersion, int timeout)
 		{
-			if (ManifestResult == null)
-				ManifestResult = new UpdateManifestResult();
-
-			if (_ignoreResourceVersion && updateResourceVersion > 0)
-			{
-				MotionLog.Warning($"Update resource version {updateResourceVersion} is invalid when ignore resource version.");
-			}
-
-			ManifestResult.Reset();
-			ManifestResult.RequestCount++;
-
-			MotionLog.Log($"Update patch manifest : update resource version is  {updateResourceVersion}");
-
-			// 从远端请求补丁清单文件的哈希值，并比对沙盒内的补丁清单文件的哈希值
-			{
-				string webURL = GetPatchManifestRequestURL(updateResourceVersion, ResourceSettingData.Setting.PatchManifestHashFileName);
-				MotionLog.Log($"Beginning to request patch manifest hash : {webURL}");
-				WebGetRequest download = new WebGetRequest(webURL);
-				download.SendRequest(timeout);
-				yield return download;
-
-				// Check fatal
-				if (download.HasError())
-				{
-					ManifestResult.Error = download.GetError();
-					ManifestResult.States = UpdateManifestResult.EStates.Failed;
-					download.Dispose();
-					yield break;
-				}
-
-				// 获取补丁清单文件的哈希值
-				string patchManifestHash = download.GetText();
-				download.Dispose();
-
-				// 如果补丁清单文件的哈希值相同
-				string currentFileHash = PatchHelper.GetSandboxPatchManifestFileHash();
-				if (currentFileHash == patchManifestHash)
-				{
-					ManifestResult.States = UpdateManifestResult.EStates.Succeed;
-					MotionLog.Log($"Patch manifest file hash is not change : {patchManifestHash}");
-					yield break;
-				}
-				else
-				{
-					MotionLog.Log($"Patch manifest hash is change : {patchManifestHash} -> {currentFileHash}");
-				}
-			}
-
-			// 从远端请求补丁清单
-			{
-				string webURL = GetPatchManifestRequestURL(updateResourceVersion, ResourceSettingData.Setting.PatchManifestFileName);
-				MotionLog.Log($"Beginning to request patch manifest : {webURL}");
-				WebGetRequest download = new WebGetRequest(webURL);
-				download.SendRequest(timeout);
-				yield return download;
-
-				// Check fatal
-				if (download.HasError())
-				{
-					ManifestResult.Error = download.GetError();
-					ManifestResult.States = UpdateManifestResult.EStates.Failed;
-					download.Dispose();
-					yield break;
-				}
-
-				// 解析补丁清单			
-				ParseAndSaveRemotePatchManifest(download.GetText());
-				ManifestResult.States = UpdateManifestResult.EStates.Succeed;
-				download.Dispose();
-			}
+			var operation = new HostPlayModeUpdateManifestOperation(this, updateResourceVersion, timeout);
+			OperationUpdater.ProcessOperaiton(operation);
+			return operation;
 		}
 
 		/// <summary>
@@ -190,9 +59,9 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public int GetResourceVersion()
 		{
-			if (_localPatchManifest == null)
+			if (LocalPatchManifest == null)
 				return 0;
-			return _localPatchManifest.ResourceVersion;
+			return LocalPatchManifest.ResourceVersion;
 		}
 
 		/// <summary>
@@ -200,9 +69,9 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public string[] GetManifestBuildinTags()
 		{
-			if (_localPatchManifest == null)
+			if (LocalPatchManifest == null)
 				return new string[0];
-			return _localPatchManifest.GetBuildinTags();
+			return LocalPatchManifest.GetBuildinTags();
 		}
 
 		/// <summary>
@@ -224,15 +93,15 @@ namespace MotionFramework.Resource
 		private List<PatchBundle> GetPatchDownloadList(string[] dlcTags)
 		{
 			List<PatchBundle> downloadList = new List<PatchBundle>(1000);
-			foreach (var patchBundle in _localPatchManifest.BundleList)
+			foreach (var patchBundle in LocalPatchManifest.BundleList)
 			{
 				// 忽略缓存资源
-				if (_cache.Contains(patchBundle.Hash))
+				if (Cache.Contains(patchBundle.Hash))
 					continue;
 
 				// 忽略APP资源
 				// 注意：如果是APP资源并且哈希值相同，则不需要下载
-				if (_appPatchManifest.Bundles.TryGetValue(patchBundle.BundleName, out PatchBundle appPatchBundle))
+				if (AppPatchManifest.Bundles.TryGetValue(patchBundle.BundleName, out PatchBundle appPatchBundle))
 				{
 					if (appPatchBundle.IsBuildin && appPatchBundle.Hash == patchBundle.Hash)
 						continue;
@@ -262,7 +131,7 @@ namespace MotionFramework.Resource
 		// 检测下载内容的完整性
 		internal bool CheckContentIntegrity(string bundleName)
 		{
-			if (_localPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
+			if (LocalPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
 				return CheckContentIntegrity(patchBundle);
 			}
@@ -302,10 +171,10 @@ namespace MotionFramework.Resource
 		// 缓存系统相关
 		internal void CacheDownloadPatchFile(string bundleName)
 		{
-			if (_localPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
+			if (LocalPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
 				MotionLog.Log($"Cache download web file : {patchBundle.BundleName} Version : {patchBundle.Version} Hash : {patchBundle.Hash}");
-				_cache.CacheDownloadPatchFile(patchBundle.Hash);
+				Cache.CacheDownloadPatchFile(patchBundle.Hash);
 			}
 			else
 			{
@@ -320,7 +189,7 @@ namespace MotionFramework.Resource
 				MotionLog.Log($"Cache download web file : {patchBundle.BundleName} Version : {patchBundle.Version} Hash : {patchBundle.Hash}");
 				hashList.Add(patchBundle.Hash);
 			}
-			_cache.CacheDownloadPatchFiles(hashList);
+			Cache.CacheDownloadPatchFiles(hashList);
 		}
 		private List<PatchBundle> CacheAndFilterDownloadList(List<PatchBundle> downloadList)
 		{
@@ -345,43 +214,27 @@ namespace MotionFramework.Resource
 		}
 
 		// 补丁清单相关
-		private string GetPatchManifestRequestURL(int updateResourceVersion, string fileName)
+		internal void ParseAndSaveRemotePatchManifest(string content)
 		{
-			string url;
-
-			// 轮流返回请求地址
-			if (ManifestResult.RequestCount % 2 == 0)
-				url = GetPatchDownloadFallbackURL(updateResourceVersion, fileName);
-			else
-				url = GetPatchDownloadURL(updateResourceVersion, fileName);
-
-			// 注意：在URL末尾添加时间戳
-			if (_ignoreResourceVersion)
-				url = $"{url}?{System.DateTime.UtcNow.Ticks}";
-
-			return url;
-		}
-		private void ParseAndSaveRemotePatchManifest(string content)
-		{
-			_localPatchManifest = PatchManifest.Deserialize(content);
+			LocalPatchManifest = PatchManifest.Deserialize(content);
 
 			// 注意：这里会覆盖掉沙盒内的补丁清单文件
 			MotionLog.Log("Save remote patch manifest file.");
 			string savePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
-			PatchManifest.Serialize(savePath, _localPatchManifest);
+			PatchManifest.Serialize(savePath, LocalPatchManifest);
 		}
 
 		// WEB相关
 		internal string GetPatchDownloadURL(int resourceVersion, string fileName)
 		{
-			if (_ignoreResourceVersion)
+			if (IgnoreResourceVersion)
 				return $"{_defaultHostServer}/{fileName}";
 			else
 				return $"{_defaultHostServer}/{resourceVersion}/{fileName}";
 		}
 		internal string GetPatchDownloadFallbackURL(int resourceVersion, string fileName)
 		{
-			if (_ignoreResourceVersion)
+			if (IgnoreResourceVersion)
 				return $"{_fallbackHostServer}/{fileName}";
 			else
 				return $"{_fallbackHostServer}/{resourceVersion}/{fileName}";
@@ -393,10 +246,10 @@ namespace MotionFramework.Resource
 			if (string.IsNullOrEmpty(bundleName))
 				return new AssetBundleInfo(string.Empty, string.Empty);
 
-			if (_localPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
+			if (LocalPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
 				// 查询APP资源
-				if (_appPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle appPatchBundle))
+				if (AppPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle appPatchBundle))
 				{
 					if (appPatchBundle.IsBuildin && appPatchBundle.Hash == patchBundle.Hash)
 					{
@@ -409,7 +262,7 @@ namespace MotionFramework.Resource
 				// 查询缓存资源
 				// 注意：如果沙盒内缓存文件不存在，那么将会从服务器下载
 				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-				if (_cache.Contains(patchBundle.Hash))
+				if (Cache.Contains(patchBundle.Hash))
 				{
 					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, patchBundle.Version, patchBundle.IsEncrypted, patchBundle.IsRawFile);
 					return bundleInfo;
@@ -440,11 +293,11 @@ namespace MotionFramework.Resource
 		}
 		string IBundleServices.GetAssetBundleName(string assetPath)
 		{
-			return _localPatchManifest.GetAssetBundleName(assetPath);
+			return LocalPatchManifest.GetAssetBundleName(assetPath);
 		}
 		string[] IBundleServices.GetAllDependencies(string assetPath)
 		{
-			return _localPatchManifest.GetAllDependencies(assetPath);
+			return LocalPatchManifest.GetAllDependencies(assetPath);
 		}
 		#endregion
 	}

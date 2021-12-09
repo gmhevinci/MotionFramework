@@ -12,29 +12,16 @@ namespace MotionFramework.Resource
 {
 	public sealed class OfflinePlayModeImpl : IBundleServices
 	{
-		private PatchManifest _patchManifest;
+		internal PatchManifest AppPatchManifest;
 		
 		/// <summary>
 		/// 异步初始化
 		/// </summary>
-		public IEnumerator InitializeAsync()
+		public InitializationOperation InitializeAsync()
 		{
-			// 解析APP里的补丁清单
-			string filePath = AssetPathHelper.MakeStreamingLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
-			string url = AssetPathHelper.ConvertToWWWPath(filePath);
-			WebGetRequest downloader = new WebGetRequest(url);
-			downloader.SendRequest();
-			yield return downloader;
-
-			if (downloader.HasError())
-			{
-				downloader.ReportError();
-				downloader.Dispose();
-				throw new System.Exception($"Fatal error : Failed load application patch manifest file : {url}");
-			}
-
-			_patchManifest = PatchManifest.Deserialize(downloader.GetText());
-			downloader.Dispose();
+			var operation = new OfflinePlayModeInitializationOperation(this);
+			OperationUpdater.ProcessOperaiton(operation);
+			return operation;
 		}
 
 		/// <summary>
@@ -42,9 +29,9 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public int GetResourceVersion()
 		{
-			if (_patchManifest == null)
+			if (AppPatchManifest == null)
 				return 0;			
-			return _patchManifest.ResourceVersion;
+			return AppPatchManifest.ResourceVersion;
 		}
 
 		/// <summary>
@@ -52,9 +39,9 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public string[] GetManifestBuildinTags()
 		{
-			if (_patchManifest == null)
+			if (AppPatchManifest == null)
 				return new string[0];
-			return _patchManifest.GetBuildinTags();
+			return AppPatchManifest.GetBuildinTags();
 		}
 
 		#region IBundleServices接口
@@ -63,7 +50,7 @@ namespace MotionFramework.Resource
 			if (string.IsNullOrEmpty(bundleName))
 				return new AssetBundleInfo(string.Empty, string.Empty);
 
-			if (_patchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
+			if (AppPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(patchBundle.Hash);
 				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, patchBundle.Version, patchBundle.IsEncrypted, patchBundle.IsRawFile);
@@ -82,11 +69,11 @@ namespace MotionFramework.Resource
 		}
 		string IBundleServices.GetAssetBundleName(string assetPath)
 		{
-			return _patchManifest.GetAssetBundleName(assetPath);
+			return AppPatchManifest.GetAssetBundleName(assetPath);
 		}
 		string[] IBundleServices.GetAllDependencies(string assetPath)
 		{
-			return _patchManifest.GetAllDependencies(assetPath);
+			return AppPatchManifest.GetAllDependencies(assetPath);
 		}
 		#endregion
 	}
