@@ -25,7 +25,7 @@ namespace MotionFramework.Resource
 	{
 		internal override void Start()
 		{
-			Status = EOperationStatus.Succeeded;
+			Status = EOperationStatus.Succeed;
 		}
 		internal override void Update()
 		{
@@ -90,7 +90,7 @@ namespace MotionFramework.Resource
 				_impl.AppPatchManifest = PatchManifest.Deserialize(_downloader.GetText());
 				_downloader.Dispose();
 				_steps = ESteps.Done;
-				Status = EOperationStatus.Succeeded;
+				Status = EOperationStatus.Succeed;
 			}
 		}
 	}
@@ -205,7 +205,7 @@ namespace MotionFramework.Resource
 				}
 
 				_steps = ESteps.Done;
-				Status = EOperationStatus.Succeeded;
+				Status = EOperationStatus.Succeed;
 			}
 		}
 	}

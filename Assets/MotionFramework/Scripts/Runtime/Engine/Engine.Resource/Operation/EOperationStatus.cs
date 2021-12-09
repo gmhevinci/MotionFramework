@@ -9,7 +9,7 @@ namespace MotionFramework.Resource
 	public enum EOperationStatus
 	{
 		None,
-		Succeeded,
+		Succeed,
 		Failed
 	}
 }

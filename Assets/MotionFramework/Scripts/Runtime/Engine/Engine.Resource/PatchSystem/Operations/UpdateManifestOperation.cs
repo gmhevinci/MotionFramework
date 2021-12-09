@@ -23,7 +23,7 @@ namespace MotionFramework.Resource
 	{
 		internal override void Start()
 		{
-			Status = EOperationStatus.Succeeded;
+			Status = EOperationStatus.Succeed;
 		}
 		internal override void Update()
 		{
@@ -37,7 +37,7 @@ namespace MotionFramework.Resource
 	{
 		internal override void Start()
 		{
-			Status = EOperationStatus.Succeeded;
+			Status = EOperationStatus.Succeed;
 		}
 		internal override void Update()
 		{
@@ -126,7 +126,7 @@ namespace MotionFramework.Resource
 				if (currentFileHash == webManifestHash)
 				{
 					MotionLog.Log($"Patch manifest file hash is not change : {webManifestHash}");
-					Status = EOperationStatus.Succeeded;
+					Status = EOperationStatus.Succeed;
 					_steps = ESteps.Done;
 					return;
 				}
@@ -165,7 +165,7 @@ namespace MotionFramework.Resource
 				_impl.ParseAndSaveRemotePatchManifest(_downloaderManifest.GetText());
 				_downloaderManifest.Dispose();
 				_steps = ESteps.Done;
-				Status = EOperationStatus.Succeeded;
+				Status = EOperationStatus.Succeed;
 			}
 		}
 

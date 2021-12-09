@@ -28,7 +28,7 @@ namespace MotionFramework.Resource
 		{
 			get
 			{
-				return Status == EOperationStatus.Failed || Status == EOperationStatus.Succeeded;
+				return Status == EOperationStatus.Failed || Status == EOperationStatus.Succeed;
 			}
 		}
 
