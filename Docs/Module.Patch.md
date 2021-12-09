@@ -13,8 +13,9 @@ public IEnumerator Initialize()
     MotionEngine.CreateModule<PatchManager>(createParam);
 
     // 初始化补丁系统
-    yield return patchManager.InitializeAync();
-
+    var operation = patchManager.InitializeAync();
+	yield return operation;
+    
     // 开始游戏
     ......
 }
@@ -38,7 +39,8 @@ public IEnumerator Initialize()
     MotionEngine.CreateModule<PatchManager>(createParam);
 
     // 初始化补丁系统
-    yield return PatchManager.Instance.InitializeAync();
+    var operation = PatchManager.Instance.InitializeAync();
+    yield return operation;
 }
 
 // 1. 获取资源版本
@@ -54,18 +56,18 @@ public IEnumerator UpdateResourceVersion()
 public IEnumerator UpdateManifest()
 {
     // 更新资源清单文件
-    yield return PatchManager.Instance.UpdateManifestAsync(_resourceVersion, 30);
-
+    var operation = PatchManager.Instance.UpdateManifestAsync(_resourceVersion, 30);
+	yield return operation;
+    
     // 验证资源清单更新结果
-    var result = PatchManager.Instance.GetUpdateManifestResult();
-    if(result.States == UpdateManifestResult.EStates.Failed)
-    {
-        // 如果更新失败，可以重新尝试下载
-        Debug.Log($"资源清单下载失败:{result.Error}");
-    }
-    else if(result.States == UpdateManifestResult.EStates.Succeed)
+    if(operation.Status == EOperationStatus.Succeed)
     {
         Debug.Log("资源清单下载成功");
+    }
+    else
+    {
+        // 如果更新失败，可以重新尝试下载
+        Debug.Log($"资源清单下载失败:{operation.Error}");      
     }
 }
 
