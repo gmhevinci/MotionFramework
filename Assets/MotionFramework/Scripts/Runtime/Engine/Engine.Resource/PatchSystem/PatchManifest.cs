@@ -50,7 +50,7 @@ namespace MotionFramework.Resource
 		/// 资源映射集合（提供AssetPath获取PatchAsset）
 		/// </summary>
 		[NonSerialized]
-		private readonly Dictionary<string, PatchAsset> Assets = new Dictionary<string, PatchAsset>();
+		public readonly Dictionary<string, PatchAsset> Assets = new Dictionary<string, PatchAsset>();
 
 
 		/// <summary>
