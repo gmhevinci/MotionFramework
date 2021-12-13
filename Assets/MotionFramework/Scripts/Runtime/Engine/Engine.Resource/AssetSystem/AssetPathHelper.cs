@@ -45,7 +45,7 @@ namespace MotionFramework.Resource
 			string projectPath = GetDirectory(UnityEngine.Application.dataPath);
 			return StringFormat.Format("{0}/Sandbox/{1}", projectPath, path);
 #else
-		return StringFormat.Format("{0}/Sandbox/{1}", UnityEngine.Application.persistentDataPath, path);
+			return StringFormat.Format("{0}/Sandbox/{1}", UnityEngine.Application.persistentDataPath, path);
 #endif
 		}
 
