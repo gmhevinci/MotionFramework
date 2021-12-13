@@ -259,15 +259,22 @@ namespace MotionFramework.Resource
 					}
 				}
 
-				// 查询缓存资源
-				// 注意：如果沙盒内缓存文件不存在，那么将会从服务器下载
+				// 查询沙盒资源
 				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 				if (Cache.Contains(patchBundle.Hash))
 				{
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, patchBundle.Version, patchBundle.IsEncrypted, patchBundle.IsRawFile);
-					return bundleInfo;
+					if (File.Exists(sandboxLoadPath))
+					{
+						AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, sandboxLoadPath, patchBundle.Version, patchBundle.IsEncrypted, patchBundle.IsRawFile);
+						return bundleInfo;
+					}
+					else
+					{
+						MotionLog.Error($"Cache file is missing : {sandboxLoadPath}");
+					}
 				}
-				else
+
+				// 从服务端下载
 				{
 					string remoteURL = GetPatchDownloadURL(patchBundle.Version, patchBundle.Hash);
 					string remoteFallbackURL = GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);

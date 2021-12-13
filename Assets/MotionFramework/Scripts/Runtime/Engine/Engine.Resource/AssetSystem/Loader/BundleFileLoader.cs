@@ -15,7 +15,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 资源文件信息
 		/// </summary>
-		public AssetBundleInfo BundleInfo { private set; get;  }
+		public AssetBundleInfo BundleInfo { private set; get; }
 
 		/// <summary>
 		/// 引用计数
@@ -51,7 +51,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsSceneLoader()
 		{
-			foreach(var provider in _providers)
+			foreach (var provider in _providers)
 			{
 				if (provider is BundledSceneProvider)
 					return true;
@@ -222,7 +222,7 @@ namespace MotionFramework.Resource
 				// Check error
 				if (CacheBundle == null)
 				{
-					MotionLog.Warning($"Failed to load assetBundle file : {BundleInfo.BundleName}");
+					MotionLog.Error($"Failed to load assetBundle file : {BundleInfo.BundleName}");
 					States = ELoaderStates.Fail;
 				}
 				else
@@ -279,7 +279,7 @@ namespace MotionFramework.Resource
 
 			return RefCount <= 0;
 		}
-		
+
 		/// <summary>
 		/// 在满足条件的前提下，销毁所有资源提供者
 		/// </summary>
@@ -296,7 +296,7 @@ namespace MotionFramework.Resource
 			}
 
 			// 除了自己没有其它引用
-			if(RefCount > _providers.Count)
+			if (RefCount > _providers.Count)
 				return;
 
 			// 销毁所有Providers
@@ -324,7 +324,10 @@ namespace MotionFramework.Resource
 				// 注意：如果需要从WEB端下载资源，可能会触发保险机制！
 				frame--;
 				if (frame == 0)
-					throw new Exception($"WaitForAsyncComplete failed ! BundleName : {BundleInfo.BundleName} States : {States}");
+				{
+					MotionLog.Error($"WaitForAsyncComplete failed ! BundleName : {BundleInfo.BundleName} States : {States}");
+					break;
+				}
 
 				// 驱动流程
 				Update();
