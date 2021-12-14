@@ -270,7 +270,7 @@ namespace MotionFramework.Resource
 					}
 					else
 					{
-						MotionLog.Error($"Cache file is missing : {sandboxLoadPath}");
+						MotionLog.Error($"Cache file is missing : {sandboxLoadPath}, Bundle : {bundleName}");
 					}
 				}
 

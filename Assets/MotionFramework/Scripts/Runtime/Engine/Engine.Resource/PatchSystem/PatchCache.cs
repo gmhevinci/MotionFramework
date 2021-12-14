@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using MotionFramework.Utility;
 
@@ -44,6 +45,30 @@ namespace MotionFramework.Resource
 			CacheAppVersion = string.Empty;
 			CachedFileHashList.Clear();
 			PatchHelper.DeleteSandboxCacheFolder();
+		}
+
+		/// <summary>
+		/// 修复缓存
+		/// 注意：在沙盒内文件被意外删除的时候，自我修复缓存列表
+		/// </summary>
+		public void RepairCache()
+		{
+			bool isChange = false;
+			for (int i = CachedFileHashList.Count - 1; i >= 0; i--)
+			{
+				string fileHash = CachedFileHashList[i];
+				string filePath = PatchHelper.MakeSandboxCacheFilePath(fileHash);
+				if (File.Exists(filePath) == false)
+				{
+					MotionLog.Error($"Cache file is missing : {fileHash}");
+					CachedFileHashList.RemoveAt(i);
+					isChange = true;
+				}
+			}
+			if (isChange)
+			{
+				SaveCache();
+			}
 		}
 
 		/// <summary>

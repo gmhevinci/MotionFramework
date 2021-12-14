@@ -141,6 +141,9 @@ namespace MotionFramework.Resource
 					// 加载缓存
 					_impl.Cache = PatchCache.LoadCache();
 
+					// 修复缓存
+					_impl.Cache.RepairCache();
+
 					// 每次启动时比对APP版本号是否一致	
 					if (_impl.Cache.CacheAppVersion != Application.version)
 					{
