@@ -299,7 +299,7 @@ namespace MotionFramework.Editor
 				if (isRawFile)
 				{
 					if (bundleInfo.Assets.Count != 1)
-						throw new Exception("Should never get here !");
+						throw new Exception("The bundle does not support multiple raw asset : {bundleInfo.BundleName}");
 					continue;
 				}
 
