@@ -111,7 +111,7 @@ namespace MotionFramework.Resource
 			// 1. 从服务器下载
 			if (States == ELoaderStates.Download)
 			{
-				int failedTryAgain = 3;
+				int failedTryAgain = int.MaxValue;
 				_downloader = DownloadSystem.GetFileDownloader(BundleInfo.RemoteURL, BundleInfo.RemoteFallbackURL, BundleInfo.LocalPath, failedTryAgain);
 				States = ELoaderStates.CheckDownload;
 			}

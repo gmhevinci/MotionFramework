@@ -291,6 +291,38 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
+		/// 创建补丁下载器
+		/// </summary>
+		/// <param name="locations">资源列表</param>
+		/// <param name="fileLoadingMaxNumber">同时下载的最大文件数</param>
+		/// <param name="failedTryAgain">下载失败的重试次数</param>
+		public PatchDownloader CreateBundleDownloader(string[] locations, int fileLoadingMaxNumber, int failedTryAgain)
+		{
+			if (_runMode == ERunMode.SimulationOnEditor)
+			{
+				List<PatchBundle> downloadList = new List<PatchBundle>();
+				PatchDownloader downlader = new PatchDownloader(null, downloadList, fileLoadingMaxNumber, failedTryAgain);
+				return downlader;
+			}
+			else if (_runMode == ERunMode.OfflinePlayMode)
+			{
+				List<PatchBundle> downloadList = new List<PatchBundle>();
+				PatchDownloader downlader = new PatchDownloader(null, downloadList, fileLoadingMaxNumber, failedTryAgain);
+				return downlader;
+			}
+			else if (_runMode == ERunMode.HostPlayMode)
+			{
+				if (_hostPlayModeImpl == null)
+					throw new Exception("PatchManager is not initialized.");
+				return _hostPlayModeImpl.CreateBundleDownloader(locations, fileLoadingMaxNumber, failedTryAgain);
+			}
+			else
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		/// <summary>
 		/// 清空沙盒目录
 		/// 注意：可以使用该方法修复我们本地的客户端
 		/// </summary>

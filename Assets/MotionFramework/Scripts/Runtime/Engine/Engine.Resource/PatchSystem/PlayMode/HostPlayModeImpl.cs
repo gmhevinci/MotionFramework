@@ -77,19 +77,12 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 创建补丁下载器
 		/// </summary>
-		/// <param name="dlcTags">DLC标记列表</param>
-		/// <param name="fileLoadingMaxNumber">同时下载的最大文件数</param>
-		/// <param name="failedTryAgain">下载失败的重试次数</param>
 		public PatchDownloader CreateDLCDownloader(string[] dlcTags, int fileLoadingMaxNumber, int failedTryAgain)
 		{
 			List<PatchBundle> downloadList = GetPatchDownloadList(dlcTags);
 			PatchDownloader downlader = new PatchDownloader(this, downloadList, fileLoadingMaxNumber, failedTryAgain);
 			return downlader;
 		}
-
-		/// <summary>
-		/// 获取补丁下载列表
-		/// </summary>
 		private List<PatchBundle> GetPatchDownloadList(string[] dlcTags)
 		{
 			List<PatchBundle> downloadList = new List<PatchBundle>(1000);
@@ -127,6 +120,67 @@ namespace MotionFramework.Resource
 			return CacheAndFilterDownloadList(downloadList);
 		}
 
+		/// <summary>
+		/// 创建补丁下载器
+		/// </summary>
+		public PatchDownloader CreateBundleDownloader(string[] locations, int fileLoadingMaxNumber, int failedTryAgain)
+		{
+			List<string> assetPaths = new List<string>(locations.Length);
+			foreach(var location in locations)
+			{
+				string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
+				assetPaths.Add(assetPath);
+			}
+		
+			List<PatchBundle> downloadList = GetPatchDownloadList(assetPaths);
+			PatchDownloader downlader = new PatchDownloader(this, downloadList, fileLoadingMaxNumber, failedTryAgain);
+			return downlader;
+		}
+		private List<PatchBundle> GetPatchDownloadList(List<string> assetPaths)
+		{
+			// 获取资源对象的资源包和所有依赖资源包
+			List<PatchBundle> checkList = new List<PatchBundle>();
+			foreach(var assetPath in assetPaths)
+			{
+				string mainBundleName = LocalPatchManifest.GetAssetBundleName(assetPath);
+				if(string.IsNullOrEmpty(mainBundleName) == false)
+				{
+					if (LocalPatchManifest.Bundles.TryGetValue(mainBundleName, out PatchBundle mainBundle))
+					{
+						checkList.Add(mainBundle);
+					}
+				}
+
+				string[] dependBundleNames = LocalPatchManifest.GetAllDependencies(assetPath);
+				foreach(var dependBundleName in dependBundleNames)
+				{
+					if (LocalPatchManifest.Bundles.TryGetValue(dependBundleName, out PatchBundle dependBundle))
+					{
+						checkList.Add(dependBundle);
+					}
+				}
+			}
+
+			List<PatchBundle> downloadList = new List<PatchBundle>(1000);
+			foreach (var patchBundle in checkList)
+			{
+				// 忽略缓存资源
+				if (Cache.Contains(patchBundle.Hash))
+					continue;
+
+				// 忽略APP资源
+				// 注意：如果是APP资源并且哈希值相同，则不需要下载
+				if (AppPatchManifest.Bundles.TryGetValue(patchBundle.BundleName, out PatchBundle appPatchBundle))
+				{
+					if (appPatchBundle.IsBuildin && appPatchBundle.Hash == patchBundle.Hash)
+						continue;
+				}
+
+				downloadList.Add(patchBundle);
+			}
+
+			return CacheAndFilterDownloadList(downloadList);
+		}
 
 		// 检测下载内容的完整性
 		internal bool CheckContentIntegrity(string bundleName)
