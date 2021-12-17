@@ -13,7 +13,7 @@ public IEnumerator Initialize()
     MotionEngine.CreateModule<PatchManager>(createParam);
 
     // 初始化补丁系统
-    var operation = patchManager.InitializeAync();
+    var operation = patchManager.InitializeAsync();
     yield return operation;
     
     // 开始游戏
@@ -39,7 +39,7 @@ public IEnumerator Initialize()
     MotionEngine.CreateModule<PatchManager>(createParam);
 
     // 初始化补丁系统
-    var operation = PatchManager.Instance.InitializeAync();
+    var operation = PatchManager.Instance.InitializeAsync();
     yield return operation;
 }
 
