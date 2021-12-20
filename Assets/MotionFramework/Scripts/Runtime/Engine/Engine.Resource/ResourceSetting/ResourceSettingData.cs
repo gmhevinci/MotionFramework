@@ -28,12 +28,18 @@ namespace MotionFramework.Resource
 			_setting = Resources.Load<ResourceSetting>("ResourceSetting");
 			if (_setting == null)
 			{
-				Debug.Log("use default resource setting.");
+				Debug.Log("use default motion framework resource setting.");
 				_setting = ScriptableObject.CreateInstance<ResourceSetting>();
 			}
+			else
+			{
+				Debug.Log("use custom motion framework resource setting.");
+			}
 
+#if !UNITY_EDITOR
 			// 注意：设置为常驻对象
 			_setting.hideFlags = HideFlags.HideAndDontSave;
+#endif
 		}
 	}
 }
