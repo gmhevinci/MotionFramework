@@ -35,11 +35,6 @@ namespace MotionFramework.Resource
 			{
 				Debug.Log("use custom motion framework resource setting.");
 			}
-
-#if !UNITY_EDITOR
-			// 注意：设置为常驻对象
-			_setting.hideFlags = HideFlags.HideAndDontSave;
-#endif
 		}
 	}
 }
