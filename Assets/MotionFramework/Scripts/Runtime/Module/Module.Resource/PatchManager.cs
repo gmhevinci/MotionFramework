@@ -43,11 +43,6 @@ namespace MotionFramework.Resource
 			public bool IgnoreResourceVersion;
 
 			/// <summary>
-			/// 下载文件校验等级
-			/// </summary>
-			public EVerifyLevel VerifyLevel;
-
-			/// <summary>
 			/// 默认的资源服务器下载地址
 			/// </summary>
 			public string DefaultHostServer;
@@ -152,7 +147,6 @@ namespace MotionFramework.Resource
 				return playModeImpl.InitializeAsync(
 					hostPlayModeParameters.ClearCacheWhenDirty,
 					hostPlayModeParameters.IgnoreResourceVersion,
-					hostPlayModeParameters.VerifyLevel,
 					hostPlayModeParameters.DefaultHostServer,
 					hostPlayModeParameters.FallbackHostServer);
 			}

@@ -23,7 +23,6 @@ namespace MotionFramework.Resource
 		// 参数相关
 		internal bool ClearCacheWhenDirty { private set; get; }
 		internal bool IgnoreResourceVersion { private set; get; }
-		private EVerifyLevel _verifyLevel;
 		private string _defaultHostServer;
 		private string _fallbackHostServer;
 
@@ -31,11 +30,10 @@ namespace MotionFramework.Resource
 		/// 异步初始化
 		/// </summary>
 		public InitializationOperation InitializeAsync(bool clearCacheWhenDirty, bool ignoreResourceVersion,
-			EVerifyLevel verifyLevel, string defaultHostServer, string fallbackHostServer)
+			 string defaultHostServer, string fallbackHostServer)
 		{
 			ClearCacheWhenDirty = clearCacheWhenDirty;
 			IgnoreResourceVersion = ignoreResourceVersion;
-			_verifyLevel = verifyLevel;
 			_defaultHostServer = defaultHostServer;
 			_fallbackHostServer = fallbackHostServer;
 
@@ -205,21 +203,14 @@ namespace MotionFramework.Resource
 			if (File.Exists(filePath) == false)
 				return false;
 
-			// 校验沙盒里的补丁文件
-			if (_verifyLevel == EVerifyLevel.Size)
-			{
-				long fileSize = FileUtility.GetFileSize(filePath);
-				return fileSize == size;
-			}
-			else if (_verifyLevel == EVerifyLevel.CRC)
-			{
-				string fileCRC = HashUtility.FileCRC32(filePath);
-				return fileCRC == crc;
-			}
-			else
-			{
-				throw new NotImplementedException(_verifyLevel.ToString());
-			}
+			// 先验证文件大小
+			long fileSize = FileUtility.GetFileSize(filePath);
+			if (fileSize != size)
+				return false;
+
+			// 再验证文件CRC
+			string fileCRC = HashUtility.FileCRC32(filePath);
+			return fileCRC == crc;		
 		}
 
 		// 缓存系统相关
