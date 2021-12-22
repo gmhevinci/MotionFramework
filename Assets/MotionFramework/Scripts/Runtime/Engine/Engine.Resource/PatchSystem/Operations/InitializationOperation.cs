@@ -133,31 +133,31 @@ namespace MotionFramework.Resource
 				// 如果缓存文件不存在
 				if (PatchHelper.CheckSandboxCacheFileExist() == false)
 				{
-					_impl.Cache = new PatchCache();
-					_impl.Cache.InitAppVersion(Application.version);
+					DownloadSystem.Cache = new PatchCache();
+					DownloadSystem.Cache.InitAppVersion(Application.version);
 				}
 				else
 				{
 					// 加载缓存
-					_impl.Cache = PatchCache.LoadCache();
+					DownloadSystem.Cache = PatchCache.LoadCache();
 
 					// 修复缓存
-					_impl.Cache.RepairCache();
+					DownloadSystem.Cache.RepairCache();
 
 					// 每次启动时比对APP版本号是否一致	
-					if (_impl.Cache.CacheAppVersion != Application.version)
+					if (DownloadSystem.Cache.CacheAppVersion != Application.version)
 					{
-						MotionLog.Warning($"Cache is dirty ! Cache app version is {_impl.Cache.CacheAppVersion}, Current app version is {Application.version}");
+						MotionLog.Warning($"Cache is dirty ! Cache app version is {DownloadSystem.Cache.CacheAppVersion}, Current app version is {Application.version}");
 
 						// 注意：在覆盖安装的时候，会保留APP沙盒目录，可以选择清空缓存目录
 						if (_impl.ClearCacheWhenDirty)
 						{
-							_impl.Cache.ClearCache();
+							DownloadSystem.Cache.ClearCache();
 						}
 
 						// 注意：一定要删除清单文件
 						PatchHelper.DeleteSandboxPatchManifestFile();
-						_impl.Cache.InitAppVersion(Application.version);
+						DownloadSystem.Cache.InitAppVersion(Application.version);
 					}
 				}
 				_steps = ESteps.LoadAppManifest;

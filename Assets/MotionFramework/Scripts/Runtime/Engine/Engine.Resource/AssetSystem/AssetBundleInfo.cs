@@ -8,6 +8,8 @@ namespace MotionFramework.Resource
 {
 	public class AssetBundleInfo
 	{
+		private readonly PatchBundle _patchBundle;
+		
 		/// <summary>
 		/// 资源包名称
 		/// </summary>
@@ -21,7 +23,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 远端下载地址
 		/// </summary>
-		public string RemoteURL { private set; get; }
+		public string RemoteMainURL { private set; get; }
 
 		/// <summary>
 		/// 远端下载备用地址
@@ -29,49 +31,116 @@ namespace MotionFramework.Resource
 		public string RemoteFallbackURL { private set; get; }
 
 		/// <summary>
+		/// 文件哈希值
+		/// </summary>
+		public string Hash
+		{
+			get
+			{
+				if (_patchBundle == null)
+					return string.Empty;
+				else
+					return _patchBundle.Hash;
+			}
+		}
+
+		/// <summary>
+		/// 校验的CRC
+		/// </summary>
+		public string CRC
+		{
+			get
+			{
+				if (_patchBundle == null)
+					return string.Empty;
+				else
+					return _patchBundle.CRC;
+			}
+		}
+
+		/// <summary>
+		/// 文件大小
+		/// </summary>
+		public long SizeBytes
+		{
+			get
+			{
+				if (_patchBundle == null)
+					return 0;
+				else
+					return _patchBundle.SizeBytes;
+			}
+		}
+
+		/// <summary>
 		/// 资源版本
 		/// </summary>
-		public int Version { private set; get; }
+		public int Version
+		{
+			get
+			{
+				if (_patchBundle == null)
+					return 0;
+				else
+					return _patchBundle.Version;
+			}
+		}
 
 		/// <summary>
 		/// 是否为加密文件
 		/// </summary>
-		public bool IsEncrypted { private set; get; }
+		public bool IsEncrypted
+		{
+			get
+			{
+				if (_patchBundle == null)
+					return false;
+				else
+					return _patchBundle.IsEncrypted;
+			}
+		}
 
 		/// <summary>
 		/// 是否为原生文件
 		/// </summary>
-		public bool IsRawFile { private set; get; }
+		public bool IsRawFile
+		{
+			get
+			{
+				if (_patchBundle == null)
+					return false;
+				else
+					return _patchBundle.IsRawFile;
+			}
+		}
 
-		public AssetBundleInfo(string bundleName, string localPath, string remoteURL, string remoteFallbackURL, int version, bool isEncrypted, bool isRawFile)
+
+		private AssetBundleInfo()
 		{
-			BundleName = bundleName;
-			LocalPath = localPath;
-			RemoteURL = remoteURL;
-			RemoteFallbackURL = remoteFallbackURL;
-			Version = version;
-			IsEncrypted = isEncrypted;
-			IsRawFile = isRawFile;
 		}
-		public AssetBundleInfo(string bundleName, string localPath, int version, bool isEncrypted, bool isRawFile)
+		internal AssetBundleInfo(PatchBundle patchBundle, string localPath, string mainURL, string fallbackURL)
 		{
-			BundleName = bundleName;
+			_patchBundle = patchBundle;
+			BundleName = patchBundle.BundleName;
 			LocalPath = localPath;
-			RemoteURL = string.Empty;
-			RemoteFallbackURL = string.Empty;
-			Version = version;
-			IsEncrypted = isEncrypted;
-			IsRawFile = isRawFile;
+			RemoteMainURL = mainURL;
+			RemoteFallbackURL = fallbackURL;
 		}
-		public AssetBundleInfo(string bundleName, string localPath)
+		internal AssetBundleInfo(PatchBundle patchBundle, string localPath)
 		{
+			_patchBundle = patchBundle;
+			BundleName = patchBundle.BundleName;
+			LocalPath = localPath;
+			RemoteMainURL = string.Empty;
+			RemoteFallbackURL = string.Empty;
+		}
+		internal AssetBundleInfo(string bundleName, string localPath)
+		{
+			_patchBundle = null;
 			BundleName = bundleName;
 			LocalPath = localPath;
-			RemoteURL = string.Empty;
+			RemoteMainURL = string.Empty;
 			RemoteFallbackURL = string.Empty;
-			Version = 0;
-			IsEncrypted = false;
-			IsRawFile = false;
 		}
 
 		/// <summary>

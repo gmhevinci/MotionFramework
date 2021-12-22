@@ -11,17 +11,17 @@ using UnityEngine.Networking;
 
 namespace MotionFramework.Resource
 {
-	internal sealed class FileDownloader : IEnumerator
+	internal sealed class FileDownloader
 	{
+		public AssetBundleInfo BundleInfo { private set; get; }
 		private UnityWebRequest _webRequest;
 		private UnityWebRequestAsyncOperation _operationHandle;
 
 		private bool _isDone = false;
 		private bool _isError = false;
+		private string _lastError = string.Empty;
 
 		// 保留参数
-		private string _fallbackURL;
-		private string _savePath;
 		private int _timeout;
 		private int _failedTryAgain;
 		private int _requestCount;
@@ -31,21 +31,6 @@ namespace MotionFramework.Resource
 		private bool _isAbort = false;
 		private ulong _latestDownloadBytes;
 		private float _latestDownloadRealtime;
-
-		/// <summary>
-		/// 请求URL地址
-		/// </summary>
-		public string URL { private set; get; }
-
-		/// <summary>
-		/// 用户自定义数据类
-		/// </summary>
-		public object UserData { set; get; }
-
-		/// <summary>
-		/// 引用计数
-		/// </summary>
-		internal int RefCount { private set; get; } = 0;
 
 		/// <summary>
 		/// 下载进度（0-100f）
@@ -74,19 +59,17 @@ namespace MotionFramework.Resource
 		}
 
 
-		internal FileDownloader(string mainURL, string fallbackURL)
+		internal FileDownloader(AssetBundleInfo bundleInfo)
 		{
-			URL = mainURL;
-			_fallbackURL = fallbackURL;
+			BundleInfo = bundleInfo;
 		}
-		internal void SendRequest(string savePath, int failedTryAgain, int timeout)
+		internal void SendRequest(int failedTryAgain, int timeout)
 		{
-			if (string.IsNullOrEmpty(savePath))
+			if (string.IsNullOrEmpty(BundleInfo.LocalPath))
 				throw new ArgumentNullException();
 
 			if (_webRequest == null)
 			{
-				_savePath = savePath;
 				_failedTryAgain = failedTryAgain;
 				_timeout = timeout;
 				_requestCount++;
@@ -98,7 +81,7 @@ namespace MotionFramework.Resource
 				_latestDownloadRealtime = Time.realtimeSinceStartup;
 
 				_webRequest = new UnityWebRequest(_requestURL, UnityWebRequest.kHttpVerbGET);
-				DownloadHandlerFile handler = new DownloadHandlerFile(savePath);
+				DownloadHandlerFile handler = new DownloadHandlerFile(BundleInfo.LocalPath);
 				handler.removeFileOnAbort = true;
 				_webRequest.downloadHandler = handler;
 				_webRequest.disposeDownloadHandlerOnDispose = true;
@@ -114,15 +97,32 @@ namespace MotionFramework.Resource
 
 			if (_operationHandle.isDone)
 			{
-				// 如果发生错误，多尝试几次下载
-				if (CheckError() && _failedTryAgain > 0)
+				// 如果还有机会重新再来一次
+				if (_failedTryAgain > 0)
 				{
-					TryAgainRequest();
+					if (CheckDownloadError())
+					{
+						TryAgainRequest();
+					}
+					else
+					{
+						_isDone = true;
+						_isError = false;
+					}
 				}
 				else
 				{
-					_isError = CheckError();
 					_isDone = true;
+					_isError = CheckDownloadError();
+				}
+
+				if (_isDone)
+				{
+					if (_isError == false)
+						DownloadSystem.CacheDownloadPatchFile(BundleInfo);
+
+					// 释放下载请求
+					DisposeWebRequest();
 				}
 			}
 			else
@@ -131,18 +131,14 @@ namespace MotionFramework.Resource
 				CheckTimeout();
 			}
 		}
-		internal void Refrence()
-		{
-			RefCount++;
-		}
 
 		private string GetRequestURL()
 		{
 			// 轮流返回请求地址
 			if (_requestCount % 2 == 0)
-				return _fallbackURL;
+				return BundleInfo.RemoteFallbackURL;
 			else
-				return URL;
+				return BundleInfo.RemoteMainURL;
 		}
 		private void CheckTimeout()
 		{
@@ -175,15 +171,29 @@ namespace MotionFramework.Resource
 			DisposeWebRequest();
 
 			// 重新请求下载
-			SendRequest(_savePath, _failedTryAgain, _timeout);
+			SendRequest(_failedTryAgain, _timeout);
 			MotionLog.Warning($"Try again request : {_requestURL}");
 		}
-		private bool CheckError()
+		private bool CheckDownloadError()
 		{
 			if (_webRequest.isNetworkError || _webRequest.isHttpError)
+			{
+				_lastError = _webRequest.error;
 				return true;
+			}
 			else
-				return false;
+			{
+				// 注意：如果网络没有错误需要检测文件完整性
+				if (DownloadSystem.CheckContentIntegrity(BundleInfo.LocalPath, BundleInfo.CRC, BundleInfo.SizeBytes))
+				{
+					return false;
+				}
+				else
+				{
+					_lastError = $"Verify file content failed : {BundleInfo.BundleName}";
+					return true;
+				}
+			}
 		}
 		private void DisposeWebRequest()
 		{
@@ -192,18 +202,6 @@ namespace MotionFramework.Resource
 				_webRequest.Dispose();
 				_webRequest = null;
 				_operationHandle = null;
-			}
-		}
-
-		/// <summary>
-		/// 释放下载器
-		/// </summary>
-		public void Dispose()
-		{
-			RefCount--;
-			if (RefCount <= 0)
-			{
-				DisposeWebRequest();
 			}
 		}
 
@@ -225,28 +223,11 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 报告下载时发生的错误
+		/// 报告错误信息
 		/// </summary>
 		public void ReportError()
 		{
-			if (_webRequest != null)
-			{
-				MotionLog.Warning($"URL : {_requestURL} Error : {_webRequest.error}");
-			}
+			MotionLog.Error($"URL : {_requestURL} Error : {_lastError}");
 		}
-
-		#region 异步相关
-		bool IEnumerator.MoveNext()
-		{
-			return !IsDone();
-		}
-		void IEnumerator.Reset()
-		{
-		}
-		object IEnumerator.Current
-		{
-			get { return null; }
-		}
-		#endregion
 	}
 }

@@ -82,19 +82,22 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 缓存单个文件
 		/// </summary>
-		public void CacheDownloadPatchFile(string hash)
+		public void CacheDownloadPatchFile(string hash, bool autoSave)
 		{
 			if (CachedFileHashList.Contains(hash) == false)
 			{
 				CachedFileHashList.Add(hash);
-				SaveCache();
+				if (autoSave)
+				{
+					SaveCache();
+				}
 			}
 		}
 
 		/// <summary>
 		/// 缓存多个文件
 		/// </summary>
-		public void CacheDownloadPatchFiles(List<string> hashList)
+		public void CacheDownloadPatchFiles(List<string> hashList, bool autoSave)
 		{
 			bool hasCached = false;
 			foreach (var hash in hashList)
@@ -106,7 +109,7 @@ namespace MotionFramework.Resource
 				}
 			}
 
-			if (hasCached)
+			if (hasCached && autoSave)
 			{
 				SaveCache();
 			}
@@ -115,7 +118,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 保存缓存文件
 		/// </summary>
-		private void SaveCache()
+		public void SaveCache()
 		{
 			MotionLog.Log("Save patch cache to disk.");
 			string filePath = PatchHelper.GetSandboxCacheFilePath();

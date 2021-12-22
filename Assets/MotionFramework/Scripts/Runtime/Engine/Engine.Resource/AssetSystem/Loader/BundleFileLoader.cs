@@ -34,10 +34,10 @@ namespace MotionFramework.Resource
 
 		private readonly List<AssetProviderBase> _providers = new List<AssetProviderBase>(100);
 		private bool _isWaitForAsyncComplete = false;
-		private FileDownloader _downloader;
+		private FileDownloader _fileDownloader;
 		private AssetBundleCreateRequest _cacheRequest;
 		internal AssetBundle CacheBundle { private set; get; }
-
+		
 
 		public BundleFileLoader(AssetBundleInfo bundleInfo)
 		{
@@ -102,7 +102,7 @@ namespace MotionFramework.Resource
 					return;
 				}
 
-				if (string.IsNullOrEmpty(BundleInfo.RemoteURL))
+				if (string.IsNullOrEmpty(BundleInfo.RemoteMainURL))
 					States = ELoaderStates.LoadFile;
 				else
 					States = ELoaderStates.Download;
@@ -112,40 +112,24 @@ namespace MotionFramework.Resource
 			if (States == ELoaderStates.Download)
 			{
 				int failedTryAgain = int.MaxValue;
-				_downloader = DownloadSystem.GetFileDownloader(BundleInfo.RemoteURL, BundleInfo.RemoteFallbackURL, BundleInfo.LocalPath, failedTryAgain);
+				_fileDownloader = DownloadSystem.BeginDownload(BundleInfo, failedTryAgain);
 				States = ELoaderStates.CheckDownload;
 			}
 
 			// 2. 检测服务器下载结果
 			if (States == ELoaderStates.CheckDownload)
 			{
-				if (_downloader.IsDone() == false)
+				if (_fileDownloader.IsDone() == false)
 					return;
 
-				if (_downloader.HasError())
+				if (_fileDownloader.HasError())
 				{
-					_downloader.ReportError();
+					_fileDownloader.ReportError();
 					States = ELoaderStates.Fail;
 				}
 				else
 				{
-					// 校验文件完整性
-					if (AssetSystem.BundleServices.CacheDownloadFile(BundleInfo.BundleName) == false)
-					{
-						MotionLog.Error($"Cache download file is failed : {BundleInfo.BundleName}");
-						States = ELoaderStates.Fail;
-					}
-					else
-					{
-						States = ELoaderStates.LoadFile;
-					}
-				}
-
-				// 释放网络资源下载器
-				if (_downloader != null)
-				{
-					_downloader.Dispose();
-					_downloader = null;
+					States = ELoaderStates.LoadFile;
 				}
 			}
 
@@ -246,12 +230,6 @@ namespace MotionFramework.Resource
 					throw new Exception($"Bundle file loader ref is not zero : {BundleInfo.BundleName}");
 				if (IsDone() == false)
 					throw new Exception($"Bundle file loader is not done : {BundleInfo.BundleName}");
-			}
-
-			if (_downloader != null)
-			{
-				_downloader.Dispose();
-				_downloader = null;
 			}
 
 			if (CacheBundle != null)

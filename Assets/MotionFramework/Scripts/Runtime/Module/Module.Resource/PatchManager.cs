@@ -111,13 +111,13 @@ namespace MotionFramework.Resource
 			// 更新异步请求操作
 			OperationUpdater.Update();
 
-			// 更新下载管理系统
+			// 更新缓存管理系统
 			DownloadSystem.Update();
 		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(PatchManager)}] Run Mode : {_runMode}");
-			ConsoleGUI.Lable($"[{nameof(PatchManager)}] File Dwonloader : {DownloadSystem.GetFileDownloaderTotalCount()}");
+			ConsoleGUI.Lable($"[{nameof(PatchManager)}] Dwonloader : {DownloadSystem.GetDownloaderTotalCount()}");
 		}
 
 		/// <summary>
@@ -262,13 +262,13 @@ namespace MotionFramework.Resource
 		{
 			if (_runMode == ERunMode.SimulationOnEditor)
 			{
-				List<PatchBundle> downloadList = new List<PatchBundle>();
+				List<AssetBundleInfo> downloadList = new List<AssetBundleInfo>();
 				PatchDownloader downlader = new PatchDownloader(null, downloadList, fileLoadingMaxNumber, failedTryAgain);
 				return downlader;
 			}
 			else if (_runMode == ERunMode.OfflinePlayMode)
 			{
-				List<PatchBundle> downloadList = new List<PatchBundle>();
+				List<AssetBundleInfo> downloadList = new List<AssetBundleInfo>();
 				PatchDownloader downlader = new PatchDownloader(null, downloadList, fileLoadingMaxNumber, failedTryAgain);
 				return downlader;
 			}
@@ -294,13 +294,13 @@ namespace MotionFramework.Resource
 		{
 			if (_runMode == ERunMode.SimulationOnEditor)
 			{
-				List<PatchBundle> downloadList = new List<PatchBundle>();
+				List<AssetBundleInfo> downloadList = new List<AssetBundleInfo>();
 				PatchDownloader downlader = new PatchDownloader(null, downloadList, fileLoadingMaxNumber, failedTryAgain);
 				return downlader;
 			}
 			else if (_runMode == ERunMode.OfflinePlayMode)
 			{
-				List<PatchBundle> downloadList = new List<PatchBundle>();
+				List<AssetBundleInfo> downloadList = new List<AssetBundleInfo>();
 				PatchDownloader downlader = new PatchDownloader(null, downloadList, fileLoadingMaxNumber, failedTryAgain);
 				return downlader;
 			}

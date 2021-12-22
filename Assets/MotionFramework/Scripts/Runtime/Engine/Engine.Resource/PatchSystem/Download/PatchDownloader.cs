@@ -6,9 +6,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using MotionFramework.Network;
-using MotionFramework.Utility;
 
 namespace MotionFramework.Resource
 {
@@ -22,15 +19,12 @@ namespace MotionFramework.Resource
 		public delegate void OnDownloadOver(bool isSucceed);
 		public delegate void OnDownloadProgress(int totalDownloadCount, int currentDownloadCoun, long totalDownloadBytes, long currentDownloadBytes);
 		public delegate void OnPatchFileDownloadFailed(string fileName);
-		public delegate void OnPatchFileCheckFailed(string fileName);
 
 		private readonly HostPlayModeImpl _playModeImpl;
 		private readonly int _fileLoadingMaxNumber;
 		private readonly int _failedTryAgain;
-		private readonly List<PatchBundle> _downloadList;
-		private readonly List<PatchBundle> _succeedList = new List<PatchBundle>();
-		private readonly List<PatchBundle> _loadFailedList = new List<PatchBundle>();
-		private readonly List<PatchBundle> _checkFailedList = new List<PatchBundle>();
+		private readonly List<AssetBundleInfo> _downloadList;
+		private readonly List<AssetBundleInfo> _loadFailedList = new List<AssetBundleInfo>();
 		private readonly List<FileDownloader> _downloaders = new List<FileDownloader>();
 		private readonly List<FileDownloader> _removeList = new List<FileDownloader>(MAX_LOADER_COUNT);
 
@@ -47,13 +41,12 @@ namespace MotionFramework.Resource
 		public OnDownloadOver OnDownloadOverCallback { set; get; }
 		public OnDownloadProgress OnDownloadProgressCallback { set; get; }
 		public OnPatchFileDownloadFailed OnPatchFileDownloadFailedCallback { set; get; }
-		public OnPatchFileCheckFailed OnPatchFileCheckFailedCallback { set; get; }
 
 
 		private PatchDownloader()
 		{
 		}
-		internal PatchDownloader(HostPlayModeImpl playModeImpl, List<PatchBundle> downloadList, int fileLoadingMaxNumber, int failedTryAgain)
+		internal PatchDownloader(HostPlayModeImpl playModeImpl, List<AssetBundleInfo> downloadList, int fileLoadingMaxNumber, int failedTryAgain)
 		{
 			_playModeImpl = playModeImpl;
 			_downloadList = downloadList;
@@ -73,23 +66,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsDone()
 		{
-			return DownloadStates == EDownloaderStates.Failed || DownloadStates == EDownloaderStates.Succeed || DownloadStates == EDownloaderStates.Forbid;
-		}
-
-		/// <summary>
-		/// 取消下载
-		/// </summary>
-		public void Forbid()
-		{
-			if (DownloadStates != EDownloaderStates.Forbid)
-			{
-				DownloadStates = EDownloaderStates.Forbid;
-				foreach (var loader in _downloaders)
-				{
-					loader.Dispose();
-				}
-				_downloaders.Clear();
-			}
+			return DownloadStates == EDownloaderStates.Failed || DownloadStates == EDownloaderStates.Succeed;
 		}
 
 		/// <summary>
@@ -118,40 +95,27 @@ namespace MotionFramework.Resource
 			// 检测下载器结果
 			_removeList.Clear();
 			long downloadBytes = CurrentDownloadBytes;
-			foreach (var loader in _downloaders)
+			foreach (var downloader in _downloaders)
 			{
-				downloadBytes += (long)loader.DownloadedBytes;
-				if (loader.IsDone() == false)
+				downloadBytes += (long)downloader.DownloadedBytes;
+				if (downloader.IsDone() == false)
 					continue;
 
-				PatchBundle patchBundle = loader.UserData as PatchBundle;
+				AssetBundleInfo bundleInfo = downloader.BundleInfo;
 
 				// 检测是否下载失败
-				if (loader.HasError())
+				if (downloader.HasError())
 				{
-					loader.ReportError();
-					loader.Dispose();
-					_removeList.Add(loader);
-					_loadFailedList.Add(patchBundle);
-					continue;
-				}
-
-				// 验证下载文件完整性
-				if (_playModeImpl.CheckContentIntegrity(patchBundle) == false)
-				{
-					MotionLog.Error($"Check download content integrity is failed : {patchBundle.BundleName}");
-					loader.Dispose();
-					_removeList.Add(loader);
-					_checkFailedList.Add(patchBundle);
+					downloader.ReportError();
+					_removeList.Add(downloader);
+					_loadFailedList.Add(bundleInfo);
 					continue;
 				}
 
 				// 下载成功
-				loader.Dispose();
-				_removeList.Add(loader);
-				_succeedList.Add(patchBundle);
+				_removeList.Add(downloader);
 				CurrentDownloadCount++;
-				CurrentDownloadBytes += patchBundle.SizeBytes;
+				CurrentDownloadBytes += bundleInfo.SizeBytes;
 			}
 
 			// 移除已经完成的下载器（无论成功或失败）
@@ -170,13 +134,13 @@ namespace MotionFramework.Resource
 
 			// 动态创建新的下载器到最大数量限制
 			// 注意：如果期间有下载失败的文件，暂停动态创建下载器
-			if (_downloadList.Count > 0 && _loadFailedList.Count == 0 && _checkFailedList.Count == 0)
+			if (_downloadList.Count > 0 && _loadFailedList.Count == 0)
 			{
 				if (_downloaders.Count < _fileLoadingMaxNumber)
 				{
 					int index = _downloadList.Count - 1;
-					FileDownloader downloader = CreateDownloader(_downloadList[index]);
-					_downloaders.Add(downloader);
+					var operation = DownloadSystem.BeginDownload(_downloadList[index], _failedTryAgain);
+					_downloaders.Add(operation);
 					_downloadList.RemoveAt(index);
 				}
 			}
@@ -184,20 +148,10 @@ namespace MotionFramework.Resource
 			// 下载结算
 			if (_downloaders.Count == 0)
 			{
-				// 更新缓存并保存
-				if (_succeedList.Count > 0)
-					_playModeImpl.CacheDownloadPatchFiles(_succeedList);
-
 				if (_loadFailedList.Count > 0)
 				{
 					DownloadStates = EDownloaderStates.Failed;
 					OnPatchFileDownloadFailedCallback?.Invoke(_loadFailedList[0].BundleName);
-					OnDownloadOverCallback?.Invoke(false);
-				}
-				else if (_checkFailedList.Count > 0)
-				{
-					DownloadStates = EDownloaderStates.Failed;
-					OnPatchFileCheckFailedCallback?.Invoke(_checkFailedList[0].BundleName);
 					OnDownloadOverCallback?.Invoke(false);
 				}
 				else
@@ -207,21 +161,6 @@ namespace MotionFramework.Resource
 					OnDownloadOverCallback?.Invoke(true);
 				}
 			}
-		}
-
-		private FileDownloader CreateDownloader(PatchBundle patchBundle)
-		{
-			// 注意：资源版本号只用于确定下载路径
-			string mainURL = _playModeImpl.GetPatchDownloadURL(patchBundle.Version, patchBundle.Hash);
-			string fallbackURL = _playModeImpl.GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);
-			string savePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-			FileUtility.CreateFileDirectory(savePath);
-
-			// 创建下载器
-			MotionLog.Log($"Beginning to download web file : {patchBundle.BundleName} URL : {mainURL}");
-			FileDownloader download = DownloadSystem.GetFileDownloader(mainURL, fallbackURL, savePath, _failedTryAgain);
-			download.UserData = patchBundle;
-			return download;
 		}
 
 		#region 异步相关

@@ -15,6 +15,5 @@ namespace MotionFramework.Resource
 		Loading,
 		Failed,
 		Succeed,
-		Forbid,
 	}
 }

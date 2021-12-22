@@ -1,18 +1,13 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 
 namespace MotionFramework.Resource
 {
 	public interface IBundleServices
-	{
-		/// <summary>
-		/// 缓存下载的文件（如果校验失败返回FALSE）
-		/// </summary>
-		bool CacheDownloadFile(string bundleName);
-
+	{	
 		/// <summary>
 		/// 获取AssetBundle的信息
 		/// </summary>

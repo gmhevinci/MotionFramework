@@ -52,7 +52,7 @@ namespace MotionFramework.Resource
 			if (AppPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
 				string localPath = AssetPathHelper.MakeStreamingLoadPath(patchBundle.Hash);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, localPath, patchBundle.Version, patchBundle.IsEncrypted, patchBundle.IsRawFile);
+				AssetBundleInfo bundleInfo = new AssetBundleInfo(patchBundle, localPath);
 				return bundleInfo;
 			}
 			else
@@ -61,10 +61,6 @@ namespace MotionFramework.Resource
 				AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, string.Empty);
 				return bundleInfo;
 			}
-		}
-		bool IBundleServices.CacheDownloadFile(string bundleName)
-		{
-			throw new NotImplementedException();
 		}
 		string IBundleServices.GetAssetBundleName(string assetPath)
 		{
