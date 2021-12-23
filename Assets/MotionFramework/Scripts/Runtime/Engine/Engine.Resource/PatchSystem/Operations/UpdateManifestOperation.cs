@@ -233,7 +233,7 @@ namespace MotionFramework.Resource
 
 				// 验证沙盒内的文件
 				if (DownloadSystem.CheckContentIntegrity(patchBundle))
-					DownloadSystem.CacheVerifyFile(patchBundle.BundleName, patchBundle.Hash);
+					DownloadSystem.CacheVerifyFile(patchBundle.Hash, patchBundle.BundleName);
 
 				// 单帧处理超时的时候退出，下一帧继续处理
 				if (watch.ElapsedMilliseconds > TimeSliceMilliseconds)

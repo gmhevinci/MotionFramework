@@ -141,7 +141,8 @@ namespace MotionFramework.Resource
 				{
 					if (LocalPatchManifest.Bundles.TryGetValue(mainBundleName, out PatchBundle mainBundle))
 					{
-						checkList.Add(mainBundle);
+						if (checkList.Contains(mainBundle) == false)
+							checkList.Add(mainBundle);
 					}
 				}
 
@@ -150,7 +151,8 @@ namespace MotionFramework.Resource
 				{
 					if (LocalPatchManifest.Bundles.TryGetValue(dependBundleName, out PatchBundle dependBundle))
 					{
-						checkList.Add(dependBundle);
+						if (checkList.Contains(dependBundle) == false)
+							checkList.Add(dependBundle);
 					}
 				}
 			}

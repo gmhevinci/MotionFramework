@@ -121,7 +121,7 @@ namespace MotionFramework.Resource
 				{
 					if (_isError == false)
 					{
-						DownloadSystem.CacheVerifyFile(BundleInfo.BundleName, BundleInfo.Hash);
+						DownloadSystem.CacheVerifyFile(BundleInfo.Hash, BundleInfo.BundleName);
 					}
 					else
 					{
@@ -139,6 +139,10 @@ namespace MotionFramework.Resource
 				// 检测是否超时
 				CheckTimeout();
 			}
+		}
+		internal void SetDone()
+		{
+			_isDone = true;
 		}
 
 		private string GetRequestURL()

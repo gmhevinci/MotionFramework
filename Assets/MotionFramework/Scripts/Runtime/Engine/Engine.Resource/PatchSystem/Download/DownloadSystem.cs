@@ -15,7 +15,7 @@ namespace MotionFramework.Resource
 	{
 		private static readonly Dictionary<string, FileDownloader> _downloaderDic = new Dictionary<string, FileDownloader>();
 		private static readonly List<string> _removeList = new List<string>(100);
-		private static readonly List<string> _cachedHashList = new List<string>(1000);
+		private static readonly Dictionary<string, string> _cachedHashList = new Dictionary<string, string>(1000);
 
 
 		/// <summary>
@@ -46,16 +46,23 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static FileDownloader BeginDownload(AssetBundleInfo bundleInfo, int failedTryAgain, int timeout = 60)
 		{
-			MotionLog.Log($"Beginning to download file : {bundleInfo.BundleName} URL : {bundleInfo.RemoteMainURL}");
-
 			// 查询存在的下载器
 			if (_downloaderDic.TryGetValue(bundleInfo.Hash, out var downloader))
 			{
 				return downloader;
 			}
 
+			// 如果资源已经缓存
+			if(ContainsVerifyFile(bundleInfo.Hash))
+			{
+				var newDownloader = new FileDownloader(bundleInfo);
+				newDownloader.SetDone();
+				return newDownloader;
+			}
+
 			// 创建新的下载器	
 			{
+				MotionLog.Log($"Beginning to download file : {bundleInfo.BundleName} URL : {bundleInfo.RemoteMainURL}");
 				FileUtility.CreateFileDirectory(bundleInfo.LocalPath);
 				var newDownloader = new FileDownloader(bundleInfo);
 				newDownloader.SendRequest(failedTryAgain, timeout);
@@ -78,7 +85,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static bool ContainsVerifyFile(string hash)
 		{
-			if (_cachedHashList.Contains(hash))
+			if (_cachedHashList.ContainsKey(hash))
 			{
 				string filePath = PatchHelper.MakeSandboxCacheFilePath(hash);
 				if (File.Exists(filePath))
@@ -87,7 +94,9 @@ namespace MotionFramework.Resource
 				}
 				else
 				{
-					MotionLog.Error($"Cache file is missing : {hash}");
+					string bundleName = _cachedHashList[hash];
+					_cachedHashList.Remove(hash);
+					MotionLog.Error($"Cache file is missing : {bundleName} Hash : {hash}");
 					return false;
 				}
 			}
@@ -100,12 +109,12 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 缓存验证过的文件
 		/// </summary>
-		public static void CacheVerifyFile(string bundleName, string hash)
+		public static void CacheVerifyFile(string hash, string bundleName)
 		{
-			if (_cachedHashList.Contains(hash) == false)
+			if (_cachedHashList.ContainsKey(hash) == false)
 			{
 				MotionLog.Log($"Cache verify file : {bundleName} Hash : {hash}");
-				_cachedHashList.Add(hash);
+				_cachedHashList.Add(hash, bundleName);
 			}
 		}
 
