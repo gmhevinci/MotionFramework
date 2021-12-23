@@ -11,6 +11,11 @@ using MotionFramework.Utility;
 
 namespace MotionFramework.Resource
 {
+	/// <summary>
+	/// 1. 保证每一时刻资源文件只存在一个下载器
+	/// 2. 保证下载器下载完成后立刻验证并缓存
+	/// 3. 保证资源文件不会被重复下载
+	/// </summary>
 	internal static class DownloadSystem
 	{
 		private static readonly Dictionary<string, FileDownloader> _downloaderDic = new Dictionary<string, FileDownloader>();
