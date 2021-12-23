@@ -34,34 +34,20 @@ namespace MotionFramework.Resource
 		private ulong _latestDownloadBytes;
 		private float _latestDownloadRealtime;
 
+		// 等待请求相关
+		private bool _waitTryAgain = false;
+		private readonly Timer _waitTimer = Timer.CreateOnceTimer(0.5f);
+
 		/// <summary>
 		/// 下载进度（0-100f）
 		/// </summary>
-		public float DownloadProgress
-		{
-			get
-			{
-				if (_webRequest == null)
-					return 0;
-				return _webRequest.downloadProgress * 100f;
-			}
-		}
+		public float DownloadProgress { private set; get; }
 
 		/// <summary>
 		/// 已经下载的总字节数
 		/// </summary>
-		public ulong DownloadedBytes
-		{
-			get
-			{
-				if (_webRequest == null)
-					return 0;
-				return _webRequest.downloadedBytes;
-			}
-		}
+		public ulong DownloadedBytes { private set; get; }
 
-		private bool _waitTryAgain = false;
-		private Timer _waitTimer = Timer.CreateOnceTimer(0.5f);
 
 		internal FileDownloader(AssetBundleInfo bundleInfo)
 		{
@@ -83,6 +69,9 @@ namespace MotionFramework.Resource
 				_isAbort = false;
 				_latestDownloadBytes = 0;
 				_latestDownloadRealtime = Time.realtimeSinceStartup;
+
+				DownloadProgress = 0f;
+				DownloadedBytes = 0;
 
 				_webRequest = new UnityWebRequest(_requestURL, UnityWebRequest.kHttpVerbGET);
 				DownloadHandlerFile handler = new DownloadHandlerFile(BundleInfo.LocalPath);
@@ -109,6 +98,9 @@ namespace MotionFramework.Resource
 				}
 				return;
 			}
+
+			DownloadProgress = _webRequest.downloadProgress * 100f;
+			DownloadedBytes = _webRequest.downloadedBytes;
 
 			if (_operationHandle.isDone)
 			{

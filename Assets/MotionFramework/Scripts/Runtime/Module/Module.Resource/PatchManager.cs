@@ -111,7 +111,7 @@ namespace MotionFramework.Resource
 			// 更新异步请求操作
 			OperationUpdater.Update();
 
-			// 更新缓存管理系统
+			// 更新下载管理系统
 			DownloadSystem.Update();
 		}
 		void IModule.OnGUI()

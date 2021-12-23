@@ -43,9 +43,9 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 保存缓存文件
 		/// </summary>
-		public void SaveCache()
+		private void SaveCache()
 		{
-			MotionLog.Log("Save patch cache to disk.");
+			MotionLog.Log("Save application version to disk.");
 			string filePath = PatchHelper.GetSandboxCacheFilePath();
 			string jsonData = JsonUtility.ToJson(this);
 			FileUtility.CreateFile(filePath, jsonData);
