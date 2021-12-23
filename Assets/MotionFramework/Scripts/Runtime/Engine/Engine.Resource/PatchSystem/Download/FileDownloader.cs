@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
+using MotionFramework.Utility;
 
 namespace MotionFramework.Resource
 {
@@ -59,6 +60,8 @@ namespace MotionFramework.Resource
 			}
 		}
 
+		private bool _waitTryAgain = false;
+		private Timer _waitTimer = Timer.CreateOnceTimer(0.5f);
 
 		internal FileDownloader(AssetBundleInfo bundleInfo)
 		{
@@ -96,6 +99,17 @@ namespace MotionFramework.Resource
 			if (_isDone)
 				return;
 
+			// 等待再次执行
+			if (_waitTryAgain)
+			{
+				if (_waitTimer.Update(Time.unscaledDeltaTime))
+				{
+					_waitTryAgain = false;
+					TryAgainRequest();
+				}
+				return;
+			}
+
 			if (_operationHandle.isDone)
 			{
 				// 如果还有机会重新再来一次
@@ -103,7 +117,8 @@ namespace MotionFramework.Resource
 				{
 					if (CheckDownloadError())
 					{
-						TryAgainRequest();
+						_waitTryAgain = true;
+						_waitTimer.Reset();
 					}
 					else
 					{
@@ -126,7 +141,7 @@ namespace MotionFramework.Resource
 					else
 					{
 						// 注意：如果文件验证失败需要删除文件
-						if(File.Exists(BundleInfo.LocalPath))
+						if (File.Exists(BundleInfo.LocalPath))
 							File.Delete(BundleInfo.LocalPath);
 					}
 
