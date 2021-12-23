@@ -12,25 +12,17 @@ using MotionFramework.Utility;
 namespace MotionFramework.Resource
 {
 	internal static class DownloadSystem
-    {
-		public static PatchCache Cache;
-
+	{
 		private static readonly Dictionary<string, FileDownloader> _downloaderDic = new Dictionary<string, FileDownloader>();
 		private static readonly List<string> _removeList = new List<string>(100);
-		private static readonly Timer _saveTimer = Timer.CreateOnceTimer(3f);
-		private static bool _firstRun = true;
+		private static readonly List<string> _cachedHashList = new List<string>(1000);
+
 
 		/// <summary>
 		/// 更新所有下载器
 		/// </summary>
 		public static void Update()
 		{
-			if(_firstRun)
-			{
-				_firstRun = false;
-				_saveTimer.Kill();
-			}
-
 			// 更新下载器
 			_removeList.Clear();
 			foreach (var valuePair in _downloaderDic)
@@ -46,12 +38,6 @@ namespace MotionFramework.Resource
 			{
 				_downloaderDic.Remove(key);
 			}
-
-			// 自动保存存储文件
-			if(_saveTimer.Update(UnityEngine.Time.unscaledDeltaTime))
-			{
-				Cache.SaveCache();
-			}
 		}
 
 		/// <summary>
@@ -62,14 +48,15 @@ namespace MotionFramework.Resource
 		{
 			MotionLog.Log($"Beginning to download file : {bundleInfo.BundleName} URL : {bundleInfo.RemoteMainURL}");
 
+			// 查询存在的下载器
 			if (_downloaderDic.TryGetValue(bundleInfo.Hash, out var downloader))
 			{
 				return downloader;
 			}
-			
+
 			// 创建新的下载器	
 			{
-				FileUtility.CreateFileDirectory(bundleInfo.LocalPath);			
+				FileUtility.CreateFileDirectory(bundleInfo.LocalPath);
 				var newDownloader = new FileDownloader(bundleInfo);
 				newDownloader.SendRequest(failedTryAgain, timeout);
 				_downloaderDic.Add(bundleInfo.Hash, newDownloader);
@@ -85,35 +72,54 @@ namespace MotionFramework.Resource
 			return _downloaderDic.Count;
 		}
 
-
 		/// <summary>
-		/// 缓存单个文件
+		/// 查询是否为验证文件
+		/// 注意：被收录的文件完整性是绝对有效的
 		/// </summary>
-		public static void CacheDownloadPatchFile(AssetBundleInfo bundleInfo)
+		public static bool ContainsVerifyFile(string hash)
 		{
-			MotionLog.Log($"Cache download web file : {bundleInfo.BundleName} Version : {bundleInfo.Version} Hash : {bundleInfo.Hash}");
-			Cache.CacheDownloadPatchFile(bundleInfo.Hash, false);
-			_saveTimer.Reset();
-		}
-
-		/// <summary>
-		/// 缓存多个文件
-		/// </summary>
-		public static void CacheDownloadPatchFiles(List<PatchBundle> downloadList)
-		{
-			List<string> hashList = new List<string>(downloadList.Count);
-			foreach (var patchBundle in downloadList)
+			if (_cachedHashList.Contains(hash))
 			{
-				MotionLog.Log($"Cache download web file : {patchBundle.BundleName} Version : {patchBundle.Version} Hash : {patchBundle.Hash}");
-				hashList.Add(patchBundle.Hash);
+				string filePath = PatchHelper.MakeSandboxCacheFilePath(hash);
+				if (File.Exists(filePath))
+				{
+					return true;
+				}
+				else
+				{
+					MotionLog.Error($"Cache file is missing : {hash}");
+					return false;
+				}
 			}
-			Cache.CacheDownloadPatchFiles(hashList, true);
+			else
+			{
+				return false;
+			}
 		}
 
 		/// <summary>
-		/// 验证文件完整性
+		/// 缓存验证过的文件
 		/// </summary>
-		public static bool CheckContentIntegrity(string filePath, string crc, long size)
+		public static void CacheVerifyFile(string bundleName, string hash)
+		{
+			if (_cachedHashList.Contains(hash) == false)
+			{
+				MotionLog.Log($"Cache verify file : {bundleName} Hash : {hash}");
+				_cachedHashList.Add(hash);
+			}
+		}
+
+		// 验证文件完整性
+		public static bool CheckContentIntegrity(AssetBundleInfo bundleInfo)
+		{
+			return CheckContentIntegrity(bundleInfo.LocalPath, bundleInfo.SizeBytes, bundleInfo.CRC);
+		}
+		public static bool CheckContentIntegrity(PatchBundle patchBundle)
+		{
+			string filePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+			return CheckContentIntegrity(filePath, patchBundle.SizeBytes, patchBundle.CRC);
+		}
+		private static bool CheckContentIntegrity(string filePath, long size, string crc)
 		{
 			if (File.Exists(filePath) == false)
 				return false;

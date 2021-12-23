@@ -111,6 +111,7 @@ namespace MotionFramework.Resource
 		}
 
 		private HostPlayModeImpl _impl;
+		private PatchCache _cache;
 		private ESteps _steps = ESteps.Idle;
 		private WebGetRequest _downloader;
 		private string _downloadURL;
@@ -133,31 +134,28 @@ namespace MotionFramework.Resource
 				// 如果缓存文件不存在
 				if (PatchHelper.CheckSandboxCacheFileExist() == false)
 				{
-					DownloadSystem.Cache = new PatchCache();
-					DownloadSystem.Cache.InitAppVersion(Application.version);
+					_cache = new PatchCache();
+					_cache.InitAppVersion(Application.version);
 				}
 				else
 				{
 					// 加载缓存
-					DownloadSystem.Cache = PatchCache.LoadCache();
-
-					// 修复缓存
-					DownloadSystem.Cache.RepairCache();
+					_cache = PatchCache.LoadCache();
 
 					// 每次启动时比对APP版本号是否一致	
-					if (DownloadSystem.Cache.CacheAppVersion != Application.version)
+					if (_cache.CacheAppVersion != Application.version)
 					{
-						MotionLog.Warning($"Cache is dirty ! Cache app version is {DownloadSystem.Cache.CacheAppVersion}, Current app version is {Application.version}");
+						MotionLog.Warning($"Cache is dirty ! Cache app version is {_cache.CacheAppVersion}, Current app version is {Application.version}");
 
 						// 注意：在覆盖安装的时候，会保留APP沙盒目录，可以选择清空缓存目录
 						if (_impl.ClearCacheWhenDirty)
 						{
-							DownloadSystem.Cache.ClearCache();
+							_cache.ClearCache();
 						}
 
 						// 注意：一定要删除清单文件
 						PatchHelper.DeleteSandboxPatchManifestFile();
-						DownloadSystem.Cache.InitAppVersion(Application.version);
+						_cache.InitAppVersion(Application.version);
 					}
 				}
 				_steps = ESteps.LoadAppManifest;

@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -119,7 +120,15 @@ namespace MotionFramework.Resource
 				if (_isDone)
 				{
 					if (_isError == false)
-						DownloadSystem.CacheDownloadPatchFile(BundleInfo);
+					{
+						DownloadSystem.CacheVerifyFile(BundleInfo.BundleName, BundleInfo.Hash);
+					}
+					else
+					{
+						// 注意：如果文件验证失败需要删除文件
+						if(File.Exists(BundleInfo.LocalPath))
+							File.Delete(BundleInfo.LocalPath);
+					}
 
 					// 释放下载请求
 					DisposeWebRequest();
@@ -184,7 +193,7 @@ namespace MotionFramework.Resource
 			else
 			{
 				// 注意：如果网络没有错误需要检测文件完整性
-				if (DownloadSystem.CheckContentIntegrity(BundleInfo.LocalPath, BundleInfo.CRC, BundleInfo.SizeBytes))
+				if (DownloadSystem.CheckContentIntegrity(BundleInfo))
 				{
 					return false;
 				}

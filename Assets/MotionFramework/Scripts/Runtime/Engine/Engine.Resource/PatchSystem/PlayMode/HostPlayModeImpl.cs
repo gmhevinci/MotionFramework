@@ -82,13 +82,9 @@ namespace MotionFramework.Resource
 			List<PatchBundle> downloadList = new List<PatchBundle>(1000);
 			foreach (var patchBundle in LocalPatchManifest.BundleList)
 			{
-				// 忽略缓存资源
-				if (DownloadSystem.Cache.Contains(patchBundle.Hash))
-				{
-					string sandboxPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-					if (File.Exists(sandboxPath))
-						continue;
-				}
+				// 忽略缓存文件
+				if (DownloadSystem.ContainsVerifyFile(patchBundle.Hash))
+					continue;
 
 				// 忽略APP资源
 				// 注意：如果是APP资源并且哈希值相同，则不需要下载
@@ -115,7 +111,7 @@ namespace MotionFramework.Resource
 				}
 			}
 
-			return CacheAndFilterDownloadList(downloadList);
+			return ConvertToDownloadList(downloadList);
 		}
 
 		/// <summary>
@@ -162,13 +158,9 @@ namespace MotionFramework.Resource
 			List<PatchBundle> downloadList = new List<PatchBundle>(1000);
 			foreach (var patchBundle in checkList)
 			{
-				// 忽略缓存资源
-				if (DownloadSystem.Cache.Contains(patchBundle.Hash))
-				{
-					string sandboxPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-					if (File.Exists(sandboxPath))
-						continue;
-				}
+				// 忽略缓存文件
+				if (DownloadSystem.ContainsVerifyFile(patchBundle.Hash))
+					continue;
 
 				// 忽略APP资源
 				// 注意：如果是APP资源并且哈希值相同，则不需要下载
@@ -181,60 +173,11 @@ namespace MotionFramework.Resource
 				downloadList.Add(patchBundle);
 			}
 
-			return CacheAndFilterDownloadList(downloadList);
-		}
-
-		// 缓存系统相关
-		private List<AssetBundleInfo> CacheAndFilterDownloadList(List<PatchBundle> downloadList)
-		{
-			// 检测文件是否已经下载完毕
-			// 注意：如果玩家在加载过程中强制退出，下次再进入的时候跳过已经下载的文件
-			List<PatchBundle> cacheList = new List<PatchBundle>();
-			for (int i = downloadList.Count - 1; i >= 0; i--)
-			{
-				var patchBundle = downloadList[i];
-				if (CheckContentIntegrity(patchBundle))
-				{
-					cacheList.Add(patchBundle);
-					downloadList.RemoveAt(i);
-				}
-			}
-
-			// 缓存已经下载的有效文件
-			if (cacheList.Count > 0)
-				DownloadSystem.CacheDownloadPatchFiles(cacheList);
-
-			List<AssetBundleInfo> result = new List<AssetBundleInfo>(downloadList.Count);
-			foreach (var patchBundle in downloadList)
-			{
-				// 注意：资源版本号只用于确定下载路径
-				string loadPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-				string remoteURL = GetPatchDownloadURL(patchBundle.Version, patchBundle.Hash);
-				string remoteFallbackURL = GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(patchBundle, loadPath, remoteURL, remoteFallbackURL);
-				result.Add(bundleInfo);
-			}
-			return result;
-		}
-		private bool CheckContentIntegrity(PatchBundle patchBundle)
-		{
-			string filePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-			return DownloadSystem.CheckContentIntegrity(filePath, patchBundle.CRC, patchBundle.SizeBytes);
-		}
-
-		// 补丁清单相关
-		internal void ParseAndSaveRemotePatchManifest(string content)
-		{
-			LocalPatchManifest = PatchManifest.Deserialize(content);
-
-			// 注意：这里会覆盖掉沙盒内的补丁清单文件
-			MotionLog.Log("Save remote patch manifest file.");
-			string savePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
-			PatchManifest.Serialize(savePath, LocalPatchManifest);
+			return ConvertToDownloadList(downloadList);
 		}
 
 		// WEB相关
-		internal string GetPatchDownloadURL(int resourceVersion, string fileName)
+		internal string GetPatchDownloadMainURL(int resourceVersion, string fileName)
 		{
 			if (IgnoreResourceVersion)
 				return $"{_defaultHostServer}/{fileName}";
@@ -247,6 +190,27 @@ namespace MotionFramework.Resource
 				return $"{_fallbackHostServer}/{fileName}";
 			else
 				return $"{_fallbackHostServer}/{resourceVersion}/{fileName}";
+		}
+
+		// 下载相关
+		private AssetBundleInfo ConvertToDownloadInfo(PatchBundle patchBundle)
+		{
+			// 注意：资源版本号只用于确定下载路径
+			string sandboxPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+			string remoteMainURL = GetPatchDownloadMainURL(patchBundle.Version, patchBundle.Hash);
+			string remoteFallbackURL = GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);
+			AssetBundleInfo bundleInfo = new AssetBundleInfo(patchBundle, sandboxPath, remoteMainURL, remoteFallbackURL);
+			return bundleInfo;
+		}
+		private List<AssetBundleInfo> ConvertToDownloadList(List<PatchBundle> downloadList)
+		{
+			List<AssetBundleInfo> result = new List<AssetBundleInfo>(downloadList.Count);
+			foreach (var patchBundle in downloadList)
+			{
+				var bundleInfo = ConvertToDownloadInfo(patchBundle);
+				result.Add(bundleInfo);
+			}
+			return result;
 		}
 
 		#region IBundleServices接口
@@ -268,29 +232,16 @@ namespace MotionFramework.Resource
 					}
 				}
 
-				// 查询沙盒资源
-				string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-				if (DownloadSystem.Cache.Contains(patchBundle.Hash))
+				// 查询沙盒资源				
+				if (DownloadSystem.ContainsVerifyFile(patchBundle.Hash))
 				{
-					if (File.Exists(sandboxLoadPath))
-					{
-						AssetBundleInfo bundleInfo = new AssetBundleInfo(patchBundle, sandboxLoadPath);
-						return bundleInfo;
-					}
-					else
-					{
-						MotionLog.Error($"Cache file is missing : {sandboxLoadPath}, Bundle : {bundleName}");
-					}
+					string sandboxLoadPath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+					AssetBundleInfo bundleInfo = new AssetBundleInfo(patchBundle, sandboxLoadPath);
+					return bundleInfo;
 				}
 
 				// 从服务端下载
-				{
-					// 注意：资源版本号只用于确定下载路径
-					string remoteURL = GetPatchDownloadURL(patchBundle.Version, patchBundle.Hash);
-					string remoteFallbackURL = GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);
-					AssetBundleInfo bundleInfo = new AssetBundleInfo(patchBundle, sandboxLoadPath, remoteURL, remoteFallbackURL);
-					return bundleInfo;
-				}
+				return ConvertToDownloadInfo(patchBundle);
 			}
 			else
 			{

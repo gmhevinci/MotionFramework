@@ -6,6 +6,7 @@
 using System;
 using System.Text;
 using System.Diagnostics;
+
 namespace MotionFramework.Utility
 {
 	public static class ProfilerUtility
