@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace MotionFramework.Network
+namespace MotionFramework
 {
 	/// <summary>
 	/// 同步其它线程里的回调到主线程里
@@ -16,11 +16,11 @@ namespace MotionFramework.Network
 	/// </summary>
 	public sealed class MainThreadSyncContext : SynchronizationContext
 	{
-		/// <summary>
-		/// 同步队列
-		/// </summary>
 		private readonly ConcurrentQueue<Action> _safeQueue = new ConcurrentQueue<Action>();
 
+		/// <summary>
+		/// 更新同步队列
+		/// </summary>
 		public void Update()
 		{
 			while (true)
@@ -31,6 +31,9 @@ namespace MotionFramework.Network
 			}
 		}
 
+		/// <summary>
+		/// 向同步队列里投递一个回调方法
+		/// </summary>
 		public override void Post(SendOrPostCallback callback, object state)
 		{
 			Action action = new Action(() => { callback(state); });
