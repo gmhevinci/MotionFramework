@@ -3,10 +3,11 @@
 // Copyright©2021-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEngine;
+using System.Threading;
 using MotionFramework.Network;
 
 namespace MotionFramework.Resource
@@ -58,20 +59,19 @@ namespace MotionFramework.Resource
 			CheckWebManifestHash,
 			LoadWebManifest,
 			CheckWebManifest,
+			InitPrepareCache,
 			UpdatePrepareCache,
 			Done,
 		}
 
 		private static int RequestCount = 0;
-		private const long TimeSliceMilliseconds = 50;
 
 		private readonly HostPlayModeImpl _impl;
 		private readonly int _updateResourceVersion;
 		private readonly int _timeout;
 		private ESteps _steps = ESteps.Idle;
 		private WebGetRequest _downloaderHash;
-		private WebGetRequest _downloaderManifest;	
-		private int _lastIndex = 0;
+		private WebGetRequest _downloaderManifest;
 
 
 		public HostPlayModeUpdateManifestOperation(HostPlayModeImpl impl, int updateResourceVersion, int timeout)
@@ -132,7 +132,7 @@ namespace MotionFramework.Resource
 				if (currentFileHash == webManifestHash)
 				{
 					MotionLog.Log($"Patch manifest file hash is not change : {webManifestHash}");
-					_steps = ESteps.UpdatePrepareCache;
+					_steps = ESteps.InitPrepareCache;
 				}
 				else
 				{
@@ -168,6 +168,12 @@ namespace MotionFramework.Resource
 				// 解析补丁清单			
 				ParseAndSaveRemotePatchManifest(_downloaderManifest.GetText());
 				_downloaderManifest.Dispose();
+				_steps = ESteps.InitPrepareCache;
+			}
+
+			if (_steps == ESteps.InitPrepareCache)
+			{
+				InitPrepareCache();
 				_steps = ESteps.UpdatePrepareCache;
 			}
 
@@ -206,19 +212,30 @@ namespace MotionFramework.Resource
 			string savePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 			PatchManifest.Serialize(savePath, _impl.LocalPatchManifest);
 		}
-		private bool UpdatePrepareCache()
+
+		#region 多线程相关
+		private class ThreadInfo
 		{
-			// 开始计时
-			var watch = new Stopwatch();
-			watch.Start();
-
-			// 遍历所有文件然后验证并缓存合法文件
-			int totalCount = _impl.LocalPatchManifest.BundleList.Count;
-			for (int index = _lastIndex; index < totalCount; index++)
+			public bool Result = false;
+			public string FilePath { private set; get; }
+			public PatchBundle Bundle { private set; get; }
+			public ThreadInfo(string filePath, PatchBundle bundle)
 			{
-				_lastIndex = index;
-				var patchBundle = _impl.LocalPatchManifest.BundleList[index];
+				FilePath = filePath;
+				Bundle = bundle;
+			}
+		}
 
+		private readonly List<PatchBundle> _cacheList = new List<PatchBundle>(1000);
+		private readonly List<PatchBundle> _verifyList = new List<PatchBundle>(100);
+		private readonly MainThreadSyncContext _syncContext = new MainThreadSyncContext();
+		private const int VerifyMaxCount = 32;
+
+		private void InitPrepareCache()
+		{
+			// 遍历所有文件然后验证并缓存合法文件
+			foreach (var patchBundle in _impl.LocalPatchManifest.BundleList)
+			{
 				// 忽略缓存文件
 				if (DownloadSystem.ContainsVerifyFile(patchBundle.Hash))
 					continue;
@@ -231,21 +248,59 @@ namespace MotionFramework.Resource
 						continue;
 				}
 
-				// 验证沙盒内的文件
-				if (DownloadSystem.CheckContentIntegrity(patchBundle))
-					DownloadSystem.CacheVerifyFile(patchBundle.Hash, patchBundle.BundleName);
+				_cacheList.Add(patchBundle);
+			}
+		}
+		private bool UpdatePrepareCache()
+		{
+			_syncContext.Update();
 
-				// 单帧处理超时的时候退出，下一帧继续处理
-				if (watch.ElapsedMilliseconds > TimeSliceMilliseconds)
+			if (_cacheList.Count == 0 && _verifyList.Count == 0)
+				return true;
+
+			if (_verifyList.Count >= VerifyMaxCount)
+				return false;
+
+			for (int i = _cacheList.Count - 1; i >= 0; i--)
+			{
+				if (_verifyList.Count >= VerifyMaxCount)
 					break;
+
+				var patchBundle = _cacheList[i];
+				if (RunThread(patchBundle))
+				{
+					_cacheList.RemoveAt(i);
+					_verifyList.Add(patchBundle);
+				}
+				else
+				{
+					MotionLog.Log("Failed to run verify thread.");
+					break;
+				}
 			}
 
-			// 停止计时
-			watch.Stop();
-			MotionLog.Log($"Update prepare cache took {watch.ElapsedMilliseconds} ms");
-
-			// 当全部扫描完成的时候返回TRUE
-			return _lastIndex >= (totalCount - 1);
+			return false;
 		}
+		private bool RunThread(PatchBundle patchBundle)
+		{
+			string filePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+			ThreadInfo info = new ThreadInfo(filePath, patchBundle);
+			return ThreadPool.QueueUserWorkItem(new WaitCallback(VerifyFile), info);
+		}
+		private void VerifyFile(object infoObj)
+		{
+			// 验证沙盒内的文件
+			ThreadInfo info = (ThreadInfo)infoObj;
+			info.Result = DownloadSystem.CheckContentIntegrity(info.FilePath, info.Bundle.SizeBytes, info.Bundle.CRC);
+			_syncContext.Post(VerifyCallback, info);
+		}
+		private void VerifyCallback(object obj)
+		{
+			ThreadInfo info = (ThreadInfo)obj;
+			if (info.Result)
+				DownloadSystem.CacheVerifyFile(info.Bundle.Hash, info.Bundle.BundleName);
+			_verifyList.Remove(info.Bundle);
+		}
+		#endregion
 	}
 }

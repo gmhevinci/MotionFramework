@@ -133,7 +133,7 @@ namespace MotionFramework.Resource
 			string filePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 			return CheckContentIntegrity(filePath, patchBundle.SizeBytes, patchBundle.CRC);
 		}
-		private static bool CheckContentIntegrity(string filePath, long size, string crc)
+		public static bool CheckContentIntegrity(string filePath, long size, string crc)
 		{
 			if (File.Exists(filePath) == false)
 				return false;
