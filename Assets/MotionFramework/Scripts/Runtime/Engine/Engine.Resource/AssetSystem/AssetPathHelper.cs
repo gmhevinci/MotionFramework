@@ -40,12 +40,21 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public static string MakePersistentLoadPath(string path)
 		{
+			string root = MakePersistentRootPath();
+			return StringFormat.Format("{0}/{1}", root, path);
+		}
+
+		/// <summary>
+		/// 获取沙盒文件夹路径
+		/// </summary>
+		public static string MakePersistentRootPath()
+		{
 #if UNITY_EDITOR
 			// 注意：为了方便调试查看，编辑器下把存储目录放到项目里
 			string projectPath = GetDirectory(UnityEngine.Application.dataPath);
-			return StringFormat.Format("{0}/Sandbox/{1}", projectPath, path);
+			return StringFormat.Format("{0}/Sandbox", projectPath);
 #else
-			return StringFormat.Format("{0}/Sandbox/{1}", UnityEngine.Application.persistentDataPath, path);
+			return StringFormat.Format("{0}/Sandbox", UnityEngine.Application.persistentDataPath);
 #endif
 		}
 

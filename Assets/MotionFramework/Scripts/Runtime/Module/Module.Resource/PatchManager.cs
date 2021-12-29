@@ -325,5 +325,13 @@ namespace MotionFramework.Resource
 			MotionLog.Warning("Clear sandbox.");
 			PatchHelper.ClearSandbox();
 		}
+
+		/// <summary>
+		/// 获取沙盒文件夹的路径
+		/// </summary>
+		public static string GetSandboxRoot()
+		{
+			return AssetPathHelper.MakePersistentRootPath();
+		}
 	}
 }
