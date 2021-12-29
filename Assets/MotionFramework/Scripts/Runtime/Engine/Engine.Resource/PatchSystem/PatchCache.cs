@@ -19,47 +19,29 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public string CacheAppVersion = string.Empty;
 
-
-		/// <summary>
-		/// 初始化APP版本号
-		/// </summary>
-		/// <param name="appVersion">应用程序版本</param>
-		public void InitAppVersion(string appVersion)
-		{
-			CacheAppVersion = appVersion;
-			SaveCache();
-		}
-
-		/// <summary>
-		/// 清理缓存
-		/// </summary>
-		public void ClearCache()
-		{
-			MotionLog.Warning("Clear cache and delete cache folder.");
-			CacheAppVersion = string.Empty;
-			PatchHelper.DeleteSandboxCacheFolder();
-		}
-
-		/// <summary>
-		/// 保存缓存文件
-		/// </summary>
-		private void SaveCache()
-		{
-			MotionLog.Log("Save application version to disk.");
-			string filePath = PatchHelper.GetSandboxCacheFilePath();
-			string jsonData = JsonUtility.ToJson(this);
-			FileUtility.CreateFile(filePath, jsonData);
-		}
-
 		/// <summary>
 		/// 读取缓存文件
+		/// 注意：如果文件不存在则创建新的缓存文件
 		/// </summary>
 		public static PatchCache LoadCache()
 		{
-			MotionLog.Log("Load cache from disk.");
-			string filePath = PatchHelper.GetSandboxCacheFilePath();
-			string jsonData = FileUtility.ReadFile(filePath);
-			return JsonUtility.FromJson<PatchCache>(jsonData);
+			if (PatchHelper.CheckSandboxCacheFileExist())
+			{
+				MotionLog.Log("Load patch cache from disk.");
+				string filePath = PatchHelper.GetSandboxCacheFilePath();
+				string jsonData = FileUtility.ReadFile(filePath);
+				return JsonUtility.FromJson<PatchCache>(jsonData);
+			}
+			else
+			{
+				MotionLog.Log($"Create patch cache to disk : {Application.version}");
+				PatchCache cache = new PatchCache();
+				cache.CacheAppVersion = Application.version;
+				string filePath = PatchHelper.GetSandboxCacheFilePath();
+				string jsonData = JsonUtility.ToJson(cache);
+				FileUtility.CreateFile(filePath, jsonData);
+				return cache;
+			}
 		}
 	}
 }

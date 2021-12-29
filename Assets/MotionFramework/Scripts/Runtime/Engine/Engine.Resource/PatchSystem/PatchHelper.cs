@@ -35,6 +35,16 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
+		/// 删除沙盒内的缓存文件
+		/// </summary>
+		public static void DeleteSandboxCacheFile()
+		{
+			string filePath = GetSandboxCacheFilePath();
+			if (File.Exists(filePath))
+				File.Delete(filePath);
+		}
+
+		/// <summary>
 		/// 删除沙盒内的缓存文件夹
 		/// </summary>
 		public static void DeleteSandboxCacheFolder()

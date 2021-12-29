@@ -111,7 +111,6 @@ namespace MotionFramework.Resource
 		}
 
 		private HostPlayModeImpl _impl;
-		private PatchCache _cache;
 		private ESteps _steps = ESteps.Idle;
 		private WebGetRequest _downloader;
 		private string _downloadURL;
@@ -131,32 +130,22 @@ namespace MotionFramework.Resource
 
 			if (_steps == ESteps.InitCache)
 			{
-				// 如果缓存文件不存在
-				if (PatchHelper.CheckSandboxCacheFileExist() == false)
+				// 每次启动时比对APP版本号是否一致	
+				PatchCache cache = PatchCache.LoadCache();
+				if (cache.CacheAppVersion != Application.version)
 				{
-					_cache = new PatchCache();
-					_cache.InitAppVersion(Application.version);
-				}
-				else
-				{
-					// 加载缓存
-					_cache = PatchCache.LoadCache();
+					MotionLog.Warning($"Cache is dirty ! Cache app version is {cache.CacheAppVersion}, Current app version is {Application.version}");
 
-					// 每次启动时比对APP版本号是否一致	
-					if (_cache.CacheAppVersion != Application.version)
+					// 注意：在覆盖安装的时候，会保留APP沙盒目录，可以选择清空缓存目录
+					if (_impl.ClearCacheWhenDirty)
 					{
-						MotionLog.Warning($"Cache is dirty ! Cache app version is {_cache.CacheAppVersion}, Current app version is {Application.version}");
-
-						// 注意：在覆盖安装的时候，会保留APP沙盒目录，可以选择清空缓存目录
-						if (_impl.ClearCacheWhenDirty)
-						{
-							_cache.ClearCache();
-						}
-
-						// 注意：一定要删除清单文件
-						PatchHelper.DeleteSandboxPatchManifestFile();
-						_cache.InitAppVersion(Application.version);
+						MotionLog.Warning("Clear cache files.");					
+						PatchHelper.DeleteSandboxCacheFolder();
 					}
+
+					// 删除清单文件和缓存文件
+					PatchHelper.DeleteSandboxPatchManifestFile();
+					PatchHelper.DeleteSandboxCacheFile();
 				}
 				_steps = ESteps.LoadAppManifest;
 			}
@@ -180,7 +169,7 @@ namespace MotionFramework.Resource
 				if (_downloader.HasError())
 				{
 					Error = _downloader.GetError();
-					Status = EOperationStatus.Failed;		
+					Status = EOperationStatus.Failed;
 					_downloader.Dispose();
 					_steps = ESteps.Done;
 					throw new System.Exception($"Fatal error : Failed load application patch manifest file : {_downloadURL}");
