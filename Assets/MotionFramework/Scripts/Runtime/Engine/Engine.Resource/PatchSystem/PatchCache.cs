@@ -43,5 +43,18 @@ namespace MotionFramework.Resource
 				return cache;
 			}
 		}
+
+		/// <summary>
+		/// 更新缓存文件
+		/// </summary>
+		public static void UpdateCache()
+		{
+			MotionLog.Log($"Update patch cache to disk : {Application.version}");
+			PatchCache cache = new PatchCache();
+			cache.CacheAppVersion = Application.version;
+			string filePath = PatchHelper.GetSandboxCacheFilePath();
+			string jsonData = JsonUtility.ToJson(cache);
+			FileUtility.CreateFile(filePath, jsonData);
+		}
 	}
 }

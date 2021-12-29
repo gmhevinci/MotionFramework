@@ -143,9 +143,10 @@ namespace MotionFramework.Resource
 						PatchHelper.DeleteSandboxCacheFolder();
 					}
 
-					// 删除清单文件和缓存文件
+					// 删除清单文件
 					PatchHelper.DeleteSandboxPatchManifestFile();
-					PatchHelper.DeleteSandboxCacheFile();
+					// 更新缓存文件
+					PatchCache.UpdateCache();
 				}
 				_steps = ESteps.LoadAppManifest;
 			}
