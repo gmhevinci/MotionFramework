@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using MotionFramework.Network;
 
@@ -247,6 +248,11 @@ namespace MotionFramework.Resource
 					if (appPatchBundle.IsBuildin && appPatchBundle.Hash == patchBundle.Hash)
 						continue;
 				}
+
+				// 查看文件是否存在
+				string filePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+				if (File.Exists(filePath) == false)
+					continue;
 
 				_cacheList.Add(patchBundle);
 			}
