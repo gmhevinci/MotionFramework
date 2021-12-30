@@ -73,7 +73,7 @@ namespace MotionFramework.Resource
 		private ESteps _steps = ESteps.Idle;
 		private WebGetRequest _downloaderHash;
 		private WebGetRequest _downloaderManifest;
-
+		private float _verifyTime;
 
 		public HostPlayModeUpdateManifestOperation(HostPlayModeImpl impl, int updateResourceVersion, int timeout)
 		{
@@ -175,6 +175,7 @@ namespace MotionFramework.Resource
 			if (_steps == ESteps.InitPrepareCache)
 			{
 				InitPrepareCache();
+				_verifyTime = UnityEngine.Time.realtimeSinceStartup;
 				_steps = ESteps.UpdatePrepareCache;
 			}
 
@@ -184,6 +185,8 @@ namespace MotionFramework.Resource
 				{
 					_steps = ESteps.Done;
 					Status = EOperationStatus.Succeed;
+					float costTime = UnityEngine.Time.realtimeSinceStartup - _verifyTime;
+					MotionLog.Log($"Verify files total time : {costTime}");
 				}
 			}
 		}
@@ -280,7 +283,7 @@ namespace MotionFramework.Resource
 				}
 				else
 				{
-					MotionLog.Log("Failed to run verify thread.");
+					MotionLog.Warning("Failed to run verify thread.");
 					break;
 				}
 			}
