@@ -33,7 +33,6 @@ public IEnumerator Initialize()
     createParam.SimulationOnEditor = SimulationOnEditor;
     createParam.ClearCacheWhenDirty = false;
     createParam.IgnoreResourceVersion = false;
-    createParam.VerifyLevel = EVerifyLevel.CRC;
     createParam.DefaultHostServer = "http://127.0.0.1/CDN/Android";
     createParam.FallbackHostServer = "http://127.0.0.1/CDN/Android";
     MotionEngine.CreateModule<PatchManager>(createParam);
