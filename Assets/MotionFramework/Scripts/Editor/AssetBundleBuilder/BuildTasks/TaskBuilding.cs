@@ -15,6 +15,11 @@ namespace MotionFramework.Editor
 {
 	public class TaskBuilding : IBuildTask
 	{
+		public class UnityManifestContext : IContextObject
+		{
+			public AssetBundleManifest UnityManifest;
+		}
+
 		void IBuildTask.Run(BuildContext context)
 		{
 			var buildParametersContext = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
@@ -25,6 +30,10 @@ namespace MotionFramework.Editor
 			AssetBundleManifest unityManifest = BuildPipeline.BuildAssetBundles(buildParametersContext.PipelineOutputDirectory, buildMapContext.GetPipelineBuilds(), opt, buildParametersContext.Parameters.BuildTarget);
 			if (unityManifest == null)
 				throw new Exception("构建过程中发生错误！");
+
+			UnityManifestContext unityManifestContext = new UnityManifestContext();
+			unityManifestContext.UnityManifest = unityManifest;
+			context.SetContextObject(unityManifestContext);
 
 			// 拷贝原生文件
 			foreach (var bundleInfo in buildMapContext.BundleInfos)
