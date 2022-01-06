@@ -81,7 +81,7 @@ namespace MotionFramework.Network
 		{
 			if (_webRequest != null)
 			{
-				return _webRequest.error;
+				return $"URL : {URL} Error : {_webRequest.error}";
 			}
 			return string.Empty;
 		}
