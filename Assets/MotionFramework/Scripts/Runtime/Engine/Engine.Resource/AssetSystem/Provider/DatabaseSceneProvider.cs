@@ -68,7 +68,7 @@ namespace MotionFramework.Resource
 					if(_param.ActivateOnLoad)
 						instance.Activate();
 
-					States = EAssetStates.Success;
+					States = instance.Scene.IsValid() ? EAssetStates.Success : EAssetStates.Fail;
 					InvokeCompletion();
 				}
 			}
