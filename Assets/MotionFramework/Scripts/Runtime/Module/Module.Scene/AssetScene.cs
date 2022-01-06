@@ -67,6 +67,7 @@ namespace MotionFramework.Scene
 		{
 			if (_isLoadScene)
 			{
+				MotionLog.Log($"Begin to unLoad scene : {Location}");
 				_isLoadScene = false;
 				_userCallback = null;
 				_handle.Release();
