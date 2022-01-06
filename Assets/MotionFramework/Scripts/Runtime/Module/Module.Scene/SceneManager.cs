@@ -28,6 +28,14 @@ namespace MotionFramework.Scene
 		}
 		void IModule.OnUpdate()
 		{
+			if (_mainScene != null)
+				_mainScene.Update();
+
+			foreach (var addtionScene in _additionScenes)
+			{
+				if (addtionScene != null)
+					addtionScene.Update();
+			}
 		}
 		void IModule.OnGUI()
 		{
@@ -47,7 +55,8 @@ namespace MotionFramework.Scene
 		/// </summary>
 		/// <param name="location">场景资源地址</param>
 		/// <param name="callback">场景加载完毕的回调</param>
-		public void ChangeMainScene(string location, System.Action<SceneInstance> callback)
+		public void ChangeMainScene(string location, System.Action<SceneInstance> finishCallback = null,
+			System.Action<int> progressCallback = null)
 		{
 			if (_mainScene != null && _mainScene.IsDone == false)
 				MotionLog.Warning($"The current main scene {_mainScene.Location} is not loading done.");
@@ -60,7 +69,7 @@ namespace MotionFramework.Scene
 			}
 
 			_mainScene = new AssetScene(location);
-			_mainScene.Load(false, true, callback);
+			_mainScene.Load(false, true, finishCallback, progressCallback);
 		}
 
 		/// <summary>
@@ -69,7 +78,8 @@ namespace MotionFramework.Scene
 		/// <param name="location">场景资源地址</param>
 		/// <param name="activeOnLoad">加载完成时是否激活附加场景</param>
 		/// <param name="callback">场景加载完毕的回调</param>
-		public void LoadAdditionScene(string location, bool activeOnLoad, System.Action<SceneInstance> callback)
+		public void LoadAdditionScene(string location, bool activeOnLoad, System.Action<SceneInstance> finishCallback = null,
+			System.Action<int> progressCallback = null)
 		{
 			AssetScene scene = TryGetAdditionScene(location);
 			if (scene != null)
@@ -80,7 +90,7 @@ namespace MotionFramework.Scene
 
 			AssetScene newScene = new AssetScene(location);
 			_additionScenes.Add(newScene);
-			newScene.Load(true, activeOnLoad, callback);
+			newScene.Load(true, activeOnLoad, finishCallback, progressCallback);
 		}
 
 		/// <summary>

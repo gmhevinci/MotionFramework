@@ -10,8 +10,10 @@ namespace MotionFramework.Scene
 	internal class AssetScene
 	{
 		private AssetOperationHandle _handle;
-		private System.Action<SceneInstance> _userCallback;
+		private System.Action<SceneInstance> _finishCallback;
+		private System.Action<int> _progressCallback;
 		private bool _isLoadScene = false;
+		private int _lastProgressValue = 0;
 
 		/// <summary>
 		/// 场景地址
@@ -45,7 +47,7 @@ namespace MotionFramework.Scene
 		{
 			Location = location;
 		}
-		public void Load(bool isAdditive, bool activeOnLoad, System.Action<SceneInstance> callback)
+		public void Load(bool isAdditive, bool activeOnLoad, System.Action<SceneInstance> finishCallback, System.Action<int> progressCallbcak)
 		{
 			if (_isLoadScene)
 				return;
@@ -59,7 +61,8 @@ namespace MotionFramework.Scene
 
 			MotionLog.Log($"Begin to load scene : {Location}");
 			_isLoadScene = true;
-			_userCallback = callback;	
+			_finishCallback = finishCallback;
+			_progressCallback = progressCallbcak;
 			_handle = ResourceManager.Instance.LoadSceneAsync(Location, param);
 			_handle.Completed += Handle_Completed;
 		}
@@ -67,17 +70,30 @@ namespace MotionFramework.Scene
 		{
 			if (_isLoadScene)
 			{
-				MotionLog.Log($"Begin to unLoad scene : {Location}");
+				MotionLog.Log($"Begin to unload scene : {Location}");
 				_isLoadScene = false;
-				_userCallback = null;
+				_finishCallback = null;
+				_progressCallback = null;
+				_lastProgressValue = 0;
 				_handle.Release();
+			}
+		}
+		public void Update()
+		{
+			if (_isLoadScene)
+			{
+				if (_lastProgressValue != Progress)
+				{
+					_lastProgressValue = Progress;
+					_progressCallback?.Invoke(_lastProgressValue);
+				}
 			}
 		}
 
 		// 资源回调
 		private void Handle_Completed(AssetOperationHandle obj)
 		{
-			_userCallback?.Invoke(_handle.AssetInstance as SceneInstance);
+			_finishCallback?.Invoke(_handle.AssetInstance as SceneInstance);
 		}
 	}
 }
