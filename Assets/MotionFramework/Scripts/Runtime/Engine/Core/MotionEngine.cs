@@ -1,6 +1,6 @@
 ﻿//--------------------------------------------------
 // Motion Framework
-// Copyright©2018-2020 何冠峰
+// Copyright©2018-2021 何冠峰
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
@@ -25,7 +25,7 @@ namespace MotionFramework
 		}
 
 		private static readonly List<ModuleWrapper> _coms = new List<ModuleWrapper>(100);
-		private static MonoBehaviour _behaviour;	
+		private static MonoBehaviour _behaviour;
 		private static bool _isDirty = false;
 		private static long _frame = 0;
 
@@ -59,7 +59,7 @@ namespace MotionFramework
 
 			// 说明：初始化之后，如果忘记更新MotionEngine，这里会抛出异常
 			if (_frame == 0)
-				throw new Exception($"Please call update method : MotionEngine.Update");	
+				throw new Exception($"Please call update method : MotionEngine.Update");
 		}
 
 		/// <summary>
@@ -101,7 +101,16 @@ namespace MotionFramework
 				_coms[i].Module.OnGUI();
 			}
 		}
-		
+
+		/// <summary>
+		/// 查询游戏模块是否存在
+		/// </summary>
+		public static bool Contains<T>() where T : class, IModule
+		{
+			System.Type type = typeof(T);
+			return Contains(type);
+		}
+
 		/// <summary>
 		/// 查询游戏模块是否存在
 		/// </summary>
