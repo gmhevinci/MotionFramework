@@ -268,6 +268,24 @@ namespace MotionFramework.Editor
 		}
 
 		/// <summary>
+		/// 获取所有的DLC标记
+		/// </summary>
+		public static List<string> GetAllAssetTags()
+		{
+			List<string> result = new List<string>();
+			for (int i = 0; i < Setting.Collectors.Count; i++)
+			{
+				var tags = Setting.Collectors[i].GetAssetTags();
+				foreach (var tag in tags)
+				{
+					if (result.Contains(tag) == false)
+						result.Add(tag);
+				}
+			}
+			return result;
+		}
+
+		/// <summary>
 		/// 获取收集器总数
 		/// </summary>
 		public static int GetCollecterCount()
