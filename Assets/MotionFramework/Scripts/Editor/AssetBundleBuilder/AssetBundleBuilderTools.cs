@@ -18,17 +18,15 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 检测所有损坏的预制体文件
 		/// </summary>
-		public static void CheckCorruptionPrefab()
+		public static void CheckCorruptionPrefab(List<string> searchDirectorys)
 		{
-			// 获取所有的打包路径
-			List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
-			if (collectDirectorys.Count == 0)
-				throw new Exception("打包路径列表不能为空");
+			if (searchDirectorys.Count == 0)
+				throw new Exception("路径列表不能为空！");
 
 			// 获取所有资源列表
 			int checkCount = 0;
 			int invalidCount = 0;
-			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.Prefab, collectDirectorys.ToArray());
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.Prefab, searchDirectorys.ToArray());
 			foreach (string assetPath in findAssets)
 			{
 				UnityEngine.Object prefab = AssetDatabase.LoadAssetAtPath(assetPath, typeof(UnityEngine.Object));
@@ -48,17 +46,15 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 检测所有动画控制器的冗余状态
 		/// </summary>
-		public static void FindRedundantAnimationState()
+		public static void FindRedundantAnimationState(List<string> searchDirectorys)
 		{
-			// 获取所有的打包路径
-			List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
-			if (collectDirectorys.Count == 0)
-				throw new Exception("打包路径列表不能为空");
+			if (searchDirectorys.Count == 0)
+				throw new Exception("路径列表不能为空！");
 
 			// 获取所有资源列表
 			int checkCount = 0;
 			int findCount = 0;
-			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.RuntimeAnimatorController, collectDirectorys.ToArray());
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.RuntimeAnimatorController, searchDirectorys.ToArray());
 			foreach (string assetPath in findAssets)
 			{
 				AnimatorController animator= AssetDatabase.LoadAssetAtPath<AnimatorController>(assetPath);
@@ -80,17 +76,15 @@ namespace MotionFramework.Editor
 		/// <summary>
 		/// 清理所有材质球的冗余属性
 		/// </summary>
-		public static void ClearMaterialUnusedProperty()
+		public static void ClearMaterialUnusedProperty(List<string> searchDirectorys)
 		{
-			// 获取所有的打包路径
-			List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
-			if (collectDirectorys.Count == 0)
-				throw new Exception("打包路径列表不能为空");
+			if (searchDirectorys.Count == 0)
+				throw new Exception("路径列表不能为空！");
 
 			// 获取所有资源列表
 			int checkCount = 0;
 			int removedCount = 0;
-			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.Material, collectDirectorys.ToArray());
+			string[] findAssets = EditorTools.FindAssets(EAssetSearchType.Material, searchDirectorys.ToArray());
 			foreach (string assetPath in findAssets)
 			{
 				Material mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);

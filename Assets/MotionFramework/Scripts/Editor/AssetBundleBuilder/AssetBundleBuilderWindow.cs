@@ -86,7 +86,7 @@ namespace MotionFramework.Editor
 			_compressOption = (ECompressOption)EditorGUILayout.EnumPopup("Compression", _compressOption, GUILayout.MaxWidth(250));
 			_isAppendExtension = GUILayout.Toggle(_isAppendExtension, "Append Extension", GUILayout.MaxWidth(120));
 			_isForceRebuild = GUILayout.Toggle(_isForceRebuild, "Force Rebuild", GUILayout.MaxWidth(120));
-			if(_isForceRebuild)
+			if (_isForceRebuild)
 				_buildinTags = EditorGUILayout.TextField("Buildin Tags", _buildinTags);
 
 			// 构建按钮
@@ -108,7 +108,7 @@ namespace MotionFramework.Editor
 				if (EditorUtility.DisplayDialog(title, content, "Yes", "No"))
 				{
 					SaveSettingsToPlayerPrefs();
-					EditorTools.ClearUnityConsole();			
+					EditorTools.ClearUnityConsole();
 					EditorApplication.delayCall += ExecuteBuild;
 				}
 				else
@@ -129,17 +129,29 @@ namespace MotionFramework.Editor
 
 					if (GUILayout.Button("检测损坏的预制体", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
-						EditorApplication.delayCall += AssetBundleBuilderTools.CheckCorruptionPrefab;
+						EditorApplication.delayCall += () =>
+						{
+							List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
+							AssetBundleBuilderTools.CheckCorruptionPrefab(collectDirectorys);
+						};
 					}
 
 					if (GUILayout.Button("检测动画控制器的冗余状态", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
-						EditorApplication.delayCall += AssetBundleBuilderTools.FindRedundantAnimationState;
+						EditorApplication.delayCall += () =>
+						{
+							List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
+							AssetBundleBuilderTools.FindRedundantAnimationState(collectDirectorys);
+						};
 					}
 
 					if (GUILayout.Button("清理材质球的冗余属性", GUILayout.MaxWidth(250), GUILayout.MaxHeight(40)))
 					{
-						EditorApplication.delayCall += AssetBundleBuilderTools.ClearMaterialUnusedProperty;
+						EditorApplication.delayCall += () =>
+						{
+							List<string> collectDirectorys = AssetBundleCollectorSettingData.GetAllCollectDirectory();
+							AssetBundleBuilderTools.ClearMaterialUnusedProperty(collectDirectorys);
+						};
 					}
 				}
 			}
