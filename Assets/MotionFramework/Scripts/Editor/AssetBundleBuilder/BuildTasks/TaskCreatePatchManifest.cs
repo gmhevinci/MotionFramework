@@ -23,22 +23,20 @@ namespace MotionFramework.Editor
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
 			var encryptionContext = context.GetContextObject<TaskEncryption.EncryptionContext>();
 			var buildMapContext = context.GetContextObject<TaskGetBuildMap.BuildMapContext>();
-			var unityManifestContext = context.GetContextObject<TaskBuilding.UnityManifestContext>();
-			CreatePatchManifestFile(buildParameters, buildMapContext, encryptionContext, unityManifestContext);
+			CreatePatchManifestFile(buildParameters, buildMapContext, encryptionContext);
 		}
 
 		/// <summary>
 		/// 创建补丁清单文件到输出目录
 		/// </summary>
 		private void CreatePatchManifestFile(AssetBundleBuilder.BuildParametersContext buildParameters,
-			TaskGetBuildMap.BuildMapContext buildMapContext, TaskEncryption.EncryptionContext encryptionContext,
-			TaskBuilding.UnityManifestContext unityManifestContext)
+			TaskGetBuildMap.BuildMapContext buildMapContext, TaskEncryption.EncryptionContext encryptionContext)
 		{
 			// 创建新补丁清单
 			PatchManifest patchManifest = new PatchManifest();
 			patchManifest.ResourceVersion = buildParameters.Parameters.BuildVersion;
 			patchManifest.BuildinTags = buildParameters.Parameters.BuildinTags;
-			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext, unityManifestContext);
+			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext);
 			patchManifest.AssetList = GetAllPatchAsset(buildMapContext, patchManifest.BundleList);
 
 			// 创建补丁清单文件
@@ -57,8 +55,7 @@ namespace MotionFramework.Editor
 		/// 获取资源包列表
 		/// </summary>
 		private List<PatchBundle> GetAllPatchBundle(AssetBundleBuilder.BuildParametersContext buildParameters,
-			TaskGetBuildMap.BuildMapContext buildMapContext, TaskEncryption.EncryptionContext encryptionContext,
-			TaskBuilding.UnityManifestContext unityManifestContext)
+			TaskGetBuildMap.BuildMapContext buildMapContext, TaskEncryption.EncryptionContext encryptionContext)
 		{
 			List<PatchBundle> result = new List<PatchBundle>(1000);
 
@@ -76,7 +73,7 @@ namespace MotionFramework.Editor
 			{
 				var bundleName = bundleInfo.BundleName;
 				string filePath = $"{buildParameters.PipelineOutputDirectory}/{bundleName}";
-				string hash = GetBundleFileHash(unityManifestContext.UnityManifest, bundleInfo, filePath);
+				string hash = HashUtility.FileMD5(filePath);
 				string crc = HashUtility.FileCRC32(filePath);
 				long size = FileUtility.GetFileSize(filePath);
 				int version = buildParameters.Parameters.BuildVersion;
@@ -117,20 +114,6 @@ namespace MotionFramework.Editor
 					return true;
 			}
 			return false;
-		}
-		private string GetBundleFileHash(AssetBundleManifest unityManifest, BuildBundleInfo bundleInfo, string filePath)
-		{
-			if(bundleInfo.IsRawFile)
-			{
-				return HashUtility.FileMD5(filePath);
-			}
-			else
-			{
-				var hash = unityManifest.GetAssetBundleHash(bundleInfo.BundleName);
-				if (hash.isValid == false)
-					throw new Exception($"Bundle hash is invliad : {bundleInfo.BundleName}");
-				return hash.ToString();
-			}
 		}
 
 		/// <summary>
