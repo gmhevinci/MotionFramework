@@ -60,6 +60,9 @@ namespace MotionFramework.Editor
 		}
 		public static bool HasPackRuleName(string ruleName)
 		{
+			if (_setting == null)
+				LoadSettingData();
+
 			foreach (var pair in _cachePackRuleTypes)
 			{
 				if (pair.Key == ruleName)
@@ -69,6 +72,9 @@ namespace MotionFramework.Editor
 		}
 		public static bool HasFilterRuleName(string ruleName)
 		{
+			if (_setting == null)
+				LoadSettingData();
+
 			foreach (var pair in _cacheFilterRuleTypes)
 			{
 				if (pair.Key == ruleName)
