@@ -113,8 +113,38 @@ namespace MotionFramework.Window
 				return false;
 
 			string windowName = type.FullName;
-			UIWindow lastOne = _stack[_stack.Count - 1];
-			return lastOne.WindowName == windowName;
+			UIWindow topWindow = _stack[_stack.Count - 1];
+			return topWindow.WindowName == windowName;
+		}
+
+		/// <summary>
+		/// 获取最顶部的窗口名称
+		/// </summary>
+		public string GetTopWindow()
+		{
+			if (_stack.Count == 0)
+				return string.Empty;
+
+			UIWindow topWindow = _stack[_stack.Count - 1];
+			return topWindow.WindowName;
+		}
+
+		/// <summary>
+		/// 获取最顶部的窗口名称
+		/// </summary>
+		public string GetTopWindowByLayer(int layer)
+		{
+			UIWindow lastOne = null;
+			for (int i = 0; i < _stack.Count; i++)
+			{
+				if (_stack[i].WindowLayer == layer)
+					lastOne = _stack[i];
+			}
+
+			if (lastOne == null)
+				return string.Empty;
+
+			return lastOne.WindowName;
 		}
 
 		/// <summary>
