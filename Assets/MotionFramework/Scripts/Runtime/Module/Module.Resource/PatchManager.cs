@@ -262,7 +262,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool ContainsAsset(string location)
 		{
-			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
+			string assetPath = AssetSystem.ConvertLocationToAssetPath(location, false);
 			return BundleServices.ContainsAsset(assetPath);
 		}
 

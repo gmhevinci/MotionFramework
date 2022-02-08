@@ -89,7 +89,7 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 获取AssetDatabase的加载路径
 		/// </summary>
-		internal static string FindDatabaseAssetPath(string location)
+		internal static string FindDatabaseAssetPath(string location, bool warning)
 		{
 #if UNITY_EDITOR
 			string filePath = CombineAssetPath(AssetSystem.LocationRoot, location);
@@ -119,7 +119,8 @@ namespace MotionFramework.Resource
 			}
 
 			// 没有找到同名的资源文件
-			MotionLog.Warning($"Not found asset : {filePath}");
+			if (warning)
+				MotionLog.Warning($"Not found asset : {filePath}");
 			return filePath;
 #else
 			throw new System.NotImplementedException();

@@ -194,11 +194,11 @@ namespace MotionFramework.Resource
 		/// <summary>
 		/// 定位地址转换为资源路径
 		/// </summary>
-		public static string ConvertLocationToAssetPath(string location)
+		public static string ConvertLocationToAssetPath(string location, bool warning = true)
 		{
 			if (SimulationOnEditor)
 			{
-				return AssetPathHelper.FindDatabaseAssetPath(location);
+				return AssetPathHelper.FindDatabaseAssetPath(location, warning);
 			}
 			else
 			{
