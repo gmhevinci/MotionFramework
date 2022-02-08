@@ -7,11 +7,16 @@
 namespace MotionFramework.Resource
 {
 	public interface IBundleServices
-	{	
+	{
 		/// <summary>
 		/// 获取AssetBundle的信息
 		/// </summary>
 		AssetBundleInfo GetAssetBundleInfo(string bundleName);
+
+		/// <summary>
+		/// 是否包含资源对象
+		/// </summary>
+		bool ContainsAsset(string assetPath);
 
 		/// <summary>
 		/// 获取资源所属的资源包名称

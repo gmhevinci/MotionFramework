@@ -65,6 +65,14 @@ namespace MotionFramework.Resource
 			if (createParam == null)
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
 
+#if !UNITY_EDITOR
+			if (createParam.SimulationOnEditor)
+			{
+				createParam.SimulationOnEditor = false;
+				MotionLog.Warning($"{nameof(createParam.SimulationOnEditor)} only support unity editor.");
+			}
+#endif
+
 			if (createParam.SimulationOnEditor == false && createParam.BundleServices == null)
 				throw new Exception($"{nameof(IBundleServices)} is null.");
 
@@ -114,15 +122,6 @@ namespace MotionFramework.Resource
 		public void ForceUnloadAllAssets()
 		{
 			AssetSystem.ForceUnloadAllAssets();
-		}
-
-		/// <summary>
-		/// 获取资源包信息
-		/// </summary>
-		public AssetBundleInfo GetAssetBundleInfo(string location)
-		{
-			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
-			return AssetSystem.GetAssetBundleInfo(assetPath);
 		}
 
 		/// <summary>

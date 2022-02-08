@@ -198,33 +198,11 @@ namespace MotionFramework.Resource
 		{
 			if (SimulationOnEditor)
 			{
-#if UNITY_EDITOR
 				return AssetPathHelper.FindDatabaseAssetPath(location);
-#else
-				throw new Exception($"AssetSystem simulation only support unity editor.");
-#endif
 			}
 			else
 			{
 				return AssetPathHelper.CombineAssetPath(LocationRoot, location);
-			}
-		}
-
-		/// <summary>
-		/// 获取资源包信息
-		/// </summary>
-		public static AssetBundleInfo GetAssetBundleInfo(string assetPath)
-		{
-			if (SimulationOnEditor)
-			{
-				MotionLog.Warning($"{nameof(SimulationOnEditor)} mode can not get asset bundle info.");
-				AssetBundleInfo bundleInfo = new AssetBundleInfo(assetPath, assetPath);
-				return bundleInfo;
-			}
-			else
-			{
-				string bundleName = BundleServices.GetAssetBundleName(assetPath);
-				return BundleServices.GetAssetBundleInfo(bundleName);
 			}
 		}
 

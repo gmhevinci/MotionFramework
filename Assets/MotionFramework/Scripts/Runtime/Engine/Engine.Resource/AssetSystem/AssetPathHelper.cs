@@ -122,7 +122,20 @@ namespace MotionFramework.Resource
 			MotionLog.Warning($"Not found asset : {filePath}");
 			return filePath;
 #else
-			return string.Empty;
+			throw new System.NotImplementedException();
+#endif
+		}
+
+		/// <summary>
+		/// 工程目录下是否包含该资源
+		/// </summary>
+		internal static bool ContainsDatabaseAsset(string assetPath)
+		{
+#if UNITY_EDITOR
+			string guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
+			return string.IsNullOrEmpty(guid) == false;
+#else
+			throw new System.NotImplementedException();
 #endif
 		}
 	}

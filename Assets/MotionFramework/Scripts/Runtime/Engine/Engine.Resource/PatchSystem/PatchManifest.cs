@@ -115,6 +115,14 @@ namespace MotionFramework.Resource
 			}
 		}
 
+		/// <summary>
+		/// 是否包含资源对象
+		/// </summary>
+		public bool ContainsAsset(string assetPath)
+		{
+			return Assets.ContainsKey(assetPath);
+		}
+
 
 		/// <summary>
 		/// 序列化

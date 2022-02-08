@@ -77,9 +77,10 @@ namespace MotionFramework.Resource
 
 		private ERunMode _runMode;
 		private CreateParameters _createParameters;
+		private EditorPlayModeImpl _editorPlayModeImpl;
 		private OfflinePlayModeImpl _offlinePlayModeImpl;
 		private HostPlayModeImpl _hostPlayModeImpl;
-
+		
 		/// <summary>
 		/// 补丁包接口
 		/// </summary>
@@ -127,9 +128,10 @@ namespace MotionFramework.Resource
 		{
 			if (_runMode == ERunMode.SimulationOnEditor)
 			{
-				var operation = new EditorModeInitializationOperation();
-				OperationUpdater.ProcessOperaiton(operation);
-				return operation;
+				var playModeImpl = new EditorPlayModeImpl();
+				_editorPlayModeImpl = playModeImpl;
+				BundleServices = playModeImpl;
+				return playModeImpl.InitializeAsync();
 			}
 			else if (_runMode == ERunMode.OfflinePlayMode)
 			{
@@ -194,7 +196,9 @@ namespace MotionFramework.Resource
 		{
 			if (_runMode == ERunMode.SimulationOnEditor)
 			{
-				return 0;
+				if (_editorPlayModeImpl == null)
+					throw new Exception("PatchManager is not initialized.");
+				return _editorPlayModeImpl.GetResourceVersion();
 			}
 			else if (_runMode == ERunMode.OfflinePlayMode)
 			{
@@ -221,7 +225,9 @@ namespace MotionFramework.Resource
 		{
 			if (_runMode == ERunMode.SimulationOnEditor)
 			{
-				return null;
+				if (_editorPlayModeImpl == null)
+					throw new Exception("PatchManager is not initialized.");
+				return _editorPlayModeImpl.GetManifestBuildinTags();
 			}
 			else if (_runMode == ERunMode.OfflinePlayMode)
 			{
@@ -239,6 +245,25 @@ namespace MotionFramework.Resource
 			{
 				throw new NotImplementedException();
 			}
+		}
+
+		/// <summary>
+		/// 获取资源包信息
+		/// </summary>
+		public AssetBundleInfo GetAssetBundleInfo(string location)
+		{
+			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
+			string bundleName = BundleServices.GetAssetBundleName(assetPath);
+			return BundleServices.GetAssetBundleInfo(bundleName);
+		}
+
+		/// <summary>
+		/// 是否包含资源对象
+		/// </summary>
+		public bool ContainsAsset(string location)
+		{
+			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
+			return BundleServices.ContainsAsset(assetPath);
 		}
 
 		/// <summary>

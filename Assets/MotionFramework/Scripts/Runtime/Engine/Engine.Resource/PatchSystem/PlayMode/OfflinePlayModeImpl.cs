@@ -62,6 +62,10 @@ namespace MotionFramework.Resource
 				return bundleInfo;
 			}
 		}
+		bool IBundleServices.ContainsAsset(string assetPath)
+		{
+			return AppPatchManifest.ContainsAsset(assetPath);
+		}
 		string IBundleServices.GetAssetBundleName(string assetPath)
 		{
 			return AppPatchManifest.GetAssetBundleName(assetPath);
