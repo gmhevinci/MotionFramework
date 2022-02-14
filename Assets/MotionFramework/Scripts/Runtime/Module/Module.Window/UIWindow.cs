@@ -181,6 +181,7 @@ namespace MotionFramework.Window
 
 			// 通知UI管理器
 			_prepareCallback?.Invoke(this);
+			_userCallback?.Invoke(this);
 		}
 		protected abstract void OnAssetLoad(GameObject go);
 
