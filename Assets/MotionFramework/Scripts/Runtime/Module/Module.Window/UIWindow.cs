@@ -185,6 +185,26 @@ namespace MotionFramework.Window
 		protected abstract void OnAssetLoad(GameObject go);
 
 		#region 异步相关
+		private System.Action<UIWindow> _userCallback;
+
+		/// <summary>
+		/// 完成委托
+		/// </summary>
+		public event System.Action<UIWindow> Completed
+		{
+			add
+			{
+				if (IsPrepare)
+					value.Invoke(this);
+				else
+					_userCallback += value;
+			}
+			remove
+			{
+				_userCallback -= value;
+			}
+		}
+
 		bool IEnumerator.MoveNext()
 		{
 			return !IsDone;
