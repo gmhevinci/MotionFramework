@@ -80,7 +80,7 @@ namespace MotionFramework.Window
 		/// <summary>
 		/// 是否准备完毕
 		/// </summary>
-		public bool IsPrepare { get { return Go != null; } }
+		public bool IsPrepare { private set; get; }
 
 		/// <summary>
 		/// 窗口深度值
@@ -180,6 +180,7 @@ namespace MotionFramework.Window
 			OnAssetLoad(Go);
 
 			// 通知UI管理器
+			IsPrepare = true;
 			_prepareCallback?.Invoke(this);
 			_userCallback?.Invoke(this);
 		}
