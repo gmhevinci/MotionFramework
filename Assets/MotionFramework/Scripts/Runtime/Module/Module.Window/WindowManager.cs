@@ -195,11 +195,7 @@ namespace MotionFramework.Window
 		/// 打开窗口
 		/// </summary>
 		/// <param name="location">资源路径</param>
-		/// <param name="userData">用户数据</param>
-		public UIWindow OpenWindow<T>(string location, System.Object userData = null) where T : UIWindow
-		{
-			return OpenWindow(typeof(T), location, userData);
-		}
+		/// <param name="userDatas">用户数据</param>
 		public UIWindow OpenWindow<T>(string location, params System.Object[] userDatas) where T : UIWindow
 		{
 			return OpenWindow(typeof(T), location, userDatas);
