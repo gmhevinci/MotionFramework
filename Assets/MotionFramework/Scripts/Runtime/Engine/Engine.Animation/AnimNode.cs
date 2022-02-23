@@ -206,7 +206,10 @@ namespace MotionFramework.Experimental.Animation
 		public void StartWeightFade(float destWeight, float fadeDuration)
 		{
 			if (fadeDuration <= 0)
-				throw new System.ArgumentException("fade duration is invalid.");
+			{
+				Weight = destWeight;
+				return;
+			}
 
 			//注意：保持统一的渐变速度
 			_fadeSpeed = 1f / fadeDuration;
