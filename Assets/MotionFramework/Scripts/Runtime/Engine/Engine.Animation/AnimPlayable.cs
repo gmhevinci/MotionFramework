@@ -96,11 +96,8 @@ namespace MotionFramework.Experimental.Animation
 				animMixer = CreateAnimMixer(layer);
 
 			if(animMixer.IsConnect == false)
-			{
-				animMixer.Connect(_mixerRoot, animMixer.Layer);
-			}
+				animMixer.Connect(_mixerRoot, animMixer.Layer);		
 
-			animMixer.StartWeightFade(1f, fadeLength);
 			animMixer.Play(animState, fadeLength);
 		}
 

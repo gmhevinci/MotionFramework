@@ -208,6 +208,7 @@ namespace MotionFramework.Experimental.Animation
 			if (fadeDuration <= 0)
 			{
 				Weight = destWeight;
+				_isFading = false;
 				return;
 			}
 

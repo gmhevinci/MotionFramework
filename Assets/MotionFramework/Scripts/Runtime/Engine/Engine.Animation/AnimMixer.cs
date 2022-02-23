@@ -71,7 +71,9 @@ namespace MotionFramework.Experimental.Animation
 		/// </summary>
 		public void Play(AnimState animState, float fadeDuration)
 		{
-			ResetMixer();
+			// 重新激活混合器
+			_isQuiting = false;
+			StartWeightFade(1f, 0);
 
 			if (IsContains(animState) == false)
 			{
@@ -194,11 +196,6 @@ namespace MotionFramework.Experimental.Animation
 			}
 
 			Disconnect();
-		}
-		private void ResetMixer()
-		{
-			_isQuiting = false;
-			StartWeightFade(1f, HIDE_DURATION);
 		}
 	}
 }

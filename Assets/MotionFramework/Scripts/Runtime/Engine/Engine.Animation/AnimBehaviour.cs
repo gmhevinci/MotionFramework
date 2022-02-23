@@ -92,7 +92,7 @@ public class AnimBehaviour : MonoBehaviour
 			var wrapper = GetDefaultWrapper();
 			if (wrapper != null)
 			{
-				Play(wrapper.Clip.name);
+				Play(wrapper.Clip.name, 0f);
 			}
 		}
 	}
