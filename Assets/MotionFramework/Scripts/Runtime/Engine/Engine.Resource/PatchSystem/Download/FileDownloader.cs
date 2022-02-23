@@ -15,28 +15,33 @@ namespace MotionFramework.Resource
 {
 	internal sealed class FileDownloader
 	{
+		private enum ESteps
+		{
+			None,
+			CreateDownload,
+			CheckDownload,
+			TryAgain,
+			Succeed,
+			Failed,
+		}
+
 		public AssetBundleInfo BundleInfo { private set; get; }
 		private UnityWebRequest _webRequest;
 		private UnityWebRequestAsyncOperation _operationHandle;
 
-		private bool _isDone = false;
-		private bool _isError = false;
+		private ESteps _steps = ESteps.None;
 		private string _lastError = string.Empty;
 
-		// 保留参数
 		private int _timeout;
 		private int _failedTryAgain;
 		private int _requestCount;
 		private string _requestURL;
 
-		// 下载超时相关
+		// 重置变量
 		private bool _isAbort = false;
 		private ulong _latestDownloadBytes;
 		private float _latestDownloadRealtime;
-
-		// 等待请求相关
-		private bool _waitTryAgain = false;
-		private readonly Timer _waitTimer = Timer.CreateOnceTimer(0.5f);
+		private float _tryAgainTimer;
 
 		/// <summary>
 		/// 下载进度（0-100f）
@@ -58,98 +63,115 @@ namespace MotionFramework.Resource
 			if (string.IsNullOrEmpty(BundleInfo.LocalPath))
 				throw new ArgumentNullException();
 
-			if (_webRequest == null)
+			if (_steps == ESteps.None)
 			{
 				_failedTryAgain = failedTryAgain;
 				_timeout = timeout;
-				_requestCount++;
-				_requestURL = GetRequestURL();
+				_steps = ESteps.CreateDownload;
+			}
+		}
+		internal void Update()
+		{
+			if (_steps == ESteps.None)
+				return;
+			if (_steps == ESteps.Failed || _steps == ESteps.Succeed)
+				return;
 
-				// 重置超时相关变量
+			// 创建下载器
+			if (_steps == ESteps.CreateDownload)
+			{
+				// 重置变量
+				DownloadProgress = 0f;
+				DownloadedBytes = 0;
 				_isAbort = false;
 				_latestDownloadBytes = 0;
 				_latestDownloadRealtime = Time.realtimeSinceStartup;
+				_tryAgainTimer = 0f;
 
-				DownloadProgress = 0f;
-				DownloadedBytes = 0;
-
+				_requestCount++;
+				_requestURL = GetRequestURL();
 				_webRequest = new UnityWebRequest(_requestURL, UnityWebRequest.kHttpVerbGET);
 				DownloadHandlerFile handler = new DownloadHandlerFile(BundleInfo.LocalPath);
 				handler.removeFileOnAbort = true;
 				_webRequest.downloadHandler = handler;
 				_webRequest.disposeDownloadHandlerOnDispose = true;
 				_operationHandle = _webRequest.SendWebRequest();
-			}
-		}
-		internal void Update()
-		{
-			if (_webRequest == null)
-				return;
-			if (_isDone)
-				return;
-
-			// 等待再次执行
-			if (_waitTryAgain)
-			{
-				if (_waitTimer.Update(Time.unscaledDeltaTime))
-				{
-					_waitTryAgain = false;
-					TryAgainRequest();
-				}
-				return;
+				_steps = ESteps.CheckDownload;
 			}
 
-			DownloadProgress = _webRequest.downloadProgress * 100f;
-			DownloadedBytes = _webRequest.downloadedBytes;
-
-			if (_operationHandle.isDone)
+			// 检测下载结果
+			if (_steps == ESteps.CheckDownload)
 			{
-				// 如果还有机会重新再来一次
-				if (_failedTryAgain > 0)
+				DownloadProgress = _webRequest.downloadProgress * 100f;
+				DownloadedBytes = _webRequest.downloadedBytes;
+				if (_operationHandle.isDone == false)
 				{
-					if (CheckDownloadError())
-					{
-						_waitTryAgain = true;
-						_waitTimer.Reset();
-					}
-					else
-					{
-						_isDone = true;
-						_isError = false;
-					}
-				}
-				else
-				{
-					_isDone = true;
-					_isError = CheckDownloadError();
+					CheckTimeout();
+					return;
 				}
 
-				if (_isDone)
+				// 检查网络错误
+				bool isError = false;
+#if UNITY_2020_3_OR_NEWER
+				if (_webRequest.result != UnityWebRequest.Result.Success)
 				{
-					if (_isError == false)
+					isError = true;
+					_lastError = _webRequest.error;
+				}
+#else
+				if (_webRequest.isNetworkError || _webRequest.isHttpError)
+				{
+					isError = true;
+					_lastError = _webRequest.error;
+				}
+#endif
+
+				// 检查文件完整性
+				if (isError == false)
+				{
+					// 注意：如果文件验证失败需要删除文件
+					if (DownloadSystem.CheckContentIntegrity(BundleInfo) == false)
 					{
-						DownloadSystem.CacheVerifyFile(BundleInfo.Hash, BundleInfo.BundleName);
-					}
-					else
-					{
-						// 注意：如果文件验证失败需要删除文件
+						isError = true;
+						_lastError = $"Verification failed";
 						if (File.Exists(BundleInfo.LocalPath))
 							File.Delete(BundleInfo.LocalPath);
 					}
-
-					// 释放下载请求
-					DisposeWebRequest();
 				}
+
+				if (isError)
+				{
+					ReportError();
+					if (_failedTryAgain > 0)
+						_steps = ESteps.TryAgain;
+					else
+						_steps = ESteps.Failed;
+				}
+				else
+				{
+					_steps = ESteps.Succeed;
+					DownloadSystem.CacheVerifyFile(BundleInfo.Hash, BundleInfo.BundleName);
+				}
+
+				// 释放下载器
+				DisposeWebRequest();
 			}
-			else
+
+			// 重新尝试下载
+			if (_steps == ESteps.TryAgain)
 			{
-				// 检测是否超时
-				CheckTimeout();
+				_tryAgainTimer += Time.unscaledDeltaTime;
+				if (_tryAgainTimer > 0.5f)
+				{
+					_failedTryAgain--;
+					_steps = ESteps.CreateDownload;
+					MotionLog.Warning($"Try again download : {_requestURL}");
+				}
 			}
 		}
 		internal void SetDone()
 		{
-			_isDone = true;
+			_steps = ESteps.Succeed;
 		}
 
 		private string GetRequestURL()
@@ -180,41 +202,6 @@ namespace MotionFramework.Resource
 				}
 			}
 		}
-		private void TryAgainRequest()
-		{
-			_failedTryAgain--;
-
-			// 报告错误
-			ReportError();
-
-			// 释放请求句柄
-			DisposeWebRequest();
-
-			// 重新请求下载
-			SendRequest(_failedTryAgain, _timeout);
-			MotionLog.Warning($"Try again request : {_requestURL}");
-		}
-		private bool CheckDownloadError()
-		{
-			if (_webRequest.isNetworkError || _webRequest.isHttpError)
-			{
-				_lastError = _webRequest.error;
-				return true;
-			}
-			else
-			{
-				// 注意：如果网络没有错误需要检测文件完整性
-				if (DownloadSystem.CheckContentIntegrity(BundleInfo))
-				{
-					return false;
-				}
-				else
-				{
-					_lastError = $"Verify file content failed : {BundleInfo.BundleName}";
-					return true;
-				}
-			}
-		}
 		private void DisposeWebRequest()
 		{
 			if (_webRequest != null)
@@ -230,7 +217,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public bool IsDone()
 		{
-			return _isDone;
+			return _steps == ESteps.Succeed || _steps == ESteps.Failed;
 		}
 
 		/// <summary>
@@ -239,7 +226,7 @@ namespace MotionFramework.Resource
 		/// <returns></returns>
 		public bool HasError()
 		{
-			return _isError;
+			return _steps == ESteps.Failed;
 		}
 
 		/// <summary>
@@ -247,7 +234,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public void ReportError()
 		{
-			MotionLog.Error($"URL : {_requestURL} Error : {_lastError}");
+			MotionLog.Error($"Failed to download : {_requestURL} Error : {_lastError}");
 		}
 	}
 }
