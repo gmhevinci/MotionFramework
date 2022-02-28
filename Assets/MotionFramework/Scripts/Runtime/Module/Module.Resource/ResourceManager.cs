@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Console;
 using MotionFramework.Utility;
+using YooAsset;
 
 namespace MotionFramework.Resource
 {
@@ -18,93 +19,66 @@ namespace MotionFramework.Resource
 	/// </summary>
 	public sealed class ResourceManager : ModuleSingleton<ResourceManager>, IModule
 	{
-		/// <summary>
-		/// 游戏模块创建参数
-		/// </summary>
-		public class CreateParameters
-		{
-			/// <summary>
-			/// 在编辑器下模拟运行
-			/// </summary>
-			public bool SimulationOnEditor;
-
-			/// <summary>
-			/// 资源定位的根路径
-			/// 例如：Assets/MyResource
-			/// </summary>
-			public string LocationRoot;
-
-			/// <summary>
-			/// 文件解密接口
-			/// </summary>
-			public IDecryptServices DecryptServices;
-
-			/// <summary>
-			/// 资源包接口
-			/// </summary>
-			public IBundleServices BundleServices;
-
-			/// <summary>
-			/// 资源系统自动释放零引用资源的间隔秒数
-			/// 注意：如果小于等于零代表不自动释放，可以使用ResourceManager.UnloadUnusedAssets接口主动释放
-			/// </summary>
-			public float AutoReleaseInterval = -1;
-
-			/// <summary>
-			/// 资源加载的最大数量
-			/// </summary>
-			public int AssetLoadingMaxNumber = int.MaxValue;
-		}
-
-		private Timer _releaseTimer;
-
+		private YooAssets.CreateParameters _createParameters;
 
 		void IModule.OnCreate(System.Object param)
 		{
-			CreateParameters createParam = param as CreateParameters;
-			if (createParam == null)
+			_createParameters = param as YooAssets.CreateParameters;
+			if (_createParameters == null)
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
-
-#if !UNITY_EDITOR
-			if (createParam.SimulationOnEditor)
-			{
-				createParam.SimulationOnEditor = false;
-				MotionLog.Warning($"{nameof(createParam.SimulationOnEditor)} only support unity editor.");
-			}
-#endif
-
-			if (createParam.SimulationOnEditor == false && createParam.BundleServices == null)
-				throw new Exception($"{nameof(IBundleServices)} is null.");
-
-			if (createParam.AssetLoadingMaxNumber < 3)
-			{
-				createParam.AssetLoadingMaxNumber = 3;
-				MotionLog.Warning($"{nameof(createParam.AssetLoadingMaxNumber)} minimum is 3");
-			}
-
-			// 创建间隔计时器
-			if (createParam.AutoReleaseInterval > 0)
-				_releaseTimer = Timer.CreatePepeatTimer(0, createParam.AutoReleaseInterval);
-
-			// 初始化资源系统
-			AssetSystem.Initialize(createParam.SimulationOnEditor, createParam.LocationRoot,
-				createParam.AssetLoadingMaxNumber, createParam.DecryptServices, createParam.BundleServices);
 		}
 		void IModule.OnUpdate()
 		{
-			// 轮询更新资源系统
-			AssetSystem.UpdatePoll();
-
-			// 自动释放零引用资源
-			if (_releaseTimer != null && _releaseTimer.Update(Time.unscaledDeltaTime))
-			{
-				AssetSystem.UnloadUnusedAssets();
-			}
+			YooAssets.Update();
 		}
 		void IModule.OnGUI()
 		{
-			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Bundle count : {AssetSystem.GetLoaderCount()}");
-			ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Asset loader count : {AssetSystem.GetProviderCount()}");
+			//ConsoleGUI.Lable($"[{nameof(PatchManager)}] Run Mode : {_runMode}");
+			//ConsoleGUI.Lable($"[{nameof(PatchManager)}] Dwonloader : {DownloadSystem.GetDownloaderTotalCount()}");
+			//ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Bundle count : {AssetSystem.GetLoaderCount()}");
+			//ConsoleGUI.Lable($"[{nameof(ResourceManager)}] Asset loader count : {AssetSystem.GetProviderCount()}");
+		}
+
+		/// <summary>
+		/// 异步初始化
+		/// </summary>
+		public InitializationOperation InitializeAsync()
+		{
+			return YooAssets.InitializeAsync(_createParameters);
+		}
+
+		/// <summary>
+		/// 更新补丁清单
+		/// </summary>
+		/// <param name="updateResourceVersion">更新的资源版本号</param>
+		/// <param name="timeout">超时时间</param>
+		public UpdateManifestOperation UpdateManifestAsync(int updateResourceVersion, int timeout)
+		{
+			return YooAssets.UpdateManifestAsync(updateResourceVersion, timeout);
+		}
+
+		/// <summary>
+		/// 获取资源版本号
+		/// </summary>
+		public int GetResourceVersion()
+		{
+			return YooAssets.GetResourceVersion();
+		}
+
+		/// <summary>
+		/// 获取内置资源标记列表
+		/// </summary>
+		public string[] GetManifestBuildinTags()
+		{
+			return YooAssets.GetManifestBuildinTags();
+		}
+
+		/// <summary>
+		/// 获取资源包信息
+		/// </summary>
+		public AssetBundleInfo GetAssetBundleInfo(string location)
+		{
+			return YooAssets.GetAssetBundleInfo(location);
 		}
 
 		/// <summary>
@@ -112,8 +86,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public void UnloadUnusedAssets()
 		{
-			AssetSystem.UpdatePoll();
-			AssetSystem.UnloadUnusedAssets();
+			YooAssets.UnloadUnusedAssets();
 		}
 
 		/// <summary>
@@ -121,7 +94,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public void ForceUnloadAllAssets()
 		{
-			AssetSystem.ForceUnloadAllAssets();
+			YooAssets.ForceUnloadAllAssets();
 		}
 
 		/// <summary>
@@ -139,11 +112,11 @@ namespace MotionFramework.Resource
 		/// <param name="location">资源对象相对路径</param>
 		public AssetOperationHandle LoadAssetSync<TObject>(string location) where TObject : class
 		{
-			return LoadAssetInternal(location, typeof(TObject), true);
+			return YooAssets.LoadAssetSync<TObject>(location);
 		}
 		public AssetOperationHandle LoadAssetSync(System.Type type, string location)
 		{
-			return LoadAssetInternal(location, type, true);
+			return YooAssets.LoadAssetSync(type, location);
 		}
 
 		/// <summary>
@@ -152,11 +125,11 @@ namespace MotionFramework.Resource
 		/// <param name="location">资源对象相对路径</param>
 		public AssetOperationHandle LoadSubAssetsSync<TObject>(string location)
 		{
-			return LoadSubAssetsInternal(location, typeof(TObject), true);
+			return YooAssets.LoadSubAssetsSync<TObject>(location);
 		}
 		public AssetOperationHandle LoadSubAssetsSync(System.Type type, string location)
 		{
-			return LoadSubAssetsInternal(location, type, true);
+			return YooAssets.LoadSubAssetsSync(type, location);
 		}
 
 
@@ -165,9 +138,7 @@ namespace MotionFramework.Resource
 		/// </summary>
 		public AssetOperationHandle LoadSceneAsync(string location, SceneInstanceParam instanceParam)
 		{
-			string scenePath = AssetSystem.ConvertLocationToAssetPath(location);
-			var handle = AssetSystem.LoadSceneAsync(scenePath, instanceParam);
-			return handle;
+			return YooAssets.LoadSceneAsync(location, instanceParam);
 		}
 
 		/// <summary>
@@ -176,11 +147,11 @@ namespace MotionFramework.Resource
 		/// <param name="location">资源对象相对路径</param>
 		public AssetOperationHandle LoadAssetAsync<TObject>(string location)
 		{
-			return LoadAssetInternal(location, typeof(TObject), false);
+			return YooAssets.LoadAssetAsync<TObject>(location);
 		}
 		public AssetOperationHandle LoadAssetAsync(System.Type type, string location)
 		{
-			return LoadAssetInternal(location, type, false);
+			return YooAssets.LoadAssetAsync(type, location);
 		}
 
 		/// <summary>
@@ -189,28 +160,65 @@ namespace MotionFramework.Resource
 		/// <param name="location">资源对象相对路径</param>
 		public AssetOperationHandle LoadSubAssetsAsync<TObject>(string location)
 		{
-			return LoadSubAssetsInternal(location, typeof(TObject), false);
+			return YooAssets.LoadSubAssetsAsync<TObject>(location);
 		}
 		public AssetOperationHandle LoadSubAssetsAsync(System.Type type, string location)
 		{
-			return LoadSubAssetsInternal(location, type, false);
+			return YooAssets.LoadSubAssetsAsync(type, location);
+		}
+		#endregion
+
+		#region 资源下载接口
+		/// <summary>
+		/// 创建补丁下载器
+		/// </summary>
+		/// <param name="dlcTag">DLC标记</param>
+		/// <param name="fileLoadingMaxNumber">同时下载的最大文件数</param>
+		/// <param name="failedTryAgain">下载失败的重试次数</param>
+		public PatchDownloader CreateDLCDownloader(string dlcTag, int fileLoadingMaxNumber, int failedTryAgain)
+		{
+			return YooAssets.CreateDLCDownloader(dlcTag, fileLoadingMaxNumber, failedTryAgain);
 		}
 
-		private AssetOperationHandle LoadAssetInternal(string location, System.Type assetType, bool waitForAsyncComplete)
+		/// <summary>
+		/// 创建补丁下载器
+		/// </summary>
+		/// <param name="dlcTags">DLC标记列表</param>
+		/// <param name="fileLoadingMaxNumber">同时下载的最大文件数</param>
+		/// <param name="failedTryAgain">下载失败的重试次数</param>
+		public PatchDownloader CreateDLCDownloader(string[] dlcTags, int fileLoadingMaxNumber, int failedTryAgain)
 		{
-			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
-			var handle = AssetSystem.LoadAssetAsync(assetPath, assetType);
-			if (waitForAsyncComplete)
-				handle.WaitForAsyncComplete();
-			return handle;
+			return YooAssets.CreateDLCDownloader(dlcTags, fileLoadingMaxNumber, failedTryAgain);
 		}
-		private AssetOperationHandle LoadSubAssetsInternal(string location, System.Type assetType, bool waitForAsyncComplete)
+
+		/// <summary>
+		/// 创建补丁下载器
+		/// </summary>
+		/// <param name="locations">资源列表</param>
+		/// <param name="fileLoadingMaxNumber">同时下载的最大文件数</param>
+		/// <param name="failedTryAgain">下载失败的重试次数</param>
+		public PatchDownloader CreateBundleDownloader(string[] locations, int fileLoadingMaxNumber, int failedTryAgain)
 		{
-			string assetPath = AssetSystem.ConvertLocationToAssetPath(location);
-			var handle = AssetSystem.LoadSubAssetsAsync(assetPath, assetType);
-			if (waitForAsyncComplete)
-				handle.WaitForAsyncComplete();
-			return handle;
+			return YooAssets.CreateBundleDownloader(locations, fileLoadingMaxNumber, failedTryAgain);
+		}
+		#endregion
+
+		#region 沙盒相关
+		/// <summary>
+		/// 清空沙盒目录
+		/// 注意：可以使用该方法修复我们本地的客户端
+		/// </summary>
+		public void ClearSandbox()
+		{
+			YooAssets.ClearSandbox();
+		}
+
+		/// <summary>
+		/// 获取沙盒文件夹的路径
+		/// </summary>
+		public static string GetSandboxRoot()
+		{
+			return YooAssets.GetSandboxRoot();
 		}
 		#endregion
 	}

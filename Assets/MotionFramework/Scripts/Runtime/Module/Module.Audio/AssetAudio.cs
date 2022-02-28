@@ -5,6 +5,7 @@
 //--------------------------------------------------
 using UnityEngine;
 using MotionFramework.Resource;
+using YooAsset;
 
 namespace MotionFramework.Audio
 {

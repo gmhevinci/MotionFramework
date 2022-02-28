@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Pool;
 using MotionFramework.Resource;
+using YooAsset;
 
 namespace MotionFramework.Console
 {

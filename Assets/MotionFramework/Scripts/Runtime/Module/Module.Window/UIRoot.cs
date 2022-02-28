@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Resource;
 using MotionFramework.Event;
+using YooAsset;
 
 namespace MotionFramework.Window
 {

@@ -4,6 +4,7 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using MotionFramework.Resource;
+using YooAsset;
 
 namespace MotionFramework.Scene
 {

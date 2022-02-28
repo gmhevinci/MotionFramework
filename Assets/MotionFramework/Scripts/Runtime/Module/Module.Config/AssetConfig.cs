@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.IO;
 using MotionFramework.Resource;
+using YooAsset;
 
 namespace MotionFramework.Config
 {

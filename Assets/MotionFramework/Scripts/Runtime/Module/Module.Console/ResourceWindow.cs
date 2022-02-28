@@ -9,38 +9,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using MotionFramework.Resource;
 using MotionFramework.Reference;
+using YooAsset;
 
 namespace MotionFramework.Console
 {
 	[ConsoleAttribute("资源系统", 104)]
 	internal class ResourceWindow : IConsoleWindow
 	{
-		private class ProviderWrapper : IReference, IComparer<ProviderWrapper>, IComparable<ProviderWrapper>
-		{
-			public string AssetPath;
-			public AssetProviderBase Provider;
-			public readonly List<BundleDebugInfo> BundleDebugInfos = new List<BundleDebugInfo>();
-
-			public void OnRelease()
-			{
-				AssetPath = null;
-				Provider = null;
-
-				ReferencePool.Release(BundleDebugInfos);
-				BundleDebugInfos.Clear();
-			}
-			public int CompareTo(ProviderWrapper other)
-			{
-				return Compare(this, other);
-			}
-			public int Compare(ProviderWrapper a, ProviderWrapper b)
-			{
-				return string.CompareOrdinal(a.AssetPath, b.AssetPath);
-			}
-		}
-
-		private readonly List<ProviderWrapper> _cacheProviders = new List<ProviderWrapper>(1000);
-
 		// GUI相关
 		private string _filterKey = string.Empty;
 		private Vector2 _scrollPos = Vector2.zero;
@@ -48,8 +23,8 @@ namespace MotionFramework.Console
 
 		void IConsoleWindow.OnGUI()
 		{
-			// 过滤信息
-			FilterInfos();
+			DebugSummy summy = new DebugSummy();
+			YooAssets.GetDebugSummy(summy);
 
 			GUILayout.BeginHorizontal();
 			{
@@ -58,73 +33,52 @@ namespace MotionFramework.Console
 			}
 			GUILayout.EndHorizontal();
 
-			ConsoleGUI.Lable($"资源包加载器总数：{AssetSystem.GetLoaderCount()}");
-			ConsoleGUI.Lable($"资源对象加载器总数：{AssetSystem.GetProviderCount()}");
+			ConsoleGUI.Lable($"资源包加载器总数：{summy.BundleCount}");
+			ConsoleGUI.Lable($"资源对象加载器总数：{summy.AssetCount}");
+
 			float offset = ConsoleGUI.ToolbarStyle.fixedHeight + ConsoleGUI.LableStyle.fontSize * 2;
 			_scrollPos = ConsoleGUI.BeginScrollView(_scrollPos, offset);
-			for (int i = 0; i < _cacheProviders.Count; i++)
+			for (int i = 0; i < summy.ProviderInfos.Count; i++)
 			{
+				var providerInfo = summy.ProviderInfos[i];
+
+				// 只搜索关键字
+				if (string.IsNullOrEmpty(_filterKey) == false)
+				{
+					if (providerInfo.AssetPath.Contains(_filterKey) == false)
+						continue;
+				}
+
 				GUILayout.Space(10);
-				var wrapper = _cacheProviders[i];
-				string loaderInfo = $"Asset：{wrapper.AssetPath} 引用：{wrapper.Provider.RefCount}";
-				if (wrapper.Provider.States == EAssetStates.Fail)
+				string loaderInfo = $"Asset：{providerInfo.AssetPath} 引用：{providerInfo.RefCount}";
+				if (providerInfo.States == EAssetStates.Fail)
 					ConsoleGUI.RedLable(loaderInfo);
 				else
 					ConsoleGUI.Lable(loaderInfo);
+
 				bool showOwner = false;
-				foreach(var debugInfo in wrapper.BundleDebugInfos)
+				foreach(var bundleInfo in providerInfo.BundleInfos)
 				{
 					if(showOwner == false)
 					{
 						showOwner = true;
-						string bundleInfo = $"Bundle：{debugInfo.BundleName}  引用：{debugInfo.RefCount} 版本：{debugInfo.Version}";
-						if (debugInfo.States == ELoaderStates.Fail)
-							ConsoleGUI.RedLable(bundleInfo);
+						string bundleContent = $"Bundle：{bundleInfo.BundleName}  引用：{bundleInfo.RefCount} 版本：{bundleInfo.Version}";
+						if (bundleInfo.States == ELoaderStates.Fail)
+							ConsoleGUI.RedLable(bundleContent);
 						else
-							ConsoleGUI.Lable(bundleInfo);
+							ConsoleGUI.Lable(bundleContent);
 					}
 					else
 					{
-						string bundleInfo = $"---Depend：{debugInfo.BundleName}  引用：{debugInfo.RefCount} 版本：{debugInfo.Version}";
-						if (debugInfo.States == ELoaderStates.Fail)
-							ConsoleGUI.RedLable(bundleInfo);
+						string bundleContent = $"---Depend：{bundleInfo.BundleName}  引用：{bundleInfo.RefCount} 版本：{bundleInfo.Version}";
+						if (bundleInfo.States == ELoaderStates.Fail)
+							ConsoleGUI.RedLable(bundleContent);
 						else
-							ConsoleGUI.Lable(bundleInfo);
+							ConsoleGUI.Lable(bundleContent);
 					}
 				}
 			}
 			ConsoleGUI.EndScrollView();
-		}
-		private void FilterInfos()
-		{
-			// 回收引用
-			ReferencePool.Release(_cacheProviders);
-			_cacheProviders.Clear();
-
-			var providers = AssetSystem.GetAllProviders();
-			foreach(var provider in providers)
-			{
-				// 只搜索关键字
-				if (string.IsNullOrEmpty(_filterKey) == false)
-				{
-					if (provider.AssetPath.Contains(_filterKey) == false)
-						continue;
-				}
-
-				ProviderWrapper wrapper = ReferencePool.Spawn<ProviderWrapper>();
-				wrapper.AssetPath = provider.AssetPath;
-				wrapper.Provider = provider;
-				_cacheProviders.Add(wrapper);
-
-				if (provider is BundledProvider)
-				{
-					BundledProvider temp = provider as BundledProvider;
-					temp.GetBundleDebugInfos(wrapper.BundleDebugInfos);
-				}
-			}
-
-			// 重新排序
-			_cacheProviders.Sort();
 		}
 	}
 }
