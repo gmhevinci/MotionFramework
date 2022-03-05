@@ -18,6 +18,7 @@ using MotionFramework.Scene;
 using MotionFramework.Pool;
 using MotionFramework.Network;
 using MotionFramework.Utility;
+using YooAsset;
 
 public class GameLauncher : MonoBehaviour
 {
@@ -59,20 +60,13 @@ public class GameLauncher : MonoBehaviour
         // 创建事件管理器
         MotionEngine.CreateModule<EventManager>();
 
-        // 创建补丁管理器
-        var patchCreateParam = new PatchManager.OfflinePlayModeParameters();
-        patchCreateParam.SimulationOnEditor = SimulationOnEditor;
-        MotionEngine.CreateModule<PatchManager>(patchCreateParam);
-
         // 创建资源管理器
-        var resourceCreateParam = new ResourceManager.CreateParameters();
-        resourceCreateParam.SimulationOnEditor = SimulationOnEditor;
+        var resourceCreateParam = new YooAssets.OfflinePlayModeParameters();
         resourceCreateParam.LocationRoot = "Assets/GameRes";
-        resourceCreateParam.BundleServices = PatchManager.Instance.BundleServices;
-        resourceCreateParam.DecryptServices = null;
-        resourceCreateParam.AutoReleaseInterval = 10f;
         MotionEngine.CreateModule<ResourceManager>(resourceCreateParam);
-
+        var operation = ResourceManager.Instance.InitializeAsync();
+        yield return operation;
+        
         // 创建音频管理器
         MotionEngine.CreateModule<AudioManager>();
 
