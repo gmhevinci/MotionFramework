@@ -1,2 +1,2 @@
 # YooAsset
-Unity resource system
+Unity assets system
