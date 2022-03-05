@@ -29,7 +29,6 @@ namespace MotionFramework.Resource
 		}
 		void IModule.OnUpdate()
 		{
-			YooAssets.Update();
 		}
 		void IModule.OnGUI()
 		{
@@ -175,9 +174,9 @@ namespace MotionFramework.Resource
 		/// <param name="dlcTag">DLC标记</param>
 		/// <param name="fileLoadingMaxNumber">同时下载的最大文件数</param>
 		/// <param name="failedTryAgain">下载失败的重试次数</param>
-		public PatchDownloader CreateDLCDownloader(string dlcTag, int fileLoadingMaxNumber, int failedTryAgain)
+		public DownloaderOperation CreateDLCDownloader(string dlcTag, int fileLoadingMaxNumber, int failedTryAgain)
 		{
-			return YooAssets.CreateDLCDownloader(dlcTag, fileLoadingMaxNumber, failedTryAgain);
+			return YooAssets.CreatePatchDownloader(dlcTag, fileLoadingMaxNumber, failedTryAgain);
 		}
 
 		/// <summary>
@@ -186,9 +185,9 @@ namespace MotionFramework.Resource
 		/// <param name="dlcTags">DLC标记列表</param>
 		/// <param name="fileLoadingMaxNumber">同时下载的最大文件数</param>
 		/// <param name="failedTryAgain">下载失败的重试次数</param>
-		public PatchDownloader CreateDLCDownloader(string[] dlcTags, int fileLoadingMaxNumber, int failedTryAgain)
+		public DownloaderOperation CreateDLCDownloader(string[] dlcTags, int fileLoadingMaxNumber, int failedTryAgain)
 		{
-			return YooAssets.CreateDLCDownloader(dlcTags, fileLoadingMaxNumber, failedTryAgain);
+			return YooAssets.CreatePatchDownloader(dlcTags, fileLoadingMaxNumber, failedTryAgain);
 		}
 
 		/// <summary>
@@ -197,7 +196,7 @@ namespace MotionFramework.Resource
 		/// <param name="locations">资源列表</param>
 		/// <param name="fileLoadingMaxNumber">同时下载的最大文件数</param>
 		/// <param name="failedTryAgain">下载失败的重试次数</param>
-		public PatchDownloader CreateBundleDownloader(string[] locations, int fileLoadingMaxNumber, int failedTryAgain)
+		public DownloaderOperation CreateBundleDownloader(string[] locations, int fileLoadingMaxNumber, int failedTryAgain)
 		{
 			return YooAssets.CreateBundleDownloader(locations, fileLoadingMaxNumber, failedTryAgain);
 		}
