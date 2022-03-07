@@ -65,21 +65,13 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 获取内置资源标记列表
-		/// </summary>
-		public string[] GetManifestBuildinTags()
-		{
-			return YooAssets.GetManifestBuildinTags();
-		}
-
-		/// <summary>
 		/// 获取资源包信息
 		/// </summary>
-		public AssetBundleInfo GetAssetBundleInfo(string location)
+		public BundleInfo GetBundleInfo(string location)
 		{
-			return YooAssets.GetAssetBundleInfo(location);
+			return YooAssets.GetBundleInfo(location);
 		}
-
+		
 		/// <summary>
 		/// 资源回收（卸载引用计数为零的资源）
 		/// </summary>
