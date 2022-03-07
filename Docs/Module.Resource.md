@@ -42,7 +42,7 @@ IEnumerator Start()
     createParam.IgnoreResourceVersion = false;
     createParam.DefaultHostServer = "http://127.0.0.1/CDN1/Android";
     createParam.FallbackHostServer = "http://127.0.0.1/CDN2/Android";
-    MotionEngine.CreateModule<PatchManager>(createParam);
+    MotionEngine.CreateModule<ResourceManager>(createParam);
 
     var operation = ResourceManager.Instance.InitializeAsync();
     yield return operation;
