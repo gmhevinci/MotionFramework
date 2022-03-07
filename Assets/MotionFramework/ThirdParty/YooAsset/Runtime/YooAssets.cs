@@ -122,8 +122,8 @@ namespace YooAsset
 			if (_isInitialize == false)
 			{
 				_isInitialize = true;
-				UnityEngine.GameObject driver = new UnityEngine.GameObject("[YooAsset]");
-				var driverGo = driver.AddComponent<YooAssetDriver>().gameObject;
+				UnityEngine.GameObject driverGo = new UnityEngine.GameObject("[YooAsset]");
+				driverGo.AddComponent<YooAssetDriver>();
 				UnityEngine.Object.DontDestroyOnLoad(driverGo);
 			}
 			else
@@ -222,33 +222,6 @@ namespace YooAsset
 		}
 
 
-
-		/// <summary>
-		/// 更新资源系统
-		/// </summary>
-		internal static void InternalUpdate()
-		{
-			// 更新异步请求操作
-			OperationUpdater.Update();
-
-			// 更新下载管理系统
-			DownloadSystem.Update();
-			
-			// 轮询更新资源系统
-			AssetSystem.Update();
-
-			// 自动释放零引用资源
-			if (_releaseCD > 0)
-			{
-				_releaseTimer += UnityEngine.Time.unscaledDeltaTime;
-				if (_releaseTimer >= _releaseCD)
-				{
-					_releaseTimer = 0f;
-					AssetSystem.UnloadUnusedAssets();
-				}
-			}
-		}
-
 		/// <summary>
 		/// 获取资源版本号
 		/// </summary>
@@ -279,42 +252,13 @@ namespace YooAsset
 		}
 
 		/// <summary>
-		/// 获取内置资源标记列表
-		/// </summary>
-		public static string[] GetManifestBuildinTags()
-		{
-			if (_playMode == EPlayMode.EditorPlayMode)
-			{
-				if (_editorPlayModeImpl == null)
-					throw new Exception("YooAsset is not initialized.");
-				return _editorPlayModeImpl.GetManifestBuildinTags();
-			}
-			else if (_playMode == EPlayMode.OfflinePlayMode)
-			{
-				if (_offlinePlayModeImpl == null)
-					throw new Exception("YooAsset is not initialized.");
-				return _offlinePlayModeImpl.GetManifestBuildinTags();
-			}
-			else if (_playMode == EPlayMode.HostPlayMode)
-			{
-				if (_hostPlayModeImpl == null)
-					throw new Exception("YooAsset is not initialized.");
-				return _hostPlayModeImpl.GetManifestBuildinTags();
-			}
-			else
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		/// <summary>
 		/// 获取资源包信息
 		/// </summary>
-		public static AssetBundleInfo GetAssetBundleInfo(string location)
+		public static BundleInfo GetBundleInfo(string location)
 		{
 			string assetPath = ConvertLocationToAssetPath(location);
-			string bundleName = _bundleServices.GetAssetBundleName(assetPath);
-			return _bundleServices.GetAssetBundleInfo(bundleName);
+			string bundleName = _bundleServices.GetBundleName(assetPath);
+			return _bundleServices.GetBundleInfo(bundleName);
 		}
 
 		/// <summary>
@@ -449,13 +393,13 @@ namespace YooAsset
 		{
 			if (_playMode == EPlayMode.EditorPlayMode)
 			{
-				List<AssetBundleInfo> downloadList = new List<AssetBundleInfo>();
+				List<BundleInfo> downloadList = new List<BundleInfo>();
 				var operation = new DownloaderOperation(downloadList, downloadingMaxNumber, failedTryAgain);
 				return operation;
 			}
 			else if (_playMode == EPlayMode.OfflinePlayMode)
 			{
-				List<AssetBundleInfo> downloadList = new List<AssetBundleInfo>();
+				List<BundleInfo> downloadList = new List<BundleInfo>();
 				var operation = new DownloaderOperation(downloadList, downloadingMaxNumber, failedTryAgain);
 				return operation;
 			}
@@ -481,13 +425,13 @@ namespace YooAsset
 		{
 			if (_playMode == EPlayMode.EditorPlayMode)
 			{
-				List<AssetBundleInfo> downloadList = new List<AssetBundleInfo>();
+				List<BundleInfo> downloadList = new List<BundleInfo>();
 				var operation = new DownloaderOperation(downloadList, downloadingMaxNumber, failedTryAgain);
 				return operation;
 			}
 			else if (_playMode == EPlayMode.OfflinePlayMode)
 			{
-				List<AssetBundleInfo> downloadList = new List<AssetBundleInfo>();
+				List<BundleInfo> downloadList = new List<BundleInfo>();
 				var operation = new DownloaderOperation(downloadList, downloadingMaxNumber, failedTryAgain);
 				return operation;
 			}
@@ -503,6 +447,51 @@ namespace YooAsset
 					assetPaths.Add(assetPath);
 				}
 				return _hostPlayModeImpl.CreateDownloaderByPaths(assetPaths, downloadingMaxNumber, failedTryAgain);
+			}
+			else
+			{
+				throw new NotImplementedException();
+			}
+		}
+		#endregion
+
+		#region 资源解压接口
+		/// <summary>
+		/// 创建补丁解压器
+		/// </summary>
+		/// <param name="tag">资源标签</param>
+		/// <param name="unpackingMaxNumber">同时解压的最大文件数</param>
+		/// <param name="failedTryAgain">解压失败的重试次数</param>
+		public static DownloaderOperation CreatePatchUnpacker(string tag, int unpackingMaxNumber, int failedTryAgain)
+		{
+			return CreatePatchUnpacker(new string[] { tag }, unpackingMaxNumber, failedTryAgain);
+		}
+		
+		/// <summary>
+		/// 创建补丁解压器
+		/// </summary>
+		/// <param name="tags">资源标签列表</param>
+		/// <param name="unpackingMaxNumber">同时解压的最大文件数</param>
+		/// <param name="failedTryAgain">解压失败的重试次数</param>
+		public static DownloaderOperation CreatePatchUnpacker(string[] tags, int unpackingMaxNumber, int failedTryAgain)
+		{
+			if (_playMode == EPlayMode.EditorPlayMode)
+			{
+				List<BundleInfo> downloadList = new List<BundleInfo>();
+				var operation = new DownloaderOperation(downloadList, unpackingMaxNumber, failedTryAgain);
+				return operation;
+			}
+			else if (_playMode == EPlayMode.OfflinePlayMode)
+			{
+				List<BundleInfo> downloadList = new List<BundleInfo>();
+				var operation = new DownloaderOperation(downloadList, unpackingMaxNumber, failedTryAgain);
+				return operation;
+			}
+			else if (_playMode == EPlayMode.HostPlayMode)
+			{
+				if (_hostPlayModeImpl == null)
+					throw new Exception("YooAsset is not initialized.");
+				return _hostPlayModeImpl.CreateUnpackerByTags(tags, unpackingMaxNumber, failedTryAgain);
 			}
 			else
 			{
@@ -532,6 +521,32 @@ namespace YooAsset
 		#endregion
 
 		#region 内部方法
+		/// <summary>
+		/// 更新资源系统
+		/// </summary>
+		internal static void InternalUpdate()
+		{
+			// 更新异步请求操作
+			OperationUpdater.Update();
+
+			// 更新下载管理系统
+			DownloadSystem.Update();
+
+			// 轮询更新资源系统
+			AssetSystem.Update();
+
+			// 自动释放零引用资源
+			if (_releaseCD > 0)
+			{
+				_releaseTimer += UnityEngine.Time.unscaledDeltaTime;
+				if (_releaseTimer >= _releaseCD)
+				{
+					_releaseTimer = 0f;
+					AssetSystem.UnloadUnusedAssets();
+				}
+			}
+		}
+
 		/// <summary>
 		/// 定位地址转换为资源路径
 		/// </summary>

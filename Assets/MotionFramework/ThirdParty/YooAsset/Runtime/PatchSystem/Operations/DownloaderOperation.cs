@@ -15,13 +15,13 @@ namespace YooAsset
 		private const int MAX_LOADER_COUNT = 64;
 
 		public delegate void OnDownloadOver(bool isSucceed);
-		public delegate void OnDownloadProgress(int totalDownloadCount, int currentDownloadCoun, long totalDownloadBytes, long currentDownloadBytes);
+		public delegate void OnDownloadProgress(int totalDownloadCount, int currentDownloadCount, long totalDownloadBytes, long currentDownloadBytes);
 		public delegate void OnDownloadFileFailed(string fileName);
-
+		
 		private readonly int _fileLoadingMaxNumber;
 		private readonly int _failedTryAgain;
-		private readonly List<AssetBundleInfo> _downloadList;
-		private readonly List<AssetBundleInfo> _loadFailedList = new List<AssetBundleInfo>();
+		private readonly List<BundleInfo> _downloadList;
+		private readonly List<BundleInfo> _loadFailedList = new List<BundleInfo>();
 		private readonly List<FileDownloader> _downloaders = new List<FileDownloader>();
 		private readonly List<FileDownloader> _removeList = new List<FileDownloader>(MAX_LOADER_COUNT);
 
@@ -67,7 +67,7 @@ namespace YooAsset
 		public OnDownloadFileFailed OnDownloadFileFailedCallback { set; get; }
 
 
-		internal DownloaderOperation(List<AssetBundleInfo> downloadList, int fileLoadingMaxNumber, int failedTryAgain)
+		internal DownloaderOperation(List<BundleInfo> downloadList, int fileLoadingMaxNumber, int failedTryAgain)
 		{
 			_downloadList = downloadList;
 			_fileLoadingMaxNumber = UnityEngine.Mathf.Clamp(fileLoadingMaxNumber, 1, MAX_LOADER_COUNT); ;
@@ -100,7 +100,7 @@ namespace YooAsset
 					if (downloader.IsDone() == false)
 						continue;
 
-					AssetBundleInfo bundleInfo = downloader.BundleInfo;
+					BundleInfo bundleInfo = downloader.GetBundleInfo();
 
 					// 检测是否下载失败
 					if (downloader.HasError())

@@ -24,22 +24,14 @@ namespace YooAsset
 			return 0;
 		}
 
-		/// <summary>
-		/// 获取内置资源标记列表
-		/// </summary>
-		public string[] GetManifestBuildinTags()
-		{
-			return new string[0];
-		}
-
 		#region IBundleServices接口
-		AssetBundleInfo IBundleServices.GetAssetBundleInfo(string bundleName)
+		BundleInfo IBundleServices.GetBundleInfo(string bundleName)
 		{
-			Logger.Warning($"Editor play mode can not get asset bundle info.");
-			AssetBundleInfo bundleInfo = new AssetBundleInfo(bundleName, bundleName);
+			Logger.Warning($"Editor play mode can not get bundle info.");
+			BundleInfo bundleInfo = new BundleInfo(bundleName, bundleName);
 			return bundleInfo;
 		}
-		string IBundleServices.GetAssetBundleName(string assetPath)
+		string IBundleServices.GetBundleName(string assetPath)
 		{
 			return assetPath;
 		}
