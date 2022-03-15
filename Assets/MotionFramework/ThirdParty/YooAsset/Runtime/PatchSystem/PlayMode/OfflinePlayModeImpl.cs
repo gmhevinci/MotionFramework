@@ -14,7 +14,7 @@ namespace YooAsset
 		public InitializationOperation InitializeAsync()
 		{
 			var operation = new OfflinePlayModeInitializationOperation(this);
-			OperationUpdater.ProcessOperaiton(operation);
+			OperationSystem.ProcessOperaiton(operation);
 			return operation;
 		}
 
@@ -36,13 +36,13 @@ namespace YooAsset
 
 			if (AppPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
-				string localPath = AssetPathHelper.MakeStreamingLoadPath(patchBundle.Hash);
+				string localPath = PathHelper.MakeStreamingLoadPath(patchBundle.Hash);
 				BundleInfo bundleInfo = new BundleInfo(patchBundle, localPath);
 				return bundleInfo;
 			}
 			else
 			{
-				Logger.Warning($"Not found bundle in patch manifest : {bundleName}");
+				YooLogger.Warning($"Not found bundle in patch manifest : {bundleName}");
 				BundleInfo bundleInfo = new BundleInfo(bundleName, string.Empty);
 				return bundleInfo;
 			}

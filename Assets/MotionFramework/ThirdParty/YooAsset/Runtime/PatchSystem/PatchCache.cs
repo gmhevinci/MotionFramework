@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using YooAsset.Utility;
 
 namespace YooAsset
 {
@@ -20,19 +19,19 @@ namespace YooAsset
 		/// </summary>
 		public static PatchCache LoadCache()
 		{
-			if (PatchHelper.CheckSandboxCacheFileExist())
+			if (SandboxHelper.CheckSandboxCacheFileExist())
 			{
-				Logger.Log("Load patch cache from disk.");
-				string filePath = PatchHelper.GetSandboxCacheFilePath();
+				YooLogger.Log("Load patch cache from disk.");
+				string filePath = SandboxHelper.GetSandboxCacheFilePath();
 				string jsonData = FileUtility.ReadFile(filePath);
 				return JsonUtility.FromJson<PatchCache>(jsonData);
 			}
 			else
 			{
-				Logger.Log($"Create patch cache to disk : {Application.version}");
+				YooLogger.Log($"Create patch cache to disk : {Application.version}");
 				PatchCache cache = new PatchCache();
 				cache.CacheAppVersion = Application.version;
-				string filePath = PatchHelper.GetSandboxCacheFilePath();
+				string filePath = SandboxHelper.GetSandboxCacheFilePath();
 				string jsonData = JsonUtility.ToJson(cache);
 				FileUtility.CreateFile(filePath, jsonData);
 				return cache;
@@ -44,10 +43,10 @@ namespace YooAsset
 		/// </summary>
 		public static void UpdateCache()
 		{
-			Logger.Log($"Update patch cache to disk : {Application.version}");
+			YooLogger.Log($"Update patch cache to disk : {Application.version}");
 			PatchCache cache = new PatchCache();
 			cache.CacheAppVersion = Application.version;
-			string filePath = PatchHelper.GetSandboxCacheFilePath();
+			string filePath = SandboxHelper.GetSandboxCacheFilePath();
 			string jsonData = JsonUtility.ToJson(cache);
 			FileUtility.CreateFile(filePath, jsonData);
 		}

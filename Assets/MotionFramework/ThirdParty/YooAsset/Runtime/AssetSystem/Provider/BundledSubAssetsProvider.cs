@@ -26,13 +26,13 @@ namespace YooAsset
 			if (IsDone)
 				return;
 
-			if (States == EAssetStates.None)
+			if (Status == EStatus.None)
 			{
-				States = EAssetStates.CheckBundle;
+				Status = EStatus.CheckBundle;
 			}
 
 			// 1. 检测资源包
-			if (States == EAssetStates.CheckBundle)
+			if (Status == EStatus.CheckBundle)
 			{
 				if (IsWaitForAsyncComplete)
 				{
@@ -47,17 +47,17 @@ namespace YooAsset
 
 				if (OwnerBundle.CacheBundle == null)
 				{
-					States = EAssetStates.Fail;
+					Status = EStatus.Fail;
 					InvokeCompletion();
 				}
 				else
 				{
-					States = EAssetStates.Loading;
+					Status = EStatus.Loading;
 				}
 			}
 
 			// 2. 加载资源对象
-			if (States == EAssetStates.Loading)
+			if (Status == EStatus.Loading)
 			{
 				if (IsWaitForAsyncComplete)
 				{
@@ -73,18 +73,18 @@ namespace YooAsset
 					else
 						_cacheRequest = OwnerBundle.CacheBundle.LoadAssetWithSubAssetsAsync(AssetName, AssetType);
 				}
-				States = EAssetStates.Checking;
+				Status = EStatus.Checking;
 			}
 
 			// 3. 检测加载结果
-			if (States == EAssetStates.Checking)
+			if (Status == EStatus.Checking)
 			{
 				if (_cacheRequest != null)
 				{
 					if (IsWaitForAsyncComplete)
 					{
 						// 强制挂起主线程（注意：该操作会很耗时）
-						Logger.Warning("Suspend the main thread to load unity asset.");
+						YooLogger.Warning("Suspend the main thread to load unity asset.");
 						AllAssets = _cacheRequest.allAssets;
 					}
 					else
@@ -95,9 +95,9 @@ namespace YooAsset
 					}
 				}
 
-				States = AllAssets == null ? EAssetStates.Fail : EAssetStates.Success;
-				if (States == EAssetStates.Fail)
-					Logger.Warning($"Failed to load sub assets : {AssetName} from bundle : {OwnerBundle.BundleFileInfo.BundleName}");
+				Status = AllAssets == null ? EStatus.Fail : EStatus.Success;
+				if (Status == EStatus.Fail)
+					YooLogger.Warning($"Failed to load sub assets : {AssetName} from bundle : {OwnerBundle.BundleFileInfo.BundleName}");
 				InvokeCompletion();
 			}
 		}

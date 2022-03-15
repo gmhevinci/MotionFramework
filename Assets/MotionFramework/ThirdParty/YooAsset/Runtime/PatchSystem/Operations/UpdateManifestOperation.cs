@@ -81,11 +81,11 @@ namespace YooAsset
 
 			if (_impl.IgnoreResourceVersion && _updateResourceVersion > 0)
 			{
-				Logger.Warning($"Update resource version {_updateResourceVersion} is invalid when ignore resource version.");
+				YooLogger.Warning($"Update resource version {_updateResourceVersion} is invalid when ignore resource version.");
 			}
 			else
 			{
-				Logger.Log($"Update patch manifest : update resource version is  {_updateResourceVersion}");
+				YooLogger.Log($"Update patch manifest : update resource version is  {_updateResourceVersion}");
 			}
 		}
 		internal override void Update()
@@ -96,7 +96,7 @@ namespace YooAsset
 			if (_steps == ESteps.LoadWebManifestHash)
 			{
 				string webURL = GetPatchManifestRequestURL(_updateResourceVersion, ResourceSettingData.Setting.PatchManifestHashFileName);
-				Logger.Log($"Beginning to request patch manifest hash : {webURL}");
+				YooLogger.Log($"Beginning to request patch manifest hash : {webURL}");
 				_downloaderHash = new UnityWebRequester();
 				_downloaderHash.SendRequest(webURL, _timeout);
 				_steps = ESteps.CheckWebManifestHash;
@@ -122,15 +122,15 @@ namespace YooAsset
 				_downloaderHash.Dispose();
 
 				// 如果补丁清单文件的哈希值相同
-				string currentFileHash = PatchHelper.GetSandboxPatchManifestFileHash();
+				string currentFileHash = SandboxHelper.GetSandboxPatchManifestFileHash();
 				if (currentFileHash == webManifestHash)
 				{
-					Logger.Log($"Patch manifest file hash is not change : {webManifestHash}");
+					YooLogger.Log($"Patch manifest file hash is not change : {webManifestHash}");
 					_steps = ESteps.InitPrepareCache;
 				}
 				else
 				{
-					Logger.Log($"Patch manifest hash is change : {webManifestHash} -> {currentFileHash}");
+					YooLogger.Log($"Patch manifest hash is change : {webManifestHash} -> {currentFileHash}");
 					_steps = ESteps.LoadWebManifest;
 				}
 			}
@@ -138,7 +138,7 @@ namespace YooAsset
 			if (_steps == ESteps.LoadWebManifest)
 			{
 				string webURL = GetPatchManifestRequestURL(_updateResourceVersion, ResourceSettingData.Setting.PatchManifestFileName);
-				Logger.Log($"Beginning to request patch manifest : {webURL}");
+				YooLogger.Log($"Beginning to request patch manifest : {webURL}");
 				_downloaderManifest = new UnityWebRequester();
 				_downloaderManifest.SendRequest(webURL, _timeout);
 				_steps = ESteps.CheckWebManifest;
@@ -179,7 +179,7 @@ namespace YooAsset
 					_steps = ESteps.Done;
 					Status = EOperationStatus.Succeed;
 					float costTime = UnityEngine.Time.realtimeSinceStartup - _verifyTime;
-					Logger.Log($"Verify files total time : {costTime}");
+					YooLogger.Log($"Verify files total time : {costTime}");
 				}
 			}
 		}
@@ -205,8 +205,8 @@ namespace YooAsset
 			_impl.LocalPatchManifest = PatchManifest.Deserialize(content);
 
 			// 注意：这里会覆盖掉沙盒内的补丁清单文件
-			Logger.Log("Save remote patch manifest file.");
-			string savePath = AssetPathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
+			YooLogger.Log("Save remote patch manifest file.");
+			string savePath = PathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
 			PatchManifest.Serialize(savePath, _impl.LocalPatchManifest);
 		}
 
@@ -246,7 +246,7 @@ namespace YooAsset
 				}
 
 				// 查看文件是否存在
-				string filePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+				string filePath = SandboxHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 				if (File.Exists(filePath) == false)
 					continue;
 
@@ -276,7 +276,7 @@ namespace YooAsset
 				}
 				else
 				{
-					Logger.Warning("Failed to run verify thread.");
+					YooLogger.Warning("Failed to run verify thread.");
 					break;
 				}
 			}
@@ -285,7 +285,7 @@ namespace YooAsset
 		}
 		private bool RunThread(PatchBundle patchBundle)
 		{
-			string filePath = PatchHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+			string filePath = SandboxHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
 			ThreadInfo info = new ThreadInfo(filePath, patchBundle);
 			return ThreadPool.QueueUserWorkItem(new WaitCallback(VerifyFile), info);
 		}
