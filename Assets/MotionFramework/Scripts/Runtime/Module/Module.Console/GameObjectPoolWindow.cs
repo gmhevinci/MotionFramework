@@ -35,7 +35,7 @@ namespace MotionFramework.Console
 			foreach (var pair in pools)
 			{
 				string content = $"[{pair.Value.Location}] CacheCount = {pair.Value.CacheCount} SpwanCount = {pair.Value.SpawnCount}";
-				if (pair.Value.States == EAssetStates.Fail)
+				if (pair.Value.States == EOperationStatus.Failed)
 					ConsoleGUI.RedLable(content);
 				else
 					ConsoleGUI.Lable(content);
