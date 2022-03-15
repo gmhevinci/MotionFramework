@@ -59,11 +59,11 @@ namespace MotionFramework.Pool
 		/// <summary>
 		/// 当前的加载状态
 		/// </summary>
-		public EAssetStates States
+		public EOperationStatus States
 		{
 			get
 			{
-				return _handle.States;
+				return _handle.Status;
 			}
 		}
 
