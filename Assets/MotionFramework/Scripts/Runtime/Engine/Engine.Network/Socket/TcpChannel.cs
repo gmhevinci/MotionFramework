@@ -231,6 +231,9 @@ namespace MotionFramework.Network
 		/// </summary>
 		private void ProcessReceive(object obj)
 		{
+			if (_socket == null)
+				return;
+
 			SocketAsyncEventArgs e = obj as SocketAsyncEventArgs;
 
 			// check if the remote host closed the connection	
@@ -276,6 +279,9 @@ namespace MotionFramework.Network
 		/// </summary>
 		private void ProcessSend(object obj)
 		{
+			if (_socket == null)
+				return;
+
 			SocketAsyncEventArgs e = obj as SocketAsyncEventArgs;
 			if (e.SocketError == SocketError.Success)
 			{
