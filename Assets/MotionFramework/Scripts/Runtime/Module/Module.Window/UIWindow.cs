@@ -166,7 +166,7 @@ namespace MotionFramework.Window
 				return;
 
 			// 实例化对象
-			Go = _handle.InstantiateObject;
+			Go = _handle.InstantiateSync();
 
 			// 设置UI桌面
 			if (WindowManager.Instance.Root == null)

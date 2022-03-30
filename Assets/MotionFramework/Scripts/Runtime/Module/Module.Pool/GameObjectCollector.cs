@@ -135,7 +135,7 @@ namespace MotionFramework.Pool
 		}
 		private GameObject InstantiateGameObject()
 		{
-			var cloneObject = _handle.InstantiateObject;
+			var cloneObject = _handle.InstantiateSync();
 
 			// 如果加载失败，创建临时对象
 			if (cloneObject == null)

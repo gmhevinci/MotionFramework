@@ -46,7 +46,7 @@ namespace MotionFramework.Scene
 		}
 
 		[System.Obsolete("The param activeOnLoad is not work. User other method instead")]
-		public void ChangeMainScene(string location, bool activeOnLoad, System.Action<SceneInstance> callback)
+		public void ChangeMainScene(string location, bool activeOnLoad, System.Action<SceneOperationHandle> callback)
 		{
 			ChangeMainScene(location, callback);
 		}
@@ -56,7 +56,7 @@ namespace MotionFramework.Scene
 		/// </summary>
 		/// <param name="location">场景资源地址</param>
 		/// <param name="callback">场景加载完毕的回调</param>
-		public void ChangeMainScene(string location, System.Action<SceneInstance> finishCallback = null,
+		public void ChangeMainScene(string location, System.Action<SceneOperationHandle> finishCallback = null,
 			System.Action<int> progressCallback = null)
 		{
 			if (_mainScene != null && _mainScene.IsDone == false)
@@ -79,7 +79,7 @@ namespace MotionFramework.Scene
 		/// <param name="location">场景资源地址</param>
 		/// <param name="activeOnLoad">加载完成时是否激活附加场景</param>
 		/// <param name="callback">场景加载完毕的回调</param>
-		public void LoadAdditionScene(string location, bool activeOnLoad, System.Action<SceneInstance> finishCallback = null,
+		public void LoadAdditionScene(string location, bool activeOnLoad, System.Action<SceneOperationHandle> finishCallback = null,
 			System.Action<int> progressCallback = null)
 		{
 			AssetScene scene = TryGetAdditionScene(location);

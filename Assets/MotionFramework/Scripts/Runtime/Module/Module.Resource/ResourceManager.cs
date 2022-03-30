@@ -4,12 +4,10 @@
 // Licensed under the MIT license
 //--------------------------------------------------
 using System;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using MotionFramework.Console;
-using MotionFramework.Utility;
+using UnityEngine.SceneManagement;
 using YooAsset;
 
 namespace MotionFramework.Resource
@@ -96,6 +94,16 @@ namespace MotionFramework.Resource
 			handle.Release();
 		}
 
+		#region 场景加载接口
+		/// <summary>
+		/// 异步加载场景
+		/// </summary>
+		public SceneOperationHandle LoadSceneAsync(string location, LoadSceneMode sceneMode = LoadSceneMode.Single, bool activeOnLoad = true, int priority = 100)
+		{
+			return YooAssets.LoadSceneAsync(location, sceneMode, activeOnLoad, priority);
+		}
+		#endregion
+
 		#region 资源加载接口
 		/// <summary>
 		/// 同步加载资源对象
@@ -107,30 +115,22 @@ namespace MotionFramework.Resource
 		}
 		public AssetOperationHandle LoadAssetSync(System.Type type, string location)
 		{
-			return YooAssets.LoadAssetSync(type, location);
+			return YooAssets.LoadAssetSync(location, type);
 		}
 
 		/// <summary>
 		/// 同步加载子资源对象集合
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
-		public AssetOperationHandle LoadSubAssetsSync<TObject>(string location)
+		public SubAssetsOperationHandle LoadSubAssetsSync<TObject>(string location)
 		{
 			return YooAssets.LoadSubAssetsSync<TObject>(location);
 		}
-		public AssetOperationHandle LoadSubAssetsSync(System.Type type, string location)
+		public SubAssetsOperationHandle LoadSubAssetsSync(System.Type type, string location)
 		{
-			return YooAssets.LoadSubAssetsSync(type, location);
+			return YooAssets.LoadSubAssetsSync(location, type);
 		}
 
-
-		/// <summary>
-		/// 异步加载场景
-		/// </summary>
-		public AssetOperationHandle LoadSceneAsync(string location, SceneInstanceParam instanceParam)
-		{
-			return YooAssets.LoadSceneAsync(location, instanceParam);
-		}
 
 		/// <summary>
 		/// 异步加载资源对象
@@ -142,20 +142,20 @@ namespace MotionFramework.Resource
 		}
 		public AssetOperationHandle LoadAssetAsync(System.Type type, string location)
 		{
-			return YooAssets.LoadAssetAsync(type, location);
+			return YooAssets.LoadAssetAsync(location, type);
 		}
 
 		/// <summary>
 		/// 异步加载子资源对象集合
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
-		public AssetOperationHandle LoadSubAssetsAsync<TObject>(string location)
+		public SubAssetsOperationHandle LoadSubAssetsAsync<TObject>(string location)
 		{
 			return YooAssets.LoadSubAssetsAsync<TObject>(location);
 		}
-		public AssetOperationHandle LoadSubAssetsAsync(System.Type type, string location)
+		public SubAssetsOperationHandle LoadSubAssetsAsync(System.Type type, string location)
 		{
-			return YooAssets.LoadSubAssetsAsync(type, location);
+			return YooAssets.LoadSubAssetsAsync(location, type);
 		}
 		#endregion
 

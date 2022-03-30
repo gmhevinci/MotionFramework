@@ -57,12 +57,21 @@ namespace MotionFramework.AI
 		}
 
 		/// <summary>
-		/// 更新状态机
+		/// 显示帧更新
 		/// </summary>
 		public void Update()
 		{
 			if (_curNode != null)
 				_curNode.OnUpdate();
+		}
+
+		/// <summary>
+		/// 物理帧更新
+		/// </summary>
+		public void FixedUpdate()
+		{
+			if (_curNode != null)
+				_curNode.OnFixedUpdate();
 		}
 
 		/// <summary>

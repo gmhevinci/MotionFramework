@@ -15,6 +15,7 @@ namespace MotionFramework.AI
 
 		void OnEnter();
 		void OnUpdate();
+		void OnFixedUpdate();
 		void OnExit();
 		void OnHandleMessage(object msg);
 	}

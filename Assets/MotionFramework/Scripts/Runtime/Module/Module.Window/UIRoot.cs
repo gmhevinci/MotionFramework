@@ -69,7 +69,7 @@ namespace MotionFramework.Window
 				return;
 
 			// 实例化对象
-			Go = _handle.InstantiateObject;
+			Go = _handle.InstantiateSync();
 			GameObject.DontDestroyOnLoad(Go);
 
 			// 调用重载函数
