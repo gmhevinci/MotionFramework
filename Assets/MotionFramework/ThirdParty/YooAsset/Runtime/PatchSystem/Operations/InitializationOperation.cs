@@ -41,7 +41,7 @@ namespace YooAsset
 
 		private OfflinePlayModeImpl _impl;
 		private ESteps _steps = ESteps.None;
-		private UnityWebRequester _downloader;
+		private UnityWebDataRequester _downloader;
 		private string _downloadURL;
 
 		internal OfflinePlayModeInitializationOperation(OfflinePlayModeImpl impl)
@@ -59,9 +59,9 @@ namespace YooAsset
 
 			if (_steps == ESteps.LoadAppManifest)
 			{
-				string filePath = PathHelper.MakeStreamingLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
+				string filePath = PathHelper.MakeStreamingLoadPath(YooAssetSettingsData.Setting.PatchManifestFileName);
 				_downloadURL = PathHelper.ConvertToWWWPath(filePath);
-				_downloader = new UnityWebRequester();
+				_downloader = new UnityWebDataRequester();
 				_downloader.SendRequest(_downloadURL);
 				_steps = ESteps.CheckAppManifest;
 			}
@@ -106,7 +106,7 @@ namespace YooAsset
 
 		private HostPlayModeImpl _impl;
 		private ESteps _steps = ESteps.None;
-		private UnityWebRequester _downloader;
+		private UnityWebDataRequester _downloader;
 		private string _downloadURL;
 
 		internal HostPlayModeInitializationOperation(HostPlayModeImpl impl)
@@ -149,9 +149,9 @@ namespace YooAsset
 			{
 				// 加载APP内的补丁清单
 				YooLogger.Log($"Load application patch manifest.");
-				string filePath = PathHelper.MakeStreamingLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
+				string filePath = PathHelper.MakeStreamingLoadPath(YooAssetSettingsData.Setting.PatchManifestFileName);
 				_downloadURL = PathHelper.ConvertToWWWPath(filePath);
-				_downloader = new UnityWebRequester();
+				_downloader = new UnityWebDataRequester();
 				_downloader.SendRequest(_downloadURL);
 				_steps = ESteps.CheckAppManifest;
 			}
@@ -184,7 +184,7 @@ namespace YooAsset
 				if (SandboxHelper.CheckSandboxPatchManifestFileExist())
 				{
 					YooLogger.Log($"Load sandbox patch manifest.");
-					string filePath = PathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
+					string filePath = PathHelper.MakePersistentLoadPath(YooAssetSettingsData.Setting.PatchManifestFileName);
 					string jsonData = File.ReadAllText(filePath);
 					_impl.LocalPatchManifest = PatchManifest.Deserialize(jsonData);
 				}

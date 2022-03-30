@@ -64,8 +64,8 @@ namespace YooAsset
 		private readonly int _updateResourceVersion;
 		private readonly int _timeout;
 		private ESteps _steps = ESteps.None;
-		private UnityWebRequester _downloaderHash;
-		private UnityWebRequester _downloaderManifest;
+		private UnityWebDataRequester _downloaderHash;
+		private UnityWebDataRequester _downloaderManifest;
 		private float _verifyTime;
 
 		public HostPlayModeUpdateManifestOperation(HostPlayModeImpl impl, int updateResourceVersion, int timeout)
@@ -95,9 +95,9 @@ namespace YooAsset
 
 			if (_steps == ESteps.LoadWebManifestHash)
 			{
-				string webURL = GetPatchManifestRequestURL(_updateResourceVersion, ResourceSettingData.Setting.PatchManifestHashFileName);
+				string webURL = GetPatchManifestRequestURL(_updateResourceVersion, YooAssetSettingsData.Setting.PatchManifestHashFileName);
 				YooLogger.Log($"Beginning to request patch manifest hash : {webURL}");
-				_downloaderHash = new UnityWebRequester();
+				_downloaderHash = new UnityWebDataRequester();
 				_downloaderHash.SendRequest(webURL, _timeout);
 				_steps = ESteps.CheckWebManifestHash;
 			}
@@ -137,9 +137,9 @@ namespace YooAsset
 
 			if (_steps == ESteps.LoadWebManifest)
 			{
-				string webURL = GetPatchManifestRequestURL(_updateResourceVersion, ResourceSettingData.Setting.PatchManifestFileName);
+				string webURL = GetPatchManifestRequestURL(_updateResourceVersion, YooAssetSettingsData.Setting.PatchManifestFileName);
 				YooLogger.Log($"Beginning to request patch manifest : {webURL}");
-				_downloaderManifest = new UnityWebRequester();
+				_downloaderManifest = new UnityWebDataRequester();
 				_downloaderManifest.SendRequest(webURL, _timeout);
 				_steps = ESteps.CheckWebManifest;
 			}
@@ -206,7 +206,7 @@ namespace YooAsset
 
 			// 注意：这里会覆盖掉沙盒内的补丁清单文件
 			YooLogger.Log("Save remote patch manifest file.");
-			string savePath = PathHelper.MakePersistentLoadPath(ResourceSettingData.Setting.PatchManifestFileName);
+			string savePath = PathHelper.MakePersistentLoadPath(YooAssetSettingsData.Setting.PatchManifestFileName);
 			PatchManifest.Serialize(savePath, _impl.LocalPatchManifest);
 		}
 

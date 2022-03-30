@@ -15,7 +15,7 @@ namespace YooAsset.Editor
 		{
 			// 注意：我们只有在强制重建的时候才会拷贝
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-			if(buildParameters.Parameters.IsForceRebuild)
+			if(buildParameters.Parameters.ForceRebuild)
 			{
 				// 清空流目录
 				AssetBundleBuilderHelper.ClearStreamingAssetsFolder();
@@ -45,15 +45,15 @@ namespace YooAsset.Editor
 
 			// 拷贝清单文件
 			{
-				string sourcePath = $"{pipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestFileName}";
-				string destPath = $"{Application.dataPath}/StreamingAssets/{ResourceSettingData.Setting.PatchManifestFileName}";
+				string sourcePath = $"{pipelineOutputDirectory}/{YooAssetSettingsData.Setting.PatchManifestFileName}";
+				string destPath = $"{Application.dataPath}/StreamingAssets/{YooAssetSettingsData.Setting.PatchManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
 
 			// 拷贝清单哈希文件
 			{
-				string sourcePath = $"{pipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestHashFileName}";
-				string destPath = $"{Application.dataPath}/StreamingAssets/{ResourceSettingData.Setting.PatchManifestHashFileName}";
+				string sourcePath = $"{pipelineOutputDirectory}/{YooAssetSettingsData.Setting.PatchManifestHashFileName}";
+				string destPath = $"{Application.dataPath}/StreamingAssets/{YooAssetSettingsData.Setting.PatchManifestHashFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
 

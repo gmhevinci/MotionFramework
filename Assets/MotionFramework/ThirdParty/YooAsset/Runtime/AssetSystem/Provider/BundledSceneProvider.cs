@@ -7,7 +7,9 @@ namespace YooAsset
 {
 	internal sealed class BundledSceneProvider : BundledProvider
 	{
-		private SceneInstanceParam _param;
+		public readonly LoadSceneMode SceneMode;
+		private readonly bool _activateOnLoad;
+		private readonly int _priority;
 		private AsyncOperation _asyncOp;
 		public override float Progress
 		{
@@ -19,10 +21,12 @@ namespace YooAsset
 			}
 		}
 
-		public BundledSceneProvider(string scenePath, SceneInstanceParam param)
+		public BundledSceneProvider(string scenePath, LoadSceneMode sceneMode, bool activateOnLoad, int priority)
 			: base(scenePath, null)
 		{
-			_param = param;
+			SceneMode = sceneMode;
+			_activateOnLoad = activateOnLoad;
+			_priority = priority;
 		}
 		public override void Update()
 		{
@@ -56,10 +60,11 @@ namespace YooAsset
 			// 2. 加载场景
 			if (Status == EStatus.Loading)
 			{
-				_asyncOp = SceneManager.LoadSceneAsync(AssetName, _param.LoadMode);		
+				_asyncOp = SceneManager.LoadSceneAsync(AssetName, SceneMode);
 				if (_asyncOp != null)
 				{
 					_asyncOp.allowSceneActivation = true;
+					_asyncOp.priority = _priority;
 					Status = EStatus.Checking;
 				}
 				else
@@ -75,35 +80,14 @@ namespace YooAsset
 			{
 				if (_asyncOp.isDone)
 				{
-					SceneInstance instance = new SceneInstance(_asyncOp);
-					instance.Scene = SceneManager.GetSceneByName(AssetName);
-					AssetInstance = instance;
-					if (_param.ActivateOnLoad)
-						instance.Activate();
+					SceneObject = SceneManager.GetSceneByName(AssetName);
+					if (SceneObject.IsValid() && _activateOnLoad)
+						SceneManager.SetActiveScene(SceneObject);
 
-					Status = instance.Scene.IsValid() ? EStatus.Success : EStatus.Fail;
+					Status = SceneObject.IsValid() ? EStatus.Success : EStatus.Fail;
 					InvokeCompletion();
 				}
 			}
-		}
-		public override void Destory()
-		{
-			base.Destory();
-
-			// 卸载附加场景（异步方式卸载）
-			if (_param.LoadMode == LoadSceneMode.Additive)
-			{
-				var instance = AssetInstance as SceneInstance;
-				if (instance != null && instance.Scene != null)
-				{
-					if (instance.Scene.IsValid() && instance.Scene.isLoaded)
-						SceneManager.UnloadSceneAsync(instance.Scene);
-				}
-			}
-		}
-		public override void WaitForAsyncComplete()
-		{
-			throw new System.Exception($"Unity scene is not support {nameof(WaitForAsyncComplete)}.");
 		}
 	}
 }

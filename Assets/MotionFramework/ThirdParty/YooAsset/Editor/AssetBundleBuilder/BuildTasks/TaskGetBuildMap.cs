@@ -12,6 +12,12 @@ namespace YooAsset.Editor
 		public class BuildMapContext : IContextObject
 		{
 			/// <summary>
+			/// 参与构建的资源总数
+			/// 说明：包括主动收集的资源以及其依赖的所有资源
+			/// </summary>
+			public int AssetFileCount;
+
+			/// <summary>
 			/// 资源包列表
 			/// </summary>
 			public readonly List<BuildBundleInfo> BundleInfos = new List<BuildBundleInfo>(1000);
@@ -19,7 +25,7 @@ namespace YooAsset.Editor
 			/// <summary>
 			/// 冗余的资源列表
 			/// </summary>
-			public readonly List<string> RedundancyList = new List<string>(1000);
+			public readonly List<string> RedundancyAssetList = new List<string>(1000);
 
 
 			/// <summary>
@@ -27,13 +33,13 @@ namespace YooAsset.Editor
 			/// </summary>
 			public void PackAsset(BuildAssetInfo assetInfo)
 			{
-				if (TryGetBundleInfo(assetInfo.GetBundleName(), out BuildBundleInfo bundleInfo))
+				if (TryGetBundleInfo(assetInfo.BundleName, out BuildBundleInfo bundleInfo))
 				{
 					bundleInfo.PackAsset(assetInfo);
 				}
 				else
 				{
-					BuildBundleInfo newBundleInfo = new BuildBundleInfo(assetInfo.BundleLabel, assetInfo.BundleVariant);
+					BuildBundleInfo newBundleInfo = new BuildBundleInfo(assetInfo.BundleName);
 					newBundleInfo.PackAsset(assetInfo);
 					BundleInfos.Add(newBundleInfo);
 				}
@@ -47,7 +53,7 @@ namespace YooAsset.Editor
 				List<BuildAssetInfo> result = new List<BuildAssetInfo>(BundleInfos.Count);
 				foreach (var bundleInfo in BundleInfos)
 				{
-					result.AddRange(bundleInfo.Assets);
+					result.AddRange(bundleInfo.BuildinAssets);
 				}
 				return result;
 			}
@@ -60,18 +66,6 @@ namespace YooAsset.Editor
 				if (TryGetBundleInfo(bundleFullName, out BuildBundleInfo bundleInfo))
 				{
 					return bundleInfo.GetAssetTags();
-				}
-				throw new Exception($"Not found {nameof(BuildBundleInfo)} : {bundleFullName}");
-			}
-
-			/// <summary>
-			/// 获取AssetBundle内收集的资源路径列表
-			/// </summary>
-			public string[] GetCollectAssetPaths(string bundleFullName)
-			{
-				if (TryGetBundleInfo(bundleFullName, out BuildBundleInfo bundleInfo))
-				{
-					return bundleInfo.GetCollectAssetPaths();
 				}
 				throw new Exception($"Not found {nameof(BuildBundleInfo)} : {bundleFullName}");
 			}
@@ -93,7 +87,7 @@ namespace YooAsset.Editor
 			/// </summary>
 			public UnityEditor.AssetBundleBuild[] GetPipelineBuilds()
 			{
-				List<AssetBundleBuild> builds = new List<AssetBundleBuild>(BundleInfos.Count);
+				List<UnityEditor.AssetBundleBuild> builds = new List<UnityEditor.AssetBundleBuild>(BundleInfos.Count);
 				foreach (var bundleInfo in BundleInfos)
 				{
 					if (bundleInfo.IsRawFile == false)
@@ -103,14 +97,14 @@ namespace YooAsset.Editor
 			}
 
 			/// <summary>
-			/// 检测是否包含BundleName
+			/// 是否包含资源包
 			/// </summary>
 			public bool IsContainsBundle(string bundleFullName)
 			{
 				return TryGetBundleInfo(bundleFullName, out BuildBundleInfo bundleInfo);
 			}
 
-			private bool TryGetBundleInfo(string bundleFullName, out BuildBundleInfo result)
+			public bool TryGetBundleInfo(string bundleFullName, out BuildBundleInfo result)
 			{
 				foreach (var bundleInfo in BundleInfos)
 				{
@@ -142,14 +136,14 @@ namespace YooAsset.Editor
 		/// </summary>
 		private void SetupBuildMap(BuildMapContext buildMapContext, AssetBundleBuilder.BuildParametersContext buildParameters)
 		{
-			Dictionary<string, BuildAssetInfo> buildAssets = new Dictionary<string, BuildAssetInfo>();
+			Dictionary<string, BuildAssetInfo> buildAssetDic = new Dictionary<string, BuildAssetInfo>();
 
 			// 1. 获取主动收集的资源
-			List<AssetCollectInfo> allCollectInfos = AssetBundleCollectorSettingData.GetAllCollectAssets();
+			List<CollectAssetInfo> allCollectInfos = AssetBundleCollectorSettingData.GetAllCollectAssets();
 
 			// 2. 对收集的资源进行依赖分析
 			int progressValue = 0;
-			foreach (AssetCollectInfo collectInfo in allCollectInfos)
+			foreach (CollectAssetInfo collectInfo in allCollectInfos)
 			{
 				string mainAssetPath = collectInfo.AssetPath;
 
@@ -160,23 +154,19 @@ namespace YooAsset.Editor
 					string assetPath = depends[i].AssetPath;
 
 					// 如果已经存在，则增加该资源的依赖计数
-					if (buildAssets.ContainsKey(assetPath))
-					{
-						buildAssets[assetPath].DependCount++;
-					}
+					if (buildAssetDic.ContainsKey(assetPath))
+						buildAssetDic[assetPath].DependCount++;
 					else
-					{
-						buildAssets.Add(assetPath, depends[i]);
-					}
+						buildAssetDic.Add(assetPath, depends[i]);
 
 					// 添加资源标记
-					buildAssets[assetPath].AddAssetTags(collectInfo.AssetTags);
+					buildAssetDic[assetPath].AddAssetTags(collectInfo.AssetTags);
 
 					// 注意：检测是否为主动收集资源
 					if (assetPath == mainAssetPath)
 					{
-						buildAssets[mainAssetPath].IsCollectAsset = true;
-						buildAssets[mainAssetPath].IsRawAsset = collectInfo.IsRawAsset;
+						buildAssetDic[mainAssetPath].IsCollectAsset = true;
+						buildAssetDic[mainAssetPath].IsRawAsset = collectInfo.IsRawAsset;
 					}
 				}
 
@@ -187,23 +177,27 @@ namespace YooAsset.Editor
 				{
 					string assetPath = depends[i].AssetPath;
 					if (assetPath != mainAssetPath)
-						allDependAssetInfos.Add(buildAssets[assetPath]);
+						allDependAssetInfos.Add(buildAssetDic[assetPath]);
 				}
-				buildAssets[mainAssetPath].SetAllDependAssetInfos(allDependAssetInfos);
+				buildAssetDic[mainAssetPath].SetAllDependAssetInfos(allDependAssetInfos);
 
 				EditorTools.DisplayProgressBar("依赖文件分析", ++progressValue, allCollectInfos.Count);
 			}
 			EditorTools.ClearProgressBar();
 
-			// 3. 移除零依赖的资源
-			var redundancy = CreateAssetRedundancy();
+			// 3. 记录参与构建的资源总数
+			buildMapContext.AssetFileCount = buildAssetDic.Values.Count;
+
+			// 4. 移除零依赖的资源
+			var redundancyServices = buildParameters.Parameters.RedundancyServices;
 			List<BuildAssetInfo> undependentAssets = new List<BuildAssetInfo>();
-			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssets)
+			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssetDic)
 			{
 				var buildAssetInfo = pair.Value;
 				if (buildAssetInfo.IsCollectAsset)
 					continue;
 
+				// 零依赖资源
 				if (buildAssetInfo.DependCount == 0)
 				{
 					undependentAssets.Add(buildAssetInfo);
@@ -211,50 +205,46 @@ namespace YooAsset.Editor
 				}
 
 				// 冗余扩展
-				if(redundancy != null)
+				if (redundancyServices != null && redundancyServices.Check(buildAssetInfo.AssetPath))
 				{
-					if(redundancy.Check(buildAssetInfo.AssetPath))
-					{
-						undependentAssets.Add(buildAssetInfo);
-						buildMapContext.RedundancyList.Add(buildAssetInfo.AssetPath);
-						continue;
-					}
+					undependentAssets.Add(buildAssetInfo);
+					buildMapContext.RedundancyAssetList.Add(buildAssetInfo.AssetPath);
+					continue;
 				}
 
-				// 冗余机制
-				if (buildParameters.Parameters.ApplyRedundancy)
+				// 如果没有开启自动分包，没有被收集到的资源会造成冗余
+				if (buildParameters.Parameters.EnableAutoCollect == false)
 				{
 					if (AssetBundleCollectorSettingData.HasCollector(buildAssetInfo.AssetPath) == false)
 					{
 						undependentAssets.Add(buildAssetInfo);
-						buildMapContext.RedundancyList.Add(buildAssetInfo.AssetPath);
+						buildMapContext.RedundancyAssetList.Add(buildAssetInfo.AssetPath);
 					}
 				}
 			}
 			foreach (var assetInfo in undependentAssets)
 			{
-				buildAssets.Remove(assetInfo.AssetPath);
+				buildAssetDic.Remove(assetInfo.AssetPath);
 			}
 
-			// 4. 设置资源包名
+			// 5. 设置资源包名
 			progressValue = 0;
-			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssets)
+			foreach (KeyValuePair<string, BuildAssetInfo> pair in buildAssetDic)
 			{
 				var assetInfo = pair.Value;
 				var bundleLabel = AssetBundleCollectorSettingData.GetBundleLabel(assetInfo.AssetPath);
 				if (assetInfo.IsRawAsset)
-					assetInfo.SetBundleLabelAndVariant(bundleLabel, ResourceSettingData.Setting.RawFileVariant);
+					assetInfo.SetBundleLabelAndVariant(bundleLabel, YooAssetSettingsData.Setting.RawFileVariant);
 				else
-					assetInfo.SetBundleLabelAndVariant(bundleLabel, ResourceSettingData.Setting.AssetBundleFileVariant);
-				EditorTools.DisplayProgressBar("设置资源包名", ++progressValue, buildAssets.Count);
+					assetInfo.SetBundleLabelAndVariant(bundleLabel, YooAssetSettingsData.Setting.AssetBundleFileVariant);
+				EditorTools.DisplayProgressBar("设置资源包名", ++progressValue, buildAssetDic.Count);
 			}
 			EditorTools.ClearProgressBar();
 
-			// 4. 构建资源包
-			var allAssets = buildAssets.Values.ToList();
+			// 6. 构建资源包
+			var allAssets = buildAssetDic.Values.ToList();
 			if (allAssets.Count == 0)
 				throw new Exception("构建的资源列表不能为空");
-			UnityEngine.Debug.Log($"构建的资源列表里总共有{allAssets.Count}个资源");
 			foreach (var assetInfo in allAssets)
 			{
 				buildMapContext.PackAsset(assetInfo);
@@ -291,13 +281,13 @@ namespace YooAsset.Editor
 				bool isRawFile = bundleInfo.IsRawFile;
 				if (isRawFile)
 				{
-					if (bundleInfo.Assets.Count != 1)
+					if (bundleInfo.BuildinAssets.Count != 1)
 						throw new Exception("The bundle does not support multiple raw asset : {bundleInfo.BundleName}");
 					continue;
 				}
 
 				// 注意：原生文件不能被其它资源文件依赖
-				foreach (var assetInfo in bundleInfo.Assets)
+				foreach (var assetInfo in bundleInfo.BuildinAssets)
 				{
 					if (assetInfo.AllDependAssetInfos != null)
 					{
@@ -309,22 +299,6 @@ namespace YooAsset.Editor
 					}
 				}
 			}
-		}
-
-		/// <summary>
-		/// 创建冗余类
-		/// </summary>
-		/// <returns>如果没有定义类型，则返回NULL</returns>
-		private IAssetRedundancy CreateAssetRedundancy()
-		{
-			var types = AssemblyUtility.GetAssignableTypes(AssemblyUtility.UnityDefaultAssemblyEditorName, typeof(IAssetRedundancy));
-			if (types.Count == 0)
-				return null;
-			if (types.Count != 1)
-				throw new Exception($"Found more {nameof(IAssetRedundancy)} types. We only support one.");
-
-			UnityEngine.Debug.Log($"创建实例类 : {types[0].FullName}");
-			return (IAssetRedundancy)Activator.CreateInstance(types[0]);
 		}
 	}
 }

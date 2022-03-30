@@ -3,9 +3,11 @@ using UnityEngine.SceneManagement;
 
 namespace YooAsset
 {
-	internal sealed class DatabaseSceneProvider : AssetProviderBase
+	internal sealed class DatabaseSceneProvider : ProviderBase
 	{
-		private SceneInstanceParam _param;
+		public readonly LoadSceneMode SceneMode;
+		private readonly bool _activateOnLoad;
+		private readonly int _priority;
 		private AsyncOperation _asyncOp;
 		public override float Progress
 		{
@@ -17,10 +19,12 @@ namespace YooAsset
 			}
 		}
 
-		public DatabaseSceneProvider(string scenePath, SceneInstanceParam param)
+		public DatabaseSceneProvider(string scenePath, LoadSceneMode sceneMode, bool activateOnLoad, int priority)
 			: base(scenePath, null)
 		{
-			_param = param;
+			SceneMode = sceneMode;
+			_activateOnLoad = activateOnLoad;
+			_priority = priority;
 		}
 		public override void Update()
 		{
@@ -37,11 +41,12 @@ namespace YooAsset
 			if (Status == EStatus.Loading)
 			{
 				LoadSceneParameters loadSceneParameters = new LoadSceneParameters();
-				loadSceneParameters.loadSceneMode = _param.LoadMode;			
+				loadSceneParameters.loadSceneMode = SceneMode;
 				_asyncOp = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(AssetPath, loadSceneParameters);
 				if (_asyncOp != null)
 				{
 					_asyncOp.allowSceneActivation = true;
+					_asyncOp.priority = _priority;
 					Status = EStatus.Checking;
 				}
 				else
@@ -57,38 +62,15 @@ namespace YooAsset
 			{
 				if (_asyncOp.isDone)
 				{
-					SceneInstance instance = new SceneInstance(_asyncOp);
-					instance.Scene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
-					AssetInstance = instance;
-					if(_param.ActivateOnLoad)
-						instance.Activate();
+					SceneObject = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
+					if (SceneObject.IsValid() && _activateOnLoad)
+						SceneManager.SetActiveScene(SceneObject);
 
-					Status = instance.Scene.IsValid() ? EStatus.Success : EStatus.Fail;
+					Status = SceneObject.IsValid() ? EStatus.Success : EStatus.Fail;
 					InvokeCompletion();
 				}
 			}
 #endif
-		}
-		public override void Destory()
-		{
-#if UNITY_EDITOR
-			base.Destory();
-
-			// 卸载附加场景（异步方式卸载）
-			if (_param.LoadMode == LoadSceneMode.Additive)
-			{
-				var instance = AssetInstance as SceneInstance;
-				if(instance != null && instance.Scene != null)
-				{
-					if (instance.Scene.IsValid() && instance.Scene.isLoaded)
-						SceneManager.UnloadSceneAsync(instance.Scene);
-				}
-			}
-#endif
-		}
-		public override void WaitForAsyncComplete()
-		{
-			throw new System.Exception($"Unity scene is not support {nameof(WaitForAsyncComplete)}.");
 		}
 	}
 }

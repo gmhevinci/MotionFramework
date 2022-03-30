@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace YooAsset
 {
@@ -50,6 +51,11 @@ namespace YooAsset
 			/// 资源加载的最大数量
 			/// </summary>
 			public int AssetLoadingMaxNumber = int.MaxValue;
+
+			/// <summary>
+			/// 异步操作系统每帧允许运行的最大时间切片（单位：毫秒）
+			/// </summary>
+			public long OperationSystemMaxTimeSlice = long.MaxValue;
 		}
 
 		/// <summary>
@@ -111,7 +117,7 @@ namespace YooAsset
 		public static InitializationOperation InitializeAsync(CreateParameters parameters)
 		{
 			if (parameters == null)
-				throw new Exception($"YooAsset create parameters is invalid.");
+				throw new Exception($"YooAsset create parameters is null.");
 
 #if !UNITY_EDITOR
 			if (parameters is EditorPlayModeParameters)
@@ -131,21 +137,23 @@ namespace YooAsset
 				throw new Exception("YooAsset is initialized yet.");
 			}
 
-			// 检测创建参数
-			if (parameters.AssetLoadingMaxNumber < 3)
+			if (parameters.AssetLoadingMaxNumber < 1)
 			{
-				parameters.AssetLoadingMaxNumber = 3;
-				YooLogger.Warning($"{nameof(parameters.AssetLoadingMaxNumber)} minimum is 3");
+				parameters.AssetLoadingMaxNumber = 1;
+				YooLogger.Warning($"{nameof(parameters.AssetLoadingMaxNumber)} minimum value is 1");
 			}
 
-			// 创建间隔计时器
-			if (parameters.AutoReleaseInterval > 0)
+			if (parameters.OperationSystemMaxTimeSlice < 33)
 			{
-				_releaseCD = parameters.AutoReleaseInterval;
+				parameters.OperationSystemMaxTimeSlice = 33;
+				YooLogger.Warning($"{nameof(parameters.OperationSystemMaxTimeSlice)} minimum value is 33 milliseconds");
 			}
 
 			if (string.IsNullOrEmpty(parameters.LocationRoot) == false)
 				_locationRoot = PathHelper.GetRegularPath(parameters.LocationRoot);
+
+			if (parameters.AutoReleaseInterval > 0)
+				_releaseCD = parameters.AutoReleaseInterval;
 
 			// 运行模式
 			if (parameters is EditorPlayModeParameters)
@@ -157,7 +165,10 @@ namespace YooAsset
 			else
 				throw new NotImplementedException();
 
-			// 初始化
+			// 初始化异步操作系统
+			OperationSystem.Initialize(parameters.OperationSystemMaxTimeSlice);
+
+			// 初始化资源系统
 			if (_playMode == EPlayMode.EditorPlayMode)
 			{
 				_editorPlayModeImpl = new EditorPlayModeImpl();
@@ -278,79 +289,124 @@ namespace YooAsset
 		}
 
 		/// <summary>
-		/// 获取调试汇总信息
+		/// 获取调试信息
 		/// </summary>
-		internal static void GetDebugSummy(DebugSummy summy)
+		internal static void GetDebugReport(DebugReport report)
 		{
-			if (summy == null)
-				YooLogger.Error($"{nameof(DebugSummy)} is null");
+			if (report == null)
+				YooLogger.Error($"{nameof(DebugReport)} is null");
 
-			AssetSystem.GetDebugSummy(summy);
+			AssetSystem.GetDebugReport(report);
 		}
 
+		#region 场景加载接口
+		/// <summary>
+		/// 异步加载场景
+		/// </summary>
+		/// <param name="location">场景对象相对路径</param>
+		/// <param name="sceneMode">场景加载模式</param>
+		/// <param name="activateOnLoad">加载完毕时是否主动激活</param>
+		/// <param name="priority">优先级</param>
+		public static SceneOperationHandle LoadSceneAsync(string location, LoadSceneMode sceneMode = LoadSceneMode.Single, bool activateOnLoad = true, int priority = 100)
+		{
+			string scenePath = ConvertLocationToAssetPath(location);
+			var handle = AssetSystem.LoadSceneAsync(scenePath, sceneMode, activateOnLoad, priority);
+			return handle;
+		}
+		#endregion
 
 		#region 资源加载接口
 		/// <summary>
+		/// 异步加载原生文件
+		/// </summary>
+		public static RawFileOperation LoadRawFileAsync(string location, string savePath)
+		{
+			string assetPath = ConvertLocationToAssetPath(location);
+			return AssetSystem.LoadRawFileAsync(assetPath, savePath);
+		}
+
+
+		/// <summary>
 		/// 同步加载资源对象
 		/// </summary>
+		/// <typeparam name="TObject">资源类型</typeparam>
 		/// <param name="location">资源对象相对路径</param>
 		public static AssetOperationHandle LoadAssetSync<TObject>(string location) where TObject : class
 		{
 			return LoadAssetInternal(location, typeof(TObject), true);
 		}
-		public static AssetOperationHandle LoadAssetSync(System.Type type, string location)
+
+		/// <summary>
+		/// 同步加载资源对象
+		/// </summary>
+		/// <param name="location">资源对象相对路径</param>
+		/// <param name="type">资源类型</param>
+		public static AssetOperationHandle LoadAssetSync(string location, System.Type type)
 		{
 			return LoadAssetInternal(location, type, true);
 		}
 
 		/// <summary>
-		/// 同步加载子资源对象集合
+		/// 同步加载子资源对象
 		/// </summary>
+		/// <typeparam name="TObject">资源类型</typeparam>
 		/// <param name="location">资源对象相对路径</param>
-		public static AssetOperationHandle LoadSubAssetsSync<TObject>(string location)
+		public static SubAssetsOperationHandle LoadSubAssetsSync<TObject>(string location)
 		{
 			return LoadSubAssetsInternal(location, typeof(TObject), true);
 		}
-		public static AssetOperationHandle LoadSubAssetsSync(System.Type type, string location)
+
+		/// <summary>
+		/// 同步加载子资源对象
+		/// </summary>
+		/// <param name="location">资源对象相对路径</param>
+		/// <param name="type">子对象类型</param>
+		public static SubAssetsOperationHandle LoadSubAssetsSync(string location, System.Type type)
 		{
 			return LoadSubAssetsInternal(location, type, true);
 		}
 
+
 		/// <summary>
-		/// 异步加载场景
+		/// 异步加载资源对象
 		/// </summary>
-		public static AssetOperationHandle LoadSceneAsync(string location, SceneInstanceParam instanceParam)
+		/// <typeparam name="TObject">资源类型</typeparam>
+		/// <param name="location">资源对象相对路径</param>
+		public static AssetOperationHandle LoadAssetAsync<TObject>(string location)
 		{
-			string scenePath = ConvertLocationToAssetPath(location);
-			var handle = AssetSystem.LoadSceneAsync(scenePath, instanceParam);
-			return handle;
+			return LoadAssetInternal(location, typeof(TObject), false);
 		}
 
 		/// <summary>
 		/// 异步加载资源对象
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
-		public static AssetOperationHandle LoadAssetAsync<TObject>(string location)
-		{
-			return LoadAssetInternal(location, typeof(TObject), false);
-		}
-		public static AssetOperationHandle LoadAssetAsync(System.Type type, string location)
+		/// <param name="type">资源类型</param>
+		public static AssetOperationHandle LoadAssetAsync(string location, System.Type type)
 		{
 			return LoadAssetInternal(location, type, false);
 		}
 
 		/// <summary>
-		/// 异步加载子资源对象集合
+		/// 异步加载子资源对象
 		/// </summary>
+		/// <typeparam name="TObject">资源类型</typeparam>
 		/// <param name="location">资源对象相对路径</param>
-		public static AssetOperationHandle LoadSubAssetsAsync<TObject>(string location)
+		public static SubAssetsOperationHandle LoadSubAssetsAsync<TObject>(string location)
 		{
 			return LoadSubAssetsInternal(location, typeof(TObject), false);
 		}
-		public static AssetOperationHandle LoadSubAssetsAsync(System.Type type, string location)
+
+		/// <summary>
+		/// 异步加载子资源对象
+		/// </summary>
+		/// <param name="location">资源对象相对路径</param>
+		/// <param name="type">子对象类型</param>
+		public static SubAssetsOperationHandle LoadSubAssetsAsync(string location, System.Type type)
 		{
 			return LoadSubAssetsInternal(location, type, false);
 		}
+
 
 		private static AssetOperationHandle LoadAssetInternal(string location, System.Type assetType, bool waitForAsyncComplete)
 		{
@@ -360,7 +416,7 @@ namespace YooAsset
 				handle.WaitForAsyncComplete();
 			return handle;
 		}
-		private static AssetOperationHandle LoadSubAssetsInternal(string location, System.Type assetType, bool waitForAsyncComplete)
+		private static SubAssetsOperationHandle LoadSubAssetsInternal(string location, System.Type assetType, bool waitForAsyncComplete)
 		{
 			string assetPath = ConvertLocationToAssetPath(location);
 			var handle = AssetSystem.LoadSubAssetsAsync(assetPath, assetType);
@@ -465,7 +521,7 @@ namespace YooAsset
 		{
 			return CreatePatchUnpacker(new string[] { tag }, unpackingMaxNumber, failedTryAgain);
 		}
-		
+
 		/// <summary>
 		/// 创建补丁解压器
 		/// </summary>

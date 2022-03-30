@@ -22,42 +22,42 @@ namespace YooAsset.Editor
 			string packageDirectory = buildParameters.GetPackageDirectory();
 			UnityEngine.Debug.Log($"开始拷贝补丁文件到补丁包目录：{packageDirectory}");
 
-			// 拷贝Readme文件
+			// 拷贝Report文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.ReadmeFileName}";
-				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.ReadmeFileName}";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{YooAssetSettings.ReportFileName}";
+				string destPath = $"{packageDirectory}/{YooAssetSettings.ReportFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
-				UnityEngine.Debug.Log($"拷贝Readme文件到：{destPath}");
+				UnityEngine.Debug.Log($"拷贝Report文件到：{destPath}");
 			}
 
 			// 拷贝PatchManifest文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestFileName}";
-				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.PatchManifestFileName}";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{YooAssetSettingsData.Setting.PatchManifestFileName}";
+				string destPath = $"{packageDirectory}/{YooAssetSettingsData.Setting.PatchManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 				UnityEngine.Debug.Log($"拷贝PatchManifest文件到：{destPath}");
 			}
 
 			// 拷贝PatchManifest哈希文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestHashFileName}";
-				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.PatchManifestHashFileName}";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{YooAssetSettingsData.Setting.PatchManifestHashFileName}";
+				string destPath = $"{packageDirectory}/{YooAssetSettingsData.Setting.PatchManifestHashFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 				UnityEngine.Debug.Log($"拷贝PatchManifest哈希文件到：{destPath}");
 			}
 
 			// 拷贝UnityManifest序列化文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.UnityManifestFileName}";
-				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.UnityManifestFileName}";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{YooAssetSettingsData.Setting.UnityManifestFileName}";
+				string destPath = $"{packageDirectory}/{YooAssetSettingsData.Setting.UnityManifestFileName}";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 				UnityEngine.Debug.Log($"拷贝UnityManifest文件到：{destPath}");
 			}
 
 			// 拷贝UnityManifest文本文件
 			{
-				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.UnityManifestFileName}.manifest";
-				string destPath = $"{packageDirectory}/{ResourceSettingData.Setting.UnityManifestFileName}.manifest";
+				string sourcePath = $"{buildParameters.PipelineOutputDirectory}/{YooAssetSettingsData.Setting.UnityManifestFileName}.manifest";
+				string destPath = $"{packageDirectory}/{YooAssetSettingsData.Setting.UnityManifestFileName}.manifest";
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
 

@@ -1,13 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 
 namespace YooAsset.Editor
 {
-	/// <summary>
-	/// 构建的资源包信息类
-	/// </summary>
 	public class BuildBundleInfo
 	{
 		/// <summary>
@@ -16,19 +14,10 @@ namespace YooAsset.Editor
 		public string BundleName { private set; get; }
 
 		/// <summary>
-		/// 资源包标签名
+		/// 参与构建的资源列表
+		/// 注意：不包含冗余资源或零依赖资源
 		/// </summary>
-		public string BundleLabel { private set; get; }
-
-		/// <summary>
-		/// 资源包文件格式
-		/// </summary>
-		public string BundleVariant { private set; get; }
-
-		/// <summary>
-		/// 包含的资源列表
-		/// </summary>
-		public readonly List<BuildAssetInfo> Assets = new List<BuildAssetInfo>();
+		public readonly List<BuildAssetInfo> BuildinAssets = new List<BuildAssetInfo>();
 
 		/// <summary>
 		/// 是否为原生文件
@@ -37,7 +26,7 @@ namespace YooAsset.Editor
 		{
 			get
 			{
-				foreach (var asset in Assets)
+				foreach (var asset in BuildinAssets)
 				{
 					if (asset.IsRawAsset)
 						return true;
@@ -47,11 +36,9 @@ namespace YooAsset.Editor
 		}
 
 
-		public BuildBundleInfo(string bundleLabel, string bundleVariant)
+		public BuildBundleInfo(string bundleName)
 		{
-			BundleLabel = bundleLabel;
-			BundleVariant = bundleVariant;
-			BundleName = AssetBundleBuilderHelper.MakeBundleName(bundleLabel, bundleVariant);
+			BundleName = bundleName;
 		}
 
 		/// <summary>
@@ -59,7 +46,7 @@ namespace YooAsset.Editor
 		/// </summary>
 		public bool IsContainsAsset(string assetPath)
 		{
-			foreach (var assetInfo in Assets)
+			foreach (var assetInfo in BuildinAssets)
 			{
 				if (assetInfo.AssetPath == assetPath)
 				{
@@ -77,7 +64,7 @@ namespace YooAsset.Editor
 			if (IsContainsAsset(assetInfo.AssetPath))
 				throw new System.Exception($"Asset is existed : {assetInfo.AssetPath}");
 
-			Assets.Add(assetInfo);
+			BuildinAssets.Add(assetInfo);
 		}
 
 		/// <summary>
@@ -86,9 +73,9 @@ namespace YooAsset.Editor
 		public string GetAppendExtension()
 		{
 			if (IsRawFile)
-				return $".{ResourceSettingData.Setting.RawFileVariant}";
+				return $".{YooAssetSettingsData.Setting.RawFileVariant}";
 			else
-				return $".{ResourceSettingData.Setting.AssetBundleFileVariant}";
+				return $".{YooAssetSettingsData.Setting.AssetBundleFileVariant}";
 		}
 
 		/// <summary>
@@ -96,8 +83,8 @@ namespace YooAsset.Editor
 		/// </summary>
 		public string[] GetAssetTags()
 		{
-			List<string> result = new List<string>(Assets.Count);
-			foreach (var assetInfo in Assets)
+			List<string> result = new List<string>(BuildinAssets.Count);
+			foreach (var assetInfo in BuildinAssets)
 			{
 				foreach (var assetTag in assetInfo.AssetTags)
 				{
@@ -109,19 +96,11 @@ namespace YooAsset.Editor
 		}
 
 		/// <summary>
-		/// 获取主动收集的资源路径列表
-		/// </summary>
-		public string[] GetCollectAssetPaths()
-		{
-			return Assets.Where(t => t.IsCollectAsset).Select(t => t.AssetPath).ToArray();
-		}
-
-		/// <summary>
 		/// 获取构建的资源路径列表
 		/// </summary>
 		public string[] GetBuildinAssetPaths()
 		{
-			return Assets.Select(t => t.AssetPath).ToArray();
+			return BuildinAssets.Select(t => t.AssetPath).ToArray();
 		}
 
 		/// <summary>
@@ -129,7 +108,7 @@ namespace YooAsset.Editor
 		/// </summary>
 		public BuildAssetInfo[] GetCollectAssetInfos()
 		{
-			return Assets.Where(t => t.IsCollectAsset).ToArray();
+			return BuildinAssets.Where(t => t.IsCollectAsset).ToArray();
 		}
 
 		/// <summary>

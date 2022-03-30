@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace YooAsset
 {
-	internal sealed class DatabaseSubAssetsProvider : AssetProviderBase
+	internal sealed class DatabaseSubAssetsProvider : ProviderBase
 	{
 		public override float Progress
 		{
@@ -40,7 +40,7 @@ namespace YooAsset
 				else
 				{
 					Status = EStatus.Loading;
-				}		
+				}
 
 				// 注意：模拟异步加载效果提前返回
 				if (IsWaitForAsyncComplete == false)
@@ -50,23 +50,30 @@ namespace YooAsset
 			// 1. 加载资源对象
 			if (Status == EStatus.Loading)
 			{
-				var findAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(AssetPath);
-				List<UnityEngine.Object> result = new List<Object>(findAssets.Length);
-				foreach (var findObj in findAssets)
+				if (AssetType == null)
 				{
-					if (findObj.GetType() == AssetType)
-						result.Add(findObj);
+					AllAssetObjects = UnityEditor.AssetDatabase.LoadAllAssetRepresentationsAtPath(AssetPath);
 				}
-				AllAssets = result.ToArray();
+				else
+				{
+					UnityEngine.Object[] findAssets = UnityEditor.AssetDatabase.LoadAllAssetRepresentationsAtPath(AssetPath);
+					List<UnityEngine.Object> result = new List<Object>(findAssets.Length);
+					foreach (var findAsset in findAssets)
+					{
+						if (findAsset.GetType() == AssetType)
+							result.Add(findAsset);
+					}
+					AllAssetObjects = result.ToArray();
+				}
 				Status = EStatus.Checking;
 			}
 
 			// 2. 检测加载结果
 			if (Status == EStatus.Checking)
 			{
-				Status = AllAssets == null ? EStatus.Fail : EStatus.Success;
+				Status = AllAssetObjects == null ? EStatus.Fail : EStatus.Success;
 				if (Status == EStatus.Fail)
-					YooLogger.Warning($"Failed to load all asset object : {AssetPath}");
+					YooLogger.Warning($"Failed to load sub assets : {AssetName}");
 				InvokeCompletion();
 			}
 #endif

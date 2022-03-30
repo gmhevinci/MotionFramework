@@ -1,11 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace YooAsset.Editor
 {
-	/// <summary>
-	/// 构建的资源信息类
-	/// </summary>
 	public class BuildAssetInfo
 	{
 		/// <summary>
@@ -14,14 +12,9 @@ namespace YooAsset.Editor
 		public string AssetPath { private set; get; }
 
 		/// <summary>
-		/// 资源包标签
+		/// 资源包完整名称
 		/// </summary>
-		public string BundleLabel { private set; get; }
-
-		/// <summary>
-		/// 资源包文件格式
-		/// </summary>
-		public string BundleVariant { private set; get; }
+		public string BundleName { private set; get; }
 
 		/// <summary>
 		/// 是否为原生资源
@@ -34,20 +27,20 @@ namespace YooAsset.Editor
 		public bool IsCollectAsset = false;
 
 		/// <summary>
-		/// 资源标记列表
-		/// </summary>
-		public List<string> AssetTags = new List<string>();
-
-		/// <summary>
 		/// 被依赖次数
 		/// </summary>
 		public int DependCount = 0;
 
 		/// <summary>
-		/// 依赖的所有资源信息
-		/// 注意：包括零依赖资源（零依赖资源的资源包名无效）
+		/// 资源标记列表
 		/// </summary>
-		public List<BuildAssetInfo> AllDependAssetInfos { private set; get; } = null;
+		public readonly List<string> AssetTags = new List<string>();
+
+		/// <summary>
+		/// 依赖的所有资源
+		/// 注意：包括零依赖资源和冗余资源（资源包名无效）
+		/// </summary>
+		public List<BuildAssetInfo> AllDependAssetInfos { private set; get; }
 
 
 		public BuildAssetInfo(string assetPath)
@@ -71,11 +64,10 @@ namespace YooAsset.Editor
 		/// </summary>
 		public void SetBundleLabelAndVariant(string bundleLabel, string bundleVariant)
 		{
-			if (string.IsNullOrEmpty(BundleLabel) == false || string.IsNullOrEmpty(BundleVariant) == false)
+			if (string.IsNullOrEmpty(BundleName) == false)
 				throw new System.Exception("Should never get here !");
 
-			BundleLabel = bundleLabel;
-			BundleVariant = bundleVariant;
+			BundleName = AssetBundleBuilderHelper.MakeBundleName(bundleLabel, bundleVariant);
 		}
 
 		/// <summary>
@@ -85,33 +77,30 @@ namespace YooAsset.Editor
 		{
 			foreach (var tag in tags)
 			{
-				if (AssetTags.Contains(tag) == false)
-				{
-					AssetTags.Add(tag);
-				}
+				AddAssetTag(tag);
 			}
 		}
 
 		/// <summary>
-		/// 获取资源包的完整名称
+		/// 添加资源标记
 		/// </summary>
-		public string GetBundleName()
+		public void  AddAssetTag(string tag)
 		{
-			if (string.IsNullOrEmpty(BundleLabel) || string.IsNullOrEmpty(BundleVariant))
-				throw new System.ArgumentNullException();
-
-			return AssetBundleBuilderHelper.MakeBundleName(BundleLabel, BundleVariant);
+			if (AssetTags.Contains(tag) == false)
+			{
+				AssetTags.Add(tag);
+			}
 		}
 
 		/// <summary>
-		/// 检测资源包名是否有效
+		/// 资源包名是否有效
 		/// </summary>
-		public bool CheckBundleNameValid()
+		public bool BundleNameIsValid()
 		{
-			if (string.IsNullOrEmpty(BundleLabel) == false && string.IsNullOrEmpty(BundleVariant) == false)
-				return true;
-			else
+			if (string.IsNullOrEmpty(BundleName))
 				return false;
+			else
+				return true;
 		}
 	}
 }

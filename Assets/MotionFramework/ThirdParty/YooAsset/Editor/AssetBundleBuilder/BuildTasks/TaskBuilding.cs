@@ -36,7 +36,7 @@ namespace YooAsset.Editor
 				if (bundleInfo.IsRawFile)
 				{
 					string dest = $"{buildParametersContext.PipelineOutputDirectory}/{bundleInfo.BundleName}";
-					foreach(var buildAsset in bundleInfo.Assets)
+					foreach(var buildAsset in bundleInfo.BuildinAssets)
 					{
 						if(buildAsset.IsRawAsset)
 							EditorTools.CopyFile(buildAsset.AssetPath, dest, true);
@@ -45,7 +45,7 @@ namespace YooAsset.Editor
 			}
 
 			// 验证构建结果
-			if (buildParametersContext.Parameters.IsVerifyBuildingResult)
+			if (buildParametersContext.Parameters.VerifyBuildingResult)
 			{
 				VerifyingBuildingResult(context, unityManifest);
 			}

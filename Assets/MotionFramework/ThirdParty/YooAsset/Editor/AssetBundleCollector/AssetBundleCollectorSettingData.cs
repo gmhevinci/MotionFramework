@@ -157,7 +157,7 @@ namespace YooAsset.Editor
 		{
 			if (string.IsNullOrEmpty(shadersBundleName))
 				return;
-			Setting.IsCollectAllShaders = isCollectAllShaders;
+			Setting.AutoCollectShaders = isCollectAllShaders;
 			Setting.ShadersBundleName = shadersBundleName;
 			SaveFile();
 		}
@@ -305,9 +305,9 @@ namespace YooAsset.Editor
 		/// 获取所有收集的资源
 		/// 注意：跳过了不写入资源路径的收集器
 		/// </summary>
-		public static List<AssetCollectInfo> GetAllCollectAssets()
+		public static List<CollectAssetInfo> GetAllCollectAssets()
 		{
-			Dictionary<string, AssetCollectInfo> result = new Dictionary<string, AssetCollectInfo>(10000);
+			Dictionary<string, CollectAssetInfo> result = new Dictionary<string, CollectAssetInfo>(10000);
 			for (int i = 0; i < Setting.Collectors.Count; i++)
 			{
 				AssetBundleCollectorSetting.Collector collector = Setting.Collectors[i];
@@ -327,8 +327,8 @@ namespace YooAsset.Editor
 
 					if (result.ContainsKey(assetPath) == false)
 					{
-						var assetCollectInfo = new AssetCollectInfo(assetPath, collector.GetAssetTags(), isRawAsset);
-						result.Add(assetPath, assetCollectInfo);
+						var collectInfo = new CollectAssetInfo(assetPath, collector.GetAssetTags(), isRawAsset);
+						result.Add(assetPath, collectInfo);
 					}
 				}
 			}
@@ -336,7 +336,7 @@ namespace YooAsset.Editor
 		}
 		private static bool IsCollectAsset(string assetPath, string filterRuleName)
 		{
-			if (Setting.IsCollectAllShaders)
+			if (Setting.AutoCollectShaders)
 			{
 				Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
 				if (assetType == typeof(UnityEngine.Shader))
@@ -354,7 +354,7 @@ namespace YooAsset.Editor
 		public static bool HasCollector(string assetPath)
 		{
 			// 如果收集全路径着色器
-			if (Setting.IsCollectAllShaders)
+			if (Setting.AutoCollectShaders)
 			{
 				System.Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
 				if (assetType == typeof(UnityEngine.Shader))
@@ -400,7 +400,7 @@ namespace YooAsset.Editor
 		public static string GetBundleLabel(string assetPath)
 		{
 			// 如果收集全路径着色器
-			if (Setting.IsCollectAllShaders)
+			if (Setting.AutoCollectShaders)
 			{
 				System.Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
 				if (assetType == typeof(UnityEngine.Shader))

@@ -29,15 +29,15 @@ namespace YooAsset.Editor
 			patchManifest.ResourceVersion = buildParameters.Parameters.BuildVersion;
 			patchManifest.BuildinTags = buildParameters.Parameters.BuildinTags;
 			patchManifest.BundleList = GetAllPatchBundle(buildParameters, buildMapContext, encryptionContext);
-			patchManifest.AssetList = GetAllPatchAsset(buildMapContext, patchManifest.BundleList);
+			patchManifest.AssetList = GetAllPatchAsset(buildMapContext, patchManifest);
 
 			// 创建补丁清单文件
-			string manifestFilePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestFileName}";
+			string manifestFilePath = $"{buildParameters.PipelineOutputDirectory}/{YooAssetSettingsData.Setting.PatchManifestFileName}";
 			UnityEngine.Debug.Log($"创建补丁清单文件：{manifestFilePath}");
 			PatchManifest.Serialize(manifestFilePath, patchManifest);
 
 			// 创建补丁清单哈希文件
-			string manifestHashFilePath = $"{buildParameters.PipelineOutputDirectory}/{ResourceSettingData.Setting.PatchManifestHashFileName}";
+			string manifestHashFilePath = $"{buildParameters.PipelineOutputDirectory}/{YooAssetSettingsData.Setting.PatchManifestHashFileName}";
 			string manifestHash = HashUtility.FileMD5(manifestFilePath);
 			UnityEngine.Debug.Log($"创建补丁清单哈希文件：{manifestHashFilePath}");
 			FileUtility.CreateFile(manifestHashFilePath, manifestHash);
@@ -56,7 +56,7 @@ namespace YooAsset.Editor
 
 			// 加载旧补丁清单
 			PatchManifest oldPatchManifest = null;
-			if (buildParameters.Parameters.IsForceRebuild == false)
+			if (buildParameters.Parameters.ForceRebuild == false)
 			{
 				oldPatchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
 			}
@@ -111,7 +111,7 @@ namespace YooAsset.Editor
 		/// <summary>
 		/// 获取资源列表
 		/// </summary>
-		private List<PatchAsset> GetAllPatchAsset(TaskGetBuildMap.BuildMapContext buildMapContext, List<PatchBundle> bundleList)
+		private List<PatchAsset> GetAllPatchAsset(TaskGetBuildMap.BuildMapContext buildMapContext, PatchManifest patchManifest)
 		{
 			List<PatchAsset> result = new List<PatchAsset>(1000);
 			foreach (var bundleInfo in buildMapContext.BundleInfos)
@@ -121,31 +121,31 @@ namespace YooAsset.Editor
 				{
 					PatchAsset patchAsset = new PatchAsset();
 					patchAsset.AssetPath = assetInfo.AssetPath;
-					patchAsset.BundleID = GetAssetBundleID(assetInfo.GetBundleName(), bundleList);
-					patchAsset.DependIDs = GetAssetBundleDependIDs(assetInfo, bundleList);
+					patchAsset.BundleID = GetAssetBundleID(assetInfo.BundleName, patchManifest);
+					patchAsset.DependIDs = GetAssetBundleDependIDs(assetInfo, patchManifest);
 					result.Add(patchAsset);
 				}
 			}
 			return result;
 		}
-		private int[] GetAssetBundleDependIDs(BuildAssetInfo assetInfo, List<PatchBundle> bundleList)
+		private int[] GetAssetBundleDependIDs(BuildAssetInfo assetInfo, PatchManifest patchManifest)
 		{
 			List<int> result = new List<int>();
 			foreach (var dependAssetInfo in assetInfo.AllDependAssetInfos)
 			{
-				if (dependAssetInfo.CheckBundleNameValid() == false)
+				if (dependAssetInfo.BundleNameIsValid() == false)
 					continue;
-				int bundleID = GetAssetBundleID(dependAssetInfo.GetBundleName(), bundleList);
+				int bundleID = GetAssetBundleID(dependAssetInfo.BundleName, patchManifest);
 				if (result.Contains(bundleID) == false)
 					result.Add(bundleID);
 			}
 			return result.ToArray();
 		}
-		private int GetAssetBundleID(string bundleName, List<PatchBundle> bundleList)
+		private int GetAssetBundleID(string bundleName, PatchManifest patchManifest)
 		{
-			for (int index = 0; index < bundleList.Count; index++)
+			for (int index = 0; index < patchManifest.BundleList.Count; index++)
 			{
-				if (bundleList[index].BundleName == bundleName)
+				if (patchManifest.BundleList[index].BundleName == bundleName)
 					return index;
 			}
 			throw new Exception($"Not found bundle name : {bundleName}");
