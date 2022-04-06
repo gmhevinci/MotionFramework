@@ -17,22 +17,22 @@ namespace YooAsset.Editor
 		}
 
 		/// <summary>
-		/// 视口模式
+		/// 视图模式
 		/// </summary>
 		private enum EViewMode
 		{
 			/// <summary>
-			/// 概览
+			/// 概览视图
 			/// </summary>
 			Summary,
 
 			/// <summary>
-			/// 资源对象列表显示模式
+			/// 资源对象视图
 			/// </summary>
 			AssetView,
 
 			/// <summary>
-			/// 资源包列表显示模式
+			/// 资源包视图
 			/// </summary>
 			BundleView,
 		}
@@ -53,11 +53,11 @@ namespace YooAsset.Editor
 
 			// 加载布局文件
 			string rootPath = EditorTools.GetYooAssetPath();
-			string uxml = $"{rootPath}/Editor/AssetBundleReporter/AssetBundleReporter.uxml";
+			string uxml = $"{rootPath}/Editor/AssetBundleReporter/{nameof(AssetBundleReporterWindow)}.uxml";
 			var visualAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxml);
 			if (visualAsset == null)
 			{
-				Debug.LogError($"Not found AssetBundleReporter.uxml : {uxml}");
+				Debug.LogError($"Not found {nameof(AssetBundleReporterWindow)}.uxml : {uxml}");
 				return;
 			}
 			visualAsset.CloneTree(root);
@@ -66,8 +66,8 @@ namespace YooAsset.Editor
 			var importBtn = root.Q<Button>("ImportButton");
 			importBtn.clicked += ImportBtn_onClick;
 
-			// 显示模式菜单
-			_viewModeMenu = root.Q<ToolbarMenu>("ShowModeMenu");
+			// 视图模式菜单
+			_viewModeMenu = root.Q<ToolbarMenu>("ViewModeMenu");
 			_viewModeMenu.menu.AppendAction(EViewMode.Summary.ToString(), ViewModeMenuAction0, ViewModeMenuFun0);
 			_viewModeMenu.menu.AppendAction(EViewMode.AssetView.ToString(), ViewModeMenuAction1, ViewModeMenuFun1);
 			_viewModeMenu.menu.AppendAction(EViewMode.BundleView.ToString(), ViewModeMenuAction2, ViewModeMenuFun2);
@@ -76,19 +76,19 @@ namespace YooAsset.Editor
 			var searchField = root.Q<ToolbarSearchField>("SearchField");
 			searchField.RegisterValueChangedCallback(OnSearchKeyWordChange);
 
-			// 加载页面
+			// 加载视图
 			_summaryViewer = new SummaryReporterViewer();
 			_summaryViewer.InitViewer();
 
-			// 加载页面
+			// 加载视图
 			_assetListViewer = new AssetListReporterViewer();
 			_assetListViewer.InitViewer();
 
-			// 加载页面
+			// 加载视图
 			_bundleListViewer = new BundleListReporterViewer();
 			_bundleListViewer.InitViewer();
 
-			// 初始页面
+			// 显示视图
 			_viewMode = EViewMode.Summary;
 			_viewModeMenu.text = EViewMode.Summary.ToString();
 			_summaryViewer.AttachParent(root);

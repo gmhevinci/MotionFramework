@@ -25,7 +25,7 @@ namespace YooAsset.Editor
 		{
 			// 加载布局文件
 			string rootPath = EditorTools.GetYooAssetPath();
-			string uxml = $"{rootPath}/Editor/AssetBundleDebugger/VisualViewers/AssetListDebuggerViewer.uxml";
+			string uxml = $"{rootPath}/Editor/AssetBundleDebugger/VisualViewers/{nameof(AssetListDebuggerViewer)}.uxml";
 			_visualAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxml);
 			if (_visualAsset == null)
 			{
@@ -39,12 +39,12 @@ namespace YooAsset.Editor
 			_assetListView = _root.Q<ListView>("TopListView");
 			_assetListView.makeItem = MakeAssetListViewItem;
 			_assetListView.bindItem = BindAssetListViewItem;
-
 #if UNITY_2020_1_OR_NEWER
 			_assetListView.onSelectionChange += AssetListView_onSelectionChange;
 #else
 			_assetListView.onSelectionChanged += AssetListView_onSelectionChange;
 #endif
+
 			// 依赖列表
 			_dependListView = _root.Q<ListView>("BottomListView");
 			_dependListView.makeItem = MakeDependListViewItem;
@@ -135,23 +135,20 @@ namespace YooAsset.Editor
 			var sourceData = _assetListView.itemsSource as List<DebugProviderInfo>;
 			var providerInfo = sourceData[index];
 
-			StyleColor textColor;
-			if (providerInfo.Status == ProviderBase.EStatus.Fail)
-				textColor = new StyleColor(Color.yellow);
-			else
-				textColor = new StyleColor(StyleKeyword.Initial);
-
 			// Asset Path
 			var label1 = element.Q<Label>("Label1");
 			label1.text = providerInfo.AssetPath;
-			label1.style.color = textColor;
 
 			// Ref Count
 			var label2 = element.Q<Label>("Label2");
 			label2.text = providerInfo.RefCount.ToString();
-			label2.style.color = textColor;
 
 			// Status
+			StyleColor textColor;
+			if (providerInfo.Status == ProviderBase.EStatus.Fail)
+				textColor = new StyleColor(Color.yellow);
+			else
+				textColor = label1.style.color;
 			var label3 = element.Q<Label>("Label3");
 			label3.text = providerInfo.Status.ToString();
 			label3.style.color = textColor;
@@ -237,9 +234,7 @@ namespace YooAsset.Editor
 		private void FillDependListView(DebugProviderInfo providerInfo)
 		{
 			_dependListView.Clear();
-#if UNITY_2020_1_OR_NEWER
 			_dependListView.ClearSelection();
-#endif
 			_dependListView.itemsSource = providerInfo.BundleInfos;
 		}
 	}

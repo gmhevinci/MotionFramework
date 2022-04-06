@@ -31,7 +31,7 @@ namespace YooAsset.Editor
 		{
 			// 加载布局文件
 			string rootPath = EditorTools.GetYooAssetPath();
-			string uxml = $"{rootPath}/Editor/AssetBundleReporter/VisualViewers/AssetListReporterViewer.uxml";
+			string uxml = $"{rootPath}/Editor/AssetBundleReporter/VisualViewers/{nameof(AssetListReporterViewer)}.uxml";
 			_visualAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxml);
 			if (_visualAsset == null)
 			{
@@ -199,9 +199,7 @@ namespace YooAsset.Editor
 			}
 
 			_dependListView.Clear();
-#if UNITY_2020_1_OR_NEWER
 			_dependListView.ClearSelection();
-#endif
 			_dependListView.itemsSource = bundles;
 			_bottomBar1.text = $"Depend Bundles ({bundles.Count})";
 		}

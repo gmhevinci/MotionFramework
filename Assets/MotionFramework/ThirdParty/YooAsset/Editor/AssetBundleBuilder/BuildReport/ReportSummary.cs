@@ -49,7 +49,7 @@ namespace YooAsset.Editor
 		public bool AutoCollectShaders;
 
 		/// <summary>
-		/// 自动收集的着色器资源包名
+		/// 自动收集的着色器资源包名称
 		/// </summary>
 		public string ShadersBundleName;
 
@@ -57,11 +57,6 @@ namespace YooAsset.Editor
 		/// 加密服务类名称
 		/// </summary>
 		public string EncryptionServicesClassName;
-
-		/// <summary>
-		/// 冗余服务类名称
-		/// </summary>
-		public string RedundancyServicesClassName;
 
 		// 构建参数
 		public bool ForceRebuild;
@@ -74,7 +69,6 @@ namespace YooAsset.Editor
 
 		// 构建结果
 		public int AssetFileTotalCount;
-		public int RedundancyAssetFileCount;
 		public int AllBundleTotalCount;
 		public long AllBundleTotalSize;
 		public int BuildinBundleTotalCount;
