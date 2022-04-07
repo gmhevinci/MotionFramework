@@ -15,7 +15,7 @@ C# && .NET4.x
 2. [日志](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/MotionLog.md) - 游戏框架的日志系统，开发者通过注册可以监听框架生成的日志。
 3. [控制台](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.Console.md) - 在游戏运行的时候，通过内置的控制台可以方便查看调试信息。控制台预设了游戏模块，游戏日志，应用详情，资源系统，引用池，游戏对象池等窗口。开发者可以扩展自定义窗口。
 4. [引用池](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.Reference.md) - 用于C#引用类型的对象池，对于频繁创建的引用类型，使用引用池可以帮助减少GC。
-5. 资源系统 - 依赖于经过商业化产品验证的[YooAsset](https://github.com/tuyoogame/YooAsset)资源系统。强大灵活的打包系统，安全高效的分包方案，灵活高效的加密方案，基于引用计数方案，多种模式自由切换，强大安全的加载系统，原生格式文件管理，灵活多变的版本管理。
+5. [资源系统](https://github.com/tuyoogame/YooAsset) - 依赖于经过商业化产品验证的YooAsset资源系统。
 6. [网络系统](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.Network.md) - 异步IOCP SOCKET长连接方案，支持TCP和UDP协议。支持同时建立多个通信频道，例如连接逻辑服务器的同时还可以连接聊天服务器。不同的通信频道支持使用不同的网络包编码解码器，开发者可以扩展支持ProtoBuf的网络包编码解码器，也可以使用自定义的序列化和反序列化方案。
 8. [有限状态机](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/Engine.AI.FSM.md) - 流程状态机是一种简化的有限状态机。通过流程状态机可以将复杂的业务逻辑拆分简化，例如：整个资源热更新流程可以拆分成多个独立的步骤。
 
