@@ -146,6 +146,7 @@ public abstract class CanvasWindow : UIWindow
 			throw new Exception($"Not found {nameof(Canvas)} in panel {WindowName}");
 		_canvas.overrideSorting = true;
 		_canvas.sortingOrder = 0;
+		_canvas.sortingLayerName = "Default";
 
 		// 获取组件
 		_raycaster = go.GetComponent<GraphicRaycaster>();
