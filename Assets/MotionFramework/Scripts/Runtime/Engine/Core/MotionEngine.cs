@@ -209,13 +209,34 @@ namespace MotionFramework
 		/// <summary>
 		/// 停止一个协程
 		/// </summary>
-		/// <param name="coroutine"></param>
 		public static void StopCoroutine(Coroutine coroutine)
 		{
 			if (_behaviour == null)
 				throw new Exception($"{nameof(MotionEngine)} is not initialize. Use MotionEngine.Initialize");
 			_behaviour.StopCoroutine(coroutine);
 		}
+
+
+		/// <summary>
+		/// 开启一个协程
+		/// </summary>
+		public static void StartCoroutine(string methodName)
+		{
+			if (_behaviour == null)
+				throw new Exception($"{nameof(MotionEngine)} is not initialize. Use MotionEngine.Initialize");
+			_behaviour.StartCoroutine(methodName);
+		}
+
+		/// <summary>
+		/// 停止一个协程
+		/// </summary>
+		public static void StopCoroutine(string methodName)
+		{
+			if (_behaviour == null)
+				throw new Exception($"{nameof(MotionEngine)} is not initialize. Use MotionEngine.Initialize");
+			_behaviour.StopCoroutine(methodName);
+		}
+
 
 		/// <summary>
 		/// 停止所有协程
