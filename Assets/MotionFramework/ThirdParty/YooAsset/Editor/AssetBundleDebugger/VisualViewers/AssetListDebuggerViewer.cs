@@ -58,7 +58,9 @@ namespace YooAsset.Editor
 		{
 			_debugReport = debugReport;
 			_assetListView.Clear();
+			_assetListView.ClearSelection();
 			_assetListView.itemsSource = FilterViewItems(debugReport, searchKeyWord);
+			_assetListView.Rebuild();
 		}
 		private List<DebugProviderInfo> FilterViewItems(DebugReport debugReport, string searchKeyWord)
 		{
@@ -114,13 +116,33 @@ namespace YooAsset.Editor
 				label.style.unityTextAlign = TextAnchor.MiddleLeft;
 				label.style.marginLeft = 3f;
 				//label.style.flexGrow = 1f;
-				label.style.width = 100;
+				label.style.width = 150;
 				element.Add(label);
 			}
 
 			{
 				var label = new Label();
 				label.name = "Label3";
+				label.style.unityTextAlign = TextAnchor.MiddleLeft;
+				label.style.marginLeft = 3f;
+				//label.style.flexGrow = 1f;
+				label.style.width = 150;
+				element.Add(label);
+			}
+
+			{
+				var label = new Label();
+				label.name = "Label4";
+				label.style.unityTextAlign = TextAnchor.MiddleLeft;
+				label.style.marginLeft = 3f;
+				//label.style.flexGrow = 1f;
+				label.style.width = 100;
+				element.Add(label);
+			}
+
+			{
+				var label = new Label();
+				label.name = "Label5";
 				label.style.unityTextAlign = TextAnchor.MiddleLeft;
 				label.style.marginLeft = 3f;
 				//label.style.flexGrow = 1f;
@@ -139,9 +161,17 @@ namespace YooAsset.Editor
 			var label1 = element.Q<Label>("Label1");
 			label1.text = providerInfo.AssetPath;
 
-			// Ref Count
+			// Spawn Scene
 			var label2 = element.Q<Label>("Label2");
-			label2.text = providerInfo.RefCount.ToString();
+			label2.text = providerInfo.SpawnScene;
+
+			// Spawn Time
+			var label3 = element.Q<Label>("Label3");
+			label3.text = providerInfo.SpawnTime;
+
+			// Ref Count
+			var label4 = element.Q<Label>("Label4");
+			label4.text = providerInfo.RefCount.ToString();
 
 			// Status
 			StyleColor textColor;
@@ -149,9 +179,9 @@ namespace YooAsset.Editor
 				textColor = new StyleColor(Color.yellow);
 			else
 				textColor = label1.style.color;
-			var label3 = element.Q<Label>("Label3");
-			label3.text = providerInfo.Status.ToString();
-			label3.style.color = textColor;
+			var label5 = element.Q<Label>("Label5");
+			label5.text = providerInfo.Status.ToString();
+			label5.style.color = textColor;
 		}
 		private void AssetListView_onSelectionChange(IEnumerable<object> objs)
 		{
@@ -175,16 +205,6 @@ namespace YooAsset.Editor
 				label.style.marginLeft = 3f;
 				label.style.flexGrow = 1f;
 				label.style.width = 280;
-				element.Add(label);
-			}
-
-			{
-				var label = new Label();
-				label.name = "Label2";
-				label.style.unityTextAlign = TextAnchor.MiddleLeft;
-				label.style.marginLeft = 3f;
-				//label.style.flexGrow = 1f;
-				label.style.width = 100;
 				element.Add(label);
 			}
 
@@ -219,10 +239,6 @@ namespace YooAsset.Editor
 			var label1 = element.Q<Label>("Label1");
 			label1.text = bundleInfo.BundleName;
 
-			// Version
-			var label2 = element.Q<Label>("Label2");
-			label2.text = bundleInfo.Version.ToString();
-
 			// Ref Count
 			var label3 = element.Q<Label>("Label3");
 			label3.text = bundleInfo.RefCount.ToString();
@@ -236,6 +252,7 @@ namespace YooAsset.Editor
 			_dependListView.Clear();
 			_dependListView.ClearSelection();
 			_dependListView.itemsSource = providerInfo.BundleInfos;
+			_dependListView.Rebuild();
 		}
 	}
 }

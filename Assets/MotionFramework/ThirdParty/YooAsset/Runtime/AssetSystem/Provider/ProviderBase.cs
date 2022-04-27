@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace YooAsset
 {
@@ -50,6 +52,11 @@ namespace YooAsset
 		/// 当前的加载状态
 		/// </summary>
 		public EStatus Status { protected set; get; } = EStatus.None;
+
+		/// <summary>
+		/// 最近的错误信息
+		/// </summary>
+		public string LastError { protected set; get; } = string.Empty;
 
 		/// <summary>
 		/// 引用计数
@@ -103,7 +110,7 @@ namespace YooAsset
 		/// <summary>
 		/// 销毁资源对象
 		/// </summary>
-		public virtual void Destory()
+		public virtual void Destroy()
 		{
 			IsDestroyed = true;
 		}
@@ -197,31 +204,22 @@ namespace YooAsset
 		/// <summary>
 		/// 异步操作任务
 		/// </summary>
-		public System.Threading.Tasks.Task<object> Task
+		public Task Task
 		{
 			get
 			{
-				var handle = WaitHandle;
-				return System.Threading.Tasks.Task.Factory.StartNew(o =>
+				if (_taskCompletionSource == null)
 				{
-					handle.WaitOne();
-					return AssetObject as object;
-				}, this);
+					_taskCompletionSource = new TaskCompletionSource<object>();
+					if (IsDone)
+						_taskCompletionSource.SetResult(null);
+				}
+				return _taskCompletionSource.Task;
 			}
 		}
 
 		#region 异步编程相关
-		private System.Threading.EventWaitHandle _waitHandle;
-		private System.Threading.WaitHandle WaitHandle
-		{
-			get
-			{
-				if (_waitHandle == null)
-					_waitHandle = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset);
-				_waitHandle.Reset();
-				return _waitHandle;
-			}
-		}
+		private TaskCompletionSource<object> _taskCompletionSource;
 		protected void InvokeCompletion()
 		{
 			// 注意：创建临时列表是为了防止外部逻辑在回调函数内创建或者释放资源句柄。
@@ -233,7 +231,35 @@ namespace YooAsset
 					hande.InvokeCallback();
 				}
 			}
-			_waitHandle?.Set();
+
+			if (_taskCompletionSource != null)
+				_taskCompletionSource.TrySetResult(null);
+		}
+		#endregion
+
+		#region 调试信息相关
+		/// <summary>
+		/// 出生的场景
+		/// </summary>
+		public string SpawnScene = string.Empty;
+
+		/// <summary>
+		/// 出生的时间
+		/// </summary>
+		public string SpawnTime = string.Empty;
+
+		[Conditional("DEBUG")]
+		public void InitSpawnDebugInfo()
+		{
+			SpawnScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name; ;
+			SpawnTime = SpawnTimeToString(UnityEngine.Time.realtimeSinceStartup);
+		}
+		private string SpawnTimeToString(float spawnTime)
+		{
+			float h = UnityEngine.Mathf.FloorToInt(spawnTime / 3600f);
+			float m = UnityEngine.Mathf.FloorToInt(spawnTime / 60f - h * 60f);
+			float s = UnityEngine.Mathf.FloorToInt(spawnTime - m * 60f - h * 3600f);
+			return h.ToString("00") + ":" + m.ToString("00") + ":" + s.ToString("00");
 		}
 		#endregion
 	}

@@ -12,22 +12,29 @@ namespace YooAsset
 
 		// 参数相关
 		internal bool ClearCacheWhenDirty { private set; get; }
-		internal bool IgnoreResourceVersion { private set; get; }
 		private string _defaultHostServer;
 		private string _fallbackHostServer;
 
 		/// <summary>
 		/// 异步初始化
 		/// </summary>
-		public InitializationOperation InitializeAsync(bool clearCacheWhenDirty, bool ignoreResourceVersion,
-			 string defaultHostServer, string fallbackHostServer)
+		public InitializationOperation InitializeAsync(bool clearCacheWhenDirty, string defaultHostServer, string fallbackHostServer)
 		{
 			ClearCacheWhenDirty = clearCacheWhenDirty;
-			IgnoreResourceVersion = ignoreResourceVersion;
 			_defaultHostServer = defaultHostServer;
 			_fallbackHostServer = fallbackHostServer;
 
 			var operation = new HostPlayModeInitializationOperation(this);
+			OperationSystem.ProcessOperaiton(operation);
+			return operation;
+		}
+
+		/// <summary>
+		/// 异步更新资源版本号
+		/// </summary>
+		public UpdateStaticVersionOperation UpdateStaticVersionAsync(int timeout)
+		{
+			var operation = new HostPlayModeUpdateStaticVersionOperation(this, timeout);
 			OperationSystem.ProcessOperaiton(operation);
 			return operation;
 		}
@@ -166,19 +173,13 @@ namespace YooAsset
 		}
 
 		// WEB相关
-		public string GetPatchDownloadMainURL(int resourceVersion, string fileName)
+		public string GetPatchDownloadMainURL(string fileName)
 		{
-			if (IgnoreResourceVersion)
-				return $"{_defaultHostServer}/{fileName}";
-			else
-				return $"{_defaultHostServer}/{resourceVersion}/{fileName}";
+			return $"{_defaultHostServer}/{fileName}";
 		}
-		public string GetPatchDownloadFallbackURL(int resourceVersion, string fileName)
+		public string GetPatchDownloadFallbackURL(string fileName)
 		{
-			if (IgnoreResourceVersion)
-				return $"{_fallbackHostServer}/{fileName}";
-			else
-				return $"{_fallbackHostServer}/{resourceVersion}/{fileName}";
+			return $"{_fallbackHostServer}/{fileName}";
 		}
 
 		// 下载相关
@@ -195,10 +196,9 @@ namespace YooAsset
 		private BundleInfo ConvertToDownloadInfo(PatchBundle patchBundle)
 		{
 			// 注意：资源版本号只用于确定下载路径
-			string sandboxPath = SandboxHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-			string remoteMainURL = GetPatchDownloadMainURL(patchBundle.Version, patchBundle.Hash);
-			string remoteFallbackURL = GetPatchDownloadFallbackURL(patchBundle.Version, patchBundle.Hash);
-			BundleInfo bundleInfo = new BundleInfo(patchBundle, sandboxPath, remoteMainURL, remoteFallbackURL);
+			string remoteMainURL = GetPatchDownloadMainURL(patchBundle.Hash);
+			string remoteFallbackURL = GetPatchDownloadFallbackURL(patchBundle.Hash);
+			BundleInfo bundleInfo = new BundleInfo(patchBundle, BundleInfo.ELoadMode.LoadFromRemote, remoteMainURL, remoteFallbackURL);
 			return bundleInfo;
 		}
 
@@ -206,27 +206,25 @@ namespace YooAsset
 		BundleInfo IBundleServices.GetBundleInfo(string bundleName)
 		{
 			if (string.IsNullOrEmpty(bundleName))
-				return new BundleInfo(string.Empty, string.Empty);
+				return new BundleInfo(string.Empty);
 
 			if (LocalPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle patchBundle))
 			{
+				// 查询沙盒资源				
+				if (DownloadSystem.ContainsVerifyFile(patchBundle.Hash))
+				{
+					BundleInfo bundleInfo = new BundleInfo(patchBundle, BundleInfo.ELoadMode.LoadFromCache);
+					return bundleInfo;
+				}
+
 				// 查询APP资源
 				if (AppPatchManifest.Bundles.TryGetValue(bundleName, out PatchBundle appPatchBundle))
 				{
 					if (appPatchBundle.IsBuildin && appPatchBundle.Hash == patchBundle.Hash)
 					{
-						string appLoadPath = PathHelper.MakeStreamingLoadPath(appPatchBundle.Hash);
-						BundleInfo bundleInfo = new BundleInfo(appPatchBundle, appLoadPath);
+						BundleInfo bundleInfo = new BundleInfo(appPatchBundle, BundleInfo.ELoadMode.LoadFromStreaming);
 						return bundleInfo;
 					}
-				}
-
-				// 查询沙盒资源				
-				if (DownloadSystem.ContainsVerifyFile(patchBundle.Hash))
-				{
-					string sandboxLoadPath = SandboxHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-					BundleInfo bundleInfo = new BundleInfo(patchBundle, sandboxLoadPath);
-					return bundleInfo;
 				}
 
 				// 从服务端下载
@@ -235,7 +233,7 @@ namespace YooAsset
 			else
 			{
 				YooLogger.Warning($"Not found bundle in patch manifest : {bundleName}");
-				BundleInfo bundleInfo = new BundleInfo(bundleName, string.Empty);
+				BundleInfo bundleInfo = new BundleInfo(bundleName);
 				return bundleInfo;
 			}
 		}

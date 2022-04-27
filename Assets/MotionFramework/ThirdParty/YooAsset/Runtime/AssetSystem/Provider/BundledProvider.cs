@@ -5,7 +5,7 @@ namespace YooAsset
 {
     internal abstract class BundledProvider : ProviderBase
     {
-		protected AssetBundleLoader OwnerBundle { private set; get; }
+		protected AssetBundleLoaderBase OwnerBundle { private set; get; }
 		protected DependAssetBundleGrouper DependBundles { private set; get; }
 
 		public BundledProvider(string assetPath, System.Type assetType) : base(assetPath, assetType)
@@ -16,9 +16,9 @@ namespace YooAsset
 			DependBundles = new DependAssetBundleGrouper(assetPath);
 			DependBundles.Reference();
 		}
-		public override void Destory()
+		public override void Destroy()
 		{
-			base.Destory();
+			base.Destroy();
 
 			// 释放资源包
 			if (OwnerBundle != null)
@@ -40,7 +40,6 @@ namespace YooAsset
 		{
 			var bundleInfo = new DebugBundleInfo();
 			bundleInfo.BundleName = OwnerBundle.BundleFileInfo.BundleName;
-			bundleInfo.Version = OwnerBundle.BundleFileInfo.Version;
 			bundleInfo.RefCount = OwnerBundle.RefCount;
 			bundleInfo.Status = OwnerBundle.Status;
 			output.Add(bundleInfo);

@@ -4,11 +4,13 @@ namespace YooAsset
 {
 	public abstract class OperationHandleBase : IEnumerator
 	{
+		private readonly string _cachedAssetPath;
 		internal ProviderBase _provider { private set; get; }
-		
+
 		internal OperationHandleBase(ProviderBase provider)
 		{
 			_provider = provider;
+			_cachedAssetPath = provider.AssetPath;
 		}
 		internal abstract void InvokeCallback();
 
@@ -27,6 +29,19 @@ namespace YooAsset
 					return EOperationStatus.Succeed;
 				else
 					return EOperationStatus.None;
+			}
+		}
+
+		/// <summary>
+		/// 最近的错误信息
+		/// </summary>
+		public string LastError
+		{
+			get
+			{
+				if (IsValid == false)
+					return string.Empty;
+				return _provider.LastError;
 			}
 		}
 
@@ -63,7 +78,18 @@ namespace YooAsset
 		{
 			get
 			{
-				return _provider != null && _provider.IsDestroyed == false;
+				if (_provider != null && _provider.IsDestroyed == false)
+				{
+					return true;
+				}
+				else
+				{
+					if (_provider == null)
+						YooLogger.Warning($"Operation handle is released : {_cachedAssetPath}");
+					else if (_provider.IsDestroyed)
+						YooLogger.Warning($"Provider is destroyed : {_cachedAssetPath}");
+					return false;
+				}
 			}
 		}
 
@@ -82,7 +108,7 @@ namespace YooAsset
 		/// <summary>
 		/// 异步操作任务
 		/// </summary>
-		public System.Threading.Tasks.Task<object> Task
+		public System.Threading.Tasks.Task Task
 		{
 			get { return _provider.Task; }
 		}

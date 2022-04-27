@@ -18,7 +18,7 @@ namespace YooAsset.Editor
 
 		private void CreateReportFile(AssetBundleBuilder.BuildParametersContext buildParameters, BuildMapContext buildMapContext)
 		{
-			PatchManifest patchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory);
+			PatchManifest patchManifest = AssetBundleBuilderHelper.LoadPatchManifestFile(buildParameters.PipelineOutputDirectory, buildParameters.Parameters.BuildVersion);
 			BuildReport buildReport = new BuildReport();
 			buildParameters.StopWatch();
 
@@ -35,8 +35,9 @@ namespace YooAsset.Editor
 				buildReport.Summary.ShadersBundleName = AssetBundleGrouperSettingData.Setting.ShadersBundleName;
 				buildReport.Summary.EncryptionServicesClassName = buildParameters.Parameters.EncryptionServices == null ?
 					"null" : buildParameters.Parameters.EncryptionServices.GetType().FullName;
-				
+
 				// 构建参数
+				buildReport.Summary.DryRunBuild = buildParameters.Parameters.DryRunBuild;
 				buildReport.Summary.ForceRebuild = buildParameters.Parameters.ForceRebuild;
 				buildReport.Summary.BuildinTags = buildParameters.Parameters.BuildinTags;
 				buildReport.Summary.CompressOption = buildParameters.Parameters.CompressOption;
@@ -79,7 +80,6 @@ namespace YooAsset.Editor
 				reportBundleInfo.Hash = patchBundle.Hash;
 				reportBundleInfo.CRC = patchBundle.CRC;
 				reportBundleInfo.SizeBytes = patchBundle.SizeBytes;
-				reportBundleInfo.Version = patchBundle.Version;
 				reportBundleInfo.Tags = patchBundle.Tags;
 				reportBundleInfo.Flags = patchBundle.Flags;
 				buildReport.BundleInfos.Add(reportBundleInfo);

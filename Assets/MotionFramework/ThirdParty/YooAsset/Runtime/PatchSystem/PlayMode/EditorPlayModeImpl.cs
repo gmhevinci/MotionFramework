@@ -11,7 +11,7 @@ namespace YooAsset
 		/// </summary>
 		public InitializationOperation InitializeAsync()
 		{
-			var operation = new EditorModeInitializationOperation();
+			var operation = new EditorPlayModeInitializationOperation();
 			OperationSystem.ProcessOperaiton(operation);
 			return operation;
 		}
@@ -28,7 +28,7 @@ namespace YooAsset
 		BundleInfo IBundleServices.GetBundleInfo(string bundleName)
 		{
 			YooLogger.Warning($"Editor play mode can not get bundle info.");
-			BundleInfo bundleInfo = new BundleInfo(bundleName, bundleName);
+			BundleInfo bundleInfo = new BundleInfo(bundleName);
 			return bundleInfo;
 		}
 		string IBundleServices.GetBundleName(string assetPath)

@@ -78,7 +78,9 @@ namespace YooAsset.Editor
 		{
 			_buildReport = buildReport;
 			_bundleListView.Clear();
+			_bundleListView.ClearSelection();
 			_bundleListView.itemsSource = FilterViewItems(buildReport, searchKeyWord);
+			_bundleListView.Rebuild();
 			_topBar1.text = $"Bundle Name ({_bundleListView.itemsSource.Count})";
 		}
 		private List<ReportBundleInfo> FilterViewItems(BuildReport buildReport, string searchKeyWord)
@@ -145,17 +147,7 @@ namespace YooAsset.Editor
 				label.style.unityTextAlign = TextAnchor.MiddleLeft;
 				label.style.marginLeft = 3f;
 				//label.style.flexGrow = 1f;
-				label.style.width = 250;
-				element.Add(label);
-			}
-
-			{
-				var label = new Label();
-				label.name = "Label4";
-				label.style.unityTextAlign = TextAnchor.MiddleLeft;
-				label.style.marginLeft = 3f;
-				//label.style.flexGrow = 1f;
-				label.style.width = 60;
+				label.style.width = 280;
 				element.Add(label);
 			}
 
@@ -188,10 +180,6 @@ namespace YooAsset.Editor
 			var label3 = element.Q<Label>("Label3");
 			label3.text = bundleInfo.Hash;
 
-			// Version
-			var label4 = element.Q<Label>("Label4");
-			label4.text = bundleInfo.Version.ToString();
-
 			// Tags
 			var label5 = element.Q<Label>("Label5");
 			label5.text = GetTagsString(bundleInfo.Tags);
@@ -218,6 +206,7 @@ namespace YooAsset.Editor
 			_includeListView.Clear();
 			_includeListView.ClearSelection();
 			_includeListView.itemsSource = containsList;
+			_includeListView.Rebuild();
 			_bottomBar1.text = $"Include Assets ({containsList.Count})";
 		}
 		private VisualElement MakeIncludeListViewItem()
@@ -251,7 +240,7 @@ namespace YooAsset.Editor
 				label.style.unityTextAlign = TextAnchor.MiddleLeft;
 				label.style.marginLeft = 3f;
 				//label.style.flexGrow = 1f;
-				label.style.width = 250;
+				label.style.width = 280;
 				element.Add(label);
 			}
 

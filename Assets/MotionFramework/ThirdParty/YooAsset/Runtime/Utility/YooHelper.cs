@@ -61,7 +61,6 @@ namespace YooAsset
 		/// </summary>
 		public static string ConvertToWWWPath(string path)
 		{
-			// 注意：WWW加载方式，必须要在路径前面加file://
 #if UNITY_EDITOR
 			return StringUtility.Format("file:///{0}", path);
 #elif UNITY_IPHONE
@@ -70,56 +69,8 @@ namespace YooAsset
 			return path;
 #elif UNITY_STANDALONE
 			return StringUtility.Format("file:///{0}", path);
-#endif
-		}
-
-		/// <summary>
-		/// 合并资源路径
-		/// </summary>
-		public static string CombineAssetPath(string root, string location)
-		{
-			if (string.IsNullOrEmpty(root))
-				return location;
-			else
-				return $"{root}/{location}";
-		}
-
-		/// <summary>
-		/// 获取AssetDatabase的加载路径
-		/// </summary>
-		public static string FindDatabaseAssetPath(string filePath)
-		{
-#if UNITY_EDITOR
-			if (File.Exists(filePath))
-				return filePath;
-
-			// AssetDatabase加载资源需要提供文件后缀格式，然而资源定位地址并没有文件格式信息。
-			// 所以我们通过查找该文件所在文件夹内同名的首个文件来确定AssetDatabase的加载路径。
-			// 注意：AssetDatabase.FindAssets() 返回文件内包括递归文件夹内所有资源的GUID
-			string fileName = Path.GetFileName(filePath);
-			string directory = GetDirectory(filePath);
-			string[] guids = UnityEditor.AssetDatabase.FindAssets(string.Empty, new[] { directory });
-			for (int i = 0; i < guids.Length; i++)
-			{
-				string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]);
-
-				if (UnityEditor.AssetDatabase.IsValidFolder(assetPath))
-					continue;
-
-				string assetDirectory = GetDirectory(assetPath);
-				if (assetDirectory != directory)
-					continue;
-
-				string assetName = Path.GetFileNameWithoutExtension(assetPath);
-				if (assetName == fileName)
-					return assetPath;
-			}
-
-			// 没有找到同名的资源文件
-			YooLogger.Warning($"Not found asset : {filePath}");
-			return filePath;
-#else
-			throw new System.NotImplementedException();
+#elif UNITY_WEBGL
+			return path;
 #endif
 		}
 	}
@@ -140,16 +91,6 @@ namespace YooAsset
 			string directoryPath = PathHelper.MakePersistentLoadPath(string.Empty);
 			if (Directory.Exists(directoryPath))
 				Directory.Delete(directoryPath, true);
-		}
-
-		/// <summary>
-		/// 删除沙盒内补丁清单文件
-		/// </summary>
-		public static void DeleteSandboxPatchManifestFile()
-		{
-			string filePath = PathHelper.MakePersistentLoadPath(YooAssetSettingsData.Setting.PatchManifestFileName);
-			if (File.Exists(filePath))
-				File.Delete(filePath);
 		}
 
 		/// <summary>
@@ -191,29 +132,6 @@ namespace YooAsset
 		}
 
 		/// <summary>
-		/// 检测沙盒内补丁清单文件是否存在
-		/// </summary>
-		public static bool CheckSandboxPatchManifestFileExist()
-		{
-			string filePath = PathHelper.MakePersistentLoadPath(YooAssetSettingsData.Setting.PatchManifestFileName);
-			return File.Exists(filePath);
-		}
-
-		/// <summary>
-		/// 获取沙盒内补丁清单文件的哈希值
-		/// 注意：如果沙盒内补丁清单文件不存在，返回空字符串
-		/// </summary>
-		/// <returns></returns>
-		public static string GetSandboxPatchManifestFileHash()
-		{
-			string filePath = PathHelper.MakePersistentLoadPath(YooAssetSettingsData.Setting.PatchManifestFileName);
-			if (File.Exists(filePath))
-				return HashUtility.FileMD5(filePath);
-			else
-				return string.Empty;
-		}
-
-		/// <summary>
 		/// 获取缓存文件的存储路径
 		/// </summary>
 		public static string MakeSandboxCacheFilePath(string fileName)
@@ -232,6 +150,7 @@ namespace YooAsset
 		/// </summary>
 		public static List<BundleInfo> GetUnpackListByTags(PatchManifest appPatchManifest, string[] tags)
 		{
+			// 注意：离线运行模式也依赖下面逻辑，所以判断沙盒内文件是否存在不能通过缓存系统去验证。
 			List<PatchBundle> downloadList = new List<PatchBundle>(1000);
 			foreach (var patchBundle in appPatchManifest.BundleList)
 			{
@@ -244,18 +163,10 @@ namespace YooAsset
 				if (patchBundle.IsBuildin == false)
 					continue;
 
-				// 如果是纯内置资源
-				if (patchBundle.IsPureBuildin())
+				// 查询DLC资源
+				if (patchBundle.HasTag(tags))
 				{
 					downloadList.Add(patchBundle);
-				}
-				else
-				{
-					// 查询DLC资源
-					if (patchBundle.HasTag(tags))
-					{
-						downloadList.Add(patchBundle);
-					}
 				}
 			}
 
@@ -273,9 +184,10 @@ namespace YooAsset
 		}
 		private static BundleInfo ConvertToUnpackInfo(PatchBundle patchBundle)
 		{
-			string sandboxPath = SandboxHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
-			string streamingLoadPath = PathHelper.MakeStreamingLoadPath(patchBundle.Hash);
-			BundleInfo bundleInfo = new BundleInfo(patchBundle, sandboxPath, streamingLoadPath, streamingLoadPath);
+			// 注意：我们把流加载路径指定为远端下载地址
+			string streamingPath = PathHelper.MakeStreamingLoadPath(patchBundle.Hash);
+			streamingPath = PathHelper.ConvertToWWWPath(streamingPath);
+			BundleInfo bundleInfo = new BundleInfo(patchBundle, BundleInfo.ELoadMode.LoadFromRemote, streamingPath, streamingPath);
 			return bundleInfo;
 		}
 	}
