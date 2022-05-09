@@ -62,13 +62,6 @@ namespace MotionFramework.Scene
 			if (_mainScene != null && _mainScene.IsDone == false)
 				MotionLog.Warning($"The current main scene {_mainScene.Location} is not loading done.");
 
-			if (_mainScene != null)
-			{
-				UnLoadAllAdditionScenes();
-				_mainScene.UnLoad();
-				_mainScene = null;
-			}
-
 			_mainScene = new AssetScene(location);
 			_mainScene.Load(false, true, finishCallback, progressCallback);
 		}
@@ -147,18 +140,6 @@ namespace MotionFramework.Scene
 			return false;
 		}
 
-
-		/// <summary>
-		/// 卸载所有附加场景
-		/// </summary>
-		private void UnLoadAllAdditionScenes()
-		{
-			for (int i = 0; i < _additionScenes.Count; i++)
-			{
-				_additionScenes[i].UnLoad();
-			}
-			_additionScenes.Clear();
-		}
 
 		/// <summary>
 		/// 尝试获取一个附加场景，如果不存在返回NULL
