@@ -8,17 +8,17 @@ using UnityEditor;
 namespace YooAsset.Editor
 {
 	[Serializable]
-	public class AssetBundleGrouper
+	public class AssetBundleCollectorGroup
 	{
 		/// <summary>
 		/// 分组名称
 		/// </summary>
-		public string GrouperName = string.Empty;
+		public string GroupName = string.Empty;
 
 		/// <summary>
 		/// 分组描述
 		/// </summary>
-		public string GrouperDesc = string.Empty;
+		public string GroupDesc = string.Empty;
 
 		/// <summary>
 		/// 资源分类标签
@@ -36,7 +36,7 @@ namespace YooAsset.Editor
 		/// </summary>
 		public void CheckConfigError()
 		{
-			foreach(var collector in Collectors)
+			foreach (var collector in Collectors)
 			{
 				collector.CheckConfigError();
 			}
@@ -48,21 +48,38 @@ namespace YooAsset.Editor
 		public List<CollectAssetInfo> GetAllCollectAssets()
 		{
 			Dictionary<string, CollectAssetInfo> result = new Dictionary<string, CollectAssetInfo>(10000);
-			foreach(var collector in Collectors)
+
+			// 收集打包资源
+			foreach (var collector in Collectors)
 			{
 				var temper = collector.GetAllCollectAssets(this);
-				foreach(var assetInfo in temper)
+				foreach (var assetInfo in temper)
 				{
-					if(result.ContainsKey(assetInfo.AssetPath) == false)
-					{
+					if (result.ContainsKey(assetInfo.AssetPath) == false)
 						result.Add(assetInfo.AssetPath, assetInfo);
-					}
 					else
+						throw new Exception($"The collecting asset file is existed : {assetInfo.AssetPath} in group : {GroupName}");
+				}
+			}
+
+			// 检测可寻址地址是否重复
+			if (AssetBundleCollectorSettingData.Setting.EnableAddressable)
+			{
+				HashSet<string> adressTemper = new HashSet<string>();
+				foreach (var collectInfoPair in result)
+				{
+					if (collectInfoPair.Value.CollectorType == ECollectorType.MainAssetCollector)
 					{
-						throw new Exception($"The collecting asset file is existed : {assetInfo.AssetPath} in grouper : {GrouperName}");
+						string address = collectInfoPair.Value.Address;
+						if (adressTemper.Contains(address) == false)
+							adressTemper.Add(address);
+						else
+							throw new Exception($"The address is existed : {address} in group : {GroupName}");
 					}
 				}
 			}
+
+			// 返回列表
 			return result.Values.ToList();
 		}
 	}

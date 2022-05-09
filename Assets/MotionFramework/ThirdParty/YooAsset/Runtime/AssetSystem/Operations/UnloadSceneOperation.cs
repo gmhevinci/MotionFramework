@@ -6,7 +6,7 @@ namespace YooAsset
 	/// <summary>
 	/// 场景卸载异步操作类
 	/// </summary>
-	public class UnloadSceneOperation : AsyncOperationBase
+	public sealed class UnloadSceneOperation : AsyncOperationBase
 	{
 		private enum EFlag
 		{
@@ -25,19 +25,6 @@ namespace YooAsset
 		private ESteps _steps = ESteps.None;
 		private Scene _scene;
 		private AsyncOperation _asyncOp;
-
-		/// <summary>
-		/// 场景卸载进度
-		/// </summary>
-		public float Progress
-		{
-			get
-			{
-				if (_asyncOp == null)
-					return 0;
-				return _asyncOp.progress;
-			}
-		}
 
 		internal UnloadSceneOperation(string error)
 		{
@@ -87,6 +74,7 @@ namespace YooAsset
 
 			if (_steps == ESteps.Checking)
 			{
+				Progress = _asyncOp.progress;
 				if (_asyncOp.isDone == false)
 					return;
 

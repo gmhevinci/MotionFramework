@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace YooAsset
@@ -12,21 +13,71 @@ namespace YooAsset
 	}
 
 	/// <summary>
-	/// 编辑器下模拟运行的初始化操作
+	/// 编辑器下模拟模式的初始化操作
 	/// </summary>
-	internal sealed class EditorPlayModeInitializationOperation : InitializationOperation
+	internal sealed class EditorSimulateModeInitializationOperation : InitializationOperation
 	{
+		private enum ESteps
+		{
+			None,
+			Builder,
+			Load,
+			Done,
+		}
+
+		private readonly EditorSimulateModeImpl _impl;
+		private string _simulatePatchManifestPath;
+		private ESteps _steps = ESteps.None;
+
+		internal EditorSimulateModeInitializationOperation(EditorSimulateModeImpl impl, string simulatePatchManifestPath)
+		{
+			_impl = impl;
+			_simulatePatchManifestPath = simulatePatchManifestPath;
+		}
 		internal override void Start()
 		{
-			Status = EOperationStatus.Succeed;
+			if (string.IsNullOrEmpty(_simulatePatchManifestPath))
+				_steps = ESteps.Builder;
+			else
+				_steps = ESteps.Load;
 		}
 		internal override void Update()
 		{
+			if (_steps == ESteps.Builder)
+			{
+				_simulatePatchManifestPath = EditorSimulateModeHelper.SimulateBuild();
+				if (string.IsNullOrEmpty(_simulatePatchManifestPath))
+				{
+					_steps = ESteps.Done;
+					Status = EOperationStatus.Failed;
+					Error = "Simulate build failed, see the detail info on the console window.";
+					return;
+				}
+				_steps = ESteps.Load;
+			}
+
+			if (_steps == ESteps.Load)
+			{
+				if (File.Exists(_simulatePatchManifestPath) == false)
+				{
+					_steps = ESteps.Done;
+					Status = EOperationStatus.Failed;
+					Error = $"Manifest file not found : {_simulatePatchManifestPath}";
+					return;
+				}
+
+				YooLogger.Log($"Load manifest file : {_simulatePatchManifestPath}");
+				string jsonContent = FileUtility.ReadFile(_simulatePatchManifestPath);
+				var simulatePatchManifest = PatchManifest.Deserialize(jsonContent);
+				_impl.SetSimulatePatchManifest(simulatePatchManifest);
+				_steps = ESteps.Done;
+				Status = EOperationStatus.Succeed;
+			}
 		}
 	}
 
 	/// <summary>
-	/// 离线模式的初始化操作
+	/// 离线运行模式的初始化操作
 	/// </summary>
 	internal sealed class OfflinePlayModeInitializationOperation : InitializationOperation
 	{
@@ -53,32 +104,32 @@ namespace YooAsset
 		{
 			if (_steps == ESteps.None || _steps == ESteps.Done)
 				return;
-			
+
 			if (_steps == ESteps.Update)
 			{
 				_appManifestLoader.Update();
+				Progress = _appManifestLoader.Progress();
 				if (_appManifestLoader.IsDone() == false)
 					return;
 
 				if (_appManifestLoader.Result == null)
-				{			
+				{
 					_steps = ESteps.Done;
 					Status = EOperationStatus.Failed;
 					Error = _appManifestLoader.Error;
-					throw new System.Exception($"FATAL : {_appManifestLoader.Error}");
 				}
 				else
 				{
 					_steps = ESteps.Done;
 					Status = EOperationStatus.Succeed;
-					_impl.AppPatchManifest = _appManifestLoader.Result;
+					_impl.SetAppPatchManifest(_appManifestLoader.Result);
 				}
 			}
 		}
 	}
 
 	/// <summary>
-	/// 网络模式的初始化操作
+	/// 网络运行模式的初始化操作
 	/// </summary>
 	internal sealed class HostPlayModeInitializationOperation : InitializationOperation
 	{
@@ -110,20 +161,20 @@ namespace YooAsset
 			if (_steps == ESteps.InitCache)
 			{
 				// 每次启动时比对APP版本号是否一致	
-				PatchCache cache = PatchCache.LoadCache();
-				if (cache.CacheAppVersion != Application.version)
+				CacheData cacheData = CacheData.LoadCache();
+				if (cacheData.CacheAppVersion != Application.version)
 				{
-					YooLogger.Warning($"Cache is dirty ! Cache app version is {cache.CacheAppVersion}, Current app version is {Application.version}");
+					YooLogger.Warning($"Cache is dirty ! Cache application version is {cacheData.CacheAppVersion}, Current application version is {Application.version}");
 
 					// 注意：在覆盖安装的时候，会保留APP沙盒目录，可以选择清空缓存目录
 					if (_impl.ClearCacheWhenDirty)
 					{
 						YooLogger.Warning("Clear cache files.");
-						SandboxHelper.DeleteSandboxCacheFolder();
+						SandboxHelper.DeleteCacheFolder();
 					}
 
 					// 更新缓存文件
-					PatchCache.UpdateCache();
+					CacheData.UpdateCache();
 				}
 				_steps = ESteps.Update;
 			}
@@ -131,6 +182,7 @@ namespace YooAsset
 			if (_steps == ESteps.Update)
 			{
 				_appManifestLoader.Update();
+				Progress = _appManifestLoader.Progress();
 				if (_appManifestLoader.IsDone() == false)
 					return;
 
@@ -139,18 +191,18 @@ namespace YooAsset
 					_steps = ESteps.Done;
 					Status = EOperationStatus.Failed;
 					Error = _appManifestLoader.Error;
-					throw new System.Exception($"FATAL : {_appManifestLoader.Error}");
 				}
 				else
 				{
 					_steps = ESteps.Done;
 					Status = EOperationStatus.Succeed;
-					_impl.AppPatchManifest = _appManifestLoader.Result;
-					_impl.LocalPatchManifest = _appManifestLoader.Result;
+					_impl.SetAppPatchManifest(_appManifestLoader.Result);
+					_impl.SetLocalPatchManifest(_appManifestLoader.Result);
 				}
 			}
 		}
 	}
+
 
 	/// <summary>
 	/// 内置补丁清单加载器
@@ -191,6 +243,16 @@ namespace YooAsset
 				return true;
 			else
 				return false;
+		}
+
+		/// <summary>
+		/// 加载进度
+		/// </summary>
+		public float Progress()
+		{
+			if (_downloader2 == null)
+				return 0;
+			return _downloader2.Progress();
 		}
 
 		public void Update()
@@ -243,7 +305,7 @@ namespace YooAsset
 
 				if (_downloader2.HasError())
 				{
-					Error = _downloader2.GetError();		
+					Error = _downloader2.GetError();
 					_steps = ESteps.Failed;
 				}
 				else

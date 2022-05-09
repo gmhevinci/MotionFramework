@@ -9,6 +9,7 @@ namespace YooAsset
 			LoadFromStreaming,
 			LoadFromCache,
 			LoadFromRemote,
+			LoadFromEditor,
 		}
 
 		private readonly PatchBundle _patchBundle;
@@ -25,12 +26,17 @@ namespace YooAsset
 		/// <summary>
 		/// 远端下载地址
 		/// </summary>
-		public string RemoteMainURL { private set; get; }
+		internal string RemoteMainURL { private set; get; }
 
 		/// <summary>
 		/// 远端下载备用地址
 		/// </summary>
-		public string RemoteFallbackURL { private set; get; }
+		internal string RemoteFallbackURL { private set; get; }
+
+		/// <summary>
+		/// 编辑器资源路径
+		/// </summary>
+		internal string EditorAssetPath { private set; get; }
 
 		/// <summary>
 		/// 文件哈希值
@@ -103,10 +109,66 @@ namespace YooAsset
 		}
 
 
+		private BundleInfo()
+		{
+		}
+		internal BundleInfo(PatchBundle patchBundle, ELoadMode loadMode, string mainURL, string fallbackURL)
+		{
+			_patchBundle = patchBundle;
+			LoadMode = loadMode;
+			BundleName = patchBundle.BundleName;
+			RemoteMainURL = mainURL;
+			RemoteFallbackURL = fallbackURL;
+			EditorAssetPath = string.Empty;
+		}
+		internal BundleInfo(PatchBundle patchBundle, ELoadMode loadMode, string editorAssetPath)
+		{
+			_patchBundle = patchBundle;
+			LoadMode = loadMode;
+			BundleName = patchBundle.BundleName;
+			RemoteMainURL = string.Empty;
+			RemoteFallbackURL = string.Empty;
+			EditorAssetPath = editorAssetPath;
+		}
+		internal BundleInfo(PatchBundle patchBundle, ELoadMode loadMode)
+		{
+			_patchBundle = patchBundle;
+			LoadMode = loadMode;
+			BundleName = patchBundle.BundleName;
+			RemoteMainURL = string.Empty;
+			RemoteFallbackURL = string.Empty;
+			EditorAssetPath = string.Empty;
+		}
+		internal BundleInfo(string bundleName)
+		{
+			_patchBundle = null;
+			LoadMode = ELoadMode.None;
+			BundleName = bundleName;
+			RemoteMainURL = string.Empty;
+			RemoteFallbackURL = string.Empty;
+			EditorAssetPath = string.Empty;
+		}
+
+		/// <summary>
+		/// 资源包是否有效
+		/// </summary>
+		public bool IsValid()
+		{
+			return _patchBundle != null;
+		}
+
+		/// <summary>
+		/// 资源包文件是否在云端
+		/// </summary>
+		public bool InCloud()
+		{
+			return LoadMode == ELoadMode.LoadFromRemote;
+		}
+
 		/// <summary>
 		/// 获取流文件夹的加载路径
 		/// </summary>
-		public string GetStreamingLoadPath()
+		internal string GetStreamingLoadPath()
 		{
 			if (_patchBundle == null)
 				return string.Empty;
@@ -119,44 +181,16 @@ namespace YooAsset
 		/// <summary>
 		/// 获取缓存文件夹的加载路径
 		/// </summary>
-		public string GetCacheLoadPath()
+		internal string GetCacheLoadPath()
 		{
 			if (_patchBundle == null)
 				return string.Empty;
 
 			if (string.IsNullOrEmpty(_cachePath))
-				_cachePath = SandboxHelper.MakeSandboxCacheFilePath(_patchBundle.Hash);
+				_cachePath = SandboxHelper.MakeCacheFilePath(_patchBundle.Hash);
 			return _cachePath;
 		}
 
-
-		private BundleInfo()
-		{
-		}
-		internal BundleInfo(PatchBundle patchBundle, ELoadMode loadMode, string mainURL, string fallbackURL)
-		{
-			_patchBundle = patchBundle;
-			LoadMode = loadMode;
-			BundleName = patchBundle.BundleName;
-			RemoteMainURL = mainURL;
-			RemoteFallbackURL = fallbackURL;
-		}
-		internal BundleInfo(PatchBundle patchBundle, ELoadMode loadMode)
-		{
-			_patchBundle = patchBundle;
-			LoadMode = loadMode;
-			BundleName = patchBundle.BundleName;
-			RemoteMainURL = string.Empty;
-			RemoteFallbackURL = string.Empty;
-		}
-		internal BundleInfo(string bundleName)
-		{
-			_patchBundle = null;
-			LoadMode = ELoadMode.None;
-			BundleName = bundleName;
-			RemoteMainURL = string.Empty;
-			RemoteFallbackURL = string.Empty;
-		}
 
 		/// <summary>
 		/// 是否为JAR包内文件

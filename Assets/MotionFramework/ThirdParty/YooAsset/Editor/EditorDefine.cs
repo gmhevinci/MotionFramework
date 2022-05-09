@@ -1,17 +1,15 @@
-﻿
+﻿using System;
+
 namespace YooAsset.Editor
 {
 	public class EditorDefine
 	{
+#if UNITY_2019_4_OR_NEWER
 		/// <summary>
-		/// 资源包构建工具的配置文件存储路径
+		/// 停靠窗口类型集合
 		/// </summary>
-		public const string AssetBundleBuilderSettingFilePath = "Assets/YooAssetSetting/AssetBundleBuilderSetting.asset";
-
-		/// <summary>
-		/// 资源包分组工具的配置文件存储路径
-		/// </summary>
-		public const string AssetBundleGrouperSettingFilePath = "Assets/YooAssetSetting/AssetBundleGrouperSetting.asset";
+		public static readonly Type[] DockedWindowTypes = { typeof(AssetBundleBuilderWindow), typeof(AssetBundleCollectorWindow), typeof(AssetBundleDebuggerWindow), typeof(AssetBundleReporterWindow)};
+#endif
 	}
 
 	/// <summary>
@@ -43,16 +41,16 @@ namespace YooAsset.Editor
 	/// </summary>
 	public enum EAssetFileExtension
 	{
-		prefab, //预制体
-		unity, //场景
-		fbx, //模型
-		anim, //动画
-		controller, //控制器
-		png, //图片
-		jpg, //图片
-		mat, //材质球
-		shader, //着色器
-		ttf, //字体
-		cs, //脚本
+		prefab,
+		unity,
+		fbx,
+		anim,
+		controller,
+		png,
+		jpg,
+		mat,
+		shader,
+		ttf,
+		cs,
 	}
 }

@@ -7,12 +7,15 @@ using UnityEditor;
 
 namespace YooAsset.Editor
 {
+	[TaskAttribute("获取资源构建内容")]
 	public class TaskGetBuildMap : IBuildTask
 	{
 		void IBuildTask.Run(BuildContext context)
 		{
-			var buildMapContext = BuildMapHelper.SetupBuildMap();
+			var buildParametersContext = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
+			var buildMapContext = BuildMapCreater.CreateBuildMap(buildParametersContext.Parameters.BuildMode);
 			context.SetContextObject(buildMapContext);
+			BuildRunner.Log("构建内容准备完毕！");
 
 			// 检测构建结果
 			CheckBuildMapContent(buildMapContext);
@@ -30,7 +33,7 @@ namespace YooAsset.Editor
 				if (isRawFile)
 				{
 					if (bundleInfo.BuildinAssets.Count != 1)
-						throw new Exception("The bundle does not support multiple raw asset : {bundleInfo.BundleName}");
+						throw new Exception($"The bundle does not support multiple raw asset : {bundleInfo.BundleName}");
 					continue;
 				}
 

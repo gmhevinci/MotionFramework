@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace YooAsset.Editor
 {
+	[TaskAttribute("资源包加密")]
 	public class TaskEncryption : IBuildTask
 	{
 		public class EncryptionContext : IContextObject
@@ -26,16 +27,17 @@ namespace YooAsset.Editor
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
 			var buildMapContext = context.GetContextObject<BuildMapContext>();
 
-			if (buildParameters.Parameters.DryRunBuild)
+			var buildMode = buildParameters.Parameters.BuildMode;
+			if (buildMode == EBuildMode.ForceRebuild || buildMode == EBuildMode.IncrementalBuild)
 			{
 				EncryptionContext encryptionContext = new EncryptionContext();
-				encryptionContext.EncryptList = new List<string>();
+				encryptionContext.EncryptList = EncryptFiles(buildParameters, buildMapContext);
 				context.SetContextObject(encryptionContext);
 			}
 			else
 			{
 				EncryptionContext encryptionContext = new EncryptionContext();
-				encryptionContext.EncryptList = EncryptFiles(buildParameters, buildMapContext);
+				encryptionContext.EncryptList = new List<string>();
 				context.SetContextObject(encryptionContext);
 			}
 		}
@@ -54,7 +56,6 @@ namespace YooAsset.Editor
 			if (encryptionServices == null)
 				return encryptList;
 
-			UnityEngine.Debug.Log($"开始加密资源文件");
 			int progressValue = 0;
 			foreach (var bundleInfo in buildMapContext.BundleInfos)
 			{
@@ -75,7 +76,7 @@ namespace YooAsset.Editor
 					{
 						byte[] bytes = encryptionServices.Encrypt(fileData);
 						File.WriteAllBytes(filePath, bytes);
-						UnityEngine.Debug.Log($"文件加密完成：{filePath}");
+						BuildRunner.Log($"文件加密完成：{filePath}");
 					}
 				}
 
@@ -84,6 +85,8 @@ namespace YooAsset.Editor
 			}
 			EditorTools.ClearProgressBar();
 
+			if(encryptList.Count == 0)
+				UnityEngine.Debug.LogWarning($"没有发现需要加密的文件！");
 			return encryptList;
 		}
 	}

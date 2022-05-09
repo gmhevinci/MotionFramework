@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace YooAsset
 {
@@ -17,7 +18,12 @@ namespace YooAsset
 		/// <summary>
 		/// 错误信息
 		/// </summary>
-		public string Error { get; protected set; } = string.Empty;
+		public string Error { get; protected set; }
+
+		/// <summary>
+		/// 处理进度
+		/// </summary>
+		public float Progress { get; protected set; }
 
 		/// <summary>
 		/// 是否已经完成
@@ -48,46 +54,44 @@ namespace YooAsset
 			}
 		}
 
+		/// <summary>
+		/// 异步操作任务
+		/// </summary>
+		public Task Task
+		{
+			get
+			{
+				if (_taskCompletionSource == null)
+				{
+					_taskCompletionSource = new TaskCompletionSource<object>();
+					if (IsDone)
+						_taskCompletionSource.SetResult(null);
+				}
+				return _taskCompletionSource.Task;
+			}
+		}
+
 		internal abstract void Start();
 		internal abstract void Update();
 		internal void Finish()
 		{
+			Progress = 1f;
 			_callback?.Invoke(this);
-			_waitHandle?.Set();
+			if (_taskCompletionSource != null)
+				_taskCompletionSource.TrySetResult(null);
 		}
 
 		#region 异步编程相关
-		public bool MoveNext()
+		bool IEnumerator.MoveNext()
 		{
 			return !IsDone;
 		}
-		public void Reset()
+		void IEnumerator.Reset()
 		{
 		}
-		public object Current => null;
+		object IEnumerator.Current => null;
 
-		private System.Threading.EventWaitHandle _waitHandle;
-		private System.Threading.WaitHandle WaitHandle
-		{
-			get
-			{
-				if (_waitHandle == null)
-					_waitHandle = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset);
-				_waitHandle.Reset();
-				return _waitHandle;
-			}
-		}
-		public System.Threading.Tasks.Task Task
-		{
-			get
-			{
-				var handle = WaitHandle;
-				return System.Threading.Tasks.Task.Factory.StartNew(o =>
-				{
-					handle.WaitOne();
-				}, this);
-			}
-		}
+		private TaskCompletionSource<object> _taskCompletionSource;
 		#endregion
 	}
 }

@@ -163,28 +163,6 @@ namespace YooAsset
 		}
 
 		/// <summary>
-		/// 是否为场景提供者
-		/// </summary>
-		public bool IsSceneProvider()
-		{
-			if (this is BundledSceneProvider || this is DatabaseSceneProvider)
-				return true;
-			else
-				return false;
-		}
-
-		/// <summary>
-		/// 是否为子资源对象提供者
-		/// </summary>
-		public bool IsSubAssetsProvider()
-		{
-			if (this is BundledSubAssetsProvider || this is DatabaseSubAssetsProvider)
-				return true;
-			else
-				return false;
-		}
-
-		/// <summary>
 		/// 等待异步执行完毕
 		/// </summary>
 		public void WaitForAsyncComplete()
@@ -216,6 +194,21 @@ namespace YooAsset
 				}
 				return _taskCompletionSource.Task;
 			}
+		}
+
+		public bool IsSceneProvider()
+		{
+			if (this is BundledSceneProvider || this is DatabaseSceneProvider)
+				return true;
+			else
+				return false;
+		}
+		public bool IsSubAssetsProvider()
+		{
+			if (this is BundledSubAssetsProvider || this is DatabaseSubAssetsProvider)
+				return true;
+			else
+				return false;
 		}
 
 		#region 异步编程相关

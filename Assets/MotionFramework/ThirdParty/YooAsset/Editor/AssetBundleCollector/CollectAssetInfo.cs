@@ -6,9 +6,19 @@ namespace YooAsset.Editor
 	public class CollectAssetInfo
 	{
 		/// <summary>
+		/// 收集器类型
+		/// </summary>
+		public ECollectorType CollectorType { private set; get; }
+
+		/// <summary>
 		/// 资源包名称
 		/// </summary>
 		public string BundleName { private set; get; }
+
+		/// <summary>
+		/// 可寻址地址
+		/// </summary>
+		public string Address { private set; get; }
 
 		/// <summary>
 		/// 资源路径
@@ -26,31 +36,19 @@ namespace YooAsset.Editor
 		public bool IsRawAsset { private set; get; }
 
 		/// <summary>
-		/// 不写入资源列表
-		/// </summary>
-		public bool NotWriteToAssetList { private set; get; }
-
-		/// <summary>
 		/// 依赖的资源列表
 		/// </summary>
 		public List<string> DependAssets = new List<string>();
 
 
-		public CollectAssetInfo(string bundleName, string assetPath, List<string> assetTags, bool isRawAsset, bool notWriteToAssetList)
+		public CollectAssetInfo(ECollectorType collectorType, string bundleName, string address, string assetPath, List<string> assetTags, bool isRawAsset)
 		{
+			CollectorType = collectorType;
 			BundleName = bundleName;
+			Address = address;
 			AssetPath = assetPath;
 			AssetTags = assetTags;
 			IsRawAsset = isRawAsset;
-			NotWriteToAssetList = notWriteToAssetList;
-		}
-		public CollectAssetInfo(string assetPath, List<string> assetTags, bool isRawAsset, bool notWriteToAssetList)
-		{
-			BundleName = string.Empty;
-			AssetPath = assetPath;
-			AssetTags = assetTags;
-			IsRawAsset = isRawAsset;
-			NotWriteToAssetList = notWriteToAssetList;
 		}
 	}
 }

@@ -26,7 +26,12 @@ namespace YooAsset.Editor
 			public BuildParametersContext(BuildParameters parameters)
 			{
 				Parameters = parameters;
+
 				PipelineOutputDirectory = AssetBundleBuilderHelper.MakePipelineOutputDirectory(parameters.OutputRoot, parameters.BuildTarget);
+				if (parameters.BuildMode == EBuildMode.DryRunBuild)
+					PipelineOutputDirectory += $"_{EBuildMode.DryRunBuild}";
+				else if(parameters.BuildMode == EBuildMode.SimulateBuild)
+					PipelineOutputDirectory += $"_{EBuildMode.SimulateBuild}";
 			}
 
 			/// <summary>
@@ -48,7 +53,12 @@ namespace YooAsset.Editor
 				BuildAssetBundleOptions opt = BuildAssetBundleOptions.None;
 				opt |= BuildAssetBundleOptions.StrictMode; //Do not allow the build to succeed if any errors are reporting during it.
 
-				if (Parameters.DryRunBuild)
+				if (Parameters.BuildMode == EBuildMode.SimulateBuild)
+				{
+					throw new Exception("Should never get here !");
+				}
+
+				if (Parameters.BuildMode == EBuildMode.DryRunBuild)
 				{
 					opt |= BuildAssetBundleOptions.DryRunBuild;
 					return opt;
@@ -59,7 +69,7 @@ namespace YooAsset.Editor
 				else if (Parameters.CompressOption == ECompressOption.LZ4)
 					opt |= BuildAssetBundleOptions.ChunkBasedCompression;
 
-				if (Parameters.ForceRebuild)
+				if (Parameters.BuildMode == EBuildMode.ForceRebuild)
 					opt |= BuildAssetBundleOptions.ForceRebuildAssetBundle; //Force rebuild the asset bundles
 				if (Parameters.AppendHash)
 					opt |= BuildAssetBundleOptions.AppendHashToAssetBundleName; //Append the hash to the assetBundle name
@@ -79,9 +89,9 @@ namespace YooAsset.Editor
 			/// <summary>
 			/// 获取构建的耗时（单位：秒）
 			/// </summary>
-			public int GetBuildingSeconds()
+			public float GetBuildingSeconds()
 			{
-				int seconds = (int)(_buildWatch.ElapsedMilliseconds / 1000);
+				float seconds = _buildWatch.ElapsedMilliseconds / 1000f;
 				return seconds;
 			}
 			public void BeginWatch()
@@ -122,11 +132,16 @@ namespace YooAsset.Editor
 				new TaskCopyBuildinFiles(), //拷贝内置文件
 			};
 
+			if (buildParameters.BuildMode == EBuildMode.SimulateBuild)
+				BuildRunner.EnableLog = false;
+			else
+				BuildRunner.EnableLog = true;
+
 			bool succeed = BuildRunner.Run(pipeline, _buildContext);
 			if (succeed)
-				Debug.Log($"构建成功！");
+				Debug.Log($"{buildParameters.BuildMode} pipeline build succeed !");
 			else
-				Debug.LogWarning($"构建失败！");
+				Debug.LogWarning($"{buildParameters.BuildMode} pipeline build failed !");
 			return succeed;
 		}
 	}

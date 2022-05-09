@@ -11,8 +11,7 @@ namespace YooAsset.Editor
 		[MenuItem("YooAsset/AssetBundle Reporter", false, 103)]
 		public static void ShowExample()
 		{
-			AssetBundleReporterWindow window = GetWindow<AssetBundleReporterWindow>();
-			window.titleContent = new GUIContent("资源包报告工具");
+			AssetBundleReporterWindow window = GetWindow<AssetBundleReporterWindow>("资源包报告工具", true, EditorDefine.DockedWindowTypes);
 			window.minSize = new Vector2(800, 600);
 		}
 
@@ -43,8 +42,9 @@ namespace YooAsset.Editor
 		private BundleListReporterViewer _bundleListViewer;
 
 		private EViewMode _viewMode;
-		private string _searchKeyWord;
 		private BuildReport _buildReport;
+		private string _reportFilePath;
+		private string _searchKeyWord;
 
 
 		public void CreateGUI()
@@ -52,7 +52,7 @@ namespace YooAsset.Editor
 			VisualElement root = this.rootVisualElement;
 
 			// 加载布局文件
-			string rootPath = EditorTools.GetYooAssetPath();
+			string rootPath = EditorTools.GetYooAssetSourcePath();
 			string uxml = $"{rootPath}/Editor/AssetBundleReporter/{nameof(AssetBundleReporterWindow)}.uxml";
 			var visualAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxml);
 			if (visualAsset == null)
@@ -93,6 +93,10 @@ namespace YooAsset.Editor
 			_viewModeMenu.text = EViewMode.Summary.ToString();
 			_summaryViewer.AttachParent(root);
 		}
+		public void OnDestroy()
+		{
+			AssetBundleRecorder.UnloadAll();
+		}
 
 		private void ImportBtn_onClick()
 		{
@@ -100,19 +104,20 @@ namespace YooAsset.Editor
 			if (string.IsNullOrEmpty(selectFilePath))
 				return;
 
-			string jsonData = FileUtility.ReadFile(selectFilePath);
+			_reportFilePath = selectFilePath;
+			string jsonData = FileUtility.ReadFile(_reportFilePath);
 			_buildReport = BuildReport.Deserialize(jsonData);
 			_assetListViewer.FillViewData(_buildReport, _searchKeyWord);
-			_bundleListViewer.FillViewData(_buildReport, _searchKeyWord);
+			_bundleListViewer.FillViewData(_buildReport, _reportFilePath, _searchKeyWord);
 			_summaryViewer.FillViewData(_buildReport);
 		}
 		private void OnSearchKeyWordChange(ChangeEvent<string> e)
 		{
 			_searchKeyWord = e.newValue;
-			if(_buildReport != null)
+			if (_buildReport != null)
 			{
 				_assetListViewer.FillViewData(_buildReport, _searchKeyWord);
-				_bundleListViewer.FillViewData(_buildReport, _searchKeyWord);
+				_bundleListViewer.FillViewData(_buildReport, _reportFilePath, _searchKeyWord);
 			}
 		}
 		private void ViewModeMenuAction0(DropdownMenuAction action)

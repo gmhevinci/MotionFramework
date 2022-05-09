@@ -6,16 +6,14 @@ using UnityEngine;
 
 namespace YooAsset.Editor
 {
-	/// <summary>
-	/// 拷贝内置文件到StreamingAssets
-	/// </summary>
+	[TaskAttribute("拷贝内置文件到流目录")]
 	public class TaskCopyBuildinFiles : IBuildTask
 	{
 		void IBuildTask.Run(BuildContext context)
 		{
 			// 注意：我们只有在强制重建的时候才会拷贝
 			var buildParameters = context.GetContextObject<AssetBundleBuilder.BuildParametersContext>();
-			if (buildParameters.Parameters.DryRunBuild == false && buildParameters.Parameters.ForceRebuild)
+			if (buildParameters.Parameters.BuildMode == EBuildMode.ForceRebuild)
 			{
 				// 清空流目录
 				AssetBundleBuilderHelper.ClearStreamingAssetsFolder();
@@ -38,7 +36,6 @@ namespace YooAsset.Editor
 
 				string sourcePath = $"{pipelineOutputDirectory}/{patchBundle.BundleName}";
 				string destPath = $"{AssetBundleBuilderHelper.GetStreamingAssetsFolderPath()}/{patchBundle.Hash}";
-				Debug.Log($"拷贝内置文件到流目录：{patchBundle.BundleName}");
 				EditorTools.CopyFile(sourcePath, destPath, true);
 			}
 
@@ -65,6 +62,7 @@ namespace YooAsset.Editor
 
 			// 刷新目录
 			AssetDatabase.Refresh();
+			BuildRunner.Log($"内置文件拷贝完成：{AssetBundleBuilderHelper.GetStreamingAssetsFolderPath()}");
 		}
 	}
 }

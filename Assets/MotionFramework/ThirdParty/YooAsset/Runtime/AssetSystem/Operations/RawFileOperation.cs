@@ -29,7 +29,7 @@ namespace YooAsset
 		/// <summary>
 		/// 获取原生文件的二进制数据
 		/// </summary>
-		public byte[] GetFileData()
+		public byte[] LoadFileData()
 		{
 			string filePath = GetCachePath();
 			if (File.Exists(filePath) == false)
@@ -40,7 +40,7 @@ namespace YooAsset
 		/// <summary>
 		/// 获取原生文件的文本数据
 		/// </summary>
-		public string GetFileText()
+		public string LoadFileText()
 		{
 			string filePath = GetCachePath();
 			if (File.Exists(filePath) == false)
@@ -79,7 +79,7 @@ namespace YooAsset
 			// 1. 准备工作
 			if (_steps == ESteps.Prepare)
 			{
-				if (_bundleInfo.LoadMode == BundleInfo.ELoadMode.None)
+				if (_bundleInfo.LoadMode == BundleInfo.ELoadMode.LoadFromEditor)
 				{
 					_steps = ESteps.CheckAndCopyFile;
 					return; // 模拟实现异步操作
@@ -130,7 +130,7 @@ namespace YooAsset
 		{
 			if (_bundleInfo == null)
 				return string.Empty;
-			return _bundleInfo.BundleName;
+			return _bundleInfo.EditorAssetPath;
 		}
 	}
 
@@ -195,6 +195,7 @@ namespace YooAsset
 			// 3. 检测APK拷贝文件结果
 			if (_steps == ESteps.CheckDownloadFromApk)
 			{
+				Progress = _fileRequester.Progress();
 				if (_fileRequester.IsDone() == false)
 					return;
 
@@ -336,6 +337,7 @@ namespace YooAsset
 			// 3. 检测服务器下载结果
 			if (_steps == ESteps.CheckDownloadFromWeb)
 			{
+				Progress = _downloader.DownloadProgress;
 				if (_downloader.IsDone() == false)
 					return;
 
@@ -363,6 +365,7 @@ namespace YooAsset
 			// 5. 检测APK拷贝文件结果
 			if (_steps == ESteps.CheckDownloadFromApk)
 			{
+				Progress = _fileRequester.Progress();
 				if (_fileRequester.IsDone() == false)
 					return;
 

@@ -53,24 +53,24 @@ namespace YooAsset
 			CheckWebManifestHash,
 			LoadWebManifest,
 			CheckWebManifest,
-			InitPrepareCache,
-			UpdatePrepareCache,
+			InitVerifyingCache,
+			UpdateVerifyingCache,
 			Done,
 		}
 
 		private static int RequestCount = 0;
 		private readonly HostPlayModeImpl _impl;
-		private readonly int _updateResourceVersion;
+		private readonly int _resourceVersion;
 		private readonly int _timeout;
 		private ESteps _steps = ESteps.None;
 		private UnityWebDataRequester _downloaderHash;
 		private UnityWebDataRequester _downloaderManifest;
 		private float _verifyTime;
 
-		public HostPlayModeUpdateManifestOperation(HostPlayModeImpl impl, int updateResourceVersion, int timeout)
+		internal HostPlayModeUpdateManifestOperation(HostPlayModeImpl impl, int resourceVersion, int timeout)
 		{
 			_impl = impl;
-			_updateResourceVersion = updateResourceVersion;
+			_resourceVersion = resourceVersion;
 			_timeout = timeout;
 		}
 		internal override void Start()
@@ -85,7 +85,7 @@ namespace YooAsset
 
 			if (_steps == ESteps.LoadWebManifestHash)
 			{
-				string webURL = GetPatchManifestRequestURL(YooAssetSettingsData.GetPatchManifestHashFileName(_updateResourceVersion));
+				string webURL = GetPatchManifestRequestURL(YooAssetSettingsData.GetPatchManifestHashFileName(_resourceVersion));
 				YooLogger.Log($"Beginning to request patch manifest hash : {webURL}");
 				_downloaderHash = new UnityWebDataRequester();
 				_downloaderHash.SendRequest(webURL, _timeout);
@@ -107,14 +107,14 @@ namespace YooAsset
 				else
 				{
 					string webManifestHash = _downloaderHash.GetText();
-					string cachedManifestHash = GetSandboxPatchManifestFileHash(_updateResourceVersion);
+					string cachedManifestHash = GetSandboxPatchManifestFileHash(_resourceVersion);
 
 					// 如果补丁清单文件的哈希值相同
 					if (cachedManifestHash == webManifestHash)
 					{
 						YooLogger.Log($"Patch manifest file hash is not change : {webManifestHash}");
-						LoadSandboxPatchManifest(_updateResourceVersion);
-						_steps = ESteps.InitPrepareCache;
+						LoadSandboxPatchManifest(_resourceVersion);
+						_steps = ESteps.InitVerifyingCache;
 					}
 					else
 					{
@@ -127,7 +127,7 @@ namespace YooAsset
 
 			if (_steps == ESteps.LoadWebManifest)
 			{
-				string webURL = GetPatchManifestRequestURL(YooAssetSettingsData.GetPatchManifestFileName(_updateResourceVersion));
+				string webURL = GetPatchManifestRequestURL(YooAssetSettingsData.GetPatchManifestFileName(_resourceVersion));
 				YooLogger.Log($"Beginning to request patch manifest : {webURL}");
 				_downloaderManifest = new UnityWebDataRequester();
 				_downloaderManifest.SendRequest(webURL, _timeout);
@@ -149,9 +149,9 @@ namespace YooAsset
 				else
 				{
 					// 解析补丁清单			
-					if (ParseAndSaveRemotePatchManifest(_updateResourceVersion, _downloaderManifest.GetText()))
+					if (ParseAndSaveRemotePatchManifest(_resourceVersion, _downloaderManifest.GetText()))
 					{
-						_steps = ESteps.InitPrepareCache;
+						_steps = ESteps.InitVerifyingCache;
 					}
 					else
 					{
@@ -163,25 +163,29 @@ namespace YooAsset
 				_downloaderManifest.Dispose();
 			}
 
-			if (_steps == ESteps.InitPrepareCache)
+			if (_steps == ESteps.InitVerifyingCache)
 			{
-				InitPrepareCache();
+				InitVerifyingCache();
 				_verifyTime = UnityEngine.Time.realtimeSinceStartup;
-				_steps = ESteps.UpdatePrepareCache;
+				_steps = ESteps.UpdateVerifyingCache;
 			}
 
-			if (_steps == ESteps.UpdatePrepareCache)
+			if (_steps == ESteps.UpdateVerifyingCache)
 			{
-				if (UpdatePrepareCache())
+				Progress = GetVerifyProgress();
+				if (UpdateVerifyingCache())
 				{
 					_steps = ESteps.Done;
 					Status = EOperationStatus.Succeed;
 					float costTime = UnityEngine.Time.realtimeSinceStartup - _verifyTime;
-					YooLogger.Log($"Verify files total time : {costTime}");
+					YooLogger.Log($"Verify result : Success {_verifySuccessCount}, Fail {_verifyFailCount}, Elapsed time {costTime} seconds");
 				}
 			}
 		}
 
+		/// <summary>
+		/// 获取补丁清单请求地址
+		/// </summary>
 		private string GetPatchManifestRequestURL(string fileName)
 		{
 			// 轮流返回请求地址
@@ -198,7 +202,8 @@ namespace YooAsset
 		{
 			try
 			{
-				_impl.LocalPatchManifest = PatchManifest.Deserialize(content);
+				var remotePatchManifest = PatchManifest.Deserialize(content);
+				_impl.SetLocalPatchManifest(remotePatchManifest);
 
 				YooLogger.Log("Save remote patch manifest file.");
 				string savePath = PathHelper.MakePersistentLoadPath(YooAssetSettingsData.GetPatchManifestFileName(updateResourceVersion));
@@ -220,7 +225,8 @@ namespace YooAsset
 			YooLogger.Log("Load sandbox patch manifest file.");
 			string filePath = PathHelper.MakePersistentLoadPath(YooAssetSettingsData.GetPatchManifestFileName(updateResourceVersion));
 			string jsonData = File.ReadAllText(filePath);
-			_impl.LocalPatchManifest = PatchManifest.Deserialize(jsonData);
+			var sandboxPatchManifest = PatchManifest.Deserialize(jsonData);
+			_impl.SetLocalPatchManifest(sandboxPatchManifest);
 		}
 
 		/// <summary>
@@ -249,12 +255,15 @@ namespace YooAsset
 			}
 		}
 
-		private readonly List<PatchBundle> _cacheList = new List<PatchBundle>(1000);
-		private readonly List<PatchBundle> _verifyList = new List<PatchBundle>(100);
+		private readonly List<PatchBundle> _waitingList = new List<PatchBundle>(1000);
+		private readonly List<PatchBundle> _verifyingList = new List<PatchBundle>(100);
 		private readonly ThreadSyncContext _syncContext = new ThreadSyncContext();
-		private const int VerifyMaxCount = 32;
+		private int _verifyMaxNum = 32;
+		private int _verifyTotalCount = 0;
+		private int _verifySuccessCount = 0;
+		private int _verifyFailCount = 0;
 
-		private void InitPrepareCache()
+		private void InitVerifyingCache()
 		{
 			// 遍历所有文件然后验证并缓存合法文件
 			foreach (var patchBundle in _impl.LocalPatchManifest.BundleList)
@@ -272,37 +281,43 @@ namespace YooAsset
 				}
 
 				// 查看文件是否存在
-				string filePath = SandboxHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+				string filePath = SandboxHelper.MakeCacheFilePath(patchBundle.Hash);
 				if (File.Exists(filePath) == false)
 					continue;
 
-				_cacheList.Add(patchBundle);
+				_waitingList.Add(patchBundle);
 			}
+
+			// 设置同时验证的最大数
+			ThreadPool.GetMaxThreads(out int workerThreads, out int ioThreads);
+			YooLogger.Log($"Work threads : {workerThreads}, IO threads : {ioThreads}");
+			_verifyMaxNum = Math.Min(workerThreads, ioThreads);
+			_verifyTotalCount = _waitingList.Count;
 		}
-		private bool UpdatePrepareCache()
+		private bool UpdateVerifyingCache()
 		{
 			_syncContext.Update();
 
-			if (_cacheList.Count == 0 && _verifyList.Count == 0)
+			if (_waitingList.Count == 0 && _verifyingList.Count == 0)
 				return true;
 
-			if (_verifyList.Count >= VerifyMaxCount)
+			if (_verifyingList.Count >= _verifyMaxNum)
 				return false;
 
-			for (int i = _cacheList.Count - 1; i >= 0; i--)
+			for (int i = _waitingList.Count - 1; i >= 0; i--)
 			{
-				if (_verifyList.Count >= VerifyMaxCount)
+				if (_verifyingList.Count >= _verifyMaxNum)
 					break;
 
-				var patchBundle = _cacheList[i];
+				var patchBundle = _waitingList[i];
 				if (RunThread(patchBundle))
 				{
-					_cacheList.RemoveAt(i);
-					_verifyList.Add(patchBundle);
+					_waitingList.RemoveAt(i);
+					_verifyingList.Add(patchBundle);
 				}
 				else
 				{
-					YooLogger.Warning("Failed to run verify thread.");
+					YooLogger.Warning("The thread pool is failed queued.");
 					break;
 				}
 			}
@@ -311,23 +326,46 @@ namespace YooAsset
 		}
 		private bool RunThread(PatchBundle patchBundle)
 		{
-			string filePath = SandboxHelper.MakeSandboxCacheFilePath(patchBundle.Hash);
+			string filePath = SandboxHelper.MakeCacheFilePath(patchBundle.Hash);
 			ThreadInfo info = new ThreadInfo(filePath, patchBundle);
-			return ThreadPool.QueueUserWorkItem(new WaitCallback(VerifyFile), info);
+			return ThreadPool.QueueUserWorkItem(new WaitCallback(VerifyInThread), info);
 		}
-		private void VerifyFile(object infoObj)
+		private void VerifyInThread(object infoObj)
 		{
 			// 验证沙盒内的文件
 			ThreadInfo info = (ThreadInfo)infoObj;
-			info.Result = DownloadSystem.CheckContentIntegrity(info.FilePath, info.Bundle.SizeBytes, info.Bundle.CRC);
+			try
+			{
+				info.Result = DownloadSystem.CheckContentIntegrity(info.FilePath, info.Bundle.SizeBytes, info.Bundle.CRC);
+			}
+			catch (Exception)
+			{
+				info.Result = false;
+			}
 			_syncContext.Post(VerifyCallback, info);
 		}
 		private void VerifyCallback(object obj)
 		{
 			ThreadInfo info = (ThreadInfo)obj;
 			if (info.Result)
+			{
+				_verifySuccessCount++;
 				DownloadSystem.CacheVerifyFile(info.Bundle.Hash, info.Bundle.BundleName);
-			_verifyList.Remove(info.Bundle);
+			}
+			else
+			{
+				_verifyFailCount++;
+				YooLogger.Warning($"Failed to verify file : {info.FilePath}");
+				if (File.Exists(info.FilePath))
+					File.Delete(info.FilePath);
+			}
+			_verifyingList.Remove(info.Bundle);
+		}
+		private float GetVerifyProgress()
+		{
+			if (_verifyTotalCount == 0)
+				return 1f;
+			return (float)(_verifySuccessCount + _verifyFailCount) / _verifyTotalCount;
 		}
 		#endregion
 	}

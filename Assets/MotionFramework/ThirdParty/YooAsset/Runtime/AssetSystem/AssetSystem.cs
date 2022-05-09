@@ -130,7 +130,7 @@ namespace YooAsset
 
 
 		/// <summary>
-		/// 异步加载场景
+		/// 加载场景
 		/// </summary>
 		public static SceneOperationHandle LoadSceneAsync(string scenePath, LoadSceneMode sceneMode, bool activateOnLoad, int priority)
 		{
@@ -161,7 +161,7 @@ namespace YooAsset
 		}
 
 		/// <summary>
-		/// 异步加载资源对象
+		/// 加载资源对象
 		/// </summary>
 		public static AssetOperationHandle LoadAssetAsync(string assetPath, System.Type assetType)
 		{
@@ -179,7 +179,7 @@ namespace YooAsset
 		}
 
 		/// <summary>
-		/// 异步加载所有子资源对象
+		/// 加载子资源对象
 		/// </summary>
 		public static SubAssetsOperationHandle LoadSubAssetsAsync(string assetPath, System.Type assetType)
 		{
