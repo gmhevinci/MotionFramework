@@ -6,6 +6,14 @@
 using UnityEngine;
 using UnityEditor;
 
+#if UNITY_2020_3_OR_NEWER
+using UnityEditor.SceneManagemen;
+#endif
+
+#if UNITY_2018_4 || UNITY_2019_4
+using UnityEditor.Experimental.SceneManagement;
+#endif
+
 namespace MotionFramework.Editor
 {
 	public class UIPanelMonitor : UnityEditor.Editor
@@ -14,8 +22,7 @@ namespace MotionFramework.Editor
 		static void StartInitializeOnLoadMethod()
 		{
 #if UNITY_2018_4_OR_NEWER
-			// 监听新的Prefab系统
-			UnityEditor.Experimental.SceneManagement.PrefabStage.prefabSaving += OnPrefabSaving;
+			PrefabStage.prefabSaving += OnPrefabSaving;
 #else
 			// 监听Inspector的Apply事件
 			PrefabUtility.prefabInstanceUpdated = delegate (GameObject go)
@@ -30,7 +37,7 @@ namespace MotionFramework.Editor
 #if UNITY_2018_4_OR_NEWER
 		static void OnPrefabSaving(GameObject go)
 		{
-			UnityEditor.Experimental.SceneManagement.PrefabStage stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+			PrefabStage stage = PrefabStageUtility.GetCurrentPrefabStage();
 			if (stage != null)
 			{
 				UnityEngine.UI.UIManifest manifest = go.GetComponent<UnityEngine.UI.UIManifest>();
