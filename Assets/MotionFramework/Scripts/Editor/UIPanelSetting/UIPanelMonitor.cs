@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEditor;
 
 #if UNITY_2020_3_OR_NEWER
-using UnityEditor.SceneManagemen;
+using UnityEditor.SceneManagement;
 #endif
 
 #if UNITY_2018_4 || UNITY_2019_4
