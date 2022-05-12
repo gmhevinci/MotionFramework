@@ -257,7 +257,7 @@ namespace MotionFramework.Pool
 		private void SetSpawnCloneObject(GameObject cloneObj)
 		{
 			cloneObj.SetActive(true);
-			cloneObj.transform.parent = null;
+			cloneObj.transform.SetParent(null);
 			cloneObj.transform.localPosition = Vector3.zero;
 		}
 		private void SetRestoreCloneObject(GameObject cloneObj)
