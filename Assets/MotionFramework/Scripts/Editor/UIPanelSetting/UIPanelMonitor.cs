@@ -6,11 +6,11 @@
 using UnityEngine;
 using UnityEditor;
 
-#if UNITY_2020_3_OR_NEWER
+#if UNITY_2021_2_OR_NEWER
 using UnityEditor.SceneManagement;
 #endif
 
-#if UNITY_2018_4 || UNITY_2019_4
+#if UNITY_2018_4 || UNITY_2019_4 || UNITY_2020_3
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
