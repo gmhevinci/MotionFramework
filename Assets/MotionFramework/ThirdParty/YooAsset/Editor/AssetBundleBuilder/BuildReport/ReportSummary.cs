@@ -49,14 +49,14 @@ namespace YooAsset.Editor
 		public bool EnableAddressable;
 
 		/// <summary>
-		/// 启用自动分包机制
-		/// </summary>
-		public bool EnableAutoCollect;
-
-		/// <summary>
 		/// 追加文件扩展名
 		/// </summary>
 		public bool AppendFileExtension;
+
+		/// <summary>
+		/// 拷贝内置资源文件
+		/// </summary>
+		public bool CopyBuildinTagFiles;
 
 		/// <summary>
 		/// 自动收集着色器
@@ -75,10 +75,8 @@ namespace YooAsset.Editor
 
 		// 构建参数
 		public ECompressOption CompressOption;
-		public bool AppendHash;
 		public bool DisableWriteTypeTree;
 		public bool IgnoreTypeTreeChanges;
-		public bool DisableLoadAssetByFileName;
 
 		// 构建结果
 		public int AssetFileTotalCount;

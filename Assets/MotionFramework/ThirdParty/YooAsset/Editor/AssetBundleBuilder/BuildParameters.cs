@@ -30,7 +30,7 @@ namespace YooAsset.Editor
 		public int BuildVersion;
 
 		/// <summary>
-		/// 内置资源的标记列表
+		/// 内置资源标签集合（首包资源标签）
 		/// 注意：分号为分隔符
 		/// </summary>
 		public string BuildinTags;
@@ -47,15 +47,14 @@ namespace YooAsset.Editor
 		public bool EnableAddressable = false;
 
 		/// <summary>
-		/// 启用自动分包机制
-		/// 说明：自动分包机制可以实现资源零冗余
-		/// </summary>
-		public bool EnableAutoCollect = true;
-
-		/// <summary>
 		/// 追加文件扩展名
 		/// </summary>
 		public bool AppendFileExtension = false;
+
+		/// <summary>
+		/// 拷贝内置资源文件（首包资源文件）
+		/// </summary>
+		public bool CopyBuildinTagFiles = false;
 
 
 		/// <summary>
@@ -69,11 +68,6 @@ namespace YooAsset.Editor
 		public ECompressOption CompressOption = ECompressOption.Uncompressed;
 
 		/// <summary>
-		/// 文件名附加上哈希值
-		/// </summary>
-		public bool AppendHash = false;
-
-		/// <summary>
 		/// 禁止写入类型树结构（可以降低包体和内存并提高加载效率）
 		/// </summary>
 		public bool DisableWriteTypeTree = false;
@@ -83,14 +77,9 @@ namespace YooAsset.Editor
 		/// </summary>
 		public bool IgnoreTypeTreeChanges = true;
 
-		/// <summary>
-		/// 禁用名称查找资源（可以降内存并提高加载效率）
-		/// </summary>
-		public bool DisableLoadAssetByFileName = false;
-
 
 		/// <summary>
-		/// 获取内置标记列表
+		/// 获取内置资源标签列表（首包资源标签）
 		/// </summary>
 		public List<string> GetBuildinTags()
 		{

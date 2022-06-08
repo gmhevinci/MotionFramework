@@ -2,6 +2,56 @@
 
 All notable changes to this package will be documented in this file.
 
+## [1.0.10] - 2022-05-22
+
+### Fixed
+
+- 修复了资源收集配置存在多个的时候，导致后续无法打开窗口的问题。
+- 修复了在编辑器模拟模式下加载精灵图片失败的问题。
+- 修复了在Unity2019版本无法识别配置文件的问题。
+
+### Changed
+
+- 资源构建增加内置资源文件（首包资源文件）拷贝的选项。
+- 补丁下载器增加暂停方法和恢复方法。
+- 在资源收集界面，对Collector的增加和删除支持撤销和恢复操作。
+
+## [1.0.9] - 2022-05-14
+
+### Fixed
+
+- 修复了YooAssets.GetAssetInfos(string Tag)方法返回了无关的资源信息的问题。
+
+### Changed
+
+- 编辑器下的模拟运行模式，不再依赖配置里的构建版本。
+- 更新资源清单结构，资源对象类增加分类标签。
+- 优化了资源工具相关配置文件的加载方式和途径，这些配置文件可以放置在任何目录下。
+- 优化了Location无效后的错误报告方式。
+- 优化了资源包的构建参数，现在始终开启DisableLoadAssetByFileName，帮助减小运行时的内存。
+- YooAssets.ProcessOperation()重命名为YooAssets.StartOperation()
+
+### Added
+
+- 新增YooAssets.IsNeedDownloadFromRemote()方法。
+
+  ````c#
+  public static bool IsNeedDownloadFromRemote(string location);
+  ````
+
+- 新增获取所有子资源对象的方法。
+
+  ````c#
+  class SubAssetsOperationHandle
+  {
+      public TObject[] GetSubAssetObjects<TObject>();
+  }
+  ````
+
+### Removed
+
+- YooAssets.GetBundleInfo()方法已经移除。
+
 ## [1.0.8] - 2022-05-08
 
 ### Fixed

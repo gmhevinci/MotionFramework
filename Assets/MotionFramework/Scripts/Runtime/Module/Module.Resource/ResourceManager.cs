@@ -17,11 +17,11 @@ namespace MotionFramework.Resource
 	/// </summary>
 	public sealed class ResourceManager : ModuleSingleton<ResourceManager>, IModule
 	{
-		private YooAssets.CreateParameters _createParameters;
+		private YooAssets.InitializeParameters _createParameters;
 
 		void IModule.OnCreate(System.Object param)
 		{
-			_createParameters = param as YooAssets.CreateParameters;
+			_createParameters = param as YooAssets.InitializeParameters;
 			if (_createParameters == null)
 				throw new Exception($"{nameof(ResourceManager)} create param is invalid.");
 		}
@@ -63,11 +63,20 @@ namespace MotionFramework.Resource
 		}
 
 		/// <summary>
-		/// 获取资源包信息
+		/// 是否需要从远端更新下载
 		/// </summary>
-		public BundleInfo GetBundleInfo(string location)
+		/// <param name="location">资源的定位地址</param>
+		public bool IsNeedDownloadFromRemote(string location)
 		{
-			return YooAssets.GetBundleInfo(location);
+			return YooAssets.IsNeedDownloadFromRemote(location);
+		}
+
+		/// <summary>
+		/// 获取资源对象信息列表
+		/// </summary>
+		public AssetInfo[] GetBundleInfo(string[] tags)
+		{
+			return YooAssets.GetAssetInfos(tags);
 		}
 		
 		/// <summary>

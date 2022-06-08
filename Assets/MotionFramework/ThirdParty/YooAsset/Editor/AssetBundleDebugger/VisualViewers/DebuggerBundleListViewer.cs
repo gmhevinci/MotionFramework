@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 
 namespace YooAsset.Editor
 {
-	internal class BundleListDebuggerViewer
+	internal class DebuggerBundleListViewer
 	{
 		private VisualTreeAsset _visualAsset;
 		private TemplateContainer _root;
@@ -24,14 +24,10 @@ namespace YooAsset.Editor
 		public void InitViewer()
 		{
 			// 加载布局文件
-			string rootPath = EditorTools.GetYooAssetSourcePath();
-			string uxml = $"{rootPath}/Editor/AssetBundleDebugger/VisualViewers/{nameof(BundleListDebuggerViewer)}.uxml";
-			_visualAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxml);
+			_visualAsset = EditorHelper.LoadWindowUXML<DebuggerBundleListViewer>();
 			if (_visualAsset == null)
-			{
-				Debug.LogError($"Not found {nameof(BundleListDebuggerViewer)}.uxml : {uxml}");
 				return;
-			}
+			
 			_root = _visualAsset.CloneTree();
 			_root.style.flexGrow = 1f;
 
@@ -39,12 +35,12 @@ namespace YooAsset.Editor
 			_bundleListView = _root.Q<ListView>("TopListView");
 			_bundleListView.makeItem = MakeAssetListViewItem;
 			_bundleListView.bindItem = BindAssetListViewItem;
-
 #if UNITY_2020_1_OR_NEWER
 			_bundleListView.onSelectionChange += BundleListView_onSelectionChange;
 #else
 			_bundleListView.onSelectionChanged += BundleListView_onSelectionChange;
 #endif
+
 			// 使用列表
 			_usingListView = _root.Q<ListView>("BottomListView");
 			_usingListView.makeItem = MakeIncludeListViewItem;

@@ -58,9 +58,7 @@ namespace YooAsset.Editor
 		{
 			List<PatchBundle> result = new List<PatchBundle>(1000);
 
-			// 内置标记列表
 			List<string> buildinTags = buildParameters.Parameters.GetBuildinTags();
-
 			var buildMode = buildParameters.Parameters.BuildMode;
 			bool standardBuild = buildMode == EBuildMode.ForceRebuild || buildMode == EBuildMode.IncrementalBuild;
 			foreach (var bundleInfo in buildMapContext.BundleInfos)
@@ -70,7 +68,7 @@ namespace YooAsset.Editor
 				string hash = GetFileHash(filePath, standardBuild);
 				string crc32 = GetFileCRC(filePath, standardBuild);
 				long size = GetFileSize(filePath, standardBuild);
-				string[] tags = buildMapContext.GetAssetTags(bundleName);
+				string[] tags = buildMapContext.GetBundleTags(bundleName);
 				bool isEncrypted = encryptionContext.IsEncryptFile(bundleName);
 				bool isBuildin = IsBuildinBundle(tags, buildinTags);
 				bool isRawFile = bundleInfo.IsRawFile;
@@ -90,7 +88,7 @@ namespace YooAsset.Editor
 		}
 		private bool IsBuildinBundle(string[] bundleTags, List<string> buildinTags)
 		{
-			// 注意：没有任何标记的Bundle文件默认为内置文件
+			// 注意：没有任何分类标签的Bundle文件默认为内置文件
 			if (bundleTags.Length == 0)
 				return true;
 
@@ -141,6 +139,7 @@ namespace YooAsset.Editor
 					else
 						patchAsset.Address = string.Empty;
 					patchAsset.AssetPath = assetInfo.AssetPath;
+					patchAsset.AssetTags = assetInfo.AssetTags.ToArray();
 					patchAsset.BundleID = GetAssetBundleID(assetInfo.GetBundleName(), patchManifest);
 					patchAsset.DependIDs = GetAssetBundleDependIDs(patchAsset.BundleID, assetInfo, patchManifest);
 					result.Add(patchAsset);
