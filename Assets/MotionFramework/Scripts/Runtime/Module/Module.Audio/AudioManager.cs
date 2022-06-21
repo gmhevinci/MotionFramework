@@ -105,6 +105,27 @@ namespace MotionFramework.Audio
 		}
 
 		/// <summary>
+		/// 释放指定层级的特定音频资源
+		/// </summary>
+		/// <param name="audioLayer">音频层级</param>
+		/// <param name="location">资源地址</param>
+		public void Release(EAudioLayer audioLayer, string location)
+		{
+			List<string> removeList = new List<string>();
+			foreach (KeyValuePair<string, AssetAudio> pair in _assets)
+			{
+				if (pair.Value.AudioLayer == audioLayer && pair.Value.Location == location)
+					removeList.Add(pair.Key);
+			}
+			for (int i = 0; i < removeList.Count; i++)
+			{
+				string key = removeList[i];
+				_assets[key].UnLoad();
+				_assets.Remove(key);
+			}
+		}
+
+		/// <summary>
 		/// 释放指定层级的音频资源
 		/// </summary>
 		/// <param name="audioLayer">音频层级</param>
