@@ -49,6 +49,10 @@ namespace MotionFramework.Event
 				}
 			}
 		}
+		void IModule.OnDestroy()
+		{
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(EventManager)}] Listener total count : {GetAllListenerCount()}");

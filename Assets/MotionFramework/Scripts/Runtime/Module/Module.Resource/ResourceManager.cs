@@ -28,6 +28,11 @@ namespace MotionFramework.Resource
 		void IModule.OnUpdate()
 		{
 		}
+		void IModule.OnDestroy()
+		{
+			ForceUnloadAllAssets();
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 			//ConsoleGUI.Lable($"[{nameof(PatchManager)}] Run Mode : {_runMode}");

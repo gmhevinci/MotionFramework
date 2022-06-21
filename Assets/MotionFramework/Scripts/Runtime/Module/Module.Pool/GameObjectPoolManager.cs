@@ -91,6 +91,11 @@ namespace MotionFramework.Pool
 				collector.Destroy();
 			}
 		}
+		void IModule.OnDestroy()
+		{
+			DestroyAll();
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 		}

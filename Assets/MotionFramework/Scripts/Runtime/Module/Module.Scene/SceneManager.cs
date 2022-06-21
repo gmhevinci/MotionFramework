@@ -38,6 +38,10 @@ namespace MotionFramework.Scene
 					addtionScene.Update();
 			}
 		}
+		void IModule.OnDestroy()
+		{
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 			string mainSceneName = _mainScene == null ? string.Empty : _mainScene.Location;

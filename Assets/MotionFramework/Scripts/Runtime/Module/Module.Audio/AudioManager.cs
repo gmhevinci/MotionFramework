@@ -61,6 +61,11 @@ namespace MotionFramework.Audio
 		void IModule.OnUpdate()
 		{
 		}
+		void IModule.OnDestroy()
+		{
+			ReleaseAll();
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(AudioManager)}] Audio count : {_assets.Count}");

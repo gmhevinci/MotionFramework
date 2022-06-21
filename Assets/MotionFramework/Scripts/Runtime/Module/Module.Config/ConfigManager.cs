@@ -42,6 +42,10 @@ namespace MotionFramework.Config
 		void IModule.OnUpdate()
 		{
 		}
+		void IModule.OnDestroy()
+		{
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 		}

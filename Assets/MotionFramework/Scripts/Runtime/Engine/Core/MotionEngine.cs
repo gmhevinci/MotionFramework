@@ -165,6 +165,25 @@ namespace MotionFramework
 		}
 
 		/// <summary>
+		/// 销毁模块
+		/// </summary>
+		/// <typeparam name="T">模块类</typeparam>
+		public static bool DestroyModule<T>()
+		{
+			var moduleType = typeof(T);
+			for (int i = 0; i < _coms.Count; i++)
+			{
+				if (_coms[i].Module.GetType() == moduleType)
+				{
+					_coms[i].Module.OnDestroy();
+					_coms.RemoveAt(i);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
 		/// 获取游戏模块
 		/// </summary>
 		/// <typeparam name="T">模块类</typeparam>

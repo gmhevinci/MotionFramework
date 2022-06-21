@@ -25,5 +25,9 @@ namespace MotionFramework
 				throw new System.Exception($"{typeof(T)} instance already created.");
 			_instance = this as T;
 		}
+		protected void DestroySingleton()
+		{
+			_instance = null;
+		}
 	}
 }

@@ -86,6 +86,10 @@ namespace MotionFramework.Tween
 				wrapper.TweenRoot.OnDispose();
 			}
 		}
+		void IModule.OnDestroy()
+		{
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(TweenManager)}] Tween total count : {_wrappers.Count}");

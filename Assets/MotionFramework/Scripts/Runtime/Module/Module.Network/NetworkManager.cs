@@ -90,6 +90,11 @@ namespace MotionFramework.Network
 				}
 			}
 		}
+		void IModule.OnDestroy()
+		{
+			DisconnectServer();
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(NetworkManager)}] State : {States}");

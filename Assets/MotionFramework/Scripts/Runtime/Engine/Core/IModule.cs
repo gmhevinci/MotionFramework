@@ -19,6 +19,11 @@ namespace MotionFramework
 		void OnUpdate();
 
 		/// <summary>
+		/// 销毁模块
+		/// </summary>
+		void OnDestroy();
+
+		/// <summary>
 		/// GUI绘制
 		/// </summary>
 		void OnGUI();

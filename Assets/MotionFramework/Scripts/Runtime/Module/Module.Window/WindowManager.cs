@@ -38,6 +38,11 @@ namespace MotionFramework.Window
 					window.InternalUpdate();
 			}
 		}
+		void IModule.OnDestroy()
+		{
+			CloseAll();
+			DestroySingleton();
+		}
 		void IModule.OnGUI()
 		{
 			ConsoleGUI.Lable($"[{nameof(WindowManager)}] Window total count : {_stack.Count}");
