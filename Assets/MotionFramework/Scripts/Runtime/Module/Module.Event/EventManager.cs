@@ -30,7 +30,7 @@ namespace MotionFramework.Event
 			}
 		}
 
-		private readonly Dictionary<int, List<Action<IEventMessage>>> _listeners = new Dictionary<int, List<Action<IEventMessage>>>(1000);
+		private readonly Dictionary<int, LinkedList<Action<IEventMessage>>> _listeners = new Dictionary<int, LinkedList<Action<IEventMessage>>>(1000);
 		private readonly List<PostWrapper> _postWrappers = new List<PostWrapper>(1000);
 
 		void IModule.OnCreate(System.Object param)
@@ -82,9 +82,9 @@ namespace MotionFramework.Event
 		public void AddListener(int eventId, System.Action<IEventMessage> listener)
 		{
 			if (_listeners.ContainsKey(eventId) == false)
-				_listeners.Add(eventId, new List<Action<IEventMessage>>());
+				_listeners.Add(eventId, new LinkedList<Action<IEventMessage>>());
 			if (_listeners[eventId].Contains(listener) == false)
-				_listeners[eventId].Add(listener);
+				_listeners[eventId].AddLast(listener);
 		}
 
 
@@ -135,10 +135,15 @@ namespace MotionFramework.Event
 			if (_listeners.ContainsKey(eventId) == false)
 				return;
 
-			List<Action<IEventMessage>> listeners = _listeners[eventId];
-			for (int i = listeners.Count - 1; i >= 0; i--)
+			LinkedList<Action<IEventMessage>> listeners = _listeners[eventId];
+			if (listeners.Count > 0)
 			{
-				listeners[i].Invoke(message);
+				var currentNode = listeners.Last;
+				while (currentNode != null)
+				{
+					currentNode.Value.Invoke(message);
+					currentNode = currentNode.Previous;
+				}
 			}
 
 			// 回收引用对象
