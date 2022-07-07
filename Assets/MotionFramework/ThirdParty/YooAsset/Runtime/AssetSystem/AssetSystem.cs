@@ -11,15 +11,15 @@ namespace YooAsset
 		private static readonly List<AssetBundleLoaderBase> _loaders = new List<AssetBundleLoaderBase>(1000);
 		private static readonly List<ProviderBase> _providers = new List<ProviderBase>(1000);
 		private static readonly Dictionary<string, SceneOperationHandle> _sceneHandles = new Dictionary<string, SceneOperationHandle>(100);
+		
 		private static bool _simulationOnEditor;
 		private static int _loadingMaxNumber;
-
 		public static IDecryptionServices DecryptionServices { private set; get; }
 		public static IBundleServices BundleServices { private set; get; }
 
 
 		/// <summary>
-		/// 初始化资源系统
+		/// 初始化
 		/// 注意：在使用AssetSystem之前需要初始化
 		/// </summary>
 		public static void Initialize(bool simulationOnEditor, int loadingMaxNumber, IDecryptionServices decryptionServices, IBundleServices bundleServices)
@@ -31,7 +31,7 @@ namespace YooAsset
 		}
 
 		/// <summary>
-		/// 轮询更新
+		/// 更新
 		/// </summary>
 		public static void Update()
 		{
@@ -61,6 +61,19 @@ namespace YooAsset
 						loadingCount++;
 				}
 			}
+		}
+
+		/// <summary>
+		/// 销毁
+		/// </summary>
+		public static void DestroyAll()
+		{
+			_loaders.Clear();
+			_providers.Clear();
+			_sceneHandles.Clear();
+
+			DecryptionServices = null;
+			BundleServices = null;
 		}
 
 		/// <summary>
@@ -321,9 +334,10 @@ namespace YooAsset
 		}
 
 		#region 调试专属方法
-		internal static void GetDebugReport(DebugReport report)
+		internal static DebugReport GetDebugReport()
 		{
-			report.ClearAll();
+			DebugReport report = new DebugReport();
+			report.FrameCount = Time.frameCount;
 			report.BundleCount = _loaders.Count;
 			report.AssetCount = _providers.Count;
 
@@ -334,8 +348,8 @@ namespace YooAsset
 				providerInfo.SpawnScene = provider.SpawnScene;
 				providerInfo.SpawnTime = provider.SpawnTime;
 				providerInfo.RefCount = provider.RefCount;
-				providerInfo.Status = provider.Status;
-				providerInfo.BundleInfos.Clear();
+				providerInfo.Status = (int)provider.Status;
+				providerInfo.BundleInfos = new List<DebugBundleInfo>();
 				report.ProviderInfos.Add(providerInfo);
 
 				if (provider is BundledProvider)
@@ -347,6 +361,7 @@ namespace YooAsset
 
 			// 重新排序
 			report.ProviderInfos.Sort();
+			return report;
 		}
 		#endregion
 	}

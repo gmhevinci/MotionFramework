@@ -123,7 +123,7 @@ namespace MotionFramework.Resource
 		/// 同步加载资源对象
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
-		public AssetOperationHandle LoadAssetSync<TObject>(string location) where TObject : class
+		public AssetOperationHandle LoadAssetSync<TObject>(string location) where TObject : UnityEngine.Object
 		{
 			return YooAssets.LoadAssetSync<TObject>(location);
 		}
@@ -136,7 +136,7 @@ namespace MotionFramework.Resource
 		/// 同步加载子资源对象集合
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
-		public SubAssetsOperationHandle LoadSubAssetsSync<TObject>(string location)
+		public SubAssetsOperationHandle LoadSubAssetsSync<TObject>(string location) where TObject : UnityEngine.Object
 		{
 			return YooAssets.LoadSubAssetsSync<TObject>(location);
 		}
@@ -150,7 +150,7 @@ namespace MotionFramework.Resource
 		/// 异步加载资源对象
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
-		public AssetOperationHandle LoadAssetAsync<TObject>(string location)
+		public AssetOperationHandle LoadAssetAsync<TObject>(string location) where TObject : UnityEngine.Object
 		{
 			return YooAssets.LoadAssetAsync<TObject>(location);
 		}
@@ -163,7 +163,7 @@ namespace MotionFramework.Resource
 		/// 异步加载子资源对象集合
 		/// </summary>
 		/// <param name="location">资源对象相对路径</param>
-		public SubAssetsOperationHandle LoadSubAssetsAsync<TObject>(string location)
+		public SubAssetsOperationHandle LoadSubAssetsAsync<TObject>(string location) where TObject : UnityEngine.Object
 		{
 			return YooAssets.LoadSubAssetsAsync<TObject>(location);
 		}

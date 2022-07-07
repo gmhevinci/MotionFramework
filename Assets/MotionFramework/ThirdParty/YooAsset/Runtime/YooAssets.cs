@@ -86,11 +86,6 @@ namespace YooAsset
 		public class HostPlayModeParameters : InitializeParameters
 		{
 			/// <summary>
-			/// 当缓存池被污染的时候清理缓存池
-			/// </summary>
-			public bool ClearCacheWhenDirty;
-
-			/// <summary>
 			/// 默认的资源服务器下载地址
 			/// </summary>
 			public string DefaultHostServer;
@@ -101,9 +96,19 @@ namespace YooAsset
 			public string FallbackHostServer;
 
 			/// <summary>
+			/// 当缓存池被污染的时候清理缓存池
+			/// </summary>
+			public bool ClearCacheWhenDirty = false;
+
+			/// <summary>
 			/// 启用断点续传功能的文件大小
 			/// </summary>
 			public int BreakpointResumeFileSize = int.MaxValue;
+
+			/// <summary>
+			/// 下载文件校验等级
+			/// </summary>
+			public EVerifyLevel VerifyLevel = EVerifyLevel.High;
 		}
 
 
@@ -117,6 +122,14 @@ namespace YooAsset
 		private static OfflinePlayModeImpl _offlinePlayModeImpl;
 		private static HostPlayModeImpl _hostPlayModeImpl;
 
+
+		/// <summary>
+		/// 是否已经初始化
+		/// </summary>
+		public static bool IsInitialized
+		{
+			get { return _isInitialize; }
+		}
 
 		/// <summary>
 		/// 异步初始化
@@ -143,6 +156,10 @@ namespace YooAsset
 				UnityEngine.GameObject driverGo = new UnityEngine.GameObject("[YooAsset]");
 				driverGo.AddComponent<YooAssetDriver>();
 				UnityEngine.Object.DontDestroyOnLoad(driverGo);
+
+#if DEBUG
+				driverGo.AddComponent<RemoteDebuggerInRuntime>();
+#endif
 			}
 			else
 			{
@@ -181,7 +198,7 @@ namespace YooAsset
 				throw new Exception($"{EPlayMode.HostPlayMode} not supports WebGL platform !");
 #else
 				var hostPlayModeParameters = parameters as HostPlayModeParameters;
-				DownloadSystem.Initialize(hostPlayModeParameters.BreakpointResumeFileSize);
+				DownloadSystem.Initialize(hostPlayModeParameters.BreakpointResumeFileSize, hostPlayModeParameters.VerifyLevel);
 #endif
 			}
 
@@ -283,6 +300,36 @@ namespace YooAsset
 			else if (_playMode == EPlayMode.HostPlayMode)
 			{
 				return _hostPlayModeImpl.UpdatePatchManifestAsync(resourceVersion, timeout);
+			}
+			else
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		/// <summary>
+		/// 弱联网情况下加载补丁清单
+		/// 注意：当指定版本内容验证失败后会返回失败。
+		/// </summary>
+		/// <param name="resourceVersion">指定的资源版本</param>
+		public static UpdateManifestOperation WeaklyUpdateManifestAsync(int resourceVersion)
+		{
+			DebugCheckInitialize();
+			if (_playMode == EPlayMode.EditorSimulateMode)
+			{
+				var operation = new EditorPlayModeUpdateManifestOperation();
+				OperationSystem.StartOperaiton(operation);
+				return operation;
+			}
+			else if (_playMode == EPlayMode.OfflinePlayMode)
+			{
+				var operation = new OfflinePlayModeUpdateManifestOperation();
+				OperationSystem.StartOperaiton(operation);
+				return operation;
+			}
+			else if (_playMode == EPlayMode.HostPlayMode)
+			{
+				return _hostPlayModeImpl.WeaklyUpdatePatchManifestAsync(resourceVersion);
 			}
 			else
 			{
@@ -409,6 +456,17 @@ namespace YooAsset
 			DebugCheckInitialize();
 			return _bundleServices.GetAssetInfos(tags);
 		}
+
+		/// <summary>
+		/// 获取资源路径
+		/// </summary>
+		/// <param name="location">资源的定位地址</param>
+		/// <returns>如果location地址无效，则返回空字符串</returns>
+		public static string GetAssetPath(string location)
+		{
+			DebugCheckInitialize();
+			return _locationServices.ConvertLocationToAssetPath(location);
+		}
 		#endregion
 
 		#region 场景加载
@@ -478,6 +536,15 @@ namespace YooAsset
 			}
 
 			BundleInfo bundleInfo = _bundleServices.GetBundleInfo(assetInfo);
+			if (bundleInfo.IsRawFile == false)
+			{
+				string error = $"Cannot load asset bundle file using {nameof(GetRawFileAsync)} interfaces !";
+				YooLogger.Warning(error);
+				RawFileOperation operation = new CompletedRawFileOperation(error, copyPath);
+				OperationSystem.StartOperaiton(operation);
+				return operation;
+			}
+
 			if (_playMode == EPlayMode.EditorSimulateMode)
 			{
 				RawFileOperation operation = new EditorPlayModeRawFileOperation(bundleInfo, copyPath);
@@ -519,7 +586,7 @@ namespace YooAsset
 		/// </summary>
 		/// <typeparam name="TObject">资源类型</typeparam>
 		/// <param name="location">资源的定位地址</param>
-		public static AssetOperationHandle LoadAssetSync<TObject>(string location) where TObject : class
+		public static AssetOperationHandle LoadAssetSync<TObject>(string location) where TObject : UnityEngine.Object
 		{
 			DebugCheckInitialize();
 			AssetInfo assetInfo = ConvertLocationToAssetInfo(location, typeof(TObject));
@@ -554,7 +621,7 @@ namespace YooAsset
 		/// </summary>
 		/// <typeparam name="TObject">资源类型</typeparam>
 		/// <param name="location">资源的定位地址</param>
-		public static AssetOperationHandle LoadAssetAsync<TObject>(string location)
+		public static AssetOperationHandle LoadAssetAsync<TObject>(string location) where TObject : UnityEngine.Object
 		{
 			DebugCheckInitialize();
 			AssetInfo assetInfo = ConvertLocationToAssetInfo(location, typeof(TObject));
@@ -599,7 +666,7 @@ namespace YooAsset
 		/// </summary>
 		/// <typeparam name="TObject">资源类型</typeparam>
 		/// <param name="location">资源的定位地址</param>
-		public static SubAssetsOperationHandle LoadSubAssetsSync<TObject>(string location)
+		public static SubAssetsOperationHandle LoadSubAssetsSync<TObject>(string location) where TObject : UnityEngine.Object
 		{
 			DebugCheckInitialize();
 			AssetInfo assetInfo = ConvertLocationToAssetInfo(location, typeof(TObject));
@@ -634,7 +701,7 @@ namespace YooAsset
 		/// </summary>
 		/// <typeparam name="TObject">资源类型</typeparam>
 		/// <param name="location">资源的定位地址</param>
-		public static SubAssetsOperationHandle LoadSubAssetsAsync<TObject>(string location)
+		public static SubAssetsOperationHandle LoadSubAssetsAsync<TObject>(string location) where TObject : UnityEngine.Object
 		{
 			DebugCheckInitialize();
 			AssetInfo assetInfo = ConvertLocationToAssetInfo(location, typeof(TObject));
@@ -813,7 +880,9 @@ namespace YooAsset
 			}
 			else if (_playMode == EPlayMode.OfflinePlayMode)
 			{
-				return _offlinePlayModeImpl.CreatePatchUnpackerByTags(tags, unpackingMaxNumber, failedTryAgain);
+				List<BundleInfo> downloadList = new List<BundleInfo>();
+				var operation = new PatchUnpackerOperation(downloadList, unpackingMaxNumber, failedTryAgain);
+				return operation;
 			}
 			else if (_playMode == EPlayMode.HostPlayMode)
 			{
@@ -841,7 +910,9 @@ namespace YooAsset
 			}
 			else if (_playMode == EPlayMode.OfflinePlayMode)
 			{
-				return _offlinePlayModeImpl.CreatePatchUnpackerByAll(unpackingMaxNumber, failedTryAgain);
+				List<BundleInfo> downloadList = new List<BundleInfo>();
+				var operation = new PatchUnpackerOperation(downloadList, unpackingMaxNumber, failedTryAgain);
+				return operation;
 			}
 			else if (_playMode == EPlayMode.HostPlayMode)
 			{
@@ -922,27 +993,28 @@ namespace YooAsset
 		#endregion
 
 		#region 内部方法
+		internal static void InternalDestroy()
+		{
+			_isInitialize = false;
+			_initializeError = string.Empty;
+			_initializeStatus = EOperationStatus.None;
+
+			_bundleServices = null;
+			_locationServices = null;
+			_editorSimulateModeImpl = null;
+			_offlinePlayModeImpl = null;
+			_hostPlayModeImpl = null;
+
+			OperationSystem.DestroyAll();
+			DownloadSystem.DestroyAll();
+			AssetSystem.DestroyAll();
+			YooLogger.Log("YooAssets destroy all !");
+		}
 		internal static void InternalUpdate()
 		{
-			// 更新异步操作系统
 			OperationSystem.Update();
-
-			// 更新下载管理系统
 			DownloadSystem.Update();
-
-			// 更新资源系统
 			AssetSystem.Update();
-		}
-
-		/// <summary>
-		/// 获取调试信息
-		/// </summary>
-		internal static void GetDebugReport(DebugReport report)
-		{
-			if (report == null)
-				YooLogger.Error($"{nameof(DebugReport)} is null");
-
-			AssetSystem.GetDebugReport(report);
 		}
 
 		/// <summary>

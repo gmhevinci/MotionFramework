@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 namespace YooAsset
 {
@@ -47,6 +48,17 @@ namespace YooAsset
 					return null;
 				return Provider.AssetObject;
 			}
+		}
+
+		/// <summary>
+		/// 获取资源对象
+		/// </summary>
+		/// <typeparam name="TAsset">资源类型</typeparam>
+		public TAsset GetAssetObject<TAsset>() where TAsset : UnityEngine.Object
+		{
+			if (IsValid == false)
+				return null;
+			return Provider.AssetObject as TAsset;
 		}
 
 		/// <summary>
@@ -117,20 +129,22 @@ namespace YooAsset
 			if (Provider.AssetObject == null)
 				return null;
 
+			GameObject result;
 			if (setPositionRotation)
 			{
 				if (parent == null)
-					return UnityEngine.Object.Instantiate(Provider.AssetObject as GameObject, position, rotation);
+					result = UnityEngine.Object.Instantiate(Provider.AssetObject as GameObject, position, rotation);
 				else
-					return UnityEngine.Object.Instantiate(Provider.AssetObject as GameObject, position, rotation, parent);
+					result = UnityEngine.Object.Instantiate(Provider.AssetObject as GameObject, position, rotation, parent);
 			}
 			else
 			{
 				if (parent == null)
-					return UnityEngine.Object.Instantiate(Provider.AssetObject as GameObject);
+					result = UnityEngine.Object.Instantiate(Provider.AssetObject as GameObject);
 				else
-					return UnityEngine.Object.Instantiate(Provider.AssetObject as GameObject, parent);
+					result = UnityEngine.Object.Instantiate(Provider.AssetObject as GameObject, parent);
 			}
+			return result;
 		}
 		private InstantiateOperation InstantiateAsyncInternal(Vector3 position, Quaternion rotation, Transform parent, bool setPositionRotation)
 		{

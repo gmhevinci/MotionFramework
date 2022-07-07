@@ -14,6 +14,15 @@ namespace YooAsset
 		}
 		internal abstract void InvokeCallback();
 
+
+		/// <summary>
+		/// 获取资源信息
+		/// </summary>
+		public AssetInfo GetAssetInfo()
+		{
+			return _assetInfo;
+		}
+
 		/// <summary>
 		/// 当前状态
 		/// </summary>
@@ -90,6 +99,20 @@ namespace YooAsset
 						YooLogger.Warning($"Provider is destroyed : {_assetInfo.AssetPath}");
 					return false;
 				}
+			}
+		}
+
+		/// <summary>
+		/// 句柄是否有效
+		/// </summary>
+		public bool IsValidNoWarning
+		{
+			get
+			{
+				if (Provider != null && Provider.IsDestroyed == false)
+					return true;
+				else
+					return false;
 			}
 		}
 
