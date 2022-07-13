@@ -95,6 +95,8 @@ public class AnimBehaviour : MonoBehaviour
 				Play(wrapper.Clip.name, 0f);
 			}
 		}
+
+		_animPlayable.Update(float.MaxValue);
 	}
 	public void OnDisable()
 	{
