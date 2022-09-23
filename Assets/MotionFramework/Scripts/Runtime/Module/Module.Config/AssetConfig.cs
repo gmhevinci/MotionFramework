@@ -47,7 +47,7 @@ namespace MotionFramework.Config
 
 
 		/// <summary>
-		/// 加载表格
+		/// 异步加载表格
 		/// </summary>
 		public void Load(string location)
 		{
@@ -59,6 +59,21 @@ namespace MotionFramework.Config
 			_handle = ResourceManager.Instance.LoadAssetAsync<TextAsset>(location);
 			_handle.Completed += Handle_Completed;
 		}
+
+		/// <summary>
+		/// 同步加载表格
+		/// </summary>
+		public void LoadSync(string location)
+		{
+			if (_isLoadAsset)
+				return;
+
+			_isLoadAsset = true;
+			Location = location;
+			_handle = ResourceManager.Instance.LoadAssetSync<TextAsset>(location);
+			_handle.Completed += Handle_Completed;
+		}
+
 		private void Handle_Completed(AssetOperationHandle obj)
 		{
 			try

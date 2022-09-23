@@ -65,40 +65,35 @@ namespace MotionFramework.Config
 		}
 
 		/// <summary>
-		/// 加载配表
+		/// 异步加载配表
 		/// </summary>
 		public T LoadConfig<T>(string location) where T : AssetConfig
 		{
 			return LoadConfig(typeof(T), location) as T;
 		}
+
+		/// <summary>
+		/// 异步加载配表
+		/// </summary>
 		public AssetConfig LoadConfig(Type configType, string location)
 		{
-			string configName = configType.FullName;
+			return LoadConfigInternal(configType, location, false);
+		}
 
-			// 防止重复加载
-			if (_configs.ContainsKey(configName))
-			{
-				MotionLog.Error($"Config {configName} is already existed.");
-				return null;
-			}
+		/// <summary>
+		/// 同步加载配表
+		/// </summary>
+		public T LoadConfigSync<T>(string location) where T : AssetConfig
+		{
+			return LoadConfigSync(typeof(T), location) as T;
+		}
 
-			AssetConfig config;
-			if (ActivatorServices != null)
-				config = ActivatorServices.CreateInstance(configType) as AssetConfig;
-			else
-				config = Activator.CreateInstance(configType) as AssetConfig;
-
-			if(config == null)
-			{
-				MotionLog.Error($"Config {configName} create instance  failed.");
-			}
-			else
-			{
-				config.Load(location);
-				_configs.Add(configName, config);
-			}
-
-			return config;
+		/// <summary>
+		/// 同步加载配表
+		/// </summary>
+		public AssetConfig LoadConfigSync(Type configType, string location)
+		{
+			return LoadConfigInternal(configType, location, true);
 		}
 
 		/// <summary>
@@ -133,6 +128,39 @@ namespace MotionFramework.Config
 
 			MotionLog.Error($"Not found config {configName}");
 			return null;
+		}
+
+		private AssetConfig LoadConfigInternal(Type configType, string location, bool syncLoad)
+		{
+			string configName = configType.FullName;
+
+			// 防止重复加载
+			if (_configs.ContainsKey(configName))
+			{
+				MotionLog.Error($"Config {configName} is already existed.");
+				return null;
+			}
+
+			AssetConfig config;
+			if (ActivatorServices != null)
+				config = ActivatorServices.CreateInstance(configType) as AssetConfig;
+			else
+				config = Activator.CreateInstance(configType) as AssetConfig;
+
+			if (config == null)
+			{
+				MotionLog.Error($"Config {configName} create instance  failed.");
+			}
+			else
+			{
+				if (syncLoad)
+					config.LoadSync(location);
+				else
+					config.Load(location);
+				_configs.Add(configName, config);
+			}
+
+			return config;
 		}
 	}
 }
