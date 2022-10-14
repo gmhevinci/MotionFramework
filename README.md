@@ -40,11 +40,6 @@ C# && .NET4.x
 
 2. [Projects](https://github.com/gmhevinci/Projects) 基于XLua和ILRuntime热更新技术的工程例子。
 
-## 商业案例
-![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/icon1.jpg)  
-![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/icon2.jpg)  
-![image](https://github.com/gmhevinci/MotionFramework/raw/master/Docs/Image/icon3.jpg)  
-
 ## 代码规范
 
 [请参考代码规范](https://github.com/gmhevinci/MotionFramework/blob/master/Docs/CodeStyle.md)
