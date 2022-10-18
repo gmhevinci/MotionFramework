@@ -62,7 +62,7 @@ public class GameLauncher : MonoBehaviour
 
         // 创建资源管理器
         var resourceCreateParam = new YooAssets.OfflinePlayModeParameters();
-        resourceCreateParam.LocationRoot = "Assets/GameRes";
+        resourceCreateParam.LocationServices = new DefaultLocationServices("Assets/GameRes");
         MotionEngine.CreateModule<ResourceManager>(resourceCreateParam);
         var operation = ResourceManager.Instance.InitializeAsync();
         yield return operation;
