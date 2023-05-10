@@ -27,7 +27,6 @@ namespace YooAsset.Editor
 		private TemplateContainer _root;
 
 		private ListView _listView;
-		private BuildReport _buildReport;
 		private readonly List<ItemWrapper> _items = new List<ItemWrapper>();
 
 
@@ -37,10 +36,10 @@ namespace YooAsset.Editor
 		public void InitViewer()
 		{
 			// 加载布局文件
-			_visualAsset = EditorHelper.LoadWindowUXML<ReporterSummaryViewer>();
+			_visualAsset = UxmlLoader.LoadWindowUXML<ReporterSummaryViewer>();
 			if (_visualAsset == null)
 				return;
-			
+
 			_root = _visualAsset.CloneTree();
 			_root.style.flexGrow = 1f;
 
@@ -55,26 +54,25 @@ namespace YooAsset.Editor
 		/// </summary>
 		public void FillViewData(BuildReport buildReport)
 		{
-			_buildReport = buildReport;
-			
 			_items.Clear();
+
+			_items.Add(new ItemWrapper("YooAsset版本", buildReport.Summary.YooVersion));
 			_items.Add(new ItemWrapper("引擎版本", buildReport.Summary.UnityVersion));
-			_items.Add(new ItemWrapper("构建时间", buildReport.Summary.BuildTime));
-			_items.Add(new ItemWrapper("构建耗时", $"{buildReport.Summary.BuildSeconds}秒"));
+			_items.Add(new ItemWrapper("构建时间", buildReport.Summary.BuildDate));
+			_items.Add(new ItemWrapper("构建耗时", ConvertTime(buildReport.Summary.BuildSeconds)));
 			_items.Add(new ItemWrapper("构建平台", $"{buildReport.Summary.BuildTarget}"));
+			_items.Add(new ItemWrapper("构建管线", $"{buildReport.Summary.BuildPipeline}"));
 			_items.Add(new ItemWrapper("构建模式", $"{buildReport.Summary.BuildMode}"));
-			_items.Add(new ItemWrapper("构建版本", $"{buildReport.Summary.BuildVersion}"));
-			_items.Add(new ItemWrapper("内置资源标签", $"{buildReport.Summary.BuildinTags}"));
+			_items.Add(new ItemWrapper("包裹名称", buildReport.Summary.BuildPackageName));
+			_items.Add(new ItemWrapper("包裹版本", buildReport.Summary.BuildPackageVersion));
 
 			_items.Add(new ItemWrapper("启用可寻址资源定位", $"{buildReport.Summary.EnableAddressable}"));
-			_items.Add(new ItemWrapper("追加文件扩展名", $"{buildReport.Summary.AppendFileExtension}"));
-			_items.Add(new ItemWrapper("拷贝内置资源文件", $"{buildReport.Summary.CopyBuildinTagFiles}"));
-			_items.Add(new ItemWrapper("自动收集着色器", $"{buildReport.Summary.AutoCollectShaders}"));
-			_items.Add(new ItemWrapper("着色器资源包名称", $"{buildReport.Summary.ShadersBundleName}"));
+			_items.Add(new ItemWrapper("资源包名唯一化", $"{buildReport.Summary.UniqueBundleName}"));
 			_items.Add(new ItemWrapper("加密服务类名称", $"{buildReport.Summary.EncryptionServicesClassName}"));
 
 			_items.Add(new ItemWrapper(string.Empty, string.Empty));
 			_items.Add(new ItemWrapper("构建参数", string.Empty));
+			_items.Add(new ItemWrapper("OutputNameStyle", $"{buildReport.Summary.OutputNameStyle}"));
 			_items.Add(new ItemWrapper("CompressOption", $"{buildReport.Summary.CompressOption}"));
 			_items.Add(new ItemWrapper("DisableWriteTypeTree", $"{buildReport.Summary.DisableWriteTypeTree}"));
 			_items.Add(new ItemWrapper("IgnoreTypeTreeChanges", $"{buildReport.Summary.IgnoreTypeTreeChanges}"));
@@ -82,10 +80,9 @@ namespace YooAsset.Editor
 			_items.Add(new ItemWrapper(string.Empty, string.Empty));
 			_items.Add(new ItemWrapper("构建结果", string.Empty));
 			_items.Add(new ItemWrapper("构建文件总数", $"{buildReport.Summary.AssetFileTotalCount}"));
+			_items.Add(new ItemWrapper("主资源总数", $"{buildReport.Summary.MainAssetTotalCount}"));
 			_items.Add(new ItemWrapper("资源包总数", $"{buildReport.Summary.AllBundleTotalCount}"));
 			_items.Add(new ItemWrapper("资源包总大小", ConvertSize(buildReport.Summary.AllBundleTotalSize)));
-			_items.Add(new ItemWrapper("内置资源包总数", $"{buildReport.Summary.BuildinBundleTotalCount}"));
-			_items.Add(new ItemWrapper("内置资源包总大小", ConvertSize(buildReport.Summary.BuildinBundleTotalSize)));
 			_items.Add(new ItemWrapper("加密资源包总数", $"{buildReport.Summary.EncryptedBundleTotalCount}"));
 			_items.Add(new ItemWrapper("加密资源包总大小", ConvertSize(buildReport.Summary.EncryptedBundleTotalSize)));
 			_items.Add(new ItemWrapper("原生资源包总数", $"{buildReport.Summary.RawBundleTotalCount}"));
@@ -154,16 +151,23 @@ namespace YooAsset.Editor
 			label2.text = itemWrapper.Value;
 		}
 
+		private string ConvertTime(int time)
+		{
+			if (time <= 60)
+			{
+				return $"{time}秒钟";
+			}
+			else
+			{
+				int minute = time / 60;
+				return $"{minute}分钟";
+			}
+		}
 		private string ConvertSize(long size)
 		{
 			if (size == 0)
 				return "0";
-			if (size < 1024)
-				return $"{size} Bytes";
-			else if (size < 1024 * 1024)
-				return $"{(int)(size / 1024)} KB";
-			else
-				return $"{(int)(size / (1024 * 1024))} MB";
+			return EditorUtility.FormatBytes(size);
 		}
 	}
 }

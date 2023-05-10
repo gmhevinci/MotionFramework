@@ -7,19 +7,35 @@ namespace YooAsset
 	internal class OperationSystem
 	{
 		private static readonly List<AsyncOperationBase> _operations = new List<AsyncOperationBase>(100);
+		private static readonly List<AsyncOperationBase> _addList = new List<AsyncOperationBase>(100);
+		private static readonly List<AsyncOperationBase> _removeList = new List<AsyncOperationBase>(100);
 
 		// 计时器相关
 		private static Stopwatch _watch;
-		private static long _maxTimeSlice;
 		private static long _frameTime;
+
+		/// <summary>
+		/// 异步操作的最小时间片段
+		/// </summary>
+		public static long MaxTimeSlice { set; get; } = long.MaxValue;
+
+		/// <summary>
+		/// 处理器是否繁忙
+		/// </summary>
+		public static bool IsBusy
+		{
+			get
+			{
+				return _watch.ElapsedMilliseconds - _frameTime >= MaxTimeSlice;
+			}
+		}
 
 
 		/// <summary>
 		/// 初始化异步操作系统
 		/// </summary>
-		public static void Initialize(long maxTimeSlice)
+		public static void Initialize()
 		{
-			_maxTimeSlice = maxTimeSlice;
 			_watch = Stopwatch.StartNew();
 		}
 
@@ -30,18 +46,39 @@ namespace YooAsset
 		{
 			_frameTime = _watch.ElapsedMilliseconds;
 
-			for (int i = _operations.Count - 1; i >= 0; i--)
+			// 添加新的异步操作
+			if (_addList.Count > 0)
 			{
-				if (_watch.ElapsedMilliseconds - _frameTime >= _maxTimeSlice)
-					return;
+				for (int i = 0; i < _addList.Count; i++)
+				{
+					var operation = _addList[i];
+					_operations.Add(operation);
+				}
+				_addList.Clear();
+			}
 
-				var operation = _operations[i];
+			// 更新所有的异步操作
+			foreach (var operation in _operations)
+			{
+				if (IsBusy)
+					break;
+
 				operation.Update();
 				if (operation.IsDone)
 				{
-					_operations.RemoveAt(i);
+					_removeList.Add(operation);
 					operation.Finish();
 				}
+			}
+
+			// 移除已经完成的异步操作
+			if (_removeList.Count > 0)
+			{
+				foreach (var operation in _removeList)
+				{
+					_operations.Remove(operation);
+				}
+				_removeList.Clear();
 			}
 		}
 
@@ -51,18 +88,20 @@ namespace YooAsset
 		public static void DestroyAll()
 		{
 			_operations.Clear();
+			_addList.Clear();
+			_removeList.Clear();
 			_watch = null;
-			_maxTimeSlice = 0;
 			_frameTime = 0;
+			MaxTimeSlice = long.MaxValue;
 		}
 
 		/// <summary>
 		/// 开始处理异步操作类
 		/// </summary>
-		public static void StartOperaiton(AsyncOperationBase operationBase)
+		public static void StartOperation(AsyncOperationBase operation)
 		{
-			_operations.Add(operationBase);
-			operationBase.Start();
+			_addList.Add(operation);
+			operation.Start();
 		}
 	}
 }

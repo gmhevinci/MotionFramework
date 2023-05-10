@@ -12,10 +12,11 @@ namespace YooAsset
 		}
 
 		private readonly AssetOperationHandle _handle;
+		private readonly bool _setPositionAndRotation;
 		private readonly Vector3 _position;
 		private readonly Quaternion _rotation;
 		private readonly Transform _parent;
-		private readonly bool _setPositionRotation;
+		private readonly bool _worldPositionStays;
 		private ESteps _steps = ESteps.None;
 
 		/// <summary>
@@ -24,13 +25,14 @@ namespace YooAsset
 		public GameObject Result = null;
 
 
-		internal InstantiateOperation(AssetOperationHandle handle, Vector3 position, Quaternion rotation, Transform parent, bool setPositionRotation)
+		internal InstantiateOperation(AssetOperationHandle handle, bool setPositionAndRotation, Vector3 position, Quaternion rotation, Transform parent, bool worldPositionStays)
 		{
 			_handle = handle;
+			_setPositionAndRotation = setPositionAndRotation;
 			_position = position;
 			_rotation = rotation;
 			_parent = parent;
-			_setPositionRotation = setPositionRotation;
+			_worldPositionStays = worldPositionStays;
 		}
 		internal override void Start()
 		{
@@ -43,7 +45,7 @@ namespace YooAsset
 
 			if (_steps == ESteps.Clone)
 			{
-				if (_handle.IsValid == false)
+				if (_handle.IsValidWithWarning == false)
 				{
 					_steps = ESteps.Done;
 					Status = EOperationStatus.Failed;
@@ -62,23 +64,68 @@ namespace YooAsset
 					return;
 				}
 
-				if(_setPositionRotation)
-				{
-					if (_parent == null)
-						Result = Object.Instantiate(_handle.AssetObject as GameObject, _position, _rotation);
-					else
-						Result = Object.Instantiate(_handle.AssetObject as GameObject, _position, _rotation, _parent);
-				}
-				else
-				{
-					if (_parent == null)
-						Result = Object.Instantiate(_handle.AssetObject as GameObject);
-					else
-						Result = Object.Instantiate(_handle.AssetObject as GameObject, _parent);
-				}
+				// 实例化游戏对象
+				Result = InstantiateInternal(_handle.AssetObject, _setPositionAndRotation, _position, _rotation, _parent, _worldPositionStays);
 
 				_steps = ESteps.Done;
 				Status = EOperationStatus.Succeed;
+			}
+		}
+
+		/// <summary>
+		/// 取消实例化对象操作
+		/// </summary>
+		public void Cancel()
+		{
+			if (IsDone == false)
+			{
+				_steps = ESteps.Done;
+				Status = EOperationStatus.Failed;
+				Error = $"User cancelled !";
+			}
+		}
+
+		/// <summary>
+		/// 等待异步实例化结束
+		/// </summary>
+		public void WaitForAsyncComplete()
+		{
+			if (_steps == ESteps.Done)
+				return;
+			_handle.WaitForAsyncComplete();
+			Update();
+		}
+
+		internal static GameObject InstantiateInternal(UnityEngine.Object assetObject, bool setPositionAndRotation, Vector3 position, Quaternion rotation, Transform parent, bool worldPositionStays)
+		{
+			if (assetObject == null)
+				return null;
+
+			if (setPositionAndRotation)
+			{
+				if (parent != null)
+				{
+					GameObject clone = UnityEngine.Object.Instantiate(assetObject as GameObject, position, rotation, parent);
+					return clone;
+				}
+				else
+				{
+					GameObject clone = UnityEngine.Object.Instantiate(assetObject as GameObject, position, rotation);
+					return clone;
+				}
+			}
+			else
+			{
+				if (parent != null)
+				{
+					GameObject clone = UnityEngine.Object.Instantiate(assetObject as GameObject, parent, worldPositionStays);
+					return clone;
+				}
+				else
+				{
+					GameObject clone = UnityEngine.Object.Instantiate(assetObject as GameObject);
+					return clone;
+				}
 			}
 		}
 	}

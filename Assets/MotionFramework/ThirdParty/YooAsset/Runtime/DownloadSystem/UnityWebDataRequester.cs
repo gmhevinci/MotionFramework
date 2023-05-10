@@ -11,8 +11,8 @@ namespace YooAsset
 	/// </summary>
 	internal class UnityWebDataRequester
 	{
-		protected UnityWebRequest _webRequest;
-		protected UnityWebRequestAsyncOperation _operationHandle;
+		private UnityWebRequest _webRequest;
+		private UnityWebRequestAsyncOperation _operationHandle;
 
 		/// <summary>
 		/// 请求URL地址
@@ -29,7 +29,7 @@ namespace YooAsset
 			if (_webRequest == null)
 			{
 				URL = url;
-				_webRequest = new UnityWebRequest(URL, UnityWebRequest.kHttpVerbGET);
+				_webRequest = DownloadSystem.NewRequest(URL);
 				DownloadHandlerBuffer handler = new DownloadHandlerBuffer();
 				_webRequest.downloadHandler = handler;
 				_webRequest.disposeDownloadHandlerOnDispose = true;

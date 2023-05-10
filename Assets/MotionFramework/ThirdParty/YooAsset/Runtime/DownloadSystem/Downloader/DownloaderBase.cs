@@ -6,8 +6,15 @@ namespace YooAsset
 		protected enum ESteps
 		{
 			None,
-			CreateDownload,
+			CheckTempFile,
+			WaitingCheckTempFile,
+			PrepareDownload,
+			CreateResumeDownloader,
+			CreateGeneralDownloader,
 			CheckDownload,
+			VerifyTempFile,
+			WaitingVerifyTempFile,
+			CachingFile,
 			TryAgain,
 			Succeed,
 			Failed,
@@ -23,12 +30,18 @@ namespace YooAsset
 		protected string _requestURL;
 
 		protected string _lastError = string.Empty;
+		protected long _lastCode = 0;
 		protected float _downloadProgress = 0f;
 		protected ulong _downloadedBytes = 0;
 
+		/// <summary>
+		/// 是否等待异步结束
+		/// 警告：只能用于解压APP内部资源
+		/// </summary>
+		public bool WaitForAsyncComplete = false;
 
 		/// <summary>
-		/// 下载进度
+		/// 下载进度（0f~1f）
 		/// </summary>
 		public float DownloadProgress
 		{
@@ -54,7 +67,7 @@ namespace YooAsset
 			{
 				_failedTryAgain = failedTryAgain;
 				_timeout = timeout;
-				_steps = ESteps.CreateDownload;
+				_steps = ESteps.CheckTempFile;
 			}
 		}
 		public abstract void Update();
@@ -118,7 +131,7 @@ namespace YooAsset
 		/// </summary>
 		public string GetLastError()
 		{
-			return $"Failed to download : {_requestURL} Error : {_lastError}";
+			return $"Failed to download : {_requestURL} Error : {_lastError} Code : {_lastCode}";
 		}
 	}
 }

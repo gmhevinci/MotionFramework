@@ -7,51 +7,58 @@ namespace YooAsset.Editor
 {
 	public class BuildParametersContext : IContextObject
 	{
-		private readonly System.Diagnostics.Stopwatch _buildWatch = new System.Diagnostics.Stopwatch();
+		private string _pipelineOutputDirectory = string.Empty;
+		private string _packageOutputDirectory = string.Empty;
 
 		/// <summary>
 		/// 构建参数
 		/// </summary>
 		public BuildParameters Parameters { private set; get; }
 
-		/// <summary>
-		/// 构建管线的输出目录
-		/// </summary>
-		public string PipelineOutputDirectory { private set; get; }
-
 
 		public BuildParametersContext(BuildParameters parameters)
 		{
 			Parameters = parameters;
+		}
 
-			PipelineOutputDirectory = AssetBundleBuilderHelper.MakePipelineOutputDirectory(parameters.OutputRoot, parameters.BuildTarget);
-			if (parameters.BuildMode == EBuildMode.DryRunBuild)
-				PipelineOutputDirectory += $"_{EBuildMode.DryRunBuild}";
-			else if (parameters.BuildMode == EBuildMode.SimulateBuild)
-				PipelineOutputDirectory += $"_{EBuildMode.SimulateBuild}";
+		/// <summary>
+		/// 获取构建管线的输出目录
+		/// </summary>
+		/// <returns></returns>
+		public string GetPipelineOutputDirectory()
+		{
+			if (string.IsNullOrEmpty(_pipelineOutputDirectory))
+			{
+				_pipelineOutputDirectory = $"{Parameters.OutputRoot}/{Parameters.BuildTarget}/{Parameters.PackageName}/{YooAssetSettings.OutputFolderName}";
+			}
+			return _pipelineOutputDirectory;
 		}
 
 		/// <summary>
 		/// 获取本次构建的补丁目录
 		/// </summary>
-		public string GetPackageDirectory()
+		public string GetPackageOutputDirectory()
 		{
-			return $"{Parameters.OutputRoot}/{Parameters.BuildTarget}/{Parameters.BuildVersion}";
+			if (string.IsNullOrEmpty(_packageOutputDirectory))
+			{
+				_packageOutputDirectory = $"{Parameters.OutputRoot}/{Parameters.BuildTarget}/{Parameters.PackageName}/{Parameters.PackageVersion}";
+			}
+			return _packageOutputDirectory;
 		}
 
 		/// <summary>
-		/// 获取构建选项
+		/// 获取内置构建管线的构建选项
 		/// </summary>
 		public BuildAssetBundleOptions GetPipelineBuildOptions()
 		{
 			// For the new build system, unity always need BuildAssetBundleOptions.CollectDependencies and BuildAssetBundleOptions.DeterministicAssetBundle
 			// 除非设置ForceRebuildAssetBundle标记，否则会进行增量打包
 
-			BuildAssetBundleOptions opt = BuildAssetBundleOptions.None;
-			opt |= BuildAssetBundleOptions.StrictMode; //Do not allow the build to succeed if any errors are reporting during it.
-
 			if (Parameters.BuildMode == EBuildMode.SimulateBuild)
 				throw new Exception("Should never get here !");
+
+			BuildAssetBundleOptions opt = BuildAssetBundleOptions.None;
+			opt |= BuildAssetBundleOptions.StrictMode; //Do not allow the build to succeed if any errors are reporting during it.
 
 			if (Parameters.BuildMode == EBuildMode.DryRunBuild)
 			{
@@ -78,20 +85,35 @@ namespace YooAsset.Editor
 		}
 
 		/// <summary>
-		/// 获取构建的耗时（单位：秒）
+		/// 获取可编程构建管线的构建参数
 		/// </summary>
-		public float GetBuildingSeconds()
+		public UnityEditor.Build.Pipeline.BundleBuildParameters GetSBPBuildParameters()
 		{
-			float seconds = _buildWatch.ElapsedMilliseconds / 1000f;
-			return seconds;
-		}
-		public void BeginWatch()
-		{
-			_buildWatch.Start();
-		}
-		public void StopWatch()
-		{
-			_buildWatch.Stop();
+			if (Parameters.BuildMode == EBuildMode.SimulateBuild)
+				throw new Exception("Should never get here !");
+
+			var targetGroup = BuildPipeline.GetBuildTargetGroup(Parameters.BuildTarget);
+			var pipelineOutputDirectory = GetPipelineOutputDirectory();
+			var buildParams = new UnityEditor.Build.Pipeline.BundleBuildParameters(Parameters.BuildTarget, targetGroup, pipelineOutputDirectory);
+
+			if (Parameters.CompressOption == ECompressOption.Uncompressed)
+				buildParams.BundleCompression = UnityEngine.BuildCompression.Uncompressed;
+			else if (Parameters.CompressOption == ECompressOption.LZMA)
+				buildParams.BundleCompression = UnityEngine.BuildCompression.LZMA;
+			else if (Parameters.CompressOption == ECompressOption.LZ4)
+				buildParams.BundleCompression = UnityEngine.BuildCompression.LZ4;
+			else
+				throw new System.NotImplementedException(Parameters.CompressOption.ToString());
+
+			if (Parameters.DisableWriteTypeTree)
+				buildParams.ContentBuildFlags |= UnityEditor.Build.Content.ContentBuildFlags.DisableWriteTypeTree;
+
+			buildParams.UseCache = true;
+			buildParams.CacheServerHost = Parameters.SBPParameters.CacheServerHost;
+			buildParams.CacheServerPort = Parameters.SBPParameters.CacheServerPort;
+			buildParams.WriteLinkXML = Parameters.SBPParameters.WriteLinkXML;
+
+			return buildParams;
 		}
 	}
 }

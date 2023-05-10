@@ -8,29 +8,19 @@ namespace YooAsset
 	/// </summary>
 	internal static class PathHelper
 	{
-		/// <summary>
-		/// 获取规范化的路径
-		/// </summary>
-		public static string GetRegularPath(string path)
-		{
-			return path.Replace('\\', '/').Replace("\\", "/"); //替换为Linux路径格式
-		}
-
-		/// <summary>
-		/// 获取文件所在的目录路径（Linux格式）
-		/// </summary>
-		public static string GetDirectory(string filePath)
-		{
-			string directory = Path.GetDirectoryName(filePath);
-			return GetRegularPath(directory);
-		}
+		private static string _buildinPath;
+		private static string _sandboxPath;
 
 		/// <summary>
 		/// 获取基于流文件夹的加载路径
 		/// </summary>
 		public static string MakeStreamingLoadPath(string path)
 		{
-			return StringUtility.Format("{0}/YooAssets/{1}", UnityEngine.Application.streamingAssetsPath, path);
+			if (string.IsNullOrEmpty(_buildinPath))
+			{
+				_buildinPath = StringUtility.Format("{0}/{1}", UnityEngine.Application.streamingAssetsPath, YooAssetSettings.StreamingAssetsBuildinFolder);
+			}
+			return StringUtility.Format("{0}/{1}", _buildinPath, path);
 		}
 
 		/// <summary>
@@ -38,26 +28,39 @@ namespace YooAsset
 		/// </summary>
 		public static string MakePersistentLoadPath(string path)
 		{
-			string root = MakePersistentRootPath();
+			string root = GetPersistentRootPath();
 			return StringUtility.Format("{0}/{1}", root, path);
 		}
 
 		/// <summary>
 		/// 获取沙盒文件夹路径
 		/// </summary>
-		public static string MakePersistentRootPath()
+		public static string GetPersistentRootPath()
 		{
 #if UNITY_EDITOR
 			// 注意：为了方便调试查看，编辑器下把存储目录放到项目里
-			string projectPath = GetDirectory(UnityEngine.Application.dataPath);
-			return StringUtility.Format("{0}/Sandbox", projectPath);
+			if (string.IsNullOrEmpty(_sandboxPath))
+			{
+				string directory = Path.GetDirectoryName(UnityEngine.Application.dataPath);
+				string projectPath = GetRegularPath(directory);
+				_sandboxPath = StringUtility.Format("{0}/Sandbox", projectPath);
+			}
+			return _sandboxPath;
 #else
-			return StringUtility.Format("{0}/Sandbox", UnityEngine.Application.persistentDataPath);
+			if (string.IsNullOrEmpty(_sandboxPath))
+			{
+				_sandboxPath = StringUtility.Format("{0}/Sandbox", UnityEngine.Application.persistentDataPath);
+			}
+			return _sandboxPath;
 #endif
+		}
+		private static string GetRegularPath(string path)
+		{
+			return path.Replace('\\', '/').Replace("\\", "/"); //替换为Linux路径格式
 		}
 
 		/// <summary>
-		/// 获取网络资源加载路径
+		/// 获取WWW加载本地资源的路径
 		/// </summary>
 		public static string ConvertToWWWPath(string path)
 		{
@@ -76,11 +79,16 @@ namespace YooAsset
 	}
 
 	/// <summary>
-	/// 沙盒帮助类
+	/// 持久化目录帮助类
 	/// </summary>
-	internal static class SandboxHelper
+	internal static class PersistentHelper
 	{
 		private const string CacheFolderName = "CacheFiles";
+		private const string CachedBundleFileFolder = "BundleFiles";
+		private const string CachedRawFileFolder = "RawFiles";
+		private const string ManifestFolderName = "ManifestFiles";
+		private const string AppFootPrintFileName = "ApplicationFootPrint.bytes";
+
 
 		/// <summary>
 		/// 删除沙盒总目录
@@ -97,48 +105,94 @@ namespace YooAsset
 		/// </summary>
 		public static void DeleteCacheFolder()
 		{
-			string directoryPath = GetCacheFolderPath();
-			if (Directory.Exists(directoryPath))
-				Directory.Delete(directoryPath, true);
+			string root = PathHelper.MakePersistentLoadPath(CacheFolderName);
+			if (Directory.Exists(root))
+				Directory.Delete(root, true);
 		}
 
 		/// <summary>
-		/// 获取缓存文件夹路径
+		/// 删除沙盒内的清单文件夹
 		/// </summary>
-		public static string GetCacheFolderPath()
+		public static void DeleteManifestFolder()
 		{
-			return PathHelper.MakePersistentLoadPath(CacheFolderName);
+			string root = PathHelper.MakePersistentLoadPath(ManifestFolderName);
+			if (Directory.Exists(root))
+				Directory.Delete(root, true);
 		}
 
-		/// <summary>
-		/// 获取缓存文件的存储路径
-		/// </summary>
-		public static string MakeCacheFilePath(string fileName)
-		{
-			return PathHelper.MakePersistentLoadPath($"{CacheFolderName}/{fileName}");
-		}
-	}
 
-	/// <summary>
-	/// 补丁包帮助类
-	/// </summary>
-	internal static class PatchHelper
-	{
 		/// <summary>
-		/// 获取资源信息列表
+		/// 获取缓存的BundleFile文件夹路径
 		/// </summary>
-		public static AssetInfo[] GetAssetsInfoByTags(PatchManifest patchManifest, string[] tags)
+		private readonly static Dictionary<string, string> _cachedBundleFileFolder = new Dictionary<string, string>(100);
+		public static string GetCachedBundleFileFolderPath(string packageName)
 		{
-			List<AssetInfo> result = new List<AssetInfo>(100);
-			foreach (var patchAsset in patchManifest.AssetList)
+			if (_cachedBundleFileFolder.TryGetValue(packageName, out string value) == false)
 			{
-				if(patchAsset.HasTag(tags))
-				{
-					AssetInfo assetInfo = new AssetInfo(patchAsset);
-					result.Add(assetInfo);
-				}
+				string root = PathHelper.MakePersistentLoadPath(CacheFolderName);
+				value = $"{root}/{packageName}/{CachedBundleFileFolder}";
+				_cachedBundleFileFolder.Add(packageName, value);
 			}
-			return result.ToArray();
+			return value;
+		}
+
+		/// <summary>
+		/// 获取缓存的RawFile文件夹路径
+		/// </summary>
+		private readonly static Dictionary<string, string> _cachedRawFileFolder = new Dictionary<string, string>(100);
+		public static string GetCachedRawFileFolderPath(string packageName)
+		{
+			if (_cachedRawFileFolder.TryGetValue(packageName, out string value) == false)
+			{
+				string root = PathHelper.MakePersistentLoadPath(CacheFolderName);
+				value = $"{root}/{packageName}/{CachedRawFileFolder}";
+				_cachedRawFileFolder.Add(packageName, value);
+			}
+			return value;
+		}
+
+		/// <summary>
+		/// 获取应用程序的水印文件路径
+		/// </summary>
+		public static string GetAppFootPrintFilePath()
+		{
+			return PathHelper.MakePersistentLoadPath(AppFootPrintFileName);
+		}
+
+		/// <summary>
+		/// 获取沙盒内清单文件的路径
+		/// </summary>
+		public static string GetCacheManifestFilePath(string packageName, string packageVersion)
+		{
+			string fileName = YooAssetSettingsData.GetManifestBinaryFileName(packageName, packageVersion);
+			return PathHelper.MakePersistentLoadPath($"{ManifestFolderName}/{fileName}");
+		}
+
+		/// <summary>
+		/// 获取沙盒内包裹的哈希文件的路径
+		/// </summary>
+		public static string GetCachePackageHashFilePath(string packageName, string packageVersion)
+		{
+			string fileName = YooAssetSettingsData.GetPackageHashFileName(packageName, packageVersion);
+			return PathHelper.MakePersistentLoadPath($"{ManifestFolderName}/{fileName}");
+		}
+
+		/// <summary>
+		/// 获取沙盒内包裹的版本文件的路径
+		/// </summary>
+		public static string GetCachePackageVersionFilePath(string packageName)
+		{
+			string fileName = YooAssetSettingsData.GetPackageVersionFileName(packageName);
+			return PathHelper.MakePersistentLoadPath($"{ManifestFolderName}/{fileName}");
+		}
+
+		/// <summary>
+		/// 保存默认的包裹版本
+		/// </summary>
+		public static void SaveCachePackageVersionFile(string packageName, string version)
+		{
+			string filePath = GetCachePackageVersionFilePath(packageName);
+			FileUtility.CreateFile(filePath, version);
 		}
 	}
 }

@@ -6,79 +6,109 @@ using UnityEngine;
 
 namespace YooAsset.Editor
 {
+	[CreateAssetMenu(fileName = "AssetBundleCollectorSetting", menuName = "YooAsset/Create AssetBundle Collector Settings")]
 	public class AssetBundleCollectorSetting : ScriptableObject
 	{
+		/// <summary>
+		/// 是否显示包裹列表视图
+		/// </summary>
+		public bool ShowPackageView = false;
+
 		/// <summary>
 		/// 是否启用可寻址资源定位
 		/// </summary>
 		public bool EnableAddressable = false;
 
 		/// <summary>
-		/// 自动收集着色器
+		/// 资源包名唯一化
 		/// </summary>
-		public bool AutoCollectShaders = true;
+		public bool UniqueBundleName = false;
 
 		/// <summary>
-		/// 自动收集的着色器资源包名称
+		/// 是否显示编辑器别名
 		/// </summary>
-		public string ShadersBundleName = "myshaders";
+		public bool ShowEditorAlias = false;
+
 
 		/// <summary>
-		/// 分组列表
+		/// 包裹列表
 		/// </summary>
-		public List<AssetBundleCollectorGroup> Groups = new List<AssetBundleCollectorGroup>();
+		public List<AssetBundleCollectorPackage> Packages = new List<AssetBundleCollectorPackage>();
 
+
+		/// <summary>
+		/// 清空所有数据
+		/// </summary>
+		public void ClearAll()
+		{
+			EnableAddressable = false;
+			Packages.Clear();
+		}
 
 		/// <summary>
 		/// 检测配置错误
 		/// </summary>
 		public void CheckConfigError()
 		{
-			foreach (var group in Groups)
+			foreach (var package in Packages)
 			{
-				group.CheckConfigError();
+				package.CheckConfigError();
 			}
 		}
 
 		/// <summary>
-		/// 获取打包收集的资源文件
+		/// 修复配置错误
 		/// </summary>
-		public List<CollectAssetInfo> GetAllCollectAssets(EBuildMode buildMode)
+		public bool FixConfigError()
 		{
-			Dictionary<string, CollectAssetInfo> result = new Dictionary<string, CollectAssetInfo>(10000);
-
-			// 收集打包资源
-			foreach (var group in Groups)
+			bool isFixed = false;
+			foreach (var package in Packages)
 			{
-				var temper = group.GetAllCollectAssets(buildMode);
-				foreach (var assetInfo in temper)
+				if (package.FixConfigError())
 				{
-					if (result.ContainsKey(assetInfo.AssetPath) == false)
-						result.Add(assetInfo.AssetPath, assetInfo);
-					else
-						throw new Exception($"The collecting asset file is existed : {assetInfo.AssetPath} in group setting.");
+					isFixed = true;
+				}
+			}
+			return isFixed;
+		}
+
+		/// <summary>
+		/// 获取所有的资源标签
+		/// </summary>
+		public List<string> GetPackageAllTags(string packageName)
+		{
+			foreach (var package in Packages)
+			{
+				if (package.PackageName == packageName)
+				{
+					return package.GetAllTags();
 				}
 			}
 
-			// 检测可寻址地址是否重复
-			if (EnableAddressable)
+			Debug.LogWarning($"Not found package : {packageName}");
+			return new List<string>();
+		}
+
+		/// <summary>
+		/// 获取包裹收集的资源文件
+		/// </summary>
+		public CollectResult GetPackageAssets(EBuildMode buildMode, string packageName)
+		{
+			if (string.IsNullOrEmpty(packageName))
+				throw new Exception("Build package name is null or mepty !");
+
+			foreach (var package in Packages)
 			{
-				HashSet<string> adressTemper = new HashSet<string>();
-				foreach (var collectInfoPair in result)
+				if (package.PackageName == packageName)
 				{
-					if (collectInfoPair.Value.CollectorType == ECollectorType.MainAssetCollector)
-					{
-						string address = collectInfoPair.Value.Address;
-						if (adressTemper.Contains(address) == false)
-							adressTemper.Add(address);
-						else
-							throw new Exception($"The address is existed : {address} in group setting.");
-					}
+					CollectCommand command = new CollectCommand(buildMode, packageName, EnableAddressable, UniqueBundleName);
+					CollectResult collectResult = new CollectResult(command);
+					collectResult.SetCollectAssets(package.GetAllCollectAssets(command));
+					return collectResult;
 				}
 			}
 
-			// 返回列表
-			return result.Values.ToList();
+			throw new Exception($"Not found collector pacakge : {packageName}");
 		}
 	}
 }

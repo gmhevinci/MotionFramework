@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 namespace YooAsset.Editor
 {
@@ -212,6 +213,11 @@ namespace YooAsset.Editor
 		public static void FocusUnitySceneWindow()
 		{
 			EditorWindow.FocusWindowIfItsOpen<SceneView>();
+		} 
+		public static void CloseUnityGameWindow() 
+		{ 
+			System.Type T = Assembly.Load("UnityEditor").GetType("UnityEditor.GameView"); 
+			EditorWindow.GetWindow(T, false, "GameView", true).Close(); 
 		}
 		public static void FocusUnityGameWindow()
 		{
@@ -262,6 +268,49 @@ namespace YooAsset.Editor
 		public static void ClearUnityConsole()
 		{
 			ClearConsoleMethod.Invoke(new object(), null);
+		}
+		#endregion
+
+		#region SceneUtility
+		public static bool HasDirtyScenes()
+		{
+			var sceneCount = EditorSceneManager.sceneCount;
+			for (var i = 0; i < sceneCount; ++i)
+			{
+				var scene = EditorSceneManager.GetSceneAt(i);
+				if (scene.isDirty)
+					return true;
+			}
+			return false;
+		}
+		#endregion
+
+		#region StringUtility
+		public static List<string> StringToStringList(string str, char separator)
+		{
+			List<string> result = new List<string>();
+			if (!String.IsNullOrEmpty(str))
+			{
+				string[] splits = str.Split(separator);
+				foreach (string split in splits)
+				{
+					string value = split.Trim(); //移除首尾空格
+					if (!String.IsNullOrEmpty(value))
+					{
+						result.Add(value);
+					}
+				}
+			}
+			return result;
+		}
+
+		public static T NameToEnum<T>(string name)
+		{
+			if (Enum.IsDefined(typeof(T), name) == false)
+			{
+				throw new ArgumentException($"Enum {typeof(T)} is not defined name {name}");
+			}
+			return (T)Enum.Parse(typeof(T), name);
 		}
 		#endregion
 
@@ -329,14 +378,17 @@ namespace YooAsset.Editor
 		}
 
 		/// <summary>
-		/// 文件移动
+		/// 移动文件
 		/// </summary>
-		public static void FileMoveTo(string filePath, string destPath)
+		public static void MoveFile(string filePath, string destPath)
 		{
+			if (File.Exists(destPath))
+				File.Delete(destPath);
+
 			FileInfo fileInfo = new FileInfo(filePath);
 			fileInfo.MoveTo(destPath);
 		}
-
+		
 		/// <summary>
 		/// 拷贝文件夹
 		/// 注意：包括所有子目录的文件
@@ -530,7 +582,7 @@ namespace YooAsset.Editor
 		/// <param name="key">关键字</param>
 		/// <param name="includeKey">分割的结果里是否包含关键字</param>
 		/// <param name="searchBegin">是否使用初始匹配的位置，否则使用末尾匹配的位置</param>
-		private static string Substring(string content, string key, bool includeKey, bool firstMatch = true)
+		public static string Substring(string content, string key, bool includeKey, bool firstMatch = true)
 		{
 			if (string.IsNullOrEmpty(key))
 				return content;

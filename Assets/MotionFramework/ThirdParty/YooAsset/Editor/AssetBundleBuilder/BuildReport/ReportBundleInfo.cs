@@ -8,40 +8,40 @@ namespace YooAsset.Editor
 	[Serializable]
 	public class ReportBundleInfo
 	{
-		public class FlagsData
-		{
-			public bool IsEncrypted { private set; get; }
-			public bool IsBuildin { private set; get; }
-			public bool IsRawFile { private set; get; }
-			public FlagsData(bool isEncrypted, bool isBuildin, bool isRawFile)
-			{
-				IsEncrypted = isEncrypted;
-				IsBuildin = isBuildin;
-				IsRawFile = isRawFile;
-			}
-		}
-
-		private FlagsData _flagData;
-
 		/// <summary>
 		/// 资源包名称
 		/// </summary>
 		public string BundleName;
 
 		/// <summary>
-		/// 哈希值
+		/// 文件名称
 		/// </summary>
-		public string Hash;
+		public string FileName;
+
+		/// <summary>
+		/// 文件哈希值
+		/// </summary>
+		public string FileHash;
 
 		/// <summary>
 		/// 文件校验码
 		/// </summary>
-		public string CRC;
+		public string FileCRC;
 
 		/// <summary>
 		/// 文件大小（字节数）
 		/// </summary>
-		public long SizeBytes;
+		public long FileSize;
+
+		/// <summary>
+		/// 是否为原生文件
+		/// </summary>
+		public bool IsRawFile;
+
+		/// <summary>
+		/// 加载方法
+		/// </summary>
+		public EBundleLoadMethod LoadMethod;
 
 		/// <summary>
 		/// Tags
@@ -49,26 +49,14 @@ namespace YooAsset.Editor
 		public string[] Tags;
 
 		/// <summary>
-		/// Flags
+		/// 引用该资源包的ID列表
 		/// </summary>
-		public int Flags;
-
+		public int[] ReferenceIDs;
 
 		/// <summary>
-		/// 获取标志位的解析数据
+		/// 该资源包内包含的所有资源
 		/// </summary>
-		public FlagsData GetFlagData()
-		{
-			if (_flagData == null)
-			{
-				BitMask32 value = Flags;
-				bool isEncrypted = value.Test(0);
-				bool isBuildin = value.Test(1);
-				bool isRawFile = value.Test(2);
-				_flagData = new FlagsData(isEncrypted, isBuildin, isRawFile);
-			}
-			return _flagData;
-		}
+		public List<string> AllBuiltinAssets = new List<string>();
 
 		/// <summary>
 		/// 获取资源分类标签的字符串
@@ -79,17 +67,6 @@ namespace YooAsset.Editor
 				return String.Join(";", Tags);
 			else
 				return string.Empty;
-		}
-
-		/// <summary>
-		/// 是否为原生文件
-		/// </summary>
-		public bool IsRawFile()
-		{
-			if (System.IO.Path.GetExtension(BundleName) == $".{YooAssetSettingsData.Setting.RawFileVariant}")
-				return true;
-			else
-				return false;
 		}
 	}
 }

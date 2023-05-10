@@ -2,28 +2,46 @@
 
 namespace YooAsset
 {
-	[CreateAssetMenu(fileName = "YooAssetSettings", menuName = "YooAsset/Create Settings")]
+	[CreateAssetMenu(fileName = "YooAssetSettings", menuName = "YooAsset/Create YooAsset Settings")]
 	internal class YooAssetSettings : ScriptableObject
 	{
 		/// <summary>
-		/// AssetBundle文件的后缀名
+		/// 清单文件名称
 		/// </summary>
-		public string AssetBundleFileVariant = "bundle";
+		public string ManifestFileName = "PackageManifest";
+
 
 		/// <summary>
-		/// 原生文件的后缀名
+		/// 清单文件头标记
 		/// </summary>
-		public string RawFileVariant = "rawfile";
+		public const uint ManifestFileSign = 0x594F4F;
 
 		/// <summary>
-		/// 构建输出的补丁清单文件名称
+		/// 清单文件极限大小（100MB）
 		/// </summary>
-		public string PatchManifestFileName = "PatchManifest";
+		public const int ManifestFileMaxSize = 104857600;
 
 		/// <summary>
-		/// 构建输出的Unity清单文件名称
+		/// 清单文件格式版本
 		/// </summary>
-		public string UnityManifestFileName = "UnityManifest";
+		public const string ManifestFileVersion = "1.4.6";
+
+
+		/// <summary>
+		/// 缓存的数据文件名称
+		/// </summary>
+		public const string CacheBundleDataFileName = "__data";
+
+		/// <summary>
+		/// 缓存的信息文件名称
+		/// </summary>
+		public const string CacheBundleInfoFileName = "__info";
+
+
+		/// <summary>
+		/// 构建输出文件夹名称
+		/// </summary>
+		public const string OutputFolderName = "OutputCache";
 
 		/// <summary>
 		/// 构建输出的报告文件
@@ -31,8 +49,8 @@ namespace YooAsset
 		public const string ReportFileName = "BuildReport";
 
 		/// <summary>
-		/// 静态版本文件
+		/// 内置资源目录名称
 		/// </summary>
-		public const string VersionFileName = "StaticVersion.bytes";
+		public const string StreamingAssetsBuildinFolder = "BuildinFiles";
 	}
 }

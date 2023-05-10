@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -11,7 +10,7 @@ namespace YooAsset.Editor
 	[TaskAttribute("资源构建内容打包")]
 	public class TaskBuilding : IBuildTask
 	{
-		public class UnityManifestContext : IContextObject
+		public class BuildResultContext : IContextObject
 		{
 			public AssetBundleManifest UnityManifest;
 		}
@@ -26,40 +25,26 @@ namespace YooAsset.Editor
 			if (buildMode == EBuildMode.SimulateBuild)
 				return;
 
-			BuildAssetBundleOptions opt = buildParametersContext.GetPipelineBuildOptions();
-			AssetBundleManifest unityManifest = BuildPipeline.BuildAssetBundles(buildParametersContext.PipelineOutputDirectory, buildMapContext.GetPipelineBuilds(), opt, buildParametersContext.Parameters.BuildTarget);
-			if (unityManifest == null)
+			// 开始构建
+			string pipelineOutputDirectory = buildParametersContext.GetPipelineOutputDirectory();
+			BuildAssetBundleOptions buildOptions = buildParametersContext.GetPipelineBuildOptions();
+			AssetBundleManifest buildResults = BuildPipeline.BuildAssetBundles(pipelineOutputDirectory, buildMapContext.GetPipelineBuilds(), buildOptions, buildParametersContext.Parameters.BuildTarget);
+			if (buildResults == null)
+			{
 				throw new Exception("构建过程中发生错误！");
+			}
 
-			BuildRunner.Log("Unity引擎打包成功！");
-			UnityManifestContext unityManifestContext = new UnityManifestContext();
-			unityManifestContext.UnityManifest = unityManifest;
-			context.SetContextObject(unityManifestContext);
-
-			// 拷贝原生文件
 			if (buildMode == EBuildMode.ForceRebuild || buildMode == EBuildMode.IncrementalBuild)
 			{
-				CopyRawBundle(buildMapContext, buildParametersContext);
+				string unityOutputManifestFilePath = $"{pipelineOutputDirectory}/{YooAssetSettings.OutputFolderName}";
+				if (System.IO.File.Exists(unityOutputManifestFilePath) == false)
+					throw new Exception("构建过程中发生严重错误！请查阅上下文日志！");
 			}
-		}
 
-		/// <summary>
-		/// 拷贝原生文件
-		/// </summary>
-		private void CopyRawBundle(BuildMapContext buildMapContext, BuildParametersContext buildParametersContext)
-		{
-			foreach (var bundleInfo in buildMapContext.BundleInfos)
-			{
-				if (bundleInfo.IsRawFile)
-				{
-					string dest = $"{buildParametersContext.PipelineOutputDirectory}/{bundleInfo.BundleName}";
-					foreach (var buildAsset in bundleInfo.BuildinAssets)
-					{
-						if (buildAsset.IsRawAsset)
-							EditorTools.CopyFile(buildAsset.AssetPath, dest, true);
-					}
-				}
-			}
+			BuildLogger.Log("Unity引擎打包成功！");
+			BuildResultContext buildResultContext = new BuildResultContext();
+			buildResultContext.UnityManifest = buildResults;
+			context.SetContextObject(buildResultContext);
 		}
 	}
 }

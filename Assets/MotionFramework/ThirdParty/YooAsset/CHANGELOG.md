@@ -2,6 +2,830 @@
 
 All notable changes to this package will be documented in this file.
 
+## [1.4.12] - 2023-04-22
+
+### Changed
+
+- 增加了对WEBGL平台加密选项的检测。
+
+- 增加了YooAsset/Home Page菜单栏。
+
+- 增加了鼠标右键创建配置的菜单。
+
+- 增加了YooAssets.DestroyPackage()方法。
+
+  ```c#
+  class YooAssets
+  {
+      /// <summary>
+      /// 销毁资源包
+      /// </summary>
+      /// <param name="package">资源包对象</param>
+      public static void DestroyPackage(string packageName);
+  }
+  ```
+
+- UpdatePackageManifestAsync方法增加了新参数autoSaveVersion
+
+  ```c#
+  class ResourcePackage
+  {
+      /// <summary>
+      /// 向网络端请求并更新清单
+      /// </summary>
+      /// <param name="packageVersion">更新的包裹版本</param>
+      /// <param name="autoSaveVersion">更新成功后自动保存版本号，作为下次初始化的版本。</param>
+      /// <param name="timeout">超时时间（默认值：60秒）</param>
+      public UpdatePackageManifestOperation UpdatePackageManifestAsync(string packageVersion, bool autoSaveVersion = true, int timeout = 60)   
+  }
+  ```
+
+- BuildParameters类增加了新字段。
+
+  可以自定义共享资源文件的打包规则。
+
+  ```c#
+  class BuildParameters
+  {
+      /// <summary>
+      /// 共享资源的打包规则
+      /// </summary>
+      public IShareAssetPackRule ShareAssetPackRule = null;
+  }
+  ```
+
+## [1.4.11] - 2023-04-14
+
+### Fixed
+
+- (#97)修复了着色器变种收集配置无法保存的问题。
+- (#83)修复了资源收集界面Package列表没有实时刷新的问题。
+- (#48)优化了场景卸载机制，在切换场景的时候不在主动卸载资源。
+
+### Changed
+
+- 增加了扩展属性
+
+  ```c#
+  [assembly: InternalsVisibleTo("YooAsset.EditorExtension")]
+  [assembly: InternalsVisibleTo("YooAsset.RuntimeExtension")]
+  ```
+
+## [1.4.10] - 2023-04-08
+
+### Fixed
+
+- 修复了资源文件路径无效导致异常的问题。
+- 修复了原生文件不支持ini格式文件的问题。
+- 修复了通过代码途径导入XML配置的报错问题。
+
+## [1.4.9] - 2023-03-29
+
+### Fixed
+
+- 修复了资源配置界面的GroupActiveRule保存无效的问题。
+
+### Changed
+
+- 优化了资源配置导入逻辑，增加了对XML配置文件的合法性检测。
+
+- 优化了UniTask的说明文档。
+
+- 调整构建的输出目录结构。
+
+- 调试窗口增加分屏功能。（Unity2020.3+起效）
+
+- 报告窗口增加分屏功能。（Unity2020.3+起效）
+
+- 编辑器模拟模式支持了虚拟资源包。
+
+- 扩展了Instantiate方法。
+
+  ```c#
+  public sealed class AssetOperationHandle
+  {
+      public GameObject InstantiateSync();
+      public GameObject InstantiateSync(Transform parent);
+      public GameObject InstantiateSync(Transform parent, bool worldPositionStays);
+      public GameObject InstantiateSync(Vector3 position, Quaternion rotation);
+      public GameObject InstantiateSync(Vector3 position, Quaternion rotation, Transform parent);
+  }
+  ```
+
+### Added
+
+- 优化了报告文件内容，增加了资源包内嵌的资源列表。
+
+- 可寻址规则增加了AddressByFilePath类。
+
+- 新增了新方法。
+
+  ```c#
+  /// <summary>
+  /// 向远端请求并更新清单
+  /// </summary>
+  public class UpdatePackageManifestOperation : AsyncOperationBase
+  {
+  	/// <summary>
+  	/// 保存当前清单的版本，用于下次启动时自动加载的版本。
+  	/// </summary>
+  	public void SavePackageVersion();
+  }
+  ```
+
+- 新增了初始化参数。
+
+  ```c#
+  /// <summary>
+  /// 下载失败尝试次数
+  /// 注意：默认值为MaxValue
+  /// </summary>
+  public int DownloadFailedTryAgain = int.MaxValue;
+  ```
+
+- 新增了初始化参数。
+
+  ```c#
+  /// <summary>
+  /// 资源加载每帧处理的最大时间片段
+  /// 注意：默认值为MaxValue
+  /// </summary>
+  public long LoadingMaxTimeSlice = long.MaxValue;
+  ```
+
+### Removed
+
+- 移除了代码里的Patch敏感字。
+
+  ```c#
+  //PatchManifest.cs重命名为PackageManifest.cs
+  //AssetsPackage.cs重命名为ResourcePackage.cs
+  //YooAssets.CreateAssetsPackage()重命名为YooAssets.CreatePackage()
+  //YooAssets.GetAssetsPackage()重命名为YooAssets.GetPackage()
+  //YooAssets.TryGetAssetsPackage()重命名为YooAssets.TryGetPackage()
+  //YooAssets.HasAssetsPackage()重命名为YooAssets.HasPackage()
+  ```
+
+- 移除了初始化参数：AssetLoadingMaxNumber
+
+## [1.4.8] - 2023-03-10
+
+### Fixed
+
+- 修复了同步加载原生文件，程序卡死的问题。
+- 修复了可编程构建管线，当项目里没有着色器，如果有引用内置着色器会导致打包失败的问题。
+- 修复了在Unity2021.3版本下着色器收集界面错乱的问题。
+
+### Changed
+
+- 优化了打包逻辑，提高构建速度。
+
+- 支持自定义日志处理，方便收集线上问题。
+
+  ```c#
+  public class YooAssets
+  {
+      /// <summary>
+      /// 初始化资源系统
+      /// </summary>
+      /// <param name="logger">自定义日志处理</param>
+      public static void Initialize(ILogger logger = null)
+  }
+  ```
+
+## [1.4.7] - 2023-03-03
+
+### Fixed
+
+- 修复了在运行时资源引用链无效的问题。
+- 修复了在构建过程中发生异常后进度条未消失的问题。
+- 修复了使用SBP构建管线，如果有原生文件会导致打包失败的问题。
+
+### Changed
+
+- 支持自定义下载请求
+
+  ```c#
+  /// <summary>
+  /// 设置下载系统参数，自定义下载请求
+  /// </summary>
+  public static void SetDownloadSystemUnityWebRequest(DownloadRequestDelegate requestDelegate)
+  ```
+
+- 优化了打包时资源包引用关系计算的逻辑。
+
+- 优化了缓存系统初始化逻辑，支持分帧获取所有缓存文件。
+
+- 优化了缓存系统的存储目录结构，提高了文件夹查询速度。
+
+- 优化了在资源收集界面，点击查看Collector主资源列表卡顿问题。
+
+- 优化了资源对象加载耗时统计的逻辑，现在更加准确了。
+
+- 优化了资源加载器查询逻辑。
+
+- 优化了资源下载系统，下载文件的验证支持了多线程。
+
+- 着色器变种收集界面增加单次照射数量的控制。
+
+## [1.4.6-preview] - 2023-02-22
+
+### Changed
+
+- EVerifyLevel新增Middle级别。
+
+  ```c#
+  public enum EVerifyLevel
+  {
+      /// <summary>
+      /// 验证文件存在
+      /// </summary>
+      Low,
+      
+      /// <summary>
+      /// 验证文件大小
+      /// </summary>
+      Middle,
+  
+      /// <summary>
+      /// 验证文件大小和CRC
+      /// </summary>
+      High,
+  }
+  ```
+
+- 补丁清单的资源包列表新增引用链。
+
+  （解决复杂依赖关系下，错误卸载资源包的问题）
+
+- 缓存系统支持后缀格式存储。
+
+  （解决原生文件没有后缀格式的问题）
+
+- 收集界面增加用户自定义数据栏。
+
+## [1.4.5-preview] - 2023-02-17
+
+### Fixed
+
+- (#67)修复了报告查看界面在Unity2021.3上的兼容性问题。
+- (#66)修复了在Unity2021.3上编辑器模拟模式运行报错的问题。
+
+### Changed
+
+- 接口变更：IPackRule
+
+  ````c#
+  /// <summary>
+  /// 资源打包规则接口
+  /// </summary>
+  public interface IPackRule
+  {
+      /// <summary>
+      /// 获取打包规则结果
+      /// </summary>
+      PackRuleResult GetPackRuleResult(PackRuleData data);
+  
+      /// <summary>
+      /// 是否为原生文件打包规则
+      /// </summary>
+      bool IsRawFilePackRule();
+  }
+  ````
+
+## [1.4.4-preview] - 2023-02-14
+
+### Fixed
+
+- (#65)修复了AssetBundle构建宏逻辑错误。
+- 修复了AssetBundle加载宏逻辑错误。
+
+## [1.4.3-preview] - 2023-02-10
+
+全新的缓存系统！
+
+### Fixed
+
+- 修复了WebGL平台本地文件验证报错。
+- 修复了WEBGL平台加载原生文件失败的问题。
+- 修复了通过Handle句柄查询资源包下载进度为零的问题。
+
+### Changed
+
+- 着色器变种收集增加分批次处理功能。
+- Unity2021版本开始不再支持内置构建管线。
+
+### Removed
+
+- 太空战机DEMO移除了BetterStreamingAssets插件。
+
+## [1.4.2-preview] - 2023-01-03
+
+### Fixed
+
+- 修复了清单解析异步操作的进度条变化错误。
+- 修复了更新资源清单错误计算超时时间的问题。
+
+## [1.4.1-preview] - 2022-12-26
+
+### Fixed
+
+- 修复了开启UniqueBundleName选项后，SBP构建报错的问题。
+
+### Added
+
+- 新增了AssetsPackage.PreDownloadPackageAsync()方法
+
+  ````c#
+  /// <summary>
+  /// 预下载指定版本的包裹资源
+  /// </summary>
+  /// <param name="packageVersion">下载的包裹版本</param>
+  /// <param name="timeout">超时时间（默认值：60秒）</param>
+  public PreDownloadPackageOperation PreDownloadPackageAsync(string packageVersion, int timeout = 60)
+  ````
+
+- 新增了OperationHandleBase.GetDownloadReport()方法
+
+  ````c#
+  /// <summary>
+  /// 获取下载报告
+  /// </summary>
+  public DownloadReport GetDownloadReport();
+  ````
+
+### Changed
+
+- 优化了资源清单更新流程，支持缓存下载的清单。
+- 优化了清单文件的解析流程，支持分帧解析避免卡顿。
+- 优化了缓存文件的验证流程，支持分帧处理。
+- 初始化的时候支持覆盖安装检测，然后清理所有的缓存清单文件。
+- ClearPackageUnusedCacheFilesAsync重名为ClearUnusedCacheFilesAsync
+
+## [1.4.0-preview] - 2022-12-04
+
+### Fixed
+
+- (#46)修复了资源包初始化失败之后，再次初始化发生异常的问题。
+- 修复了在初始化失败的之后，销毁YooAssets会报异常的问题。
+
+### Changed
+
+- 优化了资源收集界面，可以选择显示中文别名。
+- **优化了补丁清单序列化方式，由文本数据修改为二进制数据。**
+- 资源操作句柄增加using支持。
+
+## [1.3.7] - 2022-11-26
+
+全新的太空战机Demo !
+
+### Fixed
+
+- (#45)修复了package列表更新触发的异常。
+
+### Added
+
+- 新增了YooAssets.Destroy()资源系统销毁方法。
+
+  ```C#
+  /// <summary>
+  /// 销毁资源系统
+  /// </summary>
+  public static void Destroy();
+  ```
+
+### Changed
+
+- 优化了资源收集规则，原生文件打包名称现在已经包含文件后缀名。
+- 优化了资源收集规则，非原生文件收集器自动移除Unity无法识别的文件。
+- 优化了调试信息窗口，列表元素的加载状态显示为文本。
+
+## [1.3.5] - 2022-11-19
+
+### Fixed
+
+- 修复了同步接口加载加密文件失败的问题。
+
+### Added
+
+- 新增了方法AssetsPackage.ClearPackageUnusedCacheFilesAsync()
+
+  ```c#
+  /// <summary>
+  /// 清理本地包裹未使用的缓存文件
+  /// </summary>
+  public ClearPackageUnusedCacheFilesOperation ClearPackageUnusedCacheFilesAsync()
+  ```
+
+- 新增了方法AssetsPackage.LoadRawFileAsync()
+
+  ```c#
+  /// <summary>
+  /// 异步加载原生文件
+  /// </summary>
+  /// <param name="location">资源的定位地址</param>
+  public RawFileOperationHandle LoadRawFileAsync(string location)
+  ```
+
+- 新增了方法AssetsPackage.LoadRawFileSync()
+
+  ```c#
+  /// <summary>
+  /// 同步加载原生文件
+  /// </summary>
+  /// <param name="location">资源的定位地址</param>
+  public RawFileOperationHandle LoadRawFileSync(string location)
+  ```
+
+### Changed
+
+- 重命名AssetsPackage.UpdateStaticVersionAsync()为AssetsPackage.UpdatePackageVersionAsync();
+- 重命名AssetsPackage.UpdateManifestAsync()为AssetsPackage.UpdatePackageManifestAsync();
+
+### Removed
+
+- 移除了方法YooAssets.ClearUnusedCacheFiles()
+- 移除了方法AssetsPackage.GetRawFileAsync()
+
+## [1.3.4] - 2022-11-04
+
+### Fixed
+
+- (#29)修复了EditorHelper中根据guid找uxml有时候会出错的问题。
+- (#37)修复了在修改GroupName和GroupDesc时，左侧Group栏显示没刷新的问题。
+- (#38)修复了工程里没有shader的话，SBP构建会报异常的问题。
+
+### Added
+
+- 新增了AssetsPackage.CheckPackageContentsAsync()方法
+
+  ```c#
+  /// <summary>
+  /// 检查本地包裹内容的完整性
+  /// </summary>
+  public CheckPackageContentsOperation CheckPackageContentsAsync()
+  ```
+
+### Changed
+
+- 优化了HostPlayMode的初始化逻辑，优先读取沙盒内的清单，如果不存在则读取内置清单。
+
+- 重写了文件的加密和解密逻辑。
+
+  ```c#
+  public interface IDecryptionServices
+  {
+      /// <summary>
+      /// 文件偏移解密方法
+      /// </summary>
+      ulong LoadFromFileOffset(DecryptFileInfo fileInfo);
+  
+      /// <summary>
+      /// 文件内存解密方法
+      /// </summary>
+      byte[] LoadFromMemory(DecryptFileInfo fileInfo);
+  
+      /// <summary>
+      /// 文件流解密方法
+      /// </summary>
+      System.IO.FileStream LoadFromStream(DecryptFileInfo fileInfo);
+  
+      /// <summary>
+      /// 文件流解密的托管缓存大小
+      /// </summary>
+      uint GetManagedReadBufferSize();
+  }
+  ```
+
+- AssetBundleBuilder界面增加了构建版本选项。
+
+### Removed
+
+- 移除了AssetsPackage.WeaklyUpdateManifestAsync()方法。
+
+## [1.3.3] - 2022-10-27
+
+### Fixed
+
+- 修复了资源回收方法无效的问题。
+
+### Added
+
+- 新增了PackageVersion构建参数。
+
+  ````c#
+  public class BuildParameters
+  {
+      /// <summary>
+      /// 构建的包裹版本
+      /// </summary>
+      public string PackageVersion;  
+  }
+  ````
+
+### Changed
+
+- AssetBundleDebugger窗口增加了包裹名称显示列。
+- AssetBundleDebugger窗口增加资源对象的加载耗时统计和显示。
+- AssetBundleDebugger窗口增加帧调试数据导出功能。
+- AssetBundleBuilder构建流程增加输出目录文件路径过长的检测。
+- 下载器返回的错误提示增加HTTP Response Code。
+- UpdateStaticVersionOperation.PackageCRC重名为UpdateStaticVersionOperation.PackageVersion。
+- AssetPackage.GetHumanReadableVersion()重名为AssetPackage.GetPackageVersion()
+
+## [1.3.2] - 2022-10-22
+
+### Fixed
+
+- 修复了AssetBundleCollector界面点击修复按钮界面没有刷新的问题。
+
+### Added
+
+- 新增了自定义证书认证方法。
+
+  ````c#
+  public static class YooAssets
+  {
+      /// <summary>
+      /// 设置下载系统参数，自定义的证书认证实例
+      /// </summary>
+      public static void SetDownloadSystemCertificateHandler(UnityEngine.Networking.CertificateHandler instance)
+  }
+  ````
+
+- 新增了下载失败后清理文件的方法。
+
+  ````c#
+  public static class YooAssets
+  {
+      /// <summary>
+      /// 设置下载系统参数，下载失败后清理文件的HTTP错误码
+      /// </summary>
+      public static void SetDownloadSystemClearFileResponseCode(List<long> codes)
+  }
+  ````
+
+- 新增了检查资源定位地址是否有效的方法。
+
+  ```c#
+  public class AssetsPackage
+  {
+      /// <summary>
+      /// 检查资源定位地址是否有效
+      /// </summary>
+      /// <param name="location">资源的定位地址</param>
+      public bool CheckLocationValid(string location)
+  }
+  ```
+
+### Removed
+
+- 移除了ILocationServices接口类和初始化字段。
+- 移除了AssetPackage.GetAssetPath(string location)方法。
+- 移除了BuildParameters.EnableAddressable字段。
+
+### Changed
+
+- AssetBundleCollector配置增加了UniqueBundleName设置，用于解决不同包裹之间Bundle名称冲突的问题。
+
+## [1.3.1] - 2022-10-18
+
+### Fixed
+
+- 修复了原生文件每次获取都重复拷贝的问题。
+- 修复了断点续传下载字节数统计不准确的问题。
+
+### Added
+
+- 所有下载相关方法增加超时判断参数。
+
+- 新增首包资源文件拷贝选项。
+
+  ```c#
+  public class BuildParameters
+  {
+      /// <summary>
+      /// 拷贝内置资源选项
+      /// </summary>
+      public ECopyBuildinFileOption CopyBuildinFileOption = ECopyBuildinFileOption.None;
+  
+      /// <summary>
+      /// 拷贝内置资源的标签
+      /// </summary>
+      public string CopyBuildinFileTags = string.Empty;  
+  }
+  ```
+
+- 新增资源包初始化查询字段。
+
+  ```c#
+  public class AssetsPackage
+  {
+      /// <summary>
+      /// 初始化状态
+      /// </summary>
+      public EOperationStatus InitializeStatus
+  }
+  ```
+
+- 增加获取人类可读的版本信息。
+
+  ````c#
+  public class AssetsPackage
+  {
+      /// <summary>
+      /// 获取人类可读的版本信息
+      /// </summary>
+      public string GetHumanReadableVersion()
+  }
+  ````
+
+- 新增资源缓存清理方法。
+
+  ```c#
+  public static class YooAssets
+  {
+      /// <summary>
+      /// 清理未使用的缓存文件
+      /// </summary>
+      public static ClearUnusedCacheFilesOperation ClearUnusedCacheFiles()  
+  }
+  ```
+
+- 异步操作类新增繁忙查询方法。
+
+  ````c#
+  public abstract class GameAsyncOperation
+  {
+      /// <summary>
+      /// 异步操作系统是否繁忙
+      /// </summary>
+      protected bool IsBusy() 
+  }
+  ````
+
+### Removed
+
+- 移除了AssetsPackage.IsInitialized()方法。
+- 移除了YooAssets.ClearAllCacheFiles()方法。
+
+### Changed
+
+- YooAssetsPackage类重名为AssetsPackage
+
+## [1.3.0-preview] - 2022-10-08
+
+该预览版本提供了分布式构建的功能，用于解决分工程或分内容构建的问题。
+
+### Added
+
+- 新增方法设置异步系统的每帧允许运行的最大时间切片。
+
+  ```c#
+  /// <summary>
+  /// 设置异步系统的每帧允许运行的最大时间切片（单位：毫秒）
+  /// </summary>
+  public static void SetOperationSystemMaxTimeSlice(long milliseconds)
+  ```
+
+- 新增方法设置缓存系统的已经缓存文件的校验等级。
+
+  ```c#
+  /// <summary>
+  /// 设置缓存系统的已经缓存文件的校验等级
+  /// </summary>
+  public static void SetCacheSystemCachedFileVerifyLevel(EVerifyLevel verifyLevel)
+  ```
+
+- 新增方法设置下载系统的断点续传功能的文件大小。
+
+  ````C#
+  /// <summary>
+  /// 启用下载系统的断点续传功能的文件大小
+  /// </summary>
+  public static void SetDownloadSystemBreakpointResumeFileSize(int fileBytes)
+  ````
+
+### Removed
+
+- 移除了资源版本号相关概念的代码。
+- 移除了TaskCopyBuildinFiles节点在构建流程里。
+- 移除了YooAssets.ClearUnusedCacheFiles()方法。
+- 移除了初始化参数 InitializeParameters.ClearCacheOnDirty
+- 移除了初始化参数 InitializeParameters.OperationSystemMaxTimeSlice
+- 移除了初始化参数 InitializeParameters.BreakpointResumeFileSize
+- 移除了初始化参数 InitializeParameters.VerifyLevel
+
+## [1.2.4] - 2022-09-22
+
+### Fixed
+
+- 修复了加密文件下载验证失败的问题。
+- 修复了可编程构建管线下模拟构建模式报错的问题。
+
+### Changed
+
+- 可编程构建管线强制使用增量构建模式。
+- 移除了对Gizmos资源的打包限制。
+- AssetBundleCollector窗口增加配置表修复功能。
+
+## [1.2.3] - 2022-09-09
+
+### Fixed
+
+- 修复了资源收集器无法识别.bank音频文件格式。
+
+### Changed
+
+- **HostPlayMode正式支持WebGL平台。**
+- AssetBundleCollector里的着色器收集选项已经移除，现在必定收集。
+- AssetBundleCollector修改了默认的打包规则类。
+- AssetBundleBuilder现在构建结果增加补丁包目录。
+- 更新了UniTask的Sample。
+- 优化了缓存系统的代码结构。
+- 使用了新的断点续传下载器。
+
+### Added
+
+- 增加清理缓存资源的异步操作类。
+
+````c#
+/// <summary>
+/// 清空未被使用的缓存文件
+/// </summary>
+public static ClearUnusedCacheFilesOperation ClearUnusedCacheFiles();
+````
+
+## [1.2.2] - 2022-07-31
+
+### Fixed
+
+- 修复了加载多个相同的子场景而无法全部卸载的问题。
+
+### Changed
+
+- ShaderVariantCollecor支持在CI上调用运行。
+
+- 资源补丁清单增加文件版本校验功能。
+
+- AssetBundleBuilder现在构建结果可以查询构建失败信息。
+
+- AssetBundleBuilder现在资源包文件名称样式提供选择功能。
+
+  ````c#
+  class BuildParameters
+  {
+      /// <summary>
+      /// 补丁文件名称的样式
+      /// </summary>
+      public EOutputNameStyle OutputNameStyle;
+  }
+  ````
+
+### Added
+
+- 增加获取资源信息新方法。
+
+  ````c#
+  /// <summary>
+  /// 获取资源信息
+  /// </summary>
+  /// <param name="location">资源的定位地址</param>
+  public static AssetInfo GetAssetInfo(string location);
+  ````
+
+## [1.2.1] - 2022-07-23
+
+### Fixed
+
+- (#25)修复了资源文件不存在返回的handle无法完成的问题。
+- (#26)修复多个场景打进一个AB包时，卸载子场景时抛出异常。
+
+### Changed
+
+- 构建报告里增加主资源总数的统计。
+- 资源构建系统里修改了内置构建管线的构建结果验证逻辑，移除了对中文路径的检测。
+- 资源构建系统里移除了对增量更新初次无法构建的限制。
+- 优化了缓存验证逻辑，不期望删除断点续传的资源文件。
+- 资源构建系统里SBP构建参数增加了缓存服务器的地址和端口。
+
+## [1.2.0] - 2022-07-18
+
+### Fixed
+
+- 修复了ShaderVariantCollection刷新不及时问题。
+
+### Changed
+
+- 资源收集忽略了Gizmos资源文件。
+- 解密服务接口增加解密文件信息参数。
+- 资源收集窗体增加配置保存按钮。
+- 资源构建窗体增加配置保存按钮。
+
+### Added
+
+- 资源构建模块增加了可编程构建管线(SBP)的支持，开发者可以在内置构建管线和可编程构建管线之间自由选择，零修改成本。
+
 ## [1.1.1] - 2022-07-07
 
 ### Fixed

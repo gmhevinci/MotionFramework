@@ -10,6 +10,33 @@ namespace YooAsset.Editor
 	public class BuildParameters
 	{
 		/// <summary>
+		/// SBP构建参数
+		/// </summary>
+		public class SBPBuildParameters
+		{
+			/// <summary>
+			/// 生成代码防裁剪配置
+			/// </summary>
+			public bool WriteLinkXML = true;
+
+			/// <summary>
+			/// 缓存服务器地址
+			/// </summary>
+			public string CacheServerHost;
+
+			/// <summary>
+			/// 缓存服务器端口
+			/// </summary>
+			public int CacheServerPort;
+		}
+
+		/// <summary>
+		/// 可编程构建管线的参数
+		/// </summary>
+		public SBPBuildParameters SBPParameters;
+
+
+		/// <summary>
 		/// 输出的根目录
 		/// </summary>
 		public string OutputRoot;
@@ -20,47 +47,60 @@ namespace YooAsset.Editor
 		public BuildTarget BuildTarget;
 
 		/// <summary>
+		/// 构建管线
+		/// </summary>
+		public EBuildPipeline BuildPipeline;
+
+		/// <summary>
 		/// 构建模式
 		/// </summary>
 		public EBuildMode BuildMode;
 
 		/// <summary>
-		/// 构建的版本（资源版本号）
+		/// 构建的包裹名称
 		/// </summary>
-		public int BuildVersion;
+		public string PackageName;
 
 		/// <summary>
-		/// 内置资源标签集合（首包资源标签）
-		/// 注意：分号为分隔符
+		/// 构建的包裹版本
 		/// </summary>
-		public string BuildinTags;
+		public string PackageVersion;
 
 
+		/// <summary>
+		/// 是否显示普通日志
+		/// </summary>
+		public bool EnableLog = true;
+		
 		/// <summary>
 		/// 验证构建结果
 		/// </summary>
 		public bool VerifyBuildingResult = false;
 
 		/// <summary>
-		/// 启用可寻址资源定位
+		/// 共享资源的打包规则
 		/// </summary>
-		public bool EnableAddressable = false;
+		public IShareAssetPackRule ShareAssetPackRule = null;
 
 		/// <summary>
-		/// 追加文件扩展名
-		/// </summary>
-		public bool AppendFileExtension = false;
-
-		/// <summary>
-		/// 拷贝内置资源文件到StreamingAssets目录（首包资源文件）
-		/// </summary>
-		public bool CopyBuildinTagFiles = false;
-
-
-		/// <summary>
-		/// 加密类
+		/// 资源的加密接口
 		/// </summary>
 		public IEncryptionServices EncryptionServices = null;
+
+		/// <summary>
+		/// 补丁文件名称的样式
+		/// </summary>
+		public EOutputNameStyle OutputNameStyle = EOutputNameStyle.HashName;
+
+		/// <summary>
+		/// 拷贝内置资源选项
+		/// </summary>
+		public ECopyBuildinFileOption CopyBuildinFileOption = ECopyBuildinFileOption.None;
+
+		/// <summary>
+		/// 拷贝内置资源的标签
+		/// </summary>
+		public string CopyBuildinFileTags = string.Empty;
 
 		/// <summary>
 		/// 压缩选项
@@ -76,14 +116,5 @@ namespace YooAsset.Editor
 		/// 忽略类型树变化
 		/// </summary>
 		public bool IgnoreTypeTreeChanges = true;
-
-
-		/// <summary>
-		/// 获取内置资源标签列表（首包资源标签）
-		/// </summary>
-		public List<string> GetBuildinTags()
-		{
-			return StringUtility.StringToStringList(BuildinTags, ';');
-		}
 	}
 }

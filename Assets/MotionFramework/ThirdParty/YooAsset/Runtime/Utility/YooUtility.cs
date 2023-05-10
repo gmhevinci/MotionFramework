@@ -55,37 +55,6 @@ namespace YooAsset
 			return _cacheBuilder.ToString();
 		}
 
-		public static List<string> StringToStringList(string str, char separator)
-		{
-			List<string> result = new List<string>();
-			if (!String.IsNullOrEmpty(str))
-			{
-				string[] splits = str.Split(separator);
-				foreach (string split in splits)
-				{
-					string value = split.Trim(); //移除首尾空格
-					if (!String.IsNullOrEmpty(value))
-					{
-						result.Add(value);
-					}
-				}
-			}
-			return result;
-		}
-		public static bool StringToBool(string str)
-		{
-			int value = (int)Convert.ChangeType(str, typeof(int));
-			return value > 0;
-		}
-		public static T NameToEnum<T>(string name)
-		{
-			if (Enum.IsDefined(typeof(T), name) == false)
-			{
-				throw new ArgumentException($"Enum {typeof(T)} is not defined name {name}");
-			}
-			return (T)Enum.Parse(typeof(T), name);
-		}
-
 		public static string RemoveFirstChar(string str)
 		{
 			if (string.IsNullOrEmpty(str))
@@ -117,9 +86,9 @@ namespace YooAsset
 	internal static class FileUtility
 	{
 		/// <summary>
-		/// 读取文件
+		/// 读取文件的文本数据
 		/// </summary>
-		public static string ReadFile(string filePath)
+		public static string ReadAllText(string filePath)
 		{
 			if (File.Exists(filePath) == false)
 				return string.Empty;
@@ -127,7 +96,17 @@ namespace YooAsset
 		}
 
 		/// <summary>
-		/// 创建文件
+		/// 读取文件的字节数据
+		/// </summary>
+		public static byte[] ReadAllBytes(string filePath)
+		{
+			if (File.Exists(filePath) == false)
+				return null;
+			return File.ReadAllBytes(filePath);
+		}
+
+		/// <summary>
+		/// 创建文件（如果已经存在则删除旧文件）
 		/// </summary>
 		public static void CreateFile(string filePath, string content)
 		{
@@ -143,6 +122,27 @@ namespace YooAsset
 			using (FileStream fs = File.Create(filePath))
 			{
 				fs.Write(bytes, 0, bytes.Length);
+				fs.Flush();
+				fs.Close();
+			}
+		}
+
+		/// <summary>
+		/// 创建文件（如果已经存在则删除旧文件）
+		/// </summary>
+		public static void CreateFile(string filePath, byte[] data)
+		{
+			// 删除旧文件
+			if (File.Exists(filePath))
+				File.Delete(filePath);
+
+			// 创建文件夹路径
+			CreateFileDirectory(filePath);
+
+			// 创建新文件
+			using (FileStream fs = File.Create(filePath))
+			{
+				fs.Write(data, 0, data.Length);
 				fs.Flush();
 				fs.Close();
 			}

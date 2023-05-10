@@ -13,9 +13,9 @@ namespace YooAsset.Editor
 	public class AssetBundleDebuggerWindow : EditorWindow
 	{
 		[MenuItem("YooAsset/AssetBundle Debugger", false, 104)]
-		public static void ShowExample()
+		public static void OpenWindow()
 		{
-			AssetBundleDebuggerWindow wnd = GetWindow<AssetBundleDebuggerWindow>("资源包调试工具", true, EditorDefine.DockedWindowTypes);
+			AssetBundleDebuggerWindow wnd = GetWindow<AssetBundleDebuggerWindow>("资源包调试工具", true, WindowsDefine.DockedWindowTypes);
 			wnd.minSize = new Vector2(800, 600);
 		}
 
@@ -63,7 +63,7 @@ namespace YooAsset.Editor
 				VisualElement root = rootVisualElement;
 
 				// 加载布局文件
-				var visualAsset = EditorHelper.LoadWindowUXML<AssetBundleDebuggerWindow>();
+				var visualAsset = UxmlLoader.LoadWindowUXML<AssetBundleDebuggerWindow>();
 				if (visualAsset == null)
 					return;
 
@@ -72,6 +72,10 @@ namespace YooAsset.Editor
 				// 采样按钮
 				var sampleBtn = root.Q<Button>("SampleButton");
 				sampleBtn.clicked += SampleBtn_onClick;
+
+				// 导出按钮
+				var exportBtn = root.Q<Button>("ExportButton");
+				exportBtn.clicked += ExportBtn_clicked;
 
 				// 用户列表菜单
 				_playerName = root.Q<Label>("PlayerName");
@@ -250,6 +254,32 @@ namespace YooAsset.Editor
 			byte[] data = RemoteCommand.Serialize(command);
 			EditorConnection.instance.Send(RemoteDebuggerDefine.kMsgSendEditorToPlayer, data);
 			RemoteDebuggerInRuntime.EditorRequestDebugReport();
+		}
+		private void ExportBtn_clicked()
+		{
+			if (_currentReport == null)
+			{
+				Debug.LogWarning("Debug report is null.");
+				return;
+			}
+
+			string resultPath = EditorTools.OpenFolderPanel("Export JSON", "Assets/");
+			if (resultPath != null)
+			{
+				// 注意：排序保证生成配置的稳定性
+				foreach (var packageData in _currentReport.PackageDatas)
+				{
+					packageData.ProviderInfos.Sort();
+					foreach (var providerInfo in packageData.ProviderInfos)
+					{
+						providerInfo.DependBundleInfos.Sort();
+					}
+				}
+
+				string filePath = $"{resultPath}/{nameof(DebugReport)}_{_currentReport.FrameCount}.json";
+				string fileContent = JsonUtility.ToJson(_currentReport, true);
+				FileUtility.CreateFile(filePath, fileContent);
+			}
 		}
 		private void OnSearchKeyWordChange(ChangeEvent<string> e)
 		{

@@ -3,8 +3,9 @@
 namespace YooAsset
 {
 	public class SceneOperationHandle : OperationHandleBase
-	{
+	{	
 		private System.Action<SceneOperationHandle> _callback;
+		internal string PackageName { set; get; }
 
 		internal SceneOperationHandle(ProviderBase provider) : base(provider)
 		{
@@ -21,7 +22,7 @@ namespace YooAsset
 		{
 			add
 			{
-				if (IsValid == false)
+				if (IsValidWithWarning == false)
 					throw new System.Exception($"{nameof(SceneOperationHandle)} is invalid");
 				if (Provider.IsDone)
 					value.Invoke(this);
@@ -30,7 +31,7 @@ namespace YooAsset
 			}
 			remove
 			{
-				if (IsValid == false)
+				if (IsValidWithWarning == false)
 					throw new System.Exception($"{nameof(SceneOperationHandle)} is invalid");
 				_callback -= value;
 			}
@@ -43,7 +44,7 @@ namespace YooAsset
 		{
 			get
 			{
-				if (IsValid == false)
+				if (IsValidWithWarning == false)
 					return new Scene();
 				return Provider.SceneObject;
 			}
@@ -54,7 +55,7 @@ namespace YooAsset
 		/// </summary>
 		public bool ActivateScene()
 		{
-			if (IsValid == false)
+			if (IsValidWithWarning == false)
 				return false;
 
 			if (SceneObject.IsValid() && SceneObject.isLoaded)
@@ -73,7 +74,7 @@ namespace YooAsset
 		/// </summary>
 		public bool IsMainScene()
 		{
-			if (IsValid == false)
+			if (IsValidWithWarning == false)
 				return false;
 
 			if (Provider is DatabaseSceneProvider)
@@ -98,11 +99,11 @@ namespace YooAsset
 		public UnloadSceneOperation UnloadAsync()
 		{
 			// 如果句柄无效
-			if (IsValid == false)
+			if (IsValidWithWarning == false)
 			{
 				string error = $"{nameof(SceneOperationHandle)} is invalid.";
 				var operation = new UnloadSceneOperation(error);
-				OperationSystem.StartOperaiton(operation);
+				OperationSystem.StartOperation(operation);
 				return operation;
 			}
 
@@ -112,16 +113,16 @@ namespace YooAsset
 				string error = $"Cannot unload main scene. Use {nameof(YooAssets.LoadSceneAsync)} method to change the main scene !";
 				YooLogger.Error(error);
 				var operation = new UnloadSceneOperation(error);
-				OperationSystem.StartOperaiton(operation);
+				OperationSystem.StartOperation(operation);
 				return operation;
 			}
 
 			// 卸载子场景
 			Scene sceneObject = SceneObject;
-			AssetSystem.UnloadSubScene(Provider);
+			Provider.Impl.UnloadSubScene(Provider);
 			{
 				var operation = new UnloadSceneOperation(sceneObject);
-				OperationSystem.StartOperaiton(operation);
+				OperationSystem.StartOperation(operation);
 				return operation;
 			}
 		}

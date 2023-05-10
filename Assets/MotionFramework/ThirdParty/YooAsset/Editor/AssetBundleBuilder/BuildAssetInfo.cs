@@ -7,8 +7,6 @@ namespace YooAsset.Editor
 {
 	public class BuildAssetInfo
 	{
-		private string _mainBundleName;
-		private string _shareBundleName;
 		private bool _isAddAssetTags = false;
 		private readonly HashSet<string> _referenceBundleNames = new HashSet<string>();
 
@@ -16,6 +14,11 @@ namespace YooAsset.Editor
 		/// 收集器类型
 		/// </summary>
 		public ECollectorType CollectorType { private set; get; }
+
+		/// <summary>
+		/// 资源包完整名称
+		/// </summary>
+		public string BundleName { private set; get; }
 
 		/// <summary>
 		/// 可寻址地址
@@ -54,16 +57,16 @@ namespace YooAsset.Editor
 		public List<BuildAssetInfo> AllDependAssetInfos { private set; get; }
 
 
-		public BuildAssetInfo(ECollectorType collectorType, string mainBundleName, string address, string assetPath, bool isRawAsset)
+		public BuildAssetInfo(ECollectorType collectorType, string bundleName, string address, string assetPath, bool isRawAsset)
 		{
-			_mainBundleName = mainBundleName;
 			CollectorType = collectorType;
+			BundleName = bundleName;
 			Address = address;
 			AssetPath = assetPath;
 			IsRawAsset = isRawAsset;
 
 			System.Type assetType = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-			if (assetType == typeof(UnityEngine.Shader))
+			if (assetType == typeof(UnityEngine.Shader) || assetType == typeof(UnityEngine.ShaderVariantCollection))
 				IsShaderAsset = true;
 			else
 				IsShaderAsset = false;
@@ -76,7 +79,7 @@ namespace YooAsset.Editor
 			IsRawAsset = false;
 
 			System.Type assetType = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-			if (assetType == typeof(UnityEngine.Shader))
+			if (assetType == typeof(UnityEngine.Shader) || assetType == typeof(UnityEngine.ShaderVariantCollection))
 				IsShaderAsset = true;
 			else
 				IsShaderAsset = false;
@@ -112,7 +115,7 @@ namespace YooAsset.Editor
 				}
 			}
 		}
-		
+
 		/// <summary>
 		/// 添加资源包的分类标签
 		/// 说明：传染算法统计到的分类标签
@@ -133,22 +136,10 @@ namespace YooAsset.Editor
 		/// </summary>
 		public bool HasBundleName()
 		{
-			string bundleName = GetBundleName();
-			if (string.IsNullOrEmpty(bundleName))
+			if (string.IsNullOrEmpty(BundleName))
 				return false;
 			else
 				return true;
-		}
-
-		/// <summary>
-		/// 获取资源包名称
-		/// </summary>
-		public string GetBundleName()
-		{
-			if (CollectorType == ECollectorType.None)
-				return _shareBundleName;
-			else
-				return _mainBundleName;
 		}
 
 		/// <summary>
@@ -164,44 +155,31 @@ namespace YooAsset.Editor
 		}
 
 		/// <summary>
-		/// 计算主资源或共享资源的完整包名
+		/// 计算共享资源包的完整包名
 		/// </summary>
-		public void CalculateFullBundleName()
+		public void CalculateShareBundleName(IShareAssetPackRule packRule, bool uniqueBundleName, string packageName, string shadersBundleName)
 		{
-			if (CollectorType == ECollectorType.None)
+			if (CollectorType != ECollectorType.None)
+				return;
+
+			if (IsRawAsset)
+				throw new Exception("Should never get here !");
+
+			if (IsShaderAsset)
 			{
-				if (IsRawAsset)
-					throw new Exception("Should never get here !");
-
-				if (AssetBundleCollectorSettingData.Setting.AutoCollectShaders)
-				{
-					if (IsShaderAsset)
-					{
-						string shareBundleName = $"{AssetBundleCollectorSettingData.Setting.ShadersBundleName}.{YooAssetSettingsData.Setting.AssetBundleFileVariant}";
-						_shareBundleName = EditorTools.GetRegularPath(shareBundleName).ToLower();
-						return;
-					}
-				}
-
-				if (_referenceBundleNames.Count > 1)
-				{
-					IPackRule packRule = PackDirectory.StaticPackRule;
-					var bundleName = packRule.GetBundleName(new PackRuleData(AssetPath));
-					var shareBundleName = $"share_{bundleName}.{YooAssetSettingsData.Setting.AssetBundleFileVariant}";
-					_shareBundleName = EditorTools.GetRegularPath(shareBundleName).ToLower();
-				}
+				BundleName = shadersBundleName;
 			}
 			else
 			{
-				if (IsRawAsset)
+				if (_referenceBundleNames.Count > 1)
 				{
-					string mainBundleName = $"{_mainBundleName}.{YooAssetSettingsData.Setting.RawFileVariant}";
-					_mainBundleName = EditorTools.GetRegularPath(mainBundleName).ToLower();
+					PackRuleResult packRuleResult = packRule.GetPackRuleResult(AssetPath);
+					BundleName = packRuleResult.GetShareBundleName(packageName, uniqueBundleName);
 				}
 				else
 				{
-					string mainBundleName = $"{_mainBundleName}.{YooAssetSettingsData.Setting.AssetBundleFileVariant}";
-					_mainBundleName = EditorTools.GetRegularPath(mainBundleName).ToLower(); ;
+					// 注意：被引用次数小于1的资源不需要设置资源包名称
+					BundleName = string.Empty;
 				}
 			}
 		}
